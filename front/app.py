@@ -61,9 +61,9 @@ else:
     # Centrer l'image avec des colonnes
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        st.image("layout/assets/Theforge_logo.png", width=500)
+        st.image("front/layout/assets/Theforge_logo.png", width=500)
     
     #ajouter un gif de la page d'accueil
     col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 1])
     with col3:
-        st.image("layout/assets/pixel_epee.gif", width=300)
+        st.image("front/layout/assets/pixel_epee.gif", width=300)
