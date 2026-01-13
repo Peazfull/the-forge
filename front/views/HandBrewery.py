@@ -26,6 +26,10 @@ if "text_status" not in st.session_state:
 if "text_progress" not in st.session_state:
     st.session_state.text_progress = 0
 
+if "ai_preview_text" not in st.session_state:
+    st.session_state.ai_preview_text = ""
+
+
 # ======================================================
 # BLOC 1 — URL
 # ======================================================
@@ -111,8 +115,67 @@ if st.session_state.text_status:
 
 st.divider()
 
+
+
+#======================================================
+# BLOC 3 — PREVIEW AI
+#======================================================
+st.subheader("👀 Preview de l'IA")
+
+# ---- Bouton lancer (simule l'output IA)
+if st.button("🚀 Générer preview IA", key="generate_preview"):
+    st.session_state.ai_preview_text = f"""
+### Marchés européens en hausse
+Zone: Europe
+Thème: Bourse
+Labels: CAC 40, Actions
+
+Les marchés européens ont progressé ce matin portés par le secteur bancaire.
+
+---
+
+### Inflation sous contrôle aux États-Unis
+Zone: US
+Thème: Macro
+Labels: Inflation, Fed
+
+Les derniers chiffres montrent un ralentissement de l’inflation, rassurant les investisseurs.
+
+---
+
+Généré à {datetime.now().strftime('%H:%M:%S')}
+"""
+
+# ---- Zone éditable globale
+if st.session_state.ai_preview_text:
+    edited_preview = st.text_area(
+        label="",
+        value=st.session_state.ai_preview_text,
+        height=450,
+        key="ai_preview_editor"
+    )
+
+    col_validate, col_clear = st.columns([1, 1])
+
+    # ---- Bouton valider
+    with col_validate:
+        if st.button("✅ Valider et envoyer en DB", key="validate_preview", use_container_width=True):
+            # TODO :
+            # - parser edited_preview
+            # - répartir en blocs
+            # - insérer en DB
+            st.success("Contenu validé (DB à brancher)")
+    
+    # ---- Bouton clear
+    with col_clear:
+        if st.button("🧹 Clear preview", key="clear_preview", use_container_width=True):
+            st.session_state.ai_preview_text = ""
+            st.rerun()
+
+st.divider()
+
 # ======================================================
-# BLOC 3 — TABLE DB (MOCK)
+# BLOC 4 — TABLE DB (MOCK)
 # ======================================================
 
 st.subheader("🗄️ Contenu de la base de données")
