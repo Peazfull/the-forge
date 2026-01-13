@@ -5,7 +5,8 @@ def render_sidebar():
     with st.sidebar:
 
         # LOGO
-        st.image("layout/assets/Theforge_logo.png", width=200)
+        st.image("front/layout/assets/Theforge_logo.png", width=200)
+
 
         # HOME
         if st.button("🏠 Home", key="home", use_container_width=True):
