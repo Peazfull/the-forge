@@ -1,5 +1,6 @@
 import streamlit as st
 from layout.sidebar import render_sidebar
+from services.supabase_client import get_supabase
 import importlib.util
 import sys
 import os
@@ -65,6 +66,21 @@ else:
     
     #test supabase
     st.write("SUPABASE_URL loaded:", "SUPABASE_URL" in st.secrets)
+    
+    if st.button("Insert test row"):
+        supabase = get_supabase()
+
+        data = {
+            "flow": "hand_text",
+            "status": "draft",
+            "source_type": "manual",
+            "source_raw": "Test insert depuis app déployée",
+            "title": "Premier insert Streamlit",
+            "score_global": 7.5
+        }
+
+    supabase.table("brew_items").insert(data).execute()
+    st.success("Ligne insérée en base ✅")
     
     #ajouter un gif de la page d'accueil
     col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 1])
