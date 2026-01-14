@@ -63,6 +63,9 @@ else:
     with col2:
         st.image("front/layout/assets/Theforge_logo.png", width=500)
     
+    #test supabase
+    st.write("SUPABASE_URL loaded:", "SUPABASE_URL" in st.secrets)
+    
     #ajouter un gif de la page d'accueil
     col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 1])
     with col3:
