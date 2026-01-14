@@ -64,8 +64,13 @@ else:
     with col2:
         st.image("front/layout/assets/Theforge_logo.png", width=500)
     
-    #test supabase
-    st.write("SUPABASE_URL loaded:", "SUPABASE_URL" in st.secrets)
+    # Test de connexion Supabase
+    try:
+        supabase = get_supabase()
+        supabase.table("brew_items").select("id").limit(1).execute()
+        st.success("✅ Connexion Supabase : OK")
+    except Exception as e:
+        st.error(f"❌ Connexion Supabase : ERREUR ({str(e)})")
 
     
     #ajouter un gif de la page d'accueil
