@@ -138,7 +138,7 @@ Score :
   - la clarté et la valeur informationnelle pour un investisseur particulier
 
 ────────────────────────
-📦 FORMAT DE SORTIE OBLIGATOIRE — JSON STRICT
+📦 FORMAT DE SORTIE MEGA MEGA MEGA OBLIGATOIRE — JSON STRICT, un vrai JSON avec des champs et des valeurs.
 ────────────────────────
 
 {
@@ -169,7 +169,7 @@ Score :
 ────────────────────────
 ⚠️ CONTRAINTES FINALES
 ────────────────────────
-- Aucun texte hors JSON
+- Aucun texte hors JSON, un vrai JSON avec des champs et des valeurs. c'est important.
 - Aucun markdown
 - Aucun commentaire
 - Le tableau items doit toujours exister
