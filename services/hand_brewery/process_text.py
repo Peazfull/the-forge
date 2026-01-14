@@ -1,4 +1,5 @@
 import streamlit as st
+import json
 from openai import OpenAI
 from services.prompts.process_text_prompt import PROMPT_PROCESS_TEXT
 
@@ -32,19 +33,18 @@ def process_text(text: str) -> dict:
     )
 
     ai_text = response.choices[0].message.content
-
-    return {
-        "status": "success",
-        "items": [
-            {
-                "title": "Preview OpenAI brute",
-                "content": ai_text,
-                "tags": ["openai"],
-                "labels": [],
-                "zone": [],
-                "country": [],
-                "score": 0.0
-            }
-        ]
-    }
+    
+    # Parser le JSON retourné par l'IA
+    try:
+        ai_data = json.loads(ai_text)
+        return {
+            "status": "success",
+            "items": ai_data.get("items", [])
+        }
+    except json.JSONDecodeError as e:
+        return {
+            "status": "error",
+            "message": f"Erreur de parsing JSON: {str(e)}",
+            "items": []
+        }
 
