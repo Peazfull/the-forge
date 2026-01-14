@@ -28,6 +28,7 @@ def process_text(text: str) -> dict:
             }
         ],
         temperature=0.3,
+        response_format={"type": "json_object"}
     )
 
     ai_text = response.choices[0].message.content
