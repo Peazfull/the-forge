@@ -79,8 +79,8 @@ else:
             "score_global": 7.5
         }
 
-    supabase.table("brew_items").insert(data).execute()
-    st.success("Ligne insérée en base ✅")
+        supabase.table("brew_items").insert(data).execute()
+        st.success("Ligne insérée en base ✅")
     
     #ajouter un gif de la page d'accueil
     col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 1])
