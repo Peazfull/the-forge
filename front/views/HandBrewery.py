@@ -3,6 +3,16 @@ from services.hand_brewery.process_text import process_text
 from datetime import datetime
 
 # ======================================================
+# CALLBACKS (AVANT LES WIDGETS)
+# ======================================================
+
+def clear_text_input():
+    st.session_state.hand_text_input = ""
+    st.session_state.text_status = []
+    st.session_state.text_progress = 0
+    st.session_state.ai_preview_text = ""
+
+# ======================================================
 # TITRE PAGE
 # ======================================================
 
@@ -84,7 +94,8 @@ st.subheader("✍️ Coller du texte")
 text_input = st.text_area(
     "Texte à analyser",
     placeholder="Colle ici ton article ou ton texte brut…",
-    height=250
+    height=250,
+    key="hand_text_input"
 )
 
 col_text_1, col_text_2 = st.columns(2)
@@ -131,10 +142,12 @@ Tags: {', '.join(item['tags'])}
             st.error(f"Erreur : {result['message']}")
 
 with col_text_2:
-    if st.button("🧹 Clear TEXTE", use_container_width=True):
-        st.session_state.text_status = []
-        st.session_state.text_progress = 0
-        st.session_state.ai_preview_text = ""
+    st.button(
+        "🧹 Clear TEXTE",
+        use_container_width=True,
+        on_click=clear_text_input
+    )
+
 
 # --- AFFICHAGE STATUT TEXTE ---
 if st.session_state.text_status:
