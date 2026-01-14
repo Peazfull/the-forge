@@ -1,5 +1,7 @@
 import streamlit as st
 from openai import OpenAI
+from services.prompts.process_text_prompt import PROMPT_PROCESS_TEXT
+
 
 # Création du client OpenAI
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
@@ -18,7 +20,7 @@ def process_text(text: str) -> dict:
         messages=[
             {
                 "role": "system",
-                "content": "Tu es un assistant qui resume et rephrase totaltement cet article en une petit paragraphe clef"
+                "content": PROMPT_PROCESS_TEXT
             },
             {
                 "role": "user",
