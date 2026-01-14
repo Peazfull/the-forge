@@ -18,7 +18,7 @@ def process_text(text: str) -> dict:
         messages=[
             {
                 "role": "system",
-                "content": "Tu es un assistant qui reformule un texte de façon claire."
+                "content": "Tu es un assistant qui resume et reformule cet article en une petit paragraphe clef"
             },
             {
                 "role": "user",
