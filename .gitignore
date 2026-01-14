@@ -11,3 +11,6 @@ __pycache__/
 
 # Environnements virtuels
 .Python
+
+# Secrets Streamlit (NE JAMAIS COMMITER)
+.streamlit/secrets.toml
