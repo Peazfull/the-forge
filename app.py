@@ -4,6 +4,11 @@ from services.supabase_client import get_supabase
 import importlib.util
 import sys
 import os
+import os
+import streamlit as st
+
+st.write("ROOT FILES:", os.listdir("."))
+
 
 # Configuration de la page pour cacher la navigation automatique
 st.set_page_config(
