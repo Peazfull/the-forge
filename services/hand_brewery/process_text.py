@@ -1,7 +1,7 @@
 import streamlit as st
 import json
 from openai import OpenAI
-from prompts.process_text_prompt import PROMPT_PROCESS_TEXT
+from prompts.hand_brewery.process_text import PROMPT_PROCESS_TEXT
 
 
 # Création du client OpenAI
