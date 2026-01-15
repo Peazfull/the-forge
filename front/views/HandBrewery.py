@@ -4,7 +4,8 @@ from datetime import datetime
 from services.hand_brewery.process_text import process_text
 from services.raw_storage.raw_news_service import (
     enrich_raw_items,
-    insert_raw_news
+    insert_raw_news,
+    fetch_raw_news
 )
 
 
@@ -181,18 +182,20 @@ if st.session_state.ai_preview_text:
 st.divider()
 
 # ======================================================
-# BLOC 4 — DB (MOCK)
+# BLOC 4 — DERNIERS CONTENUS EN BASE
 # ======================================================
 
-st.subheader("🗄️ Contenu de la base (mock)")
+st.subheader("🗄️ Derniers contenus en base 👇")
 
-mock_db = [
-    {
-        "source": "TEXTE",
-        "nb_news": 6,
-        "status": "DONE",
-        "finished_at": datetime.now().strftime("%Y-%m-%d %H:%M")
-    }
-]
+with st.expander("Tout voir 👀", expanded = False):
 
-st.dataframe(mock_db, use_container_width=True, hide_index=True)
+    raw_items = fetch_raw_news(limit=50)
+
+    if not raw_items:
+        st.caption("Aucun contenu en base pour le moment")
+    else:
+        for item in raw_items:
+            st.markdown("---")
+            st.caption(f"🕒 {item['processed_at']} · Source : {item['source_type']}")
+            st.markdown(f"**{item['title']}**")
+            st.write(item['content'])

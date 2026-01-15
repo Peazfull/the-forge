@@ -95,3 +95,21 @@ def insert_raw_news(items: list) -> dict:
             "status": "error",
             "message": str(e)
         }
+
+def fetch_raw_news(limit: int = 50) -> list:
+    """
+    Fetch latest raw news items ordered by processed_at DESC.
+    """
+
+    supabase = get_supabase_client()
+
+    response = (
+        supabase
+        .table("brew_items")
+        .select("processed_at, title, content, source_type")
+        .order("processed_at", desc=True)
+        .limit(limit)
+        .execute()
+    )
+
+    return response.data or []
