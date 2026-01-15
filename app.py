@@ -94,25 +94,28 @@ else:
     # ---------- DB STATUS ----------
     st.subheader("🗄️ Statut base de données")
 
+    col_status, col_clear = st.columns([3, 1])
+
     try:
         supabase = get_supabase()
         supabase.table("brew_items").select("id").limit(1).execute()
 
         stats = get_brew_items_stats()
 
-        if "error" in stats:
-            st.error(f"Erreur DB : {stats['error']}")
-        else:
-            if stats["count"] == 0:
-                st.success("Connexion DB OK · Aucun bulletin en base")
+        with col_status:
+            if "error" in stats:
+                st.error(f"Erreur DB : {stats['error']}")
             else:
-                st.success(
-                    f"Connexion DB OK · {stats['count']} bulletins "
-                    f"({format_datetime(stats['min_date'])} → {format_datetime(stats['max_date'])})"
+                if stats["count"] == 0:
+                    st.success("Connexion DB OK · Aucun bulletin en base")
+                else:
+                    st.success(
+                        f"Connexion DB OK · {stats['count']} bulletins "
+                        f"({format_datetime(stats['min_date'])} → {format_datetime(stats['max_date'])})"
                     )
 
-            # ----- CLEAR DB BUTTON -----
-            if st.button("🧹 Clear DB (brew_items)"):
+        with col_clear:
+            if st.button("🧹 Clear DB", use_container_width=True):
                 result = brew_items_erase()
 
                 if result["status"] == "success":
