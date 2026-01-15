@@ -189,7 +189,7 @@ st.subheader("🗄️ Derniers contenus en base 👇")
 
 with st.expander("Tout voir 👀", expanded = False):
 
-    raw_items = fetch_raw_news(limit=50)
+    raw_items = fetch_raw_news(limit=100)
 
     if not raw_items:
         st.caption("Aucun contenu en base pour le moment")
