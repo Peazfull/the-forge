@@ -92,7 +92,7 @@ else:
     st.divider()
 
     # ---------- DB STATUS ----------
-    st.subheader("🗄️ Statut base de données")
+    st.write("🗄️ Statut base de données")
 
     col_status, col_clear = st.columns([3, 1])
 
