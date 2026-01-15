@@ -1,6 +1,6 @@
 import streamlit as st
 from front.layout.sidebar import render_sidebar
-from services.supabase_client import get_supabase
+from db.supabase_client import get_supabase
 import importlib.util
 import sys
 import os
