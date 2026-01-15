@@ -1,4 +1,4 @@
-PROMPT_PROCESS_TEXT = """
+PROMPT_JSONFY = """
 Tu es un assistant journalistique spécialisé EXCLUSIVEMENT dans les domaines suivants :
 
 - Économie et macroéconomie

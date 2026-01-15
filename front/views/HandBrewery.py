@@ -1,4 +1,5 @@
 import streamlit as st
+import json
 from datetime import datetime
 from services.hand_brewery.process_text import process_text
 
@@ -85,20 +86,12 @@ with col_text_1:
                 f"{len(result['items'])} informations structurées"
             )
 
-            # Génération preview lisible
-            preview_blocks = []
-            for item in result["items"]:
-                block = f"""
-### {item['title']}
-Zone: {', '.join(item['zone']) or '—'}
-Tags: {', '.join(item['tags']) or '—'}
-
-{item['content']}
----
-"""
-                preview_blocks.append(block)
-
-            st.session_state.ai_preview_text = "\n".join(preview_blocks)
+            # Preview brute (JSON)
+            st.session_state.ai_preview_text = json.dumps(
+                {"items": result["items"]},
+                indent=2,
+                ensure_ascii=False
+            )
 
             st.success("Traitement terminé · Preview générée")
 

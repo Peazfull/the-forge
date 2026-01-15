@@ -1,7 +1,9 @@
 import streamlit as st
 import json
 from openai import OpenAI
-from prompts.hand_brewery.process_text import PROMPT_PROCESS_TEXT
+from prompts.hand_brewery.clean_text import PROMPT_CLEAN_TEXT
+from prompts.hand_brewery.jsonfy import PROMPT_JSONFY
+from prompts.hand_brewery.json_secure import PROMPT_JSON_SECURE
 
 
 # Création du client OpenAI
@@ -16,35 +18,56 @@ def process_text(text: str) -> dict:
             "items": []
         }
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {
-                "role": "system",
-                "content": PROMPT_PROCESS_TEXT
-            },
-            {
-                "role": "user",
-                "content": text
-            }
-        ],
-        temperature=0.3,
-        response_format={"type": "json_object"}
-    )
-
-    ai_text = response.choices[0].message.content
-    
-    # Parser le JSON retourné par l'IA
     try:
-        ai_data = json.loads(ai_text)
+        # ---------- AGENT 1 : CLEAN / REDACTION ----------
+        response_clean = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": PROMPT_CLEAN_TEXT},
+                {"role": "user", "content": text}
+            ],
+            temperature=0.4
+        )
+
+        clean_text = response_clean.choices[0].message.content
+
+        # ---------- AGENT 2 : JSONFY ----------
+        response_jsonfy = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": PROMPT_JSONFY},
+                {"role": "user", "content": clean_text}
+            ],
+            temperature=0,
+            response_format={"type": "json_object"}
+        )
+
+        raw_json = response_jsonfy.choices[0].message.content
+
+        # ---------- AGENT 3 : JSON SECURE ----------
+        response_secure = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": PROMPT_JSON_SECURE},
+                {"role": "user", "content": raw_json}
+            ],
+            temperature=0,
+            response_format={"type": "json_object"}
+        )
+
+        secure_json = response_secure.choices[0].message.content
+
+        # ---------- PARSING FINAL ----------
+        data = json.loads(secure_json)
+
         return {
             "status": "success",
-            "items": ai_data.get("items", [])
+            "items": data.get("items", [])
         }
-    except json.JSONDecodeError as e:
+    except Exception as e:
         return {
             "status": "error",
-            "message": f"Erreur de parsing JSON: {str(e)}",
+            "message": str(e),
             "items": []
         }
 
