@@ -2,6 +2,11 @@ import streamlit as st
 import json
 from datetime import datetime
 from services.hand_brewery.process_text import process_text
+from services.raw_storage.raw_news_service import (
+    enrich_raw_items,
+    insert_raw_news
+)
+
 
 # ======================================================
 # CALLBACKS
@@ -132,14 +137,46 @@ if st.session_state.ai_preview_text:
 
     with col_validate:
         if st.button("✅ Valider et envoyer en DB", use_container_width=True):
-            st.info("🔜 Insertion DB à brancher")
 
-    with col_clear:
-        if st.button("🧹 Clear preview", use_container_width=True):
-            st.session_state.ai_preview_text = ""
-            st.rerun()
-else:
-    st.caption("Aucune preview générée pour le moment")
+            # 1️⃣ Lire le JSON depuis la preview
+            raw_json_text = st.session_state.ai_preview_text
+
+            # 2️⃣ Parser le JSON
+            try:
+                data = json.loads(raw_json_text)
+            except json.JSONDecodeError:
+                st.error("❌ JSON invalide. Corrige la preview avant l'envoi.")
+                st.stop()
+
+            # 3️⃣ Vérification minimale
+            if "items" not in data or not isinstance(data["items"], list):
+                st.error("❌ Format JSON invalide (clé 'items' manquante).")
+                st.stop()
+
+            if not data["items"]:
+                st.error("❌ Aucun item à insérer.")
+                st.stop()
+
+            # 4️⃣ Enrichissement technique
+            enriched_items = enrich_raw_items(
+                data["items"],
+                flow="hand_text",
+                source_type="manual",
+                source_raw= None #C'est le texte brut, on ne l'enregistre pas
+            )
+
+            # 5️⃣ Insert DB
+            result = insert_raw_news(enriched_items)
+
+            # 6️⃣ Feedback UX
+            if result["status"] == "success":
+                st.success(f"✅ {result['inserted']} items insérés en base")
+                st.session_state.ai_preview_text = ""
+            else:
+                st.error("❌ Erreur lors de l'insertion en DB")
+                st.caption(result.get("message", "Erreur inconnue"))
+
+
 
 st.divider()
 
