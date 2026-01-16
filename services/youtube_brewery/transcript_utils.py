@@ -86,6 +86,10 @@ def fetch_video_transcript(video_url: str) -> str:
         "quiet": True,
         "skip_download": True,
         "extract_flat": False,
+        "noplaylist": True,
+        "socket_timeout": 15,
+        "retries": 1,
+        "extractor_retries": 1,
     }
 
     try:

@@ -46,8 +46,111 @@ if "yt_selected" not in st.session_state:
 if "yt_ai_preview_text" not in st.session_state:
     st.session_state.yt_ai_preview_text = ""
 
+if "yt_single_video_preview_text" not in st.session_state:
+    st.session_state.yt_single_video_preview_text = ""
+
 st.title("🔺 Youtube brewery")
 st.divider()
+
+# =========================
+# SCRAP VIDEO DIRECT
+# =========================
+with st.expander("🎥 Vidéo scrapper", expanded=False):
+    col_url, col_btn = st.columns([4, 1])
+
+    with col_url:
+        single_video_url = st.text_input(
+            "URL vidéo",
+            placeholder="https://www.youtube.com/watch?v=...",
+            label_visibility="collapsed",
+            key="yt_single_video_url"
+        )
+
+    with col_btn:
+        if st.button("🚀 Lancer", use_container_width=True, key="yt_single_launch"):
+            if not single_video_url:
+                st.error("Colle une URL de vidéo.")
+            else:
+                try:
+                    with st.spinner("Récupération du transcript…"):
+                        transcript = fetch_video_transcript(single_video_url)
+                except Exception as e:
+                    st.error("Transcript indisponible")
+                    st.caption(str(e))
+                    st.stop()
+
+                with st.spinner("Analyse IA en cours…"):
+                    result = process_transcript(transcript)
+
+                if result["status"] != "success":
+                    st.error("Erreur IA")
+                    st.caption(result.get("message", "Erreur inconnue"))
+                else:
+                    items = []
+                    for item in result.get("items", []):
+                        item["source_name"] = "YouTube"
+                        item["source_link"] = single_video_url
+                        item["source_date"] = None
+                        item["source_raw"] = None
+                        items.append(item)
+
+                    st.session_state.yt_single_video_preview_text = json.dumps(
+                        {"items": items},
+                        indent=2,
+                        ensure_ascii=False
+                    )
+                    st.success("Preview générée")
+
+    if st.session_state.yt_single_video_preview_text:
+        edited_preview = st.text_area(
+            label="",
+            value=st.session_state.yt_single_video_preview_text,
+            height=350,
+            key="yt_single_preview_editor"
+        )
+
+        col_validate, col_clear = st.columns(2)
+
+        with col_validate:
+            if st.button("✅ Envoyer en DB", use_container_width=True, key="yt_single_send_db"):
+                raw_json_text = edited_preview
+
+                try:
+                    data = json.loads(raw_json_text)
+                except json.JSONDecodeError:
+                    st.error("❌ JSON invalide. Corrige la preview avant l'envoi.")
+                    st.stop()
+
+                if "items" not in data or not isinstance(data["items"], list):
+                    st.error("❌ Format JSON invalide (clé 'items' manquante).")
+                    st.stop()
+
+                if not data["items"]:
+                    st.error("❌ Aucun item à insérer.")
+                    st.stop()
+
+                enriched_items = enrich_raw_items(
+                    data["items"],
+                    flow="youtube",
+                    source_type="youtube",
+                    source_raw=None
+                )
+
+                result = insert_raw_news(enriched_items)
+
+                if result["status"] == "success":
+                    st.success(f"✅ {result['inserted']} items insérés en base")
+                    st.session_state.yt_single_video_preview_text = ""
+                else:
+                    st.error("❌ Erreur lors de l'insertion en DB")
+                    st.caption(result.get("message", "Erreur inconnue"))
+
+        with col_clear:
+            if st.button("🧹 Clear preview", use_container_width=True, key="yt_single_clear_preview"):
+                st.session_state.yt_single_video_preview_text = ""
+                st.rerun()
+    else:
+        st.caption("Aucune preview générée pour le moment")
 
 # =========================
 # CHAÎNES YOUTUBE
@@ -120,7 +223,7 @@ with st.expander("🎬 Dernières vidéos", expanded=True):
     col12, col3, col4, col5, col6 = st.columns([2, 1, 1, 1, 1])
 
     with col12:
-        load_videos = st.button("🔄 Charger les vidéos des :", use_container_width=True)
+        load_videos = st.button("🔄 Charger les vidéos des :", use_container_width=True, key="yt_load_videos")
 
     with col3:
         hours_window = st.number_input(
@@ -136,7 +239,7 @@ with st.expander("🎬 Dernières vidéos", expanded=True):
         st.write("dernières heures")
 
     with col6:
-        if st.button("🧹 Clear vidéos"):
+        if st.button("🧹 Clear vidéos", key="yt_clear_videos"):
             st.session_state.yt_selected = {}
             st.session_state.yt_previews = []
             st.session_state.yt_ai_preview_text = ""
@@ -225,7 +328,7 @@ with st.expander("🧩 Preview IA (concaténé)", expanded=True):
     col_generate, col_clear_preview = st.columns(2)
 
     with col_generate:
-        if st.button("🚀 Générer preview IA (transcripts)", use_container_width=True):
+        if st.button("🚀 Générer preview IA (transcripts)", use_container_width=True, key="yt_generate_preview"):
             if not st.session_state.yt_selected:
                 st.error("Aucune vidéo sélectionnée.")
             else:
@@ -283,7 +386,7 @@ with st.expander("🧩 Preview IA (concaténé)", expanded=True):
                 )
 
     with col_clear_preview:
-        if st.button("🧹 Clear preview", use_container_width=True):
+        if st.button("🧹 Clear preview", use_container_width=True, key="yt_clear_preview"):
             st.session_state.yt_ai_preview_text = ""
 
     if st.session_state.yt_ai_preview_text:
@@ -297,7 +400,7 @@ with st.expander("🧩 Preview IA (concaténé)", expanded=True):
         col_validate, col_clear = st.columns(2)
 
         with col_validate:
-            if st.button("✅ Envoyer en DB", use_container_width=True):
+            if st.button("✅ Envoyer en DB", use_container_width=True, key="yt_send_db"):
                 raw_json_text = edited_preview
 
                 try:
@@ -331,7 +434,7 @@ with st.expander("🧩 Preview IA (concaténé)", expanded=True):
                     st.caption(result.get("message", "Erreur inconnue"))
 
         with col_clear:
-            if st.button("🧹 Clear sélection", use_container_width=True):
+            if st.button("🧹 Clear sélection", use_container_width=True, key="yt_clear_selection"):
                 st.session_state.yt_selected = {}
                 st.session_state.yt_ai_preview_text = ""
                 st.rerun()
