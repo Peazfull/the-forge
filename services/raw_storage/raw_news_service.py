@@ -50,10 +50,10 @@ def enrich_raw_items(
 
             # --- SOURCE ---
             "source_type": source_type,
-            "source_name": source_name,
-            "source_link": source_link,
-            "source_date": source_date,
-            "source_raw": source_raw,
+            "source_name": item.get("source_name", source_name),
+            "source_link": item.get("source_link", source_link),
+            "source_date": item.get("source_date", source_date),
+            "source_raw": item.get("source_raw", source_raw),
 
             # --- CONTENT ---
             "title": item.get("title"),

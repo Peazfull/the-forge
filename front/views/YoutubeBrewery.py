@@ -3,6 +3,13 @@ import json
 from datetime import datetime, timedelta, timezone
 from services.youtube_brewery.youtube_utils import get_channel_name_from_url, get_latest_videos_from_channel
 from services.youtube_brewery.storage_utils import load_channels, save_channels
+from services.youtube_brewery.transcript_utils import fetch_video_transcript
+from services.youtube_brewery.process_transcript import process_transcript
+from services.raw_storage.raw_news_service import (
+    enrich_raw_items,
+    insert_raw_news,
+    fetch_raw_news
+)
 
 
 
@@ -21,6 +28,9 @@ if "yt_previews" not in st.session_state:
 if "yt_selected" not in st.session_state:
     # video_id -> video dict
     st.session_state.yt_selected = {}
+
+if "yt_ai_preview_text" not in st.session_state:
+    st.session_state.yt_ai_preview_text = ""
 
 st.title("🔺 Youtube brewery")
 st.divider()
@@ -168,3 +178,145 @@ if st.session_state.yt_previews:
                 st.session_state.yt_selected.pop(video_id, None)
 
         st.markdown("---")
+
+st.divider()
+
+# =========================
+# PREVIEW OUTPUT CONCATÉNÉ
+# =========================
+st.subheader("🧩 Preview IA (concaténé)")
+
+col_generate, col_clear_preview = st.columns(2)
+
+with col_generate:
+    if st.button("🚀 Générer preview IA (transcripts)", use_container_width=True):
+        if not st.session_state.yt_selected:
+            st.error("Aucune vidéo sélectionnée.")
+        else:
+            st.session_state.yt_ai_preview_text = ""
+            items = []
+            selected_videos = list(st.session_state.yt_selected.values())
+            total = len(selected_videos)
+            progress = st.progress(0)
+
+            for idx, video in enumerate(selected_videos, start=1):
+                title = video.get("title") or "Sans titre"
+                channel = video.get("channel_name") or "Chaîne inconnue"
+                published = video.get("published") or ""
+                url = video.get("url") or ""
+
+                st.write(f"▶️ Traitement: **{title}**")
+
+                if not url:
+                    st.error(f"URL manquante pour la vidéo: {title}")
+                    progress.progress(int(idx / total * 100))
+                    continue
+
+                try:
+                    with st.spinner("Récupération du transcript…"):
+                        transcript = fetch_video_transcript(url)
+                except Exception as e:
+                    st.error(f"Transcript indisponible pour {title}")
+                    st.caption(str(e))
+                    progress.progress(int(idx / total * 100))
+                    continue
+
+                with st.spinner("Analyse IA en cours…"):
+                    result = process_transcript(transcript)
+
+                if result["status"] != "success":
+                    st.error(f"Erreur IA pour {title}")
+                    st.caption(result.get("message", "Erreur inconnue"))
+                    progress.progress(int(idx / total * 100))
+                    continue
+
+                for item in result.get("items", []):
+                    item["source_name"] = channel
+                    item["source_link"] = url
+                    item["source_date"] = published
+                    item["source_raw"] = None
+                    items.append(item)
+
+                st.success(f"✅ {len(result.get('items', []))} items générés")
+                progress.progress(int(idx / total * 100))
+
+            st.session_state.yt_ai_preview_text = json.dumps(
+                {"items": items},
+                indent=2,
+                ensure_ascii=False
+            )
+
+with col_clear_preview:
+    if st.button("🧹 Clear preview", use_container_width=True):
+        st.session_state.yt_ai_preview_text = ""
+
+if st.session_state.yt_ai_preview_text:
+    edited_preview = st.text_area(
+        label="",
+        value=st.session_state.yt_ai_preview_text,
+        height=450,
+        key="yt_ai_preview_editor"
+    )
+
+    col_validate, col_clear = st.columns(2)
+
+    with col_validate:
+        if st.button("✅ Envoyer en DB", use_container_width=True):
+            raw_json_text = edited_preview
+
+            try:
+                data = json.loads(raw_json_text)
+            except json.JSONDecodeError:
+                st.error("❌ JSON invalide. Corrige la preview avant l'envoi.")
+                st.stop()
+
+            if "items" not in data or not isinstance(data["items"], list):
+                st.error("❌ Format JSON invalide (clé 'items' manquante).")
+                st.stop()
+
+            if not data["items"]:
+                st.error("❌ Aucun item à insérer.")
+                st.stop()
+
+            enriched_items = enrich_raw_items(
+                data["items"],
+                flow="youtube",
+                source_type="youtube",
+                source_raw=None
+            )
+
+            result = insert_raw_news(enriched_items)
+
+            if result["status"] == "success":
+                st.success(f"✅ {result['inserted']} items insérés en base")
+                st.session_state.yt_ai_preview_text = ""
+            else:
+                st.error("❌ Erreur lors de l'insertion en DB")
+                st.caption(result.get("message", "Erreur inconnue"))
+
+    with col_clear:
+        if st.button("🧹 Clear sélection", use_container_width=True):
+            st.session_state.yt_selected = {}
+            st.session_state.yt_ai_preview_text = ""
+            st.rerun()
+else:
+    st.caption("Aucune preview générée pour le moment")
+
+st.divider()
+
+# =========================
+# DERNIERS CONTENUS EN BASE
+# =========================
+st.subheader("🗄️ Derniers contenus en base 👇")
+
+with st.expander("Tout voir 👀", expanded=False):
+    raw_items = fetch_raw_news(limit=100)
+
+    if not raw_items:
+        st.caption("Aucun contenu en base pour le moment")
+    else:
+        for item in raw_items:
+            st.markdown("---")
+            st.caption(f"🕒 {item['processed_at']} · Source : {item['source_type']}")
+            st.markdown(f"**{item['title']}**")
+            st.write(item['content'])
