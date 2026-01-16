@@ -1,6 +1,6 @@
 import streamlit as st
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from services.youtube_brewery.youtube_utils import get_channel_name_from_url, get_latest_video_from_channel
 from services.youtube_brewery.storage_utils import load_channels, save_channels
 
@@ -106,7 +106,7 @@ hours_window = st.number_input(
 if st.button("🔄 Charger les dernières vidéos"):
     st.session_state.yt_previews = []
 
-    cutoff = datetime.utcnow() - timedelta(hours=hours_window)
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=hours_window)
 
     for channel in st.session_state.yt_channels:
         if channel["enabled"] and channel["url"]:
@@ -121,9 +121,12 @@ if st.button("🔄 Charger les dernières vidéos"):
                         published_dt = datetime.fromisoformat(published_raw)
                 except Exception:
                     try:
-                        published_dt = datetime.strptime(published_raw, "%Y-%m-%d")
+                        published_dt = datetime.strptime(published_raw, "%Y-%m-%d").replace(tzinfo=timezone.utc)
                     except Exception:
                         published_dt = None
+
+                if published_dt and published_dt.tzinfo is None:
+                    published_dt = published_dt.replace(tzinfo=timezone.utc)
 
                 if published_dt and published_dt < cutoff:
                     continue
