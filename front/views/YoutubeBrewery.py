@@ -38,7 +38,7 @@ st.divider()
 # =========================
 # CHAÎNES YOUTUBE
 # =========================
-with st.expander("📺 Chaînes YouTube", expanded=True):
+with st.expander("📺 Chaînes YouTube", expanded=False):
 
     for idx, channel in enumerate(st.session_state.yt_channels):
 
@@ -102,229 +102,222 @@ with st.expander("📺 Chaînes YouTube", expanded=True):
 # =========================
 # PREVIEW DERNIÈRES VIDÉOS
 # =========================
-st.subheader("🎬 Dernières vidéos")
+with st.expander("🎬 Dernières vidéos", expanded=True):
+    col12, col3, col4, col5, col6 = st.columns([2, 1, 1, 1, 1])
 
-col12, col3, col4, col5, col6 = st.columns([2, 1, 1, 1, 1])
+    with col12:
+        load_videos = st.button("🔄 Charger les vidéos des :", use_container_width=True)
 
-with col12:
-    load_videos = st.button("🔄 Charger les vidéos des :", use_container_width=True)
+    with col3:
+        hours_window = st.number_input(
+            "Fenêtre (h)",
+            min_value=1,
+            max_value=168,
+            value=24,
+            step=1,
+            label_visibility="collapsed"
+        )
 
+    with col4:
+        st.write("dernières heures")
 
-with col3:
-    hours_window = st.number_input(
-        "Fenêtre (h)",
-        min_value=1,
-        max_value=168,
-        value=24,
-        step=1,
-        label_visibility="collapsed"
-    )
+    # Bouton pour lancer la récupération
+    if load_videos:
+        st.session_state.yt_previews = []
 
-with col4:
-    st.write("dernières heures")
+        cutoff = datetime.now(timezone.utc) - timedelta(hours=hours_window)
 
-# Bouton pour lancer la récupération
-if load_videos:
-    st.session_state.yt_previews = []
-
-    cutoff = datetime.now(timezone.utc) - timedelta(hours=hours_window)
-
-    for channel in st.session_state.yt_channels:
-        if channel["enabled"] and channel["url"]:
-            if hasattr(youtube_utils, "get_latest_videos_from_channel"):
-                videos = youtube_utils.get_latest_videos_from_channel(channel["url"], limit=20)
-            else:
-                latest = youtube_utils.get_latest_video_from_channel(channel["url"])
-                videos = [latest] if latest else []
-            for video in videos:
-                published_raw = video.get("published") or ""
-                published_dt = None
-                try:
-                    if published_raw.endswith("Z"):
-                        published_dt = datetime.fromisoformat(published_raw.replace("Z", "+00:00"))
-                    else:
-                        published_dt = datetime.fromisoformat(published_raw)
-                except Exception:
+        for channel in st.session_state.yt_channels:
+            if channel["enabled"] and channel["url"]:
+                if hasattr(youtube_utils, "get_latest_videos_from_channel"):
+                    videos = youtube_utils.get_latest_videos_from_channel(channel["url"], limit=20)
+                else:
+                    latest = youtube_utils.get_latest_video_from_channel(channel["url"])
+                    videos = [latest] if latest else []
+                for video in videos:
+                    published_raw = video.get("published") or ""
+                    published_dt = None
                     try:
-                        published_dt = datetime.strptime(published_raw, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+                        if published_raw.endswith("Z"):
+                            published_dt = datetime.fromisoformat(published_raw.replace("Z", "+00:00"))
+                        else:
+                            published_dt = datetime.fromisoformat(published_raw)
                     except Exception:
-                        published_dt = None
+                        try:
+                            published_dt = datetime.strptime(published_raw, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+                        except Exception:
+                            published_dt = None
 
-                if published_dt and published_dt.tzinfo is None:
-                    published_dt = published_dt.replace(tzinfo=timezone.utc)
+                    if published_dt and published_dt.tzinfo is None:
+                        published_dt = published_dt.replace(tzinfo=timezone.utc)
 
-                if published_dt and published_dt < cutoff:
-                    continue
+                    if published_dt and published_dt < cutoff:
+                        continue
 
-                if channel.get("name") and not video.get("channel_name"):
-                    video["channel_name"] = channel["name"]
+                    if channel.get("name") and not video.get("channel_name"):
+                        video["channel_name"] = channel["name"]
 
-                video_id = video.get("video_id")
-                if video_id and video_id not in {v.get("video_id") for v in st.session_state.yt_previews}:
-                    st.session_state.yt_previews.append(video)
+                    video_id = video.get("video_id")
+                    if video_id and video_id not in {v.get("video_id") for v in st.session_state.yt_previews}:
+                        st.session_state.yt_previews.append(video)
 
-# Affichage des previews
-if st.session_state.yt_previews:
-    for video in st.session_state.yt_previews:
-        col_thumb, col_info, col_select = st.columns([2, 5, 1])
+    # Affichage des previews
+    if st.session_state.yt_previews:
+        for video in st.session_state.yt_previews:
+            col_thumb, col_info, col_select = st.columns([2, 5, 1])
 
-        with col_thumb:
-            st.image(video.get("thumbnail", ""), width=320)
+            with col_thumb:
+                st.image(video.get("thumbnail", ""), width=320)
 
-        with col_info:
-            channel_name = video.get("channel_name") or "Chaîne inconnue"
-            st.caption(channel_name)
-            st.markdown(f"**{video.get('title', '')}**")
-            published = video.get("published") or ""
-            if published:
-                st.caption(published)
-            st.caption(f"Source: `{video.get('source', '')}`")
+            with col_info:
+                channel_name = video.get("channel_name") or "Chaîne inconnue"
+                st.caption(channel_name)
+                st.markdown(f"**{video.get('title', '')}**")
+                published = video.get("published") or ""
+                if published:
+                    st.caption(published)
+                st.caption(f"Source: `{video.get('source', '')}`")
 
-        with col_select:
-            video_id = video.get("video_id", "")
-            checked = st.checkbox(
-                "Sélectionner",
-                value=video_id in st.session_state.yt_selected,
-                key=f"yt_select_{video_id}"
-            )
-            if checked and video_id:
-                st.session_state.yt_selected[video_id] = video
-            elif video_id and video_id in st.session_state.yt_selected:
-                st.session_state.yt_selected.pop(video_id, None)
+            with col_select:
+                video_id = video.get("video_id", "")
+                checked = st.checkbox(
+                    "Sélectionner",
+                    value=video_id in st.session_state.yt_selected,
+                    key=f"yt_select_{video_id}"
+                )
+                if checked and video_id:
+                    st.session_state.yt_selected[video_id] = video
+                elif video_id and video_id in st.session_state.yt_selected:
+                    st.session_state.yt_selected.pop(video_id, None)
 
-        st.markdown("---")
+            st.markdown("---")
 
-st.divider()
+
 
 # =========================
 # PREVIEW OUTPUT CONCATÉNÉ
 # =========================
-st.subheader("🧩 Preview IA (concaténé)")
+with st.expander("🧩 Preview IA (concaténé)", expanded=True):
+    col_generate, col_clear_preview = st.columns(2)
 
-col_generate, col_clear_preview = st.columns(2)
+    with col_generate:
+        if st.button("🚀 Générer preview IA (transcripts)", use_container_width=True):
+            if not st.session_state.yt_selected:
+                st.error("Aucune vidéo sélectionnée.")
+            else:
+                st.session_state.yt_ai_preview_text = ""
+                items = []
+                selected_videos = list(st.session_state.yt_selected.values())
+                total = len(selected_videos)
+                progress = st.progress(0)
 
-with col_generate:
-    if st.button("🚀 Générer preview IA (transcripts)", use_container_width=True):
-        if not st.session_state.yt_selected:
-            st.error("Aucune vidéo sélectionnée.")
-        else:
-            st.session_state.yt_ai_preview_text = ""
-            items = []
-            selected_videos = list(st.session_state.yt_selected.values())
-            total = len(selected_videos)
-            progress = st.progress(0)
+                for idx, video in enumerate(selected_videos, start=1):
+                    title = video.get("title") or "Sans titre"
+                    channel = video.get("channel_name") or "Chaîne inconnue"
+                    published = video.get("published") or ""
+                    url = video.get("url") or ""
 
-            for idx, video in enumerate(selected_videos, start=1):
-                title = video.get("title") or "Sans titre"
-                channel = video.get("channel_name") or "Chaîne inconnue"
-                published = video.get("published") or ""
-                url = video.get("url") or ""
+                    st.write(f"▶️ Traitement: **{title}**")
 
-                st.write(f"▶️ Traitement: **{title}**")
+                    if not url:
+                        st.error(f"URL manquante pour la vidéo: {title}")
+                        progress.progress(int(idx / total * 100))
+                        continue
 
-                if not url:
-                    st.error(f"URL manquante pour la vidéo: {title}")
+                    try:
+                        with st.spinner("Récupération du transcript…"):
+                            transcript = fetch_video_transcript(url)
+                    except Exception as e:
+                        st.error(f"Transcript indisponible pour {title}")
+                        st.caption(str(e))
+                        progress.progress(int(idx / total * 100))
+                        continue
+
+                    with st.spinner("Analyse IA en cours…"):
+                        result = process_transcript(transcript)
+
+                    if result["status"] != "success":
+                        st.error(f"Erreur IA pour {title}")
+                        st.caption(result.get("message", "Erreur inconnue"))
+                        progress.progress(int(idx / total * 100))
+                        continue
+
+                    for item in result.get("items", []):
+                        item["source_name"] = channel
+                        item["source_link"] = url
+                        item["source_date"] = published
+                        item["source_raw"] = None
+                        items.append(item)
+
+                    st.success(f"✅ {len(result.get('items', []))} items générés")
                     progress.progress(int(idx / total * 100))
-                    continue
+
+                st.session_state.yt_ai_preview_text = json.dumps(
+                    {"items": items},
+                    indent=2,
+                    ensure_ascii=False
+                )
+
+    with col_clear_preview:
+        if st.button("🧹 Clear preview", use_container_width=True):
+            st.session_state.yt_ai_preview_text = ""
+
+    if st.session_state.yt_ai_preview_text:
+        edited_preview = st.text_area(
+            label="",
+            value=st.session_state.yt_ai_preview_text,
+            height=450,
+            key="yt_ai_preview_editor"
+        )
+
+        col_validate, col_clear = st.columns(2)
+
+        with col_validate:
+            if st.button("✅ Envoyer en DB", use_container_width=True):
+                raw_json_text = edited_preview
 
                 try:
-                    with st.spinner("Récupération du transcript…"):
-                        transcript = fetch_video_transcript(url)
-                except Exception as e:
-                    st.error(f"Transcript indisponible pour {title}")
-                    st.caption(str(e))
-                    progress.progress(int(idx / total * 100))
-                    continue
+                    data = json.loads(raw_json_text)
+                except json.JSONDecodeError:
+                    st.error("❌ JSON invalide. Corrige la preview avant l'envoi.")
+                    st.stop()
 
-                with st.spinner("Analyse IA en cours…"):
-                    result = process_transcript(transcript)
+                if "items" not in data or not isinstance(data["items"], list):
+                    st.error("❌ Format JSON invalide (clé 'items' manquante).")
+                    st.stop()
 
-                if result["status"] != "success":
-                    st.error(f"Erreur IA pour {title}")
+                if not data["items"]:
+                    st.error("❌ Aucun item à insérer.")
+                    st.stop()
+
+                enriched_items = enrich_raw_items(
+                    data["items"],
+                    flow="youtube",
+                    source_type="youtube",
+                    source_raw=None
+                )
+
+                result = insert_raw_news(enriched_items)
+
+                if result["status"] == "success":
+                    st.success(f"✅ {result['inserted']} items insérés en base")
+                    st.session_state.yt_ai_preview_text = ""
+                else:
+                    st.error("❌ Erreur lors de l'insertion en DB")
                     st.caption(result.get("message", "Erreur inconnue"))
-                    progress.progress(int(idx / total * 100))
-                    continue
 
-                for item in result.get("items", []):
-                    item["source_name"] = channel
-                    item["source_link"] = url
-                    item["source_date"] = published
-                    item["source_raw"] = None
-                    items.append(item)
-
-                st.success(f"✅ {len(result.get('items', []))} items générés")
-                progress.progress(int(idx / total * 100))
-
-            st.session_state.yt_ai_preview_text = json.dumps(
-                {"items": items},
-                indent=2,
-                ensure_ascii=False
-            )
-
-with col_clear_preview:
-    if st.button("🧹 Clear preview", use_container_width=True):
-        st.session_state.yt_ai_preview_text = ""
-
-if st.session_state.yt_ai_preview_text:
-    edited_preview = st.text_area(
-        label="",
-        value=st.session_state.yt_ai_preview_text,
-        height=450,
-        key="yt_ai_preview_editor"
-    )
-
-    col_validate, col_clear = st.columns(2)
-
-    with col_validate:
-        if st.button("✅ Envoyer en DB", use_container_width=True):
-            raw_json_text = edited_preview
-
-            try:
-                data = json.loads(raw_json_text)
-            except json.JSONDecodeError:
-                st.error("❌ JSON invalide. Corrige la preview avant l'envoi.")
-                st.stop()
-
-            if "items" not in data or not isinstance(data["items"], list):
-                st.error("❌ Format JSON invalide (clé 'items' manquante).")
-                st.stop()
-
-            if not data["items"]:
-                st.error("❌ Aucun item à insérer.")
-                st.stop()
-
-            enriched_items = enrich_raw_items(
-                data["items"],
-                flow="youtube",
-                source_type="youtube",
-                source_raw=None
-            )
-
-            result = insert_raw_news(enriched_items)
-
-            if result["status"] == "success":
-                st.success(f"✅ {result['inserted']} items insérés en base")
+        with col_clear:
+            if st.button("🧹 Clear sélection", use_container_width=True):
+                st.session_state.yt_selected = {}
                 st.session_state.yt_ai_preview_text = ""
-            else:
-                st.error("❌ Erreur lors de l'insertion en DB")
-                st.caption(result.get("message", "Erreur inconnue"))
-
-    with col_clear:
-        if st.button("🧹 Clear sélection", use_container_width=True):
-            st.session_state.yt_selected = {}
-            st.session_state.yt_ai_preview_text = ""
-            st.rerun()
-else:
-    st.caption("Aucune preview générée pour le moment")
-
-st.divider()
+                st.rerun()
+    else:
+        st.caption("Aucune preview générée pour le moment")
 
 # =========================
 # DERNIERS CONTENUS EN BASE
 # =========================
-st.subheader("🗄️ Derniers contenus en base 👇")
-
-with st.expander("Tout voir 👀", expanded=False):
+with st.expander("🗄️ Derniers contenus en base", expanded=False):
     raw_items = fetch_raw_news(limit=100)
 
     if not raw_items:
