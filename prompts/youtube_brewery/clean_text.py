@@ -75,4 +75,10 @@ Titre 2
 Paragraphe lié au titre 2.
 
 (Tu dois retourner autant de blocs que de thèmes financiers distincts.)
+
+RÈGLES SUPPLÉMENTAIRES POUR LES TITRES (OBLIGATOIRES)
+- Le titre doit résumer précisément le paragraphe associé.
+- Interdit d’utiliser des titres génériques comme "Titre 1", "Titre 2", etc.
+- Un bon titre contient des mots-clés concrets (acteur, pays, secteur, indicateur).
+- Longueur recommandée : 6 à 14 mots.
 """
