@@ -1,5 +1,7 @@
 import streamlit as st
+import json
 from services.youtube_brewery.youtube_utils import get_channel_name_from_url, get_latest_video_from_channel
+from services.youtube_brewery.storage_utils import load_channels, save_channels
 
 
 
@@ -8,9 +10,9 @@ from services.youtube_brewery.youtube_utils import get_channel_name_from_url, ge
 # =========================
 if "yt_channels" not in st.session_state:
     # Chaque item: {"url": "", "name": "", "enabled": True}
-    st.session_state.yt_channels = [
-        {"url": "", "name": "", "enabled": True}
-    ]
+    loaded_channels = load_channels()
+    st.session_state.yt_channels = loaded_channels or [{"url": "", "name": "", "enabled": True}]
+    st.session_state.yt_channels_snapshot = json.dumps(st.session_state.yt_channels, sort_keys=True)
 
 if "yt_previews" not in st.session_state:
     st.session_state.yt_previews = []
@@ -44,6 +46,7 @@ with st.expander("📺 Chaînes YouTube", expanded=True):
             detected_name = get_channel_name_from_url(channel["url"])
             if detected_name:
                 channel["name"] = detected_name
+                save_channels(st.session_state.yt_channels)
                 st.rerun()
 
         # ---- NOM DE LA CHAÎNE ----
@@ -66,6 +69,7 @@ with st.expander("📺 Chaînes YouTube", expanded=True):
         with col_delete:
             if st.button("❌", key=f"yt_delete_{idx}"):
                 st.session_state.yt_channels.pop(idx)
+                save_channels(st.session_state.yt_channels)
                 st.rerun()
 
         st.divider()
@@ -75,7 +79,14 @@ with st.expander("📺 Chaînes YouTube", expanded=True):
         st.session_state.yt_channels.append(
             {"url": "", "name": "", "enabled": True}
         )
+        save_channels(st.session_state.yt_channels)
         st.rerun()
+
+    # Sauvegarde automatique si modification
+    current_snapshot = json.dumps(st.session_state.yt_channels, sort_keys=True)
+    if current_snapshot != st.session_state.get("yt_channels_snapshot"):
+        save_channels(st.session_state.yt_channels)
+        st.session_state.yt_channels_snapshot = current_snapshot
 
 # =========================
 # PREVIEW DERNIÈRES VIDÉOS
