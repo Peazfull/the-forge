@@ -261,22 +261,31 @@ with st.expander("🎬 Dernières vidéos", expanded=True):
                 for video in videos:
                     published_raw = video.get("published") or ""
                     published_dt = None
+                    is_date_only = False
                     try:
                         if published_raw.endswith("Z"):
                             published_dt = datetime.fromisoformat(published_raw.replace("Z", "+00:00"))
                         else:
+                            if len(published_raw) == 10:
+                                is_date_only = True
                             published_dt = datetime.fromisoformat(published_raw)
                     except Exception:
                         try:
                             published_dt = datetime.strptime(published_raw, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+                            is_date_only = True
                         except Exception:
                             published_dt = None
 
                     if published_dt and published_dt.tzinfo is None:
                         published_dt = published_dt.replace(tzinfo=timezone.utc)
 
-                    if published_dt and published_dt < cutoff:
-                        continue
+                    if published_dt:
+                        if is_date_only:
+                            if published_dt.date() < cutoff.date():
+                                continue
+                        else:
+                            if published_dt < cutoff:
+                                continue
 
                     if channel.get("name") and not video.get("channel_name"):
                         video["channel_name"] = channel["name"]
