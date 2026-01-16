@@ -1,7 +1,7 @@
 import streamlit as st
 import json
 from datetime import datetime, timedelta, timezone
-from services.youtube_brewery.youtube_utils import get_channel_name_from_url, get_latest_videos_from_channel
+import services.youtube_brewery.youtube_utils as youtube_utils
 from services.youtube_brewery.storage_utils import load_channels, save_channels
 from services.youtube_brewery.transcript_utils import fetch_video_transcript
 from services.youtube_brewery.process_transcript import process_transcript
@@ -54,7 +54,7 @@ with st.expander("📺 Chaînes YouTube", expanded=True):
 
         # ---- AUTO-DETECTION DU NOM ----
         if channel["url"] and not channel["name"]:
-            detected_name = get_channel_name_from_url(channel["url"])
+            detected_name = youtube_utils.get_channel_name_from_url(channel["url"])
             if detected_name:
                 channel["name"] = detected_name
                 save_channels(st.session_state.yt_channels)
@@ -104,23 +104,38 @@ with st.expander("📺 Chaînes YouTube", expanded=True):
 # =========================
 st.subheader("🎬 Dernières vidéos")
 
-hours_window = st.number_input(
-    "Fenêtre de temps (heures)",
-    min_value=1,
-    max_value=168,
-    value=24,
-    step=1
-)
+col12, col3, col4, col5, col6 = st.columns([2, 1, 1, 1, 1])
+
+with col12:
+    load_videos = st.button("🔄 Charger les vidéos des :", use_container_width=True)
+
+
+with col3:
+    hours_window = st.number_input(
+        "Fenêtre (h)",
+        min_value=1,
+        max_value=168,
+        value=24,
+        step=1,
+        label_visibility="collapsed"
+    )
+
+with col4:
+    st.write("dernières heures")
 
 # Bouton pour lancer la récupération
-if st.button("🔄 Charger les dernières vidéos"):
+if load_videos:
     st.session_state.yt_previews = []
 
     cutoff = datetime.now(timezone.utc) - timedelta(hours=hours_window)
 
     for channel in st.session_state.yt_channels:
         if channel["enabled"] and channel["url"]:
-            videos = get_latest_videos_from_channel(channel["url"], limit=20)
+            if hasattr(youtube_utils, "get_latest_videos_from_channel"):
+                videos = youtube_utils.get_latest_videos_from_channel(channel["url"], limit=20)
+            else:
+                latest = youtube_utils.get_latest_video_from_channel(channel["url"])
+                videos = [latest] if latest else []
             for video in videos:
                 published_raw = video.get("published") or ""
                 published_dt = None
