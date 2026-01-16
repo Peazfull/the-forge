@@ -1,7 +1,7 @@
 import streamlit as st
 import json
 from datetime import datetime, timedelta, timezone
-from services.youtube_brewery.youtube_utils import get_channel_name_from_url, get_latest_video_from_channel
+from services.youtube_brewery.youtube_utils import get_channel_name_from_url, get_latest_videos_from_channel
 from services.youtube_brewery.storage_utils import load_channels, save_channels
 
 
@@ -110,8 +110,8 @@ if st.button("🔄 Charger les dernières vidéos"):
 
     for channel in st.session_state.yt_channels:
         if channel["enabled"] and channel["url"]:
-            video = get_latest_video_from_channel(channel["url"])
-            if video:
+            videos = get_latest_videos_from_channel(channel["url"], limit=20)
+            for video in videos:
                 published_raw = video.get("published") or ""
                 published_dt = None
                 try:
@@ -133,7 +133,10 @@ if st.button("🔄 Charger les dernières vidéos"):
 
                 if channel.get("name") and not video.get("channel_name"):
                     video["channel_name"] = channel["name"]
-                st.session_state.yt_previews.append(video)
+
+                video_id = video.get("video_id")
+                if video_id and video_id not in {v.get("video_id") for v in st.session_state.yt_previews}:
+                    st.session_state.yt_previews.append(video)
 
 # Affichage des previews
 if st.session_state.yt_previews:

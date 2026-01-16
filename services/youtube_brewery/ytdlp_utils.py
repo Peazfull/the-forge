@@ -30,19 +30,16 @@ def _pick_thumbnail(entry: Dict[str, Any]) -> str:
     return ""
 
 
-def _find_first_video(entries: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
-    for entry in entries:
-        if entry.get("id") and entry.get("title"):
-            return entry
-    return None
+def _filter_videos(entries: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    return [entry for entry in entries if entry.get("id") and entry.get("title")]
 
 
-def get_latest_video_from_channel_ytdlp(channel_url: str) -> Optional[Dict[str, str]]:
+def get_latest_videos_from_channel_ytdlp(channel_url: str, limit: int = 10) -> List[Dict[str, str]]:
     ydl_opts = {
         "quiet": True,
         "skip_download": True,
         "extract_flat": False,
-        "playlistend": 1,
+        "playlistend": max(1, min(limit, 50)),
     }
 
     try:
@@ -51,39 +48,47 @@ def get_latest_video_from_channel_ytdlp(channel_url: str) -> Optional[Dict[str, 
 
         entries = info.get("entries") if isinstance(info, dict) else None
         if not entries:
-            return None
+            return []
 
-        entry = _find_first_video(entries) or entries[0]
-        video_id = entry.get("id")
-        title = entry.get("title")
-        published = _format_date(entry.get("upload_date"), entry.get("timestamp"))
-        channel_name = (
-            entry.get("uploader")
-            or entry.get("channel")
-            or entry.get("channel_name")
-            or info.get("uploader")
-            or info.get("channel")
-        )
-        url = entry.get("webpage_url") or entry.get("url")
-        if url and not url.startswith("http"):
-            url = f"https://www.youtube.com/watch?v={url}"
-        if not url and video_id:
-            url = f"https://www.youtube.com/watch?v={video_id}"
-        thumbnail = _pick_thumbnail(entry)
-        if not thumbnail and video_id:
-            thumbnail = f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg"
+        videos = []
+        for entry in _filter_videos(entries):
+            video_id = entry.get("id")
+            title = entry.get("title")
+            published = _format_date(entry.get("upload_date"), entry.get("timestamp"))
+            channel_name = (
+                entry.get("uploader")
+                or entry.get("channel")
+                or entry.get("channel_name")
+                or info.get("uploader")
+                or info.get("channel")
+            )
+            url = entry.get("webpage_url") or entry.get("url")
+            if url and not url.startswith("http"):
+                url = f"https://www.youtube.com/watch?v={url}"
+            if not url and video_id:
+                url = f"https://www.youtube.com/watch?v={video_id}"
+            thumbnail = _pick_thumbnail(entry)
+            if not thumbnail and video_id:
+                thumbnail = f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg"
 
-        if not video_id or not title:
-            return None
+            if not video_id or not title:
+                continue
 
-        return {
-            "channel_name": channel_name,
-            "video_id": video_id,
-            "title": title,
-            "published": published or "",
-            "url": url or "",
-            "thumbnail": thumbnail or "",
-            "source": "yt-dlp",
-        }
+            videos.append({
+                "channel_name": channel_name,
+                "video_id": video_id,
+                "title": title,
+                "published": published or "",
+                "url": url or "",
+                "thumbnail": thumbnail or "",
+                "source": "yt-dlp",
+            })
+
+        return videos
     except Exception:
-        return None
+        return []
+
+
+def get_latest_video_from_channel_ytdlp(channel_url: str) -> Optional[Dict[str, str]]:
+    videos = get_latest_videos_from_channel_ytdlp(channel_url, limit=1)
+    return videos[0] if videos else None
