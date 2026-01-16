@@ -135,6 +135,13 @@ with st.expander("🎬 Dernières vidéos", expanded=True):
     with col4:
         st.write("dernières heures")
 
+    with col6:
+        if st.button("🧹 Clear vidéos"):
+            st.session_state.yt_selected = {}
+            st.session_state.yt_previews = []
+            st.session_state.yt_ai_preview_text = ""
+            st.rerun()
+
     # Bouton pour lancer la récupération
     if load_videos:
         st.session_state.yt_previews = []
