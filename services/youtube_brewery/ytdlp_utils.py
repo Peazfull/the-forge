@@ -74,6 +74,8 @@ def get_latest_videos_from_channel_ytdlp(channel_url: str, limit: int = 10) -> L
             if not video_id or not title:
                 continue
 
+            duration_seconds = entry.get("duration") or entry.get("duration_seconds")
+
             videos.append({
                 "channel_name": channel_name,
                 "video_id": video_id,
@@ -81,6 +83,7 @@ def get_latest_videos_from_channel_ytdlp(channel_url: str, limit: int = 10) -> L
                 "published": published or "",
                 "url": url or "",
                 "thumbnail": thumbnail or "",
+                "duration_seconds": duration_seconds,
                 "source": "yt-dlp",
             })
 

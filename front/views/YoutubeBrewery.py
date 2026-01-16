@@ -12,6 +12,20 @@ from services.raw_storage.raw_news_service import (
 )
 
 
+def format_duration(duration_value):
+    try:
+        seconds = int(duration_value)
+    except (TypeError, ValueError):
+        return ""
+    if seconds <= 0:
+        return ""
+    hours = seconds // 3600
+    minutes = (seconds % 3600) // 60
+    secs = seconds % 60
+    if hours > 0:
+        return f"{hours}:{minutes:02d}:{secs:02d}"
+    return f"{minutes}:{secs:02d}"
+
 
 # =========================
 # INIT SESSION STATE
@@ -176,6 +190,9 @@ with st.expander("🎬 Dernières vidéos", expanded=True):
                 published = video.get("published") or ""
                 if published:
                     st.caption(published)
+            duration_label = format_duration(video.get("duration_seconds"))
+            if duration_label:
+                st.caption(f"Durée: {duration_label}")
                 st.caption(f"Source: `{video.get('source', '')}`")
 
             with col_select:

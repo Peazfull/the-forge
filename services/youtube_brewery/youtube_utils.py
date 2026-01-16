@@ -22,6 +22,13 @@ def _parse_rss_latest(rss_url: str) -> Optional[Dict[str, str]]:
         video_id = entry.find("{http://www.youtube.com/xml/schemas/2015}videoId").text
         published = entry.find("{http://www.w3.org/2005/Atom}published").text
 
+        duration_seconds = None
+        media_group = entry.find("{http://search.yahoo.com/mrss/}group")
+        if media_group is not None:
+            duration_el = media_group.find("{http://search.yahoo.com/mrss/}duration")
+            if duration_el is not None:
+                duration_seconds = duration_el.attrib.get("seconds")
+
         channel_name = None
         author = entry.find("{http://www.w3.org/2005/Atom}author")
         if author is not None:
@@ -36,6 +43,7 @@ def _parse_rss_latest(rss_url: str) -> Optional[Dict[str, str]]:
             "published": published,
             "url": f"https://www.youtube.com/watch?v={video_id}",
             "thumbnail": f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg",
+            "duration_seconds": duration_seconds,
             "source": "rss",
         }
     except Exception:
@@ -54,6 +62,13 @@ def _parse_rss_videos(rss_url: str, limit: int = 10) -> List[Dict[str, str]]:
             video_id = entry.find("{http://www.youtube.com/xml/schemas/2015}videoId").text
             published = entry.find("{http://www.w3.org/2005/Atom}published").text
 
+            duration_seconds = None
+            media_group = entry.find("{http://search.yahoo.com/mrss/}group")
+            if media_group is not None:
+                duration_el = media_group.find("{http://search.yahoo.com/mrss/}duration")
+                if duration_el is not None:
+                    duration_seconds = duration_el.attrib.get("seconds")
+
             channel_name = None
             author = entry.find("{http://www.w3.org/2005/Atom}author")
             if author is not None:
@@ -68,6 +83,7 @@ def _parse_rss_videos(rss_url: str, limit: int = 10) -> List[Dict[str, str]]:
                 "published": published,
                 "url": f"https://www.youtube.com/watch?v={video_id}",
                 "thumbnail": f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg",
+                "duration_seconds": duration_seconds,
                 "source": "rss",
             })
 
