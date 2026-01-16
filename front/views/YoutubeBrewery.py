@@ -1,5 +1,6 @@
 import streamlit as st
 import json
+from datetime import datetime, timedelta
 from services.youtube_brewery.youtube_utils import get_channel_name_from_url, get_latest_video_from_channel
 from services.youtube_brewery.storage_utils import load_channels, save_channels
 
@@ -93,14 +94,40 @@ with st.expander("📺 Chaînes YouTube", expanded=True):
 # =========================
 st.subheader("🎬 Dernières vidéos")
 
+hours_window = st.number_input(
+    "Fenêtre de temps (heures)",
+    min_value=1,
+    max_value=168,
+    value=24,
+    step=1
+)
+
 # Bouton pour lancer la récupération
 if st.button("🔄 Charger les dernières vidéos"):
     st.session_state.yt_previews = []
+
+    cutoff = datetime.utcnow() - timedelta(hours=hours_window)
 
     for channel in st.session_state.yt_channels:
         if channel["enabled"] and channel["url"]:
             video = get_latest_video_from_channel(channel["url"])
             if video:
+                published_raw = video.get("published") or ""
+                published_dt = None
+                try:
+                    if published_raw.endswith("Z"):
+                        published_dt = datetime.fromisoformat(published_raw.replace("Z", "+00:00"))
+                    else:
+                        published_dt = datetime.fromisoformat(published_raw)
+                except Exception:
+                    try:
+                        published_dt = datetime.strptime(published_raw, "%Y-%m-%d")
+                    except Exception:
+                        published_dt = None
+
+                if published_dt and published_dt < cutoff:
+                    continue
+
                 if channel.get("name") and not video.get("channel_name"):
                     video["channel_name"] = channel["name"]
                 st.session_state.yt_previews.append(video)

@@ -8,7 +8,7 @@ def _format_date(upload_date: Optional[str], timestamp: Optional[int]) -> Option
         return f"{upload_date[0:4]}-{upload_date[4:6]}-{upload_date[6:8]}"
     if timestamp:
         try:
-            return datetime.utcfromtimestamp(timestamp).strftime("%Y-%m-%d")
+            return datetime.utcfromtimestamp(timestamp).isoformat() + "Z"
         except Exception:
             return None
     return None
