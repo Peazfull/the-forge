@@ -2,6 +2,7 @@ import streamlit as st
 import json
 from datetime import datetime
 from services.hand_brewery.process_text import process_text
+from services.hand_brewery.process_url import process_url 
 from services.raw_storage.raw_news_service import (
     enrich_raw_items,
     insert_raw_news,
@@ -44,15 +45,46 @@ st.subheader("📰 Ajouter une URL d’article")
 col_input, col_launch, col_clear = st.columns([3, 1, 1])
 
 with col_input:
-    st.text_input(
+    url_input = st.text_input(
         label="",
         placeholder="https://example.com/article",
-        label_visibility="collapsed",
-        disabled=True
+        label_visibility="collapsed"
+        # disabled=True
     )
 
+
 with col_launch:
-    st.button("🚀 Lancer", use_container_width=True, disabled=True)
+    if st.button("🚀 Lancer", use_container_width=True):
+        st.session_state.text_status = [
+            "Scraping de l'URL",
+            "Analyse IA en cours"
+        ]
+        st.session_state.ai_preview_text = ""
+
+        try:
+            result = process_url(url_input)
+        except Exception as e:
+            st.error("❌ Impossible de scrapper l’URL")
+            st.caption(str(e))
+            st.stop()
+
+
+        if result["status"] == "success":
+            st.session_state.text_status.append(
+                f"{len(result['items'])} informations structurées"
+            )
+
+            st.session_state.ai_preview_text = json.dumps(
+                {"items": result["items"]},
+                indent=2,
+                ensure_ascii=False
+            )
+
+            st.success("Traitement URL terminé · Preview générée")
+        else:
+            st.error("Erreur lors du traitement de l’URL")
+            st.caption(result.get("message", "Erreur inconnue"))
+
 
 with col_clear:
     st.button("🧹 Clear", use_container_width=True, disabled=True)
