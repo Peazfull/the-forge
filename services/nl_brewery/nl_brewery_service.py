@@ -1,7 +1,13 @@
 from typing import List, Dict, Set, Tuple, Optional
 from db.supabase_client import get_supabase
 from services.nl_brewery.imap_client import check_connection, fetch_emails
-from services.nl_brewery.process_newsletter import process_newsletter
+from services.nl_brewery.process_newsletter import (
+    process_newsletter,
+    clean_raw_text,
+    merge_topics_text,
+    journalist_text,
+    jsonfy_text,
+)
 
 
 TABLE_RECIPIENTS = "nl_recipients"
@@ -211,3 +217,19 @@ def process_raw_preview(raw_preview: str) -> Dict[str, object]:
                 items.append(item)
 
     return {"status": "success", "items": items, "errors": errors}
+
+
+def run_clean_raw(raw_text: str) -> Dict[str, object]:
+    return clean_raw_text(raw_text)
+
+
+def run_merge_topics(cleaned_text: str) -> Dict[str, object]:
+    return merge_topics_text(cleaned_text)
+
+
+def run_journalist(text_value: str) -> Dict[str, object]:
+    return journalist_text(text_value)
+
+
+def run_jsonfy(text_value: str) -> Dict[str, object]:
+    return jsonfy_text(text_value)

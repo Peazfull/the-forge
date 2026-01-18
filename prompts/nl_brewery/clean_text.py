@@ -12,9 +12,10 @@ Si tu identifies N sujets, tu produis N bulletins.
 
 CONTENU DU BULLETIN
 - Titre factuel, précis, lié au paragraphe (6–14 mots, pas de titre générique).
-- Paragraphe unique, TRÈS DÉTAILLÉ, avec tous les faits disponibles.
-- Conserve : acteurs, chiffres, dates, contexte, causes, conséquences, précisions utiles.
-- Si plusieurs infos concernent le même sujet, tu les regroupes dans ce paragraphe.
+- Paragraphe unique, TRÈS DÉTAILLÉ, qui reprend TOUTES les informations disponibles sur le sujet.
+- Conserve mot‑pour‑mot le niveau de détail : acteurs, chiffres, dates, contexte, causes, conséquences, précisions utiles.
+- Si plusieurs infos concernent le même sujet, tu les regroupes dans ce paragraphe SANS COMPRESSER.
+- Interdiction de raccourcir : si la source donne plusieurs phrases, tu dois garder toutes les phrases utiles.
 
 RÈGLES CLÉS
 - Reformulation totale pour éviter le plagiat.

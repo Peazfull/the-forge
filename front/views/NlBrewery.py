@@ -8,7 +8,10 @@ from services.nl_brewery.nl_brewery_service import (
     remove_recipient,
     check_gmail_connection,
     fetch_raw_newsletters,
-    process_raw_preview,
+    run_clean_raw,
+    run_merge_topics,
+    run_journalist,
+    run_jsonfy,
 )
 from services.raw_storage.raw_news_service import (
     enrich_raw_items,
@@ -52,6 +55,15 @@ if "nl_last_email_count" not in st.session_state:
 
 if "nl_raw_preview_text" not in st.session_state:
     st.session_state.nl_raw_preview_text = ""
+
+if "nl_cleaned_text" not in st.session_state:
+    st.session_state.nl_cleaned_text = ""
+
+if "nl_merged_text" not in st.session_state:
+    st.session_state.nl_merged_text = ""
+
+if "nl_journalist_text" not in st.session_state:
+    st.session_state.nl_journalist_text = ""
 
 
 st.title("📨 NL Brewery")
@@ -158,6 +170,9 @@ with col1:
         ]
         st.session_state.nl_ai_preview_text = ""
         st.session_state.nl_raw_preview_text = ""
+        st.session_state.nl_cleaned_text = ""
+        st.session_state.nl_merged_text = ""
+        st.session_state.nl_journalist_text = ""
 
         with st.spinner("Récupération et analyse en cours…"):
             result = fetch_raw_newsletters(last_hours=int(hours_window))
@@ -189,36 +204,132 @@ with st.expander("🧾 Texte brut (scraping)", expanded=False):
         )
         col_validate, col_clear = st.columns(2)
         with col_validate:
-            if st.button("✅ Valider et lancer IA", use_container_width=True, key="nl_run_ai"):
+            if st.button("✅ Valider et nettoyer", use_container_width=True, key="nl_run_clean"):
                 st.session_state.nl_raw_preview_text = edited_raw
-                with st.spinner("Analyse IA en cours…"):
-                    result = process_raw_preview(edited_raw)
-                items = result.get("items", [])
-                errors = result.get("errors", [])
+                with st.spinner("Nettoyage en cours…"):
+                    result = run_clean_raw(edited_raw)
+                if result.get("status") == "success":
+                    st.session_state.nl_cleaned_text = result.get("text", "")
+                    st.success("Texte nettoyé.")
+                else:
+                    st.error("❌ Erreur nettoyage")
+                    st.caption(result.get("message", "Erreur inconnue"))
+        with col_clear:
+            if st.button("🧹 Clear", use_container_width=True, key="nl_clear_raw"):
+                st.session_state.nl_raw_preview_text = ""
+                st.session_state.nl_cleaned_text = ""
+                st.session_state.nl_merged_text = ""
+                st.session_state.nl_journalist_text = ""
+                st.session_state.nl_ai_preview_text = ""
+                st.rerun()
+    else:
+        st.caption("Aucun texte brut à afficher.")
 
-                if items:
+# =========================
+# 6️⃣ TEXTE NETTOYÉ
+# =========================
+with st.expander("🧼 Texte nettoyé", expanded=False):
+    if st.session_state.nl_cleaned_text:
+        edited_clean = st.text_area(
+            label="",
+            value=st.session_state.nl_cleaned_text,
+            height=300,
+            key="nl_cleaned_preview"
+        )
+        col_validate, col_clear = st.columns(2)
+        with col_validate:
+            if st.button("🔧 Regrouper les sujets", use_container_width=True, key="nl_run_merge"):
+                st.session_state.nl_cleaned_text = edited_clean
+                with st.spinner("Regroupement en cours…"):
+                    result = run_merge_topics(edited_clean)
+                if result.get("status") == "success":
+                    st.session_state.nl_merged_text = result.get("text", "")
+                    st.success("Texte traité.")
+                else:
+                    st.error("❌ Erreur regroupement")
+                    st.caption(result.get("message", "Erreur inconnue"))
+        with col_clear:
+            if st.button("🧹 Clear", use_container_width=True, key="nl_clear_cleaned"):
+                st.session_state.nl_cleaned_text = ""
+                st.session_state.nl_merged_text = ""
+                st.session_state.nl_journalist_text = ""
+                st.session_state.nl_ai_preview_text = ""
+                st.rerun()
+    else:
+        st.caption("Aucun texte nettoyé pour le moment.")
+
+# =========================
+# 7️⃣ TEXTE TRAITÉ
+# =========================
+with st.expander("🧩 Texte traité (dédupliqué)", expanded=False):
+    if st.session_state.nl_merged_text:
+        edited_merged = st.text_area(
+            label="",
+            value=st.session_state.nl_merged_text,
+            height=320,
+            key="nl_merged_preview"
+        )
+        col_validate, col_clear = st.columns(2)
+        with col_validate:
+            if st.button("📰 Générer texte journalist", use_container_width=True, key="nl_run_journalist"):
+                st.session_state.nl_merged_text = edited_merged
+                with st.spinner("Rédaction journalistique…"):
+                    result = run_journalist(edited_merged)
+                if result.get("status") == "success":
+                    st.session_state.nl_journalist_text = result.get("text", "")
+                    st.success("Texte journalist généré.")
+                else:
+                    st.error("❌ Erreur journalist")
+                    st.caption(result.get("message", "Erreur inconnue"))
+        with col_clear:
+            if st.button("🧹 Clear", use_container_width=True, key="nl_clear_merged"):
+                st.session_state.nl_merged_text = ""
+                st.session_state.nl_journalist_text = ""
+                st.session_state.nl_ai_preview_text = ""
+                st.rerun()
+    else:
+        st.caption("Aucun texte traité pour le moment.")
+
+# =========================
+# 8️⃣ TEXTE JOURNALIST
+# =========================
+with st.expander("📰 Texte journalist", expanded=False):
+    if st.session_state.nl_journalist_text:
+        edited_journalist = st.text_area(
+            label="",
+            value=st.session_state.nl_journalist_text,
+            height=360,
+            key="nl_journalist_preview"
+        )
+        col_validate, col_clear = st.columns(2)
+        with col_validate:
+            if st.button("✅ Générer preview IA", use_container_width=True, key="nl_run_jsonfy"):
+                st.session_state.nl_journalist_text = edited_journalist
+                with st.spinner("Génération JSON…"):
+                    result = run_jsonfy(edited_journalist)
+                items = result.get("items", [])
+                if result.get("status") == "success" and items:
                     st.session_state.nl_ai_preview_text = json.dumps(
                         {"items": items},
                         indent=2,
                         ensure_ascii=False
                     )
                     st.success(f"{len(items)} items générés")
-                else:
+                elif result.get("status") == "success":
                     st.warning("Aucun item exploitable trouvé.")
-
-                if errors:
-                    st.caption("Erreurs détectées :")
-                    for err in errors[:5]:
-                        st.write(f"⚠️ {err}")
+                else:
+                    st.error("❌ Erreur JSON")
+                    st.caption(result.get("message", "Erreur inconnue"))
         with col_clear:
-            if st.button("🧹 Clear", use_container_width=True, key="nl_clear_raw"):
-                st.session_state.nl_raw_preview_text = ""
+            if st.button("🧹 Clear", use_container_width=True, key="nl_clear_journalist"):
+                st.session_state.nl_journalist_text = ""
+                st.session_state.nl_ai_preview_text = ""
                 st.rerun()
     else:
-        st.caption("Aucun texte brut à afficher.")
+        st.caption("Aucun texte journalist pour le moment.")
 
 # =========================
-# 6️⃣ PREVIEW IA
+# 9️⃣ PREVIEW IA
 # =========================
 with st.expander("👀 Preview IA (éditable)", expanded=True):
     if st.session_state.nl_ai_preview_text:
@@ -269,7 +380,7 @@ with st.expander("👀 Preview IA (éditable)", expanded=True):
         st.caption("Aucune preview générée pour le moment.")
 
 # =========================
-# 7️⃣ DERNIERS CONTENUS DB
+# 10️⃣ DERNIERS CONTENUS DB
 # =========================
 with st.expander("🗄️ Derniers contenus en base", expanded=False):
     items = fetch_raw_news(limit=50)
