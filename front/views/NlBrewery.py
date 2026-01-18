@@ -1,5 +1,6 @@
 import streamlit as st
 import json
+import re
 from datetime import datetime
 from services.nl_brewery.nl_brewery_service import (
     load_recipients,
@@ -29,6 +30,13 @@ def _refresh_recipients() -> None:
     st.session_state.nl_recipients = load_recipients()
 
 
+def _extract_emails(raw_value: str) -> list:
+    if not raw_value:
+        return []
+    # Accepte des emails séparés par virgules, espaces ou retours à la ligne
+    return re.findall(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", raw_value)
+
+
 if "nl_recipients" not in st.session_state:
     _refresh_recipients()
 
@@ -56,17 +64,30 @@ with st.expander("📬 Adresses newsletters", expanded=False):
         )
     with col_add:
         if st.button("➕ Ajouter", use_container_width=True, key="nl_add_email"):
-            if not email_input or "@" not in email_input:
+            emails = _extract_emails(email_input)
+            if not emails:
                 st.error("Email invalide.")
             else:
-                if email_input in st.session_state.nl_recipients:
-                    st.warning("Adresse déjà enregistrée.")
-                else:
-                    if add_recipient(email_input):
-                        _refresh_recipients()
-                        st.success("Adresse ajoutée.")
+                existing = set(st.session_state.nl_recipients or [])
+                added = 0
+                skipped = 0
+                failed = 0
+                for email_addr in emails:
+                    if email_addr in existing:
+                        skipped += 1
+                        continue
+                    if add_recipient(email_addr):
+                        added += 1
+                        existing.add(email_addr)
                     else:
-                        st.error("Impossible d'ajouter l'adresse.")
+                        failed += 1
+                _refresh_recipients()
+                if added:
+                    st.success(f"{added} adresse(s) ajoutée(s).")
+                if skipped:
+                    st.warning(f"{skipped} adresse(s) déjà enregistrée(s).")
+                if failed:
+                    st.error(f"{failed} adresse(s) non ajoutée(s).")
 
     if st.session_state.nl_recipients:
         st.markdown("**Adresses enregistrées :**")
