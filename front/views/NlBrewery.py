@@ -194,7 +194,7 @@ with col1:
 # =========================
 # 5️⃣ TEXTE BRUT (SCRAPING)
 # =========================
-with st.expander("🧾 Texte brut (scraping)", expanded=False):
+with st.expander("🧾 Texte brut (scraping)", expanded=True):
     if st.session_state.nl_raw_preview_text:
         edited_raw = st.text_area(
             label="",
@@ -228,7 +228,7 @@ with st.expander("🧾 Texte brut (scraping)", expanded=False):
 # =========================
 # 6️⃣ TEXTE NETTOYÉ
 # =========================
-with st.expander("🧼 Texte nettoyé", expanded=False):
+with st.expander("🧼 Texte nettoyé", expanded=True):
     if st.session_state.nl_cleaned_text:
         edited_clean = st.text_area(
             label="",
@@ -261,7 +261,7 @@ with st.expander("🧼 Texte nettoyé", expanded=False):
 # =========================
 # 7️⃣ TEXTE TRAITÉ
 # =========================
-with st.expander("🧩 Texte traité (dédupliqué)", expanded=False):
+with st.expander("🧩 Texte traité (dédupliqué)", expanded=True):
     if st.session_state.nl_merged_text:
         edited_merged = st.text_area(
             label="",
@@ -293,7 +293,7 @@ with st.expander("🧩 Texte traité (dédupliqué)", expanded=False):
 # =========================
 # 8️⃣ TEXTE JOURNALIST
 # =========================
-with st.expander("📰 Texte journalist", expanded=False):
+with st.expander("📰 Texte journalist", expanded=True):
     if st.session_state.nl_journalist_text:
         edited_journalist = st.text_area(
             label="",
