@@ -102,6 +102,7 @@ def fetch_and_process_newsletters(last_hours: int) -> Dict[str, object]:
 
     return {
         "status": "success",
+        "email_count": len(emails),
         "items": items,
         "errors": errors,
     }

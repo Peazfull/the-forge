@@ -46,6 +46,9 @@ if "nl_ai_preview_text" not in st.session_state:
 if "nl_status" not in st.session_state:
     st.session_state.nl_status = []
 
+if "nl_last_email_count" not in st.session_state:
+    st.session_state.nl_last_email_count = None
+
 
 st.title("📨 NL Brewery")
 st.divider()
@@ -106,7 +109,10 @@ with st.expander("📬 Adresses newsletters", expanded=False):
 # =========================
 # 2️⃣ CONNEXION GMAIL
 # =========================
-with st.expander("🔐 Connexion Gmail (Status)", expanded=True):
+col1, col2, col3, col4, col5, col6 = st.columns([2, 2, 1, 1, 1, 1])
+with col1:
+    st.write("🔐 Connexion Gmail (Status)")
+with col2:
     status = check_gmail_connection()
     if status.get("status") == "success":
         st.success("🟢 Gmail connecté")
@@ -114,24 +120,32 @@ with st.expander("🔐 Connexion Gmail (Status)", expanded=True):
         st.error("🔴 Erreur IMAP")
         st.caption(status.get("message", "Erreur inconnue"))
 
+if st.session_state.nl_last_email_count is not None:
+    st.caption(f"📬 {st.session_state.nl_last_email_count} newsletter(s) trouvée(s)")
+
 # =========================
 # 3️⃣ FENETRE TEMPORELLE
 # =========================
-with st.expander("⏱️ Fenêtre temporelle", expanded=False):
+col1, col2, col3, col4, col5, col6 = st.columns([2, 2, 1, 1, 1, 1])
+with col1:
+    st.write("⏱️ Fenêtre temporelle")
+with col2:
     hours_window = st.number_input(
         "Fenêtre d’analyse (heures)",
         min_value=1,
         max_value=168,
         value=24,
         step=1,
-        key="nl_hours_window"
+        key="nl_hours_window",
+        label_visibility="collapsed"
     )
-    st.caption(f"Analyser les newsletters reçues sur les dernières {hours_window} heures")
+st.caption(f"Analyser les newsletters reçues sur les dernières {hours_window} heures")
 
 # =========================
 # 4️⃣ SCRAPER NEWSLETTERS
 # =========================
-with st.expander("📥 Scraper les newsletters", expanded=False):
+col1, col2, col3, col4, col5, col6 = st.columns([2, 2, 1, 1, 1, 1])
+with col1:
     if st.button("🔄 Scraper les newsletters", use_container_width=True, key="nl_scrape"):
         st.session_state.nl_status = [
             "Connexion Gmail",
@@ -145,6 +159,7 @@ with st.expander("📥 Scraper les newsletters", expanded=False):
 
         items = result.get("items", [])
         errors = result.get("errors", [])
+        st.session_state.nl_last_email_count = result.get("email_count")
 
         if items:
             st.session_state.nl_ai_preview_text = json.dumps(
