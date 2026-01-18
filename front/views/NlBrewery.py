@@ -179,7 +179,7 @@ with col1:
 # =========================
 # 5️⃣ PREVIEW IA
 # =========================
-with st.expander("👀 Preview IA (éditable)", expanded=False):
+with st.expander("👀 Preview IA (éditable)", expanded=True):
     if st.session_state.nl_ai_preview_text:
         edited_preview = st.text_area(
             label="",
