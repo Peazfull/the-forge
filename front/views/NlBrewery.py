@@ -7,7 +7,8 @@ from services.nl_brewery.nl_brewery_service import (
     add_recipient,
     remove_recipient,
     check_gmail_connection,
-    fetch_and_process_newsletters,
+    fetch_raw_newsletters,
+    process_raw_preview,
 )
 from services.raw_storage.raw_news_service import (
     enrich_raw_items,
@@ -153,27 +154,22 @@ with col1:
         st.session_state.nl_status = [
             "Connexion Gmail",
             "Lecture des emails",
-            "Analyse IA en cours"
+            "Préparation du texte brut"
         ]
         st.session_state.nl_ai_preview_text = ""
+        st.session_state.nl_raw_preview_text = ""
 
         with st.spinner("Récupération et analyse en cours…"):
-            result = fetch_and_process_newsletters(last_hours=int(hours_window))
+            result = fetch_raw_newsletters(last_hours=int(hours_window))
 
-        items = result.get("items", [])
         errors = result.get("errors", [])
         st.session_state.nl_last_email_count = result.get("email_count")
         st.session_state.nl_raw_preview_text = result.get("raw_preview", "")
 
-        if items:
-            st.session_state.nl_ai_preview_text = json.dumps(
-                {"items": items},
-                indent=2,
-                ensure_ascii=False
-            )
-            st.success(f"{len(items)} items générés")
+        if st.session_state.nl_raw_preview_text:
+            st.success("Texte brut récupéré.")
         else:
-            st.warning("Aucun item exploitable trouvé.")
+            st.warning("Aucun texte brut exploitable trouvé.")
 
         if errors:
             st.caption("Erreurs détectées :")
@@ -185,12 +181,39 @@ with col1:
 # =========================
 with st.expander("🧾 Texte brut (scraping)", expanded=False):
     if st.session_state.nl_raw_preview_text:
-        st.text_area(
+        edited_raw = st.text_area(
             label="",
             value=st.session_state.nl_raw_preview_text,
             height=300,
             key="nl_raw_preview"
         )
+        col_validate, col_clear = st.columns(2)
+        with col_validate:
+            if st.button("✅ Valider et lancer IA", use_container_width=True, key="nl_run_ai"):
+                st.session_state.nl_raw_preview_text = edited_raw
+                with st.spinner("Analyse IA en cours…"):
+                    result = process_raw_preview(edited_raw)
+                items = result.get("items", [])
+                errors = result.get("errors", [])
+
+                if items:
+                    st.session_state.nl_ai_preview_text = json.dumps(
+                        {"items": items},
+                        indent=2,
+                        ensure_ascii=False
+                    )
+                    st.success(f"{len(items)} items générés")
+                else:
+                    st.warning("Aucun item exploitable trouvé.")
+
+                if errors:
+                    st.caption("Erreurs détectées :")
+                    for err in errors[:5]:
+                        st.write(f"⚠️ {err}")
+        with col_clear:
+            if st.button("🧹 Clear", use_container_width=True, key="nl_clear_raw"):
+                st.session_state.nl_raw_preview_text = ""
+                st.rerun()
     else:
         st.caption("Aucun texte brut à afficher.")
 
