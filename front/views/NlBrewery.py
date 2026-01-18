@@ -49,6 +49,9 @@ if "nl_status" not in st.session_state:
 if "nl_last_email_count" not in st.session_state:
     st.session_state.nl_last_email_count = None
 
+if "nl_raw_preview_text" not in st.session_state:
+    st.session_state.nl_raw_preview_text = ""
+
 
 st.title("📨 NL Brewery")
 st.divider()
@@ -160,6 +163,7 @@ with col1:
         items = result.get("items", [])
         errors = result.get("errors", [])
         st.session_state.nl_last_email_count = result.get("email_count")
+        st.session_state.nl_raw_preview_text = result.get("raw_preview", "")
 
         if items:
             st.session_state.nl_ai_preview_text = json.dumps(
@@ -177,7 +181,21 @@ with col1:
                 st.write(f"⚠️ {err}")
 
 # =========================
-# 5️⃣ PREVIEW IA
+# 5️⃣ TEXTE BRUT (SCRAPING)
+# =========================
+with st.expander("🧾 Texte brut (scraping)", expanded=False):
+    if st.session_state.nl_raw_preview_text:
+        st.text_area(
+            label="",
+            value=st.session_state.nl_raw_preview_text,
+            height=300,
+            key="nl_raw_preview"
+        )
+    else:
+        st.caption("Aucun texte brut à afficher.")
+
+# =========================
+# 6️⃣ PREVIEW IA
 # =========================
 with st.expander("👀 Preview IA (éditable)", expanded=True):
     if st.session_state.nl_ai_preview_text:
@@ -228,7 +246,7 @@ with st.expander("👀 Preview IA (éditable)", expanded=True):
         st.caption("Aucune preview générée pour le moment.")
 
 # =========================
-# 6️⃣ DERNIERS CONTENUS DB
+# 7️⃣ DERNIERS CONTENUS DB
 # =========================
 with st.expander("🗄️ Derniers contenus en base", expanded=False):
     items = fetch_raw_news(limit=50)

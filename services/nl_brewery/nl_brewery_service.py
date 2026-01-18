@@ -78,6 +78,7 @@ def fetch_and_process_newsletters(last_hours: int) -> Dict[str, object]:
     unique_keys: Set[Tuple[str, str, str]] = set()
     items = []
     errors = []
+    raw_texts = []
 
     for email_data in emails:
         if not _match_recipient(email_data.get("to", ""), recipients):
@@ -86,6 +87,15 @@ def fetch_and_process_newsletters(last_hours: int) -> Dict[str, object]:
         if key in unique_keys:
             continue
         unique_keys.add(key)
+
+        body_text = (email_data.get("body_text") or "").strip()
+        if body_text:
+            raw_texts.append(
+                f"=== EMAIL ===\nFrom: {email_data.get('sender','')}\n"
+                f"To: {email_data.get('to','')}\n"
+                f"Subject: {email_data.get('subject','')}\n"
+                f"Date: {email_data.get('date','')}\n\n{body_text}\n"
+            )
 
         result = process_newsletter(email_data)
         if result.get("status") != "success":
@@ -103,6 +113,7 @@ def fetch_and_process_newsletters(last_hours: int) -> Dict[str, object]:
     return {
         "status": "success",
         "email_count": len(emails),
+        "raw_preview": "\n\n".join(raw_texts),
         "items": items,
         "errors": errors,
     }
