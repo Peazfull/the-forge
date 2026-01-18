@@ -40,6 +40,10 @@ def get_latest_videos_from_channel_ytdlp(channel_url: str, limit: int = 10) -> L
         "skip_download": True,
         "extract_flat": False,
         "playlistend": max(1, min(limit, 50)),
+        "noplaylist": True,
+        "socket_timeout": 60,
+        "retries": 1,
+        "extractor_retries": 1,
     }
 
     try:
