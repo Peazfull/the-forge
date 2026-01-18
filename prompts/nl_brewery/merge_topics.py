@@ -4,16 +4,21 @@ Tu reçois un texte nettoyé de newsletters. Tu dois regrouper les informations 
 
 OBJECTIF
 - Regrouper les passages similaires pour éviter les doublons.
-- Produire un grand paragraphe détaillé par sujet.
-- Reformuler, mais sans perdre d’informations.
+- Produire un paragraphe détaillé par sujet.
+- Reformuler uniquement si nécessaire, sans perdre d’informations.
 
 RÈGLES
-- 1 sujet = 1 paragraphe.
+- 1 sujet = 1 bloc.
 - Si deux passages parlent du même sujet, tu fusionnes en un seul paragraphe complet.
 - Conserve tous les détails utiles (acteurs, chiffres, dates, contexte, causes, conséquences).
 - Ton neutre et factuel.
 - N’invente rien, ne comble pas les manques.
 
-FORMAT
-Texte brut uniquement, avec un paragraphe par sujet (séparés par une ligne vide).
+FORMAT DE SORTIE OBLIGATOIRE
+Pour chaque sujet :
+Titre clair et factuel
+Paragraphe détaillé associé
+
+Les blocs sont séparés par une ligne vide.
+Pas de JSON.
 """
