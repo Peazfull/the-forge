@@ -106,7 +106,7 @@ with st.expander("📬 Adresses newsletters", expanded=False):
 # =========================
 # 2️⃣ CONNEXION GMAIL
 # =========================
-with st.expander("🔐 Connexion Gmail (Status)", expanded=False):
+with st.expander("🔐 Connexion Gmail (Status)", expanded=True):
     status = check_gmail_connection()
     if status.get("status") == "success":
         st.success("🟢 Gmail connecté")
