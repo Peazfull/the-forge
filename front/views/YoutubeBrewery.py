@@ -5,6 +5,10 @@ import services.youtube_brewery.youtube_utils as youtube_utils
 from services.youtube_brewery.storage_utils import load_channels, save_channels
 from services.youtube_brewery.transcript_utils import fetch_video_transcript
 from services.youtube_brewery.process_transcript import process_transcript
+from services.youtube_brewery.youtube_brewery_service import (
+    build_temp_transcripts,
+    jsonfy_temp_text,
+)
 from services.raw_storage.raw_news_service import (
     enrich_raw_items,
     insert_raw_news,
@@ -48,6 +52,12 @@ if "yt_ai_preview_text" not in st.session_state:
 
 if "yt_single_video_preview_text" not in st.session_state:
     st.session_state.yt_single_video_preview_text = ""
+
+if "yt_temp_text" not in st.session_state:
+    st.session_state.yt_temp_text = ""
+
+if "yt_status_log" not in st.session_state:
+    st.session_state.yt_status_log = []
 
 st.title("🔺 Youtube brewery")
 st.divider()
@@ -337,66 +347,78 @@ with st.expander("🧩 Preview IA (concaténé)", expanded=True):
     col_generate, col_clear_preview = st.columns(2)
 
     with col_generate:
-        if st.button("🚀 Générer preview IA (transcripts)", use_container_width=True, key="yt_generate_preview"):
+        if st.button("🚀 Générer texte temporaire", use_container_width=True, key="yt_generate_temp"):
             if not st.session_state.yt_selected:
                 st.error("Aucune vidéo sélectionnée.")
             else:
                 st.session_state.yt_ai_preview_text = ""
-                items = []
+                st.session_state.yt_temp_text = ""
+                st.session_state.yt_status_log = []
                 selected_videos = list(st.session_state.yt_selected.values())
-                total = len(selected_videos)
-                progress = st.progress(0)
 
-                for idx, video in enumerate(selected_videos, start=1):
-                    title = video.get("title") or "Sans titre"
-                    channel = video.get("channel_name") or "Chaîne inconnue"
-                    published = video.get("published") or ""
-                    url = video.get("url") or ""
+                with st.spinner("Traitement des vidéos…"):
+                    result = build_temp_transcripts(selected_videos)
 
-                    st.write(f"▶️ Traitement: **{title}**")
+                st.session_state.yt_temp_text = result.get("temp_text", "")
+                st.session_state.yt_status_log = result.get("status_log", [])
+                errors = result.get("errors", [])
 
-                    if not url:
-                        st.error(f"URL manquante pour la vidéo: {title}")
-                        progress.progress(int(idx / total * 100))
-                        continue
+                if st.session_state.yt_temp_text:
+                    st.success("Texte temporaire généré.")
+                else:
+                    st.warning("Aucun texte exploitable trouvé.")
 
-                    try:
-                        with st.spinner("Récupération du transcript…"):
-                            transcript = fetch_video_transcript(url)
-                    except Exception as e:
-                        st.error(f"Transcript indisponible pour {title}")
-                        st.caption(str(e))
-                        progress.progress(int(idx / total * 100))
-                        continue
-
-                    with st.spinner("Analyse IA en cours…"):
-                        result = process_transcript(transcript)
-
-                    if result["status"] != "success":
-                        st.error(f"Erreur IA pour {title}")
-                        st.caption(result.get("message", "Erreur inconnue"))
-                        progress.progress(int(idx / total * 100))
-                        continue
-
-                    for item in result.get("items", []):
-                        item["source_name"] = channel
-                        item["source_link"] = url
-                        item["source_date"] = published
-                        item["source_raw"] = None
-                        items.append(item)
-
-                    st.success(f"✅ {len(result.get('items', []))} items générés")
-                    progress.progress(int(idx / total * 100))
-
-                st.session_state.yt_ai_preview_text = json.dumps(
-                    {"items": items},
-                    indent=2,
-                    ensure_ascii=False
-                )
+                if errors:
+                    st.caption("Erreurs détectées :")
+                    for err in errors[:5]:
+                        st.write(f"⚠️ {err}")
 
     with col_clear_preview:
         if st.button("🧹 Clear preview", use_container_width=True, key="yt_clear_preview"):
             st.session_state.yt_ai_preview_text = ""
+
+    if st.session_state.yt_status_log:
+        st.markdown("**Statut :**")
+        for line in st.session_state.yt_status_log[-20:]:
+            st.write(f"⏳ {line}")
+
+    if st.session_state.yt_temp_text:
+        st.text_area(
+            label="Texte temporaire (copywriter)",
+            value=st.session_state.yt_temp_text,
+            height=350,
+            key="yt_temp_editor"
+        )
+        col_validate_temp, col_clear_temp = st.columns(2)
+        with col_validate_temp:
+            if st.button("✅ Valider et générer JSON", use_container_width=True, key="yt_temp_to_json"):
+                edited_temp = st.session_state.yt_temp_text
+                with st.spinner("Génération JSON…"):
+                    result = jsonfy_temp_text(edited_temp)
+                items = result.get("items", [])
+                if result.get("status") == "success" and items:
+                    st.session_state.yt_ai_preview_text = json.dumps(
+                        {"items": items},
+                        indent=2,
+                        ensure_ascii=False
+                    )
+                    st.success(f"{len(items)} items générés")
+                elif result.get("status") == "success":
+                    st.warning("Aucun item exploitable trouvé.")
+                else:
+                    st.error("❌ Erreur JSON")
+                    st.caption(result.get("message", "Erreur inconnue"))
+                errors = result.get("errors", [])
+                if errors:
+                    st.caption("Erreurs détectées :")
+                    for err in errors[:5]:
+                        st.write(f"⚠️ {err}")
+        with col_clear_temp:
+            if st.button("🧹 Clear texte", use_container_width=True, key="yt_clear_temp"):
+                st.session_state.yt_temp_text = ""
+                st.session_state.yt_status_log = []
+                st.session_state.yt_ai_preview_text = ""
+                st.rerun()
 
     if st.session_state.yt_ai_preview_text:
         edited_preview = st.text_area(
