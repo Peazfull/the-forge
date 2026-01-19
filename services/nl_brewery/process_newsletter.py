@@ -3,6 +3,7 @@ import streamlit as st
 from openai import OpenAI
 from typing import Dict, List
 from prompts.nl_brewery.clean_raw import PROMPT_CLEAN_RAW
+from prompts.nl_brewery.merge_topics import PROMPT_MERGE_TOPICS
 from prompts.nl_brewery.journalist import PROMPT_JOURNALIST
 from prompts.nl_brewery.copywriter import PROMPT_COPYWRITER
 from prompts.nl_brewery.jsonfy import PROMPT_JSONFY
@@ -36,11 +37,21 @@ def clean_raw_text(raw_text: str) -> Dict[str, object]:
         return {"status": "error", "message": str(exc), "text": ""}
 
 
-def journalist_text(cleaned_text: str) -> Dict[str, object]:
+def merge_topics_text(cleaned_text: str) -> Dict[str, object]:
     if not cleaned_text or not cleaned_text.strip():
         return {"status": "error", "message": "Texte nettoyé vide", "text": ""}
     try:
-        journalist = _run_text_prompt(PROMPT_JOURNALIST, cleaned_text, temperature=0.2)
+        merged = _run_text_prompt(PROMPT_MERGE_TOPICS, cleaned_text, temperature=0.2)
+        return {"status": "success", "text": merged.strip()}
+    except Exception as exc:
+        return {"status": "error", "message": str(exc), "text": ""}
+
+
+def journalist_text(merged_text: str) -> Dict[str, object]:
+    if not merged_text or not merged_text.strip():
+        return {"status": "error", "message": "Texte traité vide", "text": ""}
+    try:
+        journalist = _run_text_prompt(PROMPT_JOURNALIST, merged_text, temperature=0.2)
         return {"status": "success", "text": journalist.strip()}
     except Exception as exc:
         return {"status": "error", "message": str(exc), "text": ""}
@@ -103,7 +114,11 @@ def process_newsletter(email_data: Dict[str, str]) -> Dict[str, object]:
         if cleaned.get("status") != "success":
             return {"status": "error", "message": cleaned.get("message", "Erreur"), "items": []}
 
-        journalist = journalist_text(cleaned.get("text", ""))
+        merged = merge_topics_text(cleaned.get("text", ""))
+        if merged.get("status") != "success":
+            return {"status": "error", "message": merged.get("message", "Erreur"), "items": []}
+
+        journalist = journalist_text(merged.get("text", ""))
         if journalist.get("status") != "success":
             return {"status": "error", "message": journalist.get("message", "Erreur"), "items": []}
 

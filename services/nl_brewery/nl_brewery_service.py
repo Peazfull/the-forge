@@ -1,10 +1,12 @@
 from typing import List, Dict, Set, Tuple, Optional
 from db.supabase_client import get_supabase
+import time
 from services.nl_brewery.imap_client import check_connection, fetch_emails
 import tempfile
 from services.nl_brewery.process_newsletter import (
     process_newsletter,
     clean_raw_text,
+    merge_topics_text,
     journalist_text,
     copywriter_text,
     jsonfy_text,
@@ -311,26 +313,41 @@ def build_temp_newsletters(last_hours: int, max_emails: Optional[int] = None) ->
             status_log.append(f"NL {matched_count}/{total} · vide (skip)")
             continue
 
+        step_start = time.time()
         cleaned = clean_raw_text(body_text)
+        step_duration = time.time() - step_start
         if cleaned.get("status") != "success":
             errors.append(cleaned.get("message", "Erreur nettoyage"))
-            status_log.append(f"NL {matched_count}/{total} · clean NOK")
+            status_log.append(f"NL {matched_count}/{total} · clean NOK ({step_duration:.1f}s)")
             continue
-        status_log.append(f"NL {matched_count}/{total} · clean OK")
+        status_log.append(f"NL {matched_count}/{total} · clean OK ({step_duration:.1f}s)")
 
-        journalist = journalist_text(cleaned.get("text", ""))
+        step_start = time.time()
+        merged = merge_topics_text(cleaned.get("text", ""))
+        step_duration = time.time() - step_start
+        if merged.get("status") != "success":
+            errors.append(merged.get("message", "Erreur merge"))
+            status_log.append(f"NL {matched_count}/{total} · merge NOK ({step_duration:.1f}s)")
+            continue
+        status_log.append(f"NL {matched_count}/{total} · merge OK ({step_duration:.1f}s)")
+
+        step_start = time.time()
+        journalist = journalist_text(merged.get("text", ""))
+        step_duration = time.time() - step_start
         if journalist.get("status") != "success":
             errors.append(journalist.get("message", "Erreur journalist"))
-            status_log.append(f"NL {matched_count}/{total} · journalist NOK")
+            status_log.append(f"NL {matched_count}/{total} · journalist NOK ({step_duration:.1f}s)")
             continue
-        status_log.append(f"NL {matched_count}/{total} · journalist OK")
+        status_log.append(f"NL {matched_count}/{total} · journalist OK ({step_duration:.1f}s)")
 
+        step_start = time.time()
         copywritten = copywriter_text(journalist.get("text", ""))
+        step_duration = time.time() - step_start
         if copywritten.get("status") != "success":
             errors.append(copywritten.get("message", "Erreur copywriter"))
-            status_log.append(f"NL {matched_count}/{total} · copywriter NOK")
+            status_log.append(f"NL {matched_count}/{total} · copywriter NOK ({step_duration:.1f}s)")
             continue
-        status_log.append(f"NL {matched_count}/{total} · copywriter OK")
+        status_log.append(f"NL {matched_count}/{total} · copywriter OK ({step_duration:.1f}s)")
 
         blocks.append(_format_temp_block(email_data, copywritten.get("text", "")))
         status_log.append(f"NL {matched_count}/{total} · ajouté")
