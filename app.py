@@ -38,6 +38,15 @@ st.markdown(
     html, body, [class*="css"] {
         font-family: 'Inter', sans-serif;
     }
+    /* Lean mode: remove expander frame and background */
+    div[data-testid="stExpander"] > details {
+        border: none;
+        background: transparent;
+        box-shadow: none;
+    }
+    div[data-testid="stExpander"] > details > summary {
+        background: transparent;
+    }
     </style>
     """,
     unsafe_allow_html=True
