@@ -146,7 +146,20 @@ with col2:
         key="nl_hours_window",
         label_visibility="collapsed"
     )
-st.caption(f"Analyser les newsletters reçues sur les dernières {hours_window} heures")
+with col3:
+    max_emails = st.number_input(
+        "Max newsletters",
+        min_value=1,
+        max_value=200,
+        value=20,
+        step=1,
+        key="nl_max_emails",
+        label_visibility="collapsed"
+    )
+st.caption(
+    f"Analyser les newsletters reçues sur les dernières {hours_window} heures "
+    f"(max {max_emails})."
+)
 
 # =========================
 # 4️⃣ SCRAPER NEWSLETTERS
@@ -164,9 +177,13 @@ with col1:
         st.session_state.nl_temp_path = ""
 
         with st.spinner("Récupération et analyse en cours…"):
-            result = build_temp_newsletters(last_hours=int(hours_window))
+            result = build_temp_newsletters(
+                last_hours=int(hours_window),
+                max_emails=int(max_emails)
+            )
 
         errors = result.get("errors", [])
+        st.session_state.nl_status = result.get("status_log", [])
         st.session_state.nl_last_email_count = result.get("matched_count")
         st.session_state.nl_temp_text = result.get("temp_text", "")
         st.session_state.nl_temp_path = result.get("temp_path", "")
@@ -180,6 +197,11 @@ with col1:
             st.caption("Erreurs détectées :")
             for err in errors[:5]:
                 st.write(f"⚠️ {err}")
+
+if st.session_state.nl_status:
+    st.markdown("**Statut :**")
+    for line in st.session_state.nl_status[-20:]:
+        st.write(f"⏳ {line}")
 
 # =========================
 # 5️⃣ TEXTE TEMPORAIRE

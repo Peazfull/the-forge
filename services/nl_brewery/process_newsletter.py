@@ -9,6 +9,7 @@ from prompts.nl_brewery.jsonfy import PROMPT_JSONFY
 from prompts.nl_brewery.json_secure import PROMPT_JSON_SECURE
 
 
+REQUEST_TIMEOUT = 45
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 
@@ -19,7 +20,8 @@ def _run_text_prompt(prompt: str, content: str, temperature: float = 0.2) -> str
             {"role": "system", "content": prompt},
             {"role": "user", "content": content}
         ],
-        temperature=temperature
+        temperature=temperature,
+        timeout=REQUEST_TIMEOUT
     )
     return response.choices[0].message.content or ""
 
@@ -65,7 +67,8 @@ def jsonfy_text(journalist_output: str) -> Dict[str, object]:
                 {"role": "user", "content": journalist_output}
             ],
             temperature=0,
-            response_format={"type": "json_object"}
+            response_format={"type": "json_object"},
+            timeout=REQUEST_TIMEOUT
         )
         raw_json = response_jsonfy.choices[0].message.content or ""
 
@@ -76,7 +79,8 @@ def jsonfy_text(journalist_output: str) -> Dict[str, object]:
                 {"role": "user", "content": raw_json}
             ],
             temperature=0,
-            response_format={"type": "json_object"}
+            response_format={"type": "json_object"},
+            timeout=REQUEST_TIMEOUT
         )
         secure_json = response_secure.choices[0].message.content or ""
         data = json.loads(secure_json)

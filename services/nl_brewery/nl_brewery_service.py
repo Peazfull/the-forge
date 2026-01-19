@@ -78,9 +78,9 @@ def _dedupe_key(email_data: Dict[str, str]) -> Tuple[str, str, str]:
     )
 
 
-def fetch_and_process_newsletters(last_hours: int) -> Dict[str, object]:
+def fetch_and_process_newsletters(last_hours: int, max_emails: Optional[int] = None) -> Dict[str, object]:
     recipients = load_recipients()
-    emails = fetch_emails(last_hours)
+    emails = fetch_emails(last_hours, max_emails=max_emails)
 
     unique_keys: Set[Tuple[str, str, str]] = set()
     items = []
@@ -126,9 +126,9 @@ def fetch_and_process_newsletters(last_hours: int) -> Dict[str, object]:
     }
 
 
-def fetch_raw_newsletters(last_hours: int) -> Dict[str, object]:
+def fetch_raw_newsletters(last_hours: int, max_emails: Optional[int] = None) -> Dict[str, object]:
     recipients = load_recipients()
-    emails = fetch_emails(last_hours)
+    emails = fetch_emails(last_hours, max_emails=max_emails)
 
     unique_keys: Set[Tuple[str, str, str]] = set()
     raw_texts = []
@@ -284,14 +284,16 @@ def run_jsonfy(text_value: str) -> Dict[str, object]:
     return jsonfy_text(text_value)
 
 
-def build_temp_newsletters(last_hours: int) -> Dict[str, object]:
+def build_temp_newsletters(last_hours: int, max_emails: Optional[int] = None) -> Dict[str, object]:
     recipients = load_recipients()
-    emails = fetch_emails(last_hours)
+    emails = fetch_emails(last_hours, max_emails=max_emails)
 
     unique_keys: Set[Tuple[str, str, str]] = set()
     blocks = []
     errors = []
     matched_count = 0
+    status_log = []
+    total = len(emails)
 
     for email_data in emails:
         if not _match_recipient(email_data.get("to", ""), recipients):
@@ -301,28 +303,37 @@ def build_temp_newsletters(last_hours: int) -> Dict[str, object]:
             continue
         unique_keys.add(key)
         matched_count += 1
+        status_log.append(f"NL {matched_count}/{total} · démarrage")
 
         body_text = (email_data.get("body_text") or "").strip()
         if not body_text:
             errors.append("Newsletter vide détectée.")
+            status_log.append(f"NL {matched_count}/{total} · vide (skip)")
             continue
 
         cleaned = clean_raw_text(body_text)
         if cleaned.get("status") != "success":
             errors.append(cleaned.get("message", "Erreur nettoyage"))
+            status_log.append(f"NL {matched_count}/{total} · clean NOK")
             continue
+        status_log.append(f"NL {matched_count}/{total} · clean OK")
 
         journalist = journalist_text(cleaned.get("text", ""))
         if journalist.get("status") != "success":
             errors.append(journalist.get("message", "Erreur journalist"))
+            status_log.append(f"NL {matched_count}/{total} · journalist NOK")
             continue
+        status_log.append(f"NL {matched_count}/{total} · journalist OK")
 
         copywritten = copywriter_text(journalist.get("text", ""))
         if copywritten.get("status") != "success":
             errors.append(copywritten.get("message", "Erreur copywriter"))
+            status_log.append(f"NL {matched_count}/{total} · copywriter NOK")
             continue
+        status_log.append(f"NL {matched_count}/{total} · copywriter OK")
 
         blocks.append(_format_temp_block(email_data, copywritten.get("text", "")))
+        status_log.append(f"NL {matched_count}/{total} · ajouté")
 
     temp_text = "\n\n".join(blocks).strip()
     temp_path = _write_temp_file(temp_text) if temp_text else ""
@@ -334,6 +345,7 @@ def build_temp_newsletters(last_hours: int) -> Dict[str, object]:
         "temp_path": temp_path,
         "temp_text": temp_text,
         "errors": errors,
+        "status_log": status_log,
     }
 
 
