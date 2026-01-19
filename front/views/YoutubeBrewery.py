@@ -161,7 +161,7 @@ with st.expander("🎥 Vidéo scrapper", expanded=False):
                 st.rerun()
     else:
         st.caption("Aucune preview générée pour le moment")
-
+st.divider()
 # =========================
 # CHAÎNES YOUTUBE
 # =========================
@@ -259,50 +259,51 @@ with st.expander("🎬 Dernières vidéos", expanded=True):
     if load_videos:
         st.session_state.yt_previews = []
 
-        cutoff = datetime.now(timezone.utc) - timedelta(hours=hours_window)
+        with st.spinner("Chargement des dernières vidéos…"):
+            cutoff = datetime.now(timezone.utc) - timedelta(hours=hours_window)
 
-        for channel in st.session_state.yt_channels:
-            if channel["enabled"] and channel["url"]:
-                if hasattr(youtube_utils, "get_latest_videos_from_channel"):
-                    videos = youtube_utils.get_latest_videos_from_channel(channel["url"], limit=20)
-                else:
-                    latest = youtube_utils.get_latest_video_from_channel(channel["url"])
-                    videos = [latest] if latest else []
-                for video in videos:
-                    published_raw = video.get("published") or ""
-                    published_dt = None
-                    is_date_only = False
-                    try:
-                        if published_raw.endswith("Z"):
-                            published_dt = datetime.fromisoformat(published_raw.replace("Z", "+00:00"))
-                        else:
-                            if len(published_raw) == 10:
-                                is_date_only = True
-                            published_dt = datetime.fromisoformat(published_raw)
-                    except Exception:
+            for channel in st.session_state.yt_channels:
+                if channel["enabled"] and channel["url"]:
+                    if hasattr(youtube_utils, "get_latest_videos_from_channel"):
+                        videos = youtube_utils.get_latest_videos_from_channel(channel["url"], limit=20)
+                    else:
+                        latest = youtube_utils.get_latest_video_from_channel(channel["url"])
+                        videos = [latest] if latest else []
+                    for video in videos:
+                        published_raw = video.get("published") or ""
+                        published_dt = None
+                        is_date_only = False
                         try:
-                            published_dt = datetime.strptime(published_raw, "%Y-%m-%d").replace(tzinfo=timezone.utc)
-                            is_date_only = True
+                            if published_raw.endswith("Z"):
+                                published_dt = datetime.fromisoformat(published_raw.replace("Z", "+00:00"))
+                            else:
+                                if len(published_raw) == 10:
+                                    is_date_only = True
+                                published_dt = datetime.fromisoformat(published_raw)
                         except Exception:
-                            published_dt = None
+                            try:
+                                published_dt = datetime.strptime(published_raw, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+                                is_date_only = True
+                            except Exception:
+                                published_dt = None
 
-                    if published_dt and published_dt.tzinfo is None:
-                        published_dt = published_dt.replace(tzinfo=timezone.utc)
+                        if published_dt and published_dt.tzinfo is None:
+                            published_dt = published_dt.replace(tzinfo=timezone.utc)
 
-                    if published_dt:
-                        if is_date_only:
-                            if published_dt.date() < cutoff.date():
-                                continue
-                        else:
-                            if published_dt < cutoff:
-                                continue
+                        if published_dt:
+                            if is_date_only:
+                                if published_dt.date() < cutoff.date():
+                                    continue
+                            else:
+                                if published_dt < cutoff:
+                                    continue
 
-                    if channel.get("name") and not video.get("channel_name"):
-                        video["channel_name"] = channel["name"]
+                        if channel.get("name") and not video.get("channel_name"):
+                            video["channel_name"] = channel["name"]
 
-                    video_id = video.get("video_id")
-                    if video_id and video_id not in {v.get("video_id") for v in st.session_state.yt_previews}:
-                        st.session_state.yt_previews.append(video)
+                        video_id = video.get("video_id")
+                        if video_id and video_id not in {v.get("video_id") for v in st.session_state.yt_previews}:
+                            st.session_state.yt_previews.append(video)
 
     # Affichage des previews
     if st.session_state.yt_previews:
