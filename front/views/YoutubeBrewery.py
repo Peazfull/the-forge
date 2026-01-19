@@ -162,7 +162,7 @@ with st.expander("🎥 Vidéo scrapper", expanded=False):
     else:
         st.caption("Aucune preview générée pour le moment")
 
-st.write("Monitoring des chaines")
+st.write("Monitoring des chaines :")
 
 # =========================
 # CHAÎNES YOUTUBE
