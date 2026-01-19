@@ -335,13 +335,13 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
                 st.rerun()
 
     st.divider()
-    st.markdown("**Derniers contenus en base**")
-    raw_items = fetch_raw_news(limit=50)
-    if not raw_items:
-        st.caption("Aucun contenu en base pour le moment")
-    else:
-        for item in raw_items:
-            st.markdown("---")
-            st.caption(f"🕒 {item['processed_at']} · Source : {item['source_type']}")
-            st.markdown(f"**{item['title']}**")
-            st.write(item['content'])
+    with st.expander("🗄️ Derniers contenus en base", expanded=False):
+        raw_items = fetch_raw_news(limit=50)
+        if not raw_items:
+            st.caption("Aucun contenu en base pour le moment")
+        else:
+            for item in raw_items:
+                st.markdown("---")
+                st.caption(f"🕒 {item['processed_at']} · Source : {item['source_type']}")
+                st.markdown(f"**{item['title']}**")
+                st.write(item['content'])
