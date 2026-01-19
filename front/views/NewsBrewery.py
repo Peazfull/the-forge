@@ -41,146 +41,147 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
             key="news_hours_window"
         )
 
-    st.markdown("**Limites**")
-    col_max_total, col_max_per = st.columns(2)
-    with col_max_total:
-        max_articles_total = st.number_input(
-            "Max articles total",
-            min_value=1,
-            max_value=100,
-            value=15,
-            step=1,
-            key="news_max_total"
-        )
-    with col_max_per:
-        max_articles_per_bulletin = st.number_input(
-            "Max articles par bulletin",
-            min_value=1,
-            max_value=20,
-            value=5,
-            step=1,
-            key="news_max_per"
-        )
+    with st.expander("Limites · Pipeline IA · Safety", expanded=False):
+        st.markdown("**Limites**")
+        col_max_total, col_max_per = st.columns(2)
+        with col_max_total:
+            max_articles_total = st.number_input(
+                "Max articles total",
+                min_value=1,
+                max_value=100,
+                value=15,
+                step=1,
+                key="news_max_total"
+            )
+        with col_max_per:
+            max_articles_per_bulletin = st.number_input(
+                "Max articles par bulletin",
+                min_value=1,
+                max_value=20,
+                value=5,
+                step=1,
+                key="news_max_per"
+            )
 
-    st.markdown("**Human behavior**")
-    col_scroll_min, col_scroll_max = st.columns(2)
-    with col_scroll_min:
-        scroll_min_px = st.number_input(
-            "Scroll min px",
-            min_value=100,
-            max_value=2000,
-            value=400,
-            step=50,
-            key="news_scroll_min"
-        )
-    with col_scroll_max:
-        scroll_max_px = st.number_input(
-            "Scroll max px",
-            min_value=200,
-            max_value=4000,
-            value=1200,
-            step=50,
-            key="news_scroll_max"
-        )
+        st.markdown("**Human behavior**")
+        col_scroll_min, col_scroll_max = st.columns(2)
+        with col_scroll_min:
+            scroll_min_px = st.number_input(
+                "Scroll min px",
+                min_value=100,
+                max_value=2000,
+                value=400,
+                step=50,
+                key="news_scroll_min"
+            )
+        with col_scroll_max:
+            scroll_max_px = st.number_input(
+                "Scroll max px",
+                min_value=200,
+                max_value=4000,
+                value=1200,
+                step=50,
+                key="news_scroll_max"
+            )
 
-    col_page_min, col_page_max = st.columns(2)
-    with col_page_min:
-        min_page_time = st.number_input(
-            "Temps min page (s)",
-            min_value=1,
-            max_value=120,
-            value=10,
-            step=1,
-            key="news_page_min"
-        )
-    with col_page_max:
-        max_page_time = st.number_input(
-            "Temps max page (s)",
-            min_value=2,
-            max_value=180,
-            value=45,
-            step=1,
-            key="news_page_max"
-        )
+        col_page_min, col_page_max = st.columns(2)
+        with col_page_min:
+            min_page_time = st.number_input(
+                "Temps min page (s)",
+                min_value=1,
+                max_value=120,
+                value=10,
+                step=1,
+                key="news_page_min"
+            )
+        with col_page_max:
+            max_page_time = st.number_input(
+                "Temps max page (s)",
+                min_value=2,
+                max_value=180,
+                value=45,
+                step=1,
+                key="news_page_max"
+            )
 
-    col_wait_min, col_wait_max = st.columns(2)
-    with col_wait_min:
-        wait_min_action = st.number_input(
-            "Wait min action (s)",
-            min_value=0.1,
-            max_value=5.0,
-            value=0.6,
-            step=0.1,
-            key="news_wait_min"
-        )
-    with col_wait_max:
-        wait_max_action = st.number_input(
-            "Wait max action (s)",
-            min_value=0.2,
-            max_value=8.0,
-            value=2.5,
-            step=0.1,
-            key="news_wait_max"
-        )
+        col_wait_min, col_wait_max = st.columns(2)
+        with col_wait_min:
+            wait_min_action = st.number_input(
+                "Wait min action (s)",
+                min_value=0.1,
+                max_value=5.0,
+                value=0.6,
+                step=0.1,
+                key="news_wait_min"
+            )
+        with col_wait_max:
+            wait_max_action = st.number_input(
+                "Wait max action (s)",
+                min_value=0.2,
+                max_value=8.0,
+                value=2.5,
+                step=0.1,
+                key="news_wait_max"
+            )
 
-    shuffle_urls = st.checkbox("Shuffle URLs", value=True, key="news_shuffle")
+        shuffle_urls = st.checkbox("Shuffle URLs", value=True, key="news_shuffle")
 
-    st.markdown("**Pipeline IA**")
-    col_clean, col_fallback = st.columns(2)
-    with col_clean:
-        st.selectbox(
-            "Agent clean DOM",
-            options=["clean_dom_v1"],
+        st.markdown("**Pipeline IA**")
+        col_clean, col_fallback = st.columns(2)
+        with col_clean:
+            st.selectbox(
+                "Agent clean DOM",
+                options=["clean_dom_v1"],
+                index=0,
+                key="news_clean_dom"
+            )
+        with col_fallback:
+            st.selectbox(
+                "Agent fallback",
+                options=["clean_dom_v2"],
+                index=0,
+                key="news_fallback"
+            )
+
+        output_language = st.selectbox(
+            "Output language",
+            options=["FR"],
             index=0,
-            key="news_clean_dom"
+            key="news_lang"
         )
-    with col_fallback:
-        st.selectbox(
-            "Agent fallback",
-            options=["clean_dom_v2"],
-            index=0,
-            key="news_fallback"
-        )
+        dry_run = st.checkbox("DRY RUN", value=True, key="news_dry_run")
 
-    output_language = st.selectbox(
-        "Output language",
-        options=["FR"],
-        index=0,
-        key="news_lang"
-    )
-    dry_run = st.checkbox("DRY RUN", value=True, key="news_dry_run")
+        st.markdown("**Safety**")
+        col_err, col_timeout = st.columns(2)
+        with col_err:
+            max_consecutive_errors = st.number_input(
+                "Max erreurs consécutives",
+                min_value=1,
+                max_value=10,
+                value=3,
+                step=1,
+                key="news_max_errors"
+            )
+        with col_timeout:
+            global_timeout_minutes = st.number_input(
+                "Timeout global job (min)",
+                min_value=1,
+                max_value=60,
+                value=15,
+                step=1,
+                key="news_timeout"
+            )
 
-    st.markdown("**Safety**")
-    col_err, col_timeout = st.columns(2)
-    with col_err:
-        max_consecutive_errors = st.number_input(
-            "Max erreurs consécutives",
-            min_value=1,
-            max_value=10,
-            value=3,
-            step=1,
-            key="news_max_errors"
+        pause_on_captcha = st.checkbox(
+            "Pause en cas de captcha/wall",
+            value=True,
+            key="news_pause_captcha"
         )
-    with col_timeout:
-        global_timeout_minutes = st.number_input(
-            "Timeout global job (min)",
-            min_value=1,
-            max_value=60,
-            value=15,
-            step=1,
-            key="news_timeout"
+        remove_buffer = st.checkbox(
+            "Supprimer buffer après succès",
+            value=True,
+            key="news_remove_buffer"
         )
-
-    pause_on_captcha = st.checkbox(
-        "Pause en cas de captcha/wall",
-        value=True,
-        key="news_pause_captcha"
-    )
-    remove_buffer = st.checkbox(
-        "Supprimer buffer après succès",
-        value=True,
-        key="news_remove_buffer"
-    )
 
     if launch:
         config = JobConfig(
