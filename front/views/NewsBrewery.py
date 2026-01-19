@@ -193,6 +193,14 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
                     if checked:
                         selected_urls.append(item)
                 st.caption(f"{len(selected_urls)} article(s) sélectionné(s)")
+            else:
+                st.session_state.news_rss_candidates = fetch_rss_items(
+                    feed_url=rss_feed_url,
+                    max_items=int(max_articles_total),
+                    mode="today" if mode == "Aujourd’hui" else "last_hours",
+                    hours_window=int(hours_window),
+                )
+                st.rerun()
 
         st.markdown("**Safety**")
         col_err, col_timeout = st.columns(2)
