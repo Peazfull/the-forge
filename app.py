@@ -49,6 +49,12 @@ st.markdown(
     section[data-testid="stSidebar"] div[data-testid="stExpander"] > details > summary {
         background: transparent;
     }
+    /* Sidebar: remove button borders/frames */
+    section[data-testid="stSidebar"] button[kind="secondary"] {
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+    }
     </style>
     """,
     unsafe_allow_html=True
