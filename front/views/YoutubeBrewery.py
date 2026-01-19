@@ -383,16 +383,11 @@ with st.expander("🧩 Preview IA (concaténé)", expanded=True):
             st.write(f"⏳ {line}")
 
     if st.session_state.yt_temp_text:
-        st.text_area(
-            label="Texte temporaire (copywriter)",
-            value=st.session_state.yt_temp_text,
-            height=350,
-            key="yt_temp_editor"
-        )
         col_validate_temp, col_clear_temp = st.columns(2)
         with col_validate_temp:
             if st.button("✅ Valider et générer JSON", use_container_width=True, key="yt_temp_to_json"):
-                edited_temp = st.session_state.yt_temp_text
+                edited_temp = st.session_state.get("yt_temp_editor", st.session_state.yt_temp_text)
+                st.session_state.yt_temp_text = edited_temp
                 with st.spinner("Génération JSON…"):
                     result = jsonfy_temp_text(edited_temp)
                 items = result.get("items", [])
@@ -418,21 +413,24 @@ with st.expander("🧩 Preview IA (concaténé)", expanded=True):
                 st.session_state.yt_temp_text = ""
                 st.session_state.yt_status_log = []
                 st.session_state.yt_ai_preview_text = ""
+                st.session_state.yt_temp_editor = ""
                 st.rerun()
-
-    if st.session_state.yt_ai_preview_text:
-        edited_preview = st.text_area(
-            label="",
-            value=st.session_state.yt_ai_preview_text,
-            height=450,
-            key="yt_ai_preview_editor"
+        st.text_area(
+            label="Texte temporaire (copywriter)",
+            value=st.session_state.yt_temp_text,
+            height=350,
+            key="yt_temp_editor"
         )
 
+    if st.session_state.yt_ai_preview_text:
         col_validate, col_clear = st.columns(2)
 
         with col_validate:
             if st.button("✅ Envoyer en DB", use_container_width=True, key="yt_send_db"):
-                raw_json_text = edited_preview
+                raw_json_text = st.session_state.get(
+                    "yt_ai_preview_editor",
+                    st.session_state.yt_ai_preview_text
+                )
 
                 try:
                     data = json.loads(raw_json_text)
@@ -468,7 +466,14 @@ with st.expander("🧩 Preview IA (concaténé)", expanded=True):
             if st.button("🧹 Clear sélection", use_container_width=True, key="yt_clear_selection"):
                 st.session_state.yt_selected = {}
                 st.session_state.yt_ai_preview_text = ""
+                st.session_state.yt_ai_preview_editor = ""
                 st.rerun()
+        st.text_area(
+            label="",
+            value=st.session_state.yt_ai_preview_text,
+            height=450,
+            key="yt_ai_preview_editor"
+        )
     else:
         st.caption("Aucune preview générée pour le moment")
 
