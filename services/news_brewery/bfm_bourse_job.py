@@ -47,6 +47,7 @@ class JobConfig:
     global_timeout_minutes: int
     pause_on_captcha: bool
     remove_buffer_after_success: bool
+    headless: bool
 
 
 class BfmBourseJob:
@@ -316,7 +317,7 @@ class BfmBourseJob:
         try:
             with sync_playwright() as p:
                 self.status_log.append("🧭 Lancement navigateur")
-                browser = p.chromium.launch(headless=False)
+                browser = p.chromium.launch(headless=config.headless)
                 context = browser.new_context()
                 page = context.new_page()
                 page.set_default_timeout(60000)

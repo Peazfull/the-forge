@@ -182,6 +182,11 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
             value=True,
             key="news_remove_buffer"
         )
+    headless = st.checkbox(
+        "Headless (prod)",
+        value=True,
+        key="news_headless"
+    )
 
     if launch:
         config = JobConfig(
@@ -205,6 +210,7 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
             global_timeout_minutes=int(global_timeout_minutes),
             pause_on_captcha=bool(pause_on_captcha),
             remove_buffer_after_success=bool(remove_buffer),
+            headless=bool(headless),
         )
         job.start(config)
         st.success("Job lancé.")
