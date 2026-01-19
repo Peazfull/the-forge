@@ -55,6 +55,7 @@ class JobConfig:
     use_rss: bool
     rss_feed_url: str
     use_firecrawl: bool
+    urls_override: Optional[List[Dict[str, str]]]
 
 
 class BfmBourseJob:
@@ -66,6 +67,9 @@ class BfmBourseJob:
         self.skipped = 0
         self.consecutive_errors = 0
         self.buffer_path: Optional[str] = None
+        self.buffer_text: str = ""
+        self.json_preview_text: str = ""
+        self.json_items: List[Dict[str, object]] = []
         self._pause_event = threading.Event()
         self._pause_event.set()
         self._stop_event = threading.Event()
@@ -114,7 +118,50 @@ class BfmBourseJob:
             "errors": self.errors,
             "status_log": self.status_log,
             "buffer_path": self.buffer_path,
+            "buffer_text": self.buffer_text,
+            "json_preview_text": self.json_preview_text,
         }
+
+    def set_buffer_text(self, text: str) -> None:
+        self.buffer_text = text or ""
+
+    def finalize_buffer(self) -> Dict[str, object]:
+        if not self.buffer_text.strip():
+            return {"status": "error", "message": "Buffer vide"}
+        structured_text = self._extract_structured_text(self.buffer_text)
+        deduped = self._deduplicate_blocks(structured_text)
+        deduped = self._limit_blocks(deduped, self._config.max_articles_per_bulletin if self._config else 0)
+        json_result = self._jsonfy(deduped)
+        if json_result.get("status") != "success":
+            return {"status": "error", "message": json_result.get("message", "Erreur JSON")}
+        self.json_items = json_result.get("items", [])
+        self.json_preview_text = json.dumps({"items": self.json_items}, indent=2, ensure_ascii=False)
+        return {"status": "success", "items": self.json_items}
+
+    def send_to_db(self) -> Dict[str, object]:
+        if not self.json_items:
+            return {"status": "error", "message": "Aucun item à insérer"}
+        if self._config and self._config.dry_run:
+            return {"status": "error", "message": "DRY RUN actif"}
+        enriched = enrich_raw_items(
+            self.json_items,
+            flow="news_brewery",
+            source_type="news",
+            source_name="BFM Bourse",
+            source_link=self._config.entry_url if self._config else "",
+            source_date=datetime.now().isoformat(),
+            source_raw=None,
+        )
+        result = insert_raw_news(enriched)
+        if result.get("status") == "success":
+            self.state = "completed"
+            if self._config and self._config.remove_buffer_after_success and self.buffer_path:
+                try:
+                    import os
+                    os.remove(self.buffer_path)
+                except Exception:
+                    pass
+        return result
 
     def _wait_if_paused(self) -> None:
         while not self._pause_event.is_set():
@@ -336,7 +383,10 @@ class BfmBourseJob:
         if config.use_rss:
             try:
                 self.status_log.append("📰 Mode RSS activé")
-                articles = self._collect_article_urls_rss(config)
+                if config.urls_override:
+                    articles = config.urls_override
+                else:
+                    articles = self._collect_article_urls_rss(config)
                 if config.shuffle_urls:
                     random.shuffle(articles)
                 self.status_log.append(f"🔎 {len(articles)} URL(s) détectée(s)")
@@ -395,6 +445,7 @@ class BfmBourseJob:
 
                     self.processed += 1
                     self.consecutive_errors = 0
+                    self.status_log.append(f"✅ Article {idx} terminé")
 
             except Exception as exc:
                 self.state = "failed"
@@ -509,6 +560,7 @@ class BfmBourseJob:
 
                         self.processed += 1
                         self.consecutive_errors = 0
+                        self.status_log.append(f"✅ Article {idx} terminé")
 
                     context.close()
                     browser.close()
@@ -523,48 +575,13 @@ class BfmBourseJob:
 
         try:
             with open(buffer_path, "r", encoding="utf-8") as f:
-                buffer_text = f.read()
+                self.buffer_text = f.read()
         except Exception as exc:
             self.state = "failed"
             self.errors.append(f"Buffer introuvable: {exc}")
             return
 
-        structured_text = self._extract_structured_text(buffer_text)
-        deduped = self._deduplicate_blocks(structured_text)
-        deduped = self._limit_blocks(deduped, config.max_articles_per_bulletin)
-
-        json_result = self._jsonfy(deduped)
-        if json_result.get("status") != "success":
-            self.state = "failed"
-            self.errors.append(json_result.get("message", "Erreur JSON"))
-            return
-
-        if config.dry_run:
-            self.state = "completed"
-        else:
-            items = json_result.get("items", [])
-            enriched = enrich_raw_items(
-                items,
-                flow="news_brewery",
-                source_type="news",
-                source_name="BFM Bourse",
-                source_link=config.entry_url,
-                source_date=datetime.now().isoformat(),
-                source_raw=None,
-            )
-            result = insert_raw_news(enriched)
-            if result.get("status") != "success":
-                self.state = "failed"
-                self.errors.append(result.get("message", "Erreur DB"))
-                return
-            self.state = "completed"
-
-        if config.remove_buffer_after_success:
-            try:
-                import os
-                os.remove(buffer_path)
-            except Exception:
-                pass
+        self.state = "ready"
 
 
 _JOB_INSTANCE: Optional[BfmBourseJob] = None

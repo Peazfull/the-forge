@@ -1,5 +1,7 @@
 import streamlit as st
 from services.news_brewery.bfm_bourse_job import JobConfig, get_bfm_job
+from services.news_brewery.rss_utils import fetch_rss_items
+from services.raw_storage.raw_news_service import fetch_raw_news
 
 
 st.title("🗞️ NEWS Brewery")
@@ -7,6 +9,9 @@ st.divider()
 
 job = get_bfm_job()
 status = job.get_status()
+
+if "news_rss_candidates" not in st.session_state:
+    st.session_state.news_rss_candidates = []
 
 # =========================
 # JOB — BFM BOURSE
@@ -159,6 +164,35 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
         )
         use_rss = st.checkbox("Mode RSS (prod)", value=True, key="news_use_rss")
         use_firecrawl = st.checkbox("Scraper articles via Firecrawl", value=True, key="news_use_firecrawl")
+        if use_rss:
+            col_load, col_clear = st.columns(2)
+            with col_load:
+                if st.button("🔎 Charger URLs", use_container_width=True, key="news_rss_load"):
+                    st.session_state.news_rss_candidates = fetch_rss_items(
+                        feed_url=rss_feed_url,
+                        max_items=int(max_articles_total),
+                        mode="today" if mode == "Aujourd’hui" else "last_hours",
+                        hours_window=int(hours_window),
+                    )
+                    st.rerun()
+            with col_clear:
+                if st.button("🧹 Clear liste", use_container_width=True, key="news_rss_clear"):
+                    st.session_state.news_rss_candidates = []
+                    st.rerun()
+
+            if st.session_state.news_rss_candidates:
+                st.caption("Sélectionne les articles à traiter :")
+                selected_urls = []
+                for idx, item in enumerate(st.session_state.news_rss_candidates):
+                    label = f"{item.get('title','')}".strip() or item.get("url", "")
+                    checked = st.checkbox(
+                        label,
+                        value=True,
+                        key=f"news_rss_pick_{idx}"
+                    )
+                    if checked:
+                        selected_urls.append(item)
+                st.caption(f"{len(selected_urls)} article(s) sélectionné(s)")
 
         st.markdown("**Safety**")
         col_err, col_timeout = st.columns(2)
@@ -223,6 +257,7 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
             use_rss=bool(use_rss),
             rss_feed_url=rss_feed_url,
             use_firecrawl=bool(use_firecrawl),
+            urls_override=selected_urls if use_rss and st.session_state.news_rss_candidates else None,
         )
         job.start(config)
         st.success("Job lancé.")
@@ -253,3 +288,60 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
         st.markdown("**Erreurs :**")
         for err in status.get("errors")[-5:]:
             st.write(f"⚠️ {err}")
+
+    if status.get("buffer_text"):
+        st.divider()
+        st.markdown("**Preview concaténée (buffer)**")
+        edited_buffer = st.text_area(
+            label="",
+            value=status.get("buffer_text", ""),
+            height=320,
+            key="news_buffer_editor"
+        )
+        col_json, col_clear_buf = st.columns(2)
+        with col_json:
+            if st.button("✅ Dédoublonner + JSON", use_container_width=True, key="news_finalize"):
+                job.set_buffer_text(edited_buffer)
+                result = job.finalize_buffer()
+                if result.get("status") == "success":
+                    st.success(f"{len(result.get('items', []))} items générés")
+                else:
+                    st.error(result.get("message", "Erreur JSON"))
+        with col_clear_buf:
+            if st.button("🧹 Clear buffer", use_container_width=True, key="news_clear_buffer"):
+                job.set_buffer_text("")
+                st.rerun()
+
+    if status.get("json_preview_text"):
+        st.markdown("**Preview JSON**")
+        edited_json = st.text_area(
+            label="",
+            value=status.get("json_preview_text", ""),
+            height=350,
+            key="news_json_editor"
+        )
+        col_send, col_clear_json = st.columns(2)
+        with col_send:
+            if st.button("✅ Envoyer en DB", use_container_width=True, key="news_send_db"):
+                result = job.send_to_db()
+                if result.get("status") == "success":
+                    st.success(f"{result.get('inserted', 0)} items insérés en base")
+                else:
+                    st.error(result.get("message", "Erreur DB"))
+        with col_clear_json:
+            if st.button("🧹 Clear JSON", use_container_width=True, key="news_clear_json"):
+                job.json_preview_text = ""
+                job.json_items = []
+                st.rerun()
+
+    st.divider()
+    st.markdown("**Derniers contenus en base**")
+    raw_items = fetch_raw_news(limit=50)
+    if not raw_items:
+        st.caption("Aucun contenu en base pour le moment")
+    else:
+        for item in raw_items:
+            st.markdown("---")
+            st.caption(f"🕒 {item['processed_at']} · Source : {item['source_type']}")
+            st.markdown(f"**{item['title']}**")
+            st.write(item['content'])
