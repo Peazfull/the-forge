@@ -166,16 +166,7 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
         use_firecrawl = st.checkbox("Scraper articles via Firecrawl", value=True, key="news_use_firecrawl")
         selected_urls = []
         if use_rss:
-            col_load, col_clear = st.columns(2)
-            with col_load:
-                if st.button("🔎 Charger URLs", use_container_width=True, key="news_rss_load"):
-                    st.session_state.news_rss_candidates = fetch_rss_items(
-                        feed_url=rss_feed_url,
-                        max_items=int(max_articles_total),
-                        mode="today" if mode == "Aujourd’hui" else "last_hours",
-                        hours_window=int(hours_window),
-                    )
-                    st.rerun()
+            col_clear = st.columns(1)[0]
             with col_clear:
                 if st.button("🧹 Clear liste", use_container_width=True, key="news_rss_clear"):
                     st.session_state.news_rss_candidates = []
@@ -194,7 +185,7 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
                         selected_urls.append(item)
                 st.caption(f"{len(selected_urls)} article(s) sélectionné(s)")
             else:
-                st.caption("Aucune URL chargée pour le moment.")
+                st.caption("Clique sur Lancer pour charger la liste RSS.")
 
         st.markdown("**Safety**")
         col_err, col_timeout = st.columns(2)
@@ -241,6 +232,7 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
                 mode="today" if mode == "Aujourd’hui" else "last_hours",
                 hours_window=int(hours_window),
             )
+            job.status_log.append("🔎 URLs RSS chargées")
             st.rerun()
         else:
             st.warning("Mode RSS désactivé : active-le pour charger les URLs.")
