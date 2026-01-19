@@ -228,6 +228,10 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
     st.caption(f"Traités : {status.get('processed', 0)} · Skipped : {status.get('skipped', 0)}")
     if status.get("buffer_path"):
         st.caption(f"Buffer : {status.get('buffer_path')}")
+    if status.get("state") in ("running", "paused"):
+        st.info("Job en cours — clique pour rafraîchir l’état.")
+        if st.button("🔄 Rafraîchir statut", key="news_refresh"):
+            st.rerun()
 
     if status.get("status_log"):
         st.markdown("**Statut :**")

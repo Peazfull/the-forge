@@ -207,35 +207,39 @@ class BfmBourseJob:
         except Exception:
             pass
 
-        raw_links = page.eval_on_selector_all(
-            "a[href]",
+        raw_items = page.eval_on_selector_all(
+            ".wrapper-news-list .item",
             """els => els.map(el => {
-                const href = el.href || "";
-                const text = (el.innerText || "").trim();
-                const container = el.closest("article, li, tr, div") || el.parentElement;
-                const context = container ? (container.innerText || "") : "";
-                return {href, text, context};
+                const timeEl = el.querySelector(".meta-date");
+                const linkEl = el.querySelector(".title a");
+                const timeText = timeEl ? (timeEl.textContent || "").trim() : "";
+                const href = linkEl ? (linkEl.getAttribute("href") || "") : "";
+                const title = linkEl ? (linkEl.textContent || "").trim() : "";
+                return {timeText, href, title};
             })"""
         )
 
         results = []
         seen = set()
-        for item in raw_links:
-            href = item.get("href", "")
-            if "tradingsat.com/actualites" not in href:
+        for item in raw_items:
+            href = (item.get("href", "") or "").strip()
+            if not href:
+                continue
+            if href.startswith("/"):
+                href = f"https://www.tradingsat.com{href}"
+            if "tradingsat.com/actualites" not in href and "/actualites/" not in href:
                 continue
             if href.rstrip("/") == config.entry_url.rstrip("/"):
                 continue
             if href in seen:
                 continue
             seen.add(href)
-            context = item.get("context", "")
-            label_dt = self._parse_time_label(context)
+            label_dt = self._parse_time_label(item.get("timeText", ""))
             if not self._within_window(label_dt, config):
                 continue
             results.append({
                 "url": href,
-                "title": item.get("text", ""),
+                "title": item.get("title", ""),
                 "label_dt": label_dt.isoformat() if label_dt else "",
             })
             if len(results) >= config.max_articles_total:
