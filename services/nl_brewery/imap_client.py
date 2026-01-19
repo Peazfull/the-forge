@@ -113,7 +113,7 @@ def _extract_body(message: email.message.Message) -> Dict[str, str]:
     }
 
 
-def fetch_emails(last_hours: int) -> List[Dict[str, str]]:
+def fetch_emails(last_hours: int, max_emails: Optional[int] = None) -> List[Dict[str, str]]:
     if last_hours <= 0:
         return []
 
@@ -133,6 +133,8 @@ def fetch_emails(last_hours: int) -> List[Dict[str, str]]:
             return []
 
         message_ids = data[0].split()
+        if max_emails and max_emails > 0:
+            message_ids = message_ids[-max_emails:]
         emails = []
 
         for msg_id in message_ids:
