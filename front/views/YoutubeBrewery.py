@@ -383,6 +383,12 @@ with st.expander("🧩 Preview IA (concaténé)", expanded=True):
             st.write(f"⏳ {line}")
 
     if st.session_state.yt_temp_text:
+        st.text_area(
+            label="Texte temporaire (copywriter)",
+            value=st.session_state.yt_temp_text,
+            height=350,
+            key="yt_temp_editor"
+        )
         col_validate_temp, col_clear_temp = st.columns(2)
         with col_validate_temp:
             if st.button("✅ Valider et générer JSON", use_container_width=True, key="yt_temp_to_json"):
@@ -415,14 +421,14 @@ with st.expander("🧩 Preview IA (concaténé)", expanded=True):
                 st.session_state.yt_ai_preview_text = ""
                 st.session_state.yt_temp_editor = ""
                 st.rerun()
-        st.text_area(
-            label="Texte temporaire (copywriter)",
-            value=st.session_state.yt_temp_text,
-            height=350,
-            key="yt_temp_editor"
-        )
 
     if st.session_state.yt_ai_preview_text:
+        st.text_area(
+            label="",
+            value=st.session_state.yt_ai_preview_text,
+            height=450,
+            key="yt_ai_preview_editor"
+        )
         col_validate, col_clear = st.columns(2)
 
         with col_validate:
@@ -468,12 +474,6 @@ with st.expander("🧩 Preview IA (concaténé)", expanded=True):
                 st.session_state.yt_ai_preview_text = ""
                 st.session_state.yt_ai_preview_editor = ""
                 st.rerun()
-        st.text_area(
-            label="",
-            value=st.session_state.yt_ai_preview_text,
-            height=450,
-            key="yt_ai_preview_editor"
-        )
     else:
         st.caption("Aucune preview générée pour le moment")
 
