@@ -55,6 +55,9 @@ st.markdown(
         box-shadow: none !important;
         background: transparent !important;
     }
+    section[data-testid="stSidebar"] button[kind="secondary"] p {
+        text-align: left !important;
+    }
     </style>
     """,
     unsafe_allow_html=True
