@@ -223,6 +223,8 @@ with st.expander("🧾 Texte temporaire (copywriter)", expanded=True):
                 st.session_state.nl_ai_preview_text = ""
                 st.rerun()
     else:
+        st.caption("Aucun texte temporaire à afficher.")
+
 # 6️⃣ PREVIEW IA
 # =========================
 with st.expander("👀 Preview IA (éditable)", expanded=True):
