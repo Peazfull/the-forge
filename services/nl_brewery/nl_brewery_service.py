@@ -1,11 +1,12 @@
 from typing import List, Dict, Set, Tuple, Optional
 from db.supabase_client import get_supabase
 from services.nl_brewery.imap_client import check_connection, fetch_emails
+import tempfile
 from services.nl_brewery.process_newsletter import (
     process_newsletter,
     clean_raw_text,
-    merge_topics_text,
     journalist_text,
+    copywriter_text,
     jsonfy_text,
 )
 
@@ -192,6 +193,54 @@ def _parse_raw_block(block: str) -> Optional[Dict[str, str]]:
     }
 
 
+def _format_temp_block(email_data: Dict[str, str], content: str) -> str:
+    return (
+        "=== NEWSLETTER ===\n"
+        f"From: {email_data.get('sender','')}\n"
+        f"To: {email_data.get('to','')}\n"
+        f"Subject: {email_data.get('subject','')}\n"
+        f"Date: {email_data.get('date','')}\n"
+        "\n"
+        f"{content.strip()}\n"
+    )
+
+
+def _write_temp_file(text: str) -> str:
+    temp = tempfile.NamedTemporaryFile(delete=False, mode="w", encoding="utf-8", suffix=".txt")
+    temp.write(text)
+    temp.close()
+    return temp.name
+
+
+def _parse_temp_block(block: str) -> Optional[Dict[str, str]]:
+    if not block.strip():
+        return None
+    lines = block.splitlines()
+    header = {}
+    body_lines = []
+    in_body = False
+    for line in lines:
+        if not in_body and line.strip() == "":
+            in_body = True
+            continue
+        if not in_body:
+            if ":" in line:
+                key, value = line.split(":", 1)
+                header[key.strip().lower()] = value.strip()
+        else:
+            body_lines.append(line)
+    body_text = "\n".join(body_lines).strip()
+    if not body_text:
+        return None
+    return {
+        "sender": header.get("from", ""),
+        "to": header.get("to", ""),
+        "subject": header.get("subject", ""),
+        "date": header.get("date", ""),
+        "body_text": body_text,
+    }
+
+
 def process_raw_preview(raw_preview: str) -> Dict[str, object]:
     if not raw_preview or not raw_preview.strip():
         return {"status": "error", "message": "Texte brut vide", "items": []}
@@ -223,13 +272,93 @@ def run_clean_raw(raw_text: str) -> Dict[str, object]:
     return clean_raw_text(raw_text)
 
 
-def run_merge_topics(cleaned_text: str) -> Dict[str, object]:
-    return merge_topics_text(cleaned_text)
-
-
 def run_journalist(text_value: str) -> Dict[str, object]:
     return journalist_text(text_value)
 
 
+def run_copywriter(text_value: str) -> Dict[str, object]:
+    return copywriter_text(text_value)
+
+
 def run_jsonfy(text_value: str) -> Dict[str, object]:
     return jsonfy_text(text_value)
+
+
+def build_temp_newsletters(last_hours: int) -> Dict[str, object]:
+    recipients = load_recipients()
+    emails = fetch_emails(last_hours)
+
+    unique_keys: Set[Tuple[str, str, str]] = set()
+    blocks = []
+    errors = []
+    matched_count = 0
+
+    for email_data in emails:
+        if not _match_recipient(email_data.get("to", ""), recipients):
+            continue
+        key = _dedupe_key(email_data)
+        if key in unique_keys:
+            continue
+        unique_keys.add(key)
+        matched_count += 1
+
+        body_text = (email_data.get("body_text") or "").strip()
+        if not body_text:
+            errors.append("Newsletter vide détectée.")
+            continue
+
+        cleaned = clean_raw_text(body_text)
+        if cleaned.get("status") != "success":
+            errors.append(cleaned.get("message", "Erreur nettoyage"))
+            continue
+
+        journalist = journalist_text(cleaned.get("text", ""))
+        if journalist.get("status") != "success":
+            errors.append(journalist.get("message", "Erreur journalist"))
+            continue
+
+        copywritten = copywriter_text(journalist.get("text", ""))
+        if copywritten.get("status") != "success":
+            errors.append(copywritten.get("message", "Erreur copywriter"))
+            continue
+
+        blocks.append(_format_temp_block(email_data, copywritten.get("text", "")))
+
+    temp_text = "\n\n".join(blocks).strip()
+    temp_path = _write_temp_file(temp_text) if temp_text else ""
+
+    return {
+        "status": "success",
+        "email_count": len(emails),
+        "matched_count": matched_count,
+        "temp_path": temp_path,
+        "temp_text": temp_text,
+        "errors": errors,
+    }
+
+
+def jsonfy_temp_text(temp_text: str) -> Dict[str, object]:
+    if not temp_text or not temp_text.strip():
+        return {"status": "error", "message": "Texte temporaire vide", "items": []}
+
+    blocks = [b.strip() for b in temp_text.split("=== NEWSLETTER ===") if b.strip()]
+    items = []
+    errors = []
+
+    for block in blocks:
+        parsed = _parse_temp_block(block)
+        if not parsed:
+            continue
+        json_result = jsonfy_text(parsed.get("body_text", ""))
+        if json_result.get("status") != "success":
+            errors.append(json_result.get("message", "Erreur JSON"))
+            continue
+        for item in json_result.get("items", []):
+            if isinstance(item, dict):
+                item["source_name"] = "Newsletter"
+                item["source_link"] = parsed.get("sender")
+                item["source_date"] = parsed.get("date")
+                item["source_raw"] = None
+                items.append(item)
+
+    return {"status": "success", "items": items, "errors": errors}

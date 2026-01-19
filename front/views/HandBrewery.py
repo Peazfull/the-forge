@@ -39,7 +39,7 @@ st.divider()
 # =========================
 # 1️⃣ URL D'ARTICLE
 # =========================
-with st.expander("📰 Ajouter une URL d’article", expanded=False):
+with st.expander("📰 Ajouter une URL d’article", expanded=True):
     col_input, col_launch, col_clear = st.columns([3, 1, 1])
 
     with col_input:
