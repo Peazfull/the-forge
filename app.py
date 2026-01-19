@@ -39,12 +39,14 @@ st.markdown(
         font-family: 'Inter', sans-serif;
     }
     /* Lean mode: remove expander frame and background */
-    div[data-testid="stExpander"] > details {
+    div[data-testid="stExpander"] > details,
+    section[data-testid="stSidebar"] div[data-testid="stExpander"] > details {
         border: none;
         background: transparent;
         box-shadow: none;
     }
-    div[data-testid="stExpander"] > details > summary {
+    div[data-testid="stExpander"] > details > summary,
+    section[data-testid="stSidebar"] div[data-testid="stExpander"] > details > summary {
         background: transparent;
     }
     </style>
