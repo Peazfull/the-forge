@@ -3,6 +3,8 @@ import json
 import time
 import random
 import threading
+import subprocess
+import sys
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
@@ -321,7 +323,18 @@ class BfmBourseJob:
         try:
             with sync_playwright() as p:
                 self.status_log.append("🧭 Lancement navigateur")
-                browser = p.chromium.launch(headless=config.headless)
+                try:
+                    browser = p.chromium.launch(headless=config.headless)
+                except Exception as exc:
+                    if "Executable doesn't exist" in str(exc):
+                        self.status_log.append("⬇️ Installation Playwright (chromium)…")
+                        subprocess.run(
+                            [sys.executable, "-m", "playwright", "install", "chromium"],
+                            check=True
+                        )
+                        browser = p.chromium.launch(headless=config.headless)
+                    else:
+                        raise
                 context = browser.new_context()
                 page = context.new_page()
                 page.set_default_timeout(60000)
