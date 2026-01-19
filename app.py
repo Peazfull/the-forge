@@ -58,6 +58,9 @@ st.markdown(
     section[data-testid="stSidebar"] button[kind="secondary"] p {
         text-align: left !important;
     }
+    section[data-testid="stSidebar"] .stButton > button {
+        justify-content: flex-start !important;
+    }
     </style>
     """,
     unsafe_allow_html=True
