@@ -1,4 +1,232 @@
 import streamlit as st
+from services.news_brewery.bfm_bourse_job import JobConfig, get_bfm_job
 
-st.title("🗞️ NEWS Brewery" )
+
+st.title("🗞️ NEWS Brewery")
 st.divider()
+
+job = get_bfm_job()
+status = job.get_status()
+
+# =========================
+# JOB — BFM BOURSE
+# =========================
+with st.expander("▸ Job — BFM Bourse", expanded=True):
+    col_open, col_launch, col_pause, col_resume, col_stop = st.columns([2, 1, 1, 1, 1])
+
+    with col_open:
+        st.link_button("🔗 Ouvrir l’URL", "https://www.tradingsat.com/actualites/")
+    with col_launch:
+        launch = st.button("▶️ Lancer", use_container_width=True, key="news_bfm_launch")
+    with col_pause:
+        pause = st.button("⏸️ Pause", use_container_width=True, key="news_bfm_pause")
+    with col_resume:
+        resume = st.button("▶️ Reprendre", use_container_width=True, key="news_bfm_resume")
+    with col_stop:
+        stop = st.button("⏹️ Stop", use_container_width=True, key="news_bfm_stop")
+
+    st.markdown("**Fenêtre temporelle**")
+    mode = st.radio(
+        "Mode",
+        options=["Aujourd’hui", "Dernières X heures"],
+        horizontal=True,
+        key="news_mode"
+    )
+    hours_window = st.slider(
+        "Dernières X heures",
+        min_value=1,
+        max_value=24,
+        value=6,
+        step=1,
+        key="news_hours_window"
+    )
+
+    st.markdown("**Limites**")
+    col_max_total, col_max_per = st.columns(2)
+    with col_max_total:
+        max_articles_total = st.number_input(
+            "Max articles total",
+            min_value=1,
+            max_value=100,
+            value=15,
+            step=1,
+            key="news_max_total"
+        )
+    with col_max_per:
+        max_articles_per_bulletin = st.number_input(
+            "Max articles par bulletin",
+            min_value=1,
+            max_value=20,
+            value=5,
+            step=1,
+            key="news_max_per"
+        )
+
+    st.markdown("**Human behavior**")
+    col_scroll_min, col_scroll_max = st.columns(2)
+    with col_scroll_min:
+        scroll_min_px = st.number_input(
+            "Scroll min px",
+            min_value=100,
+            max_value=2000,
+            value=400,
+            step=50,
+            key="news_scroll_min"
+        )
+    with col_scroll_max:
+        scroll_max_px = st.number_input(
+            "Scroll max px",
+            min_value=200,
+            max_value=4000,
+            value=1200,
+            step=50,
+            key="news_scroll_max"
+        )
+
+    col_page_min, col_page_max = st.columns(2)
+    with col_page_min:
+        min_page_time = st.number_input(
+            "Temps min page (s)",
+            min_value=1,
+            max_value=120,
+            value=10,
+            step=1,
+            key="news_page_min"
+        )
+    with col_page_max:
+        max_page_time = st.number_input(
+            "Temps max page (s)",
+            min_value=2,
+            max_value=180,
+            value=45,
+            step=1,
+            key="news_page_max"
+        )
+
+    col_wait_min, col_wait_max = st.columns(2)
+    with col_wait_min:
+        wait_min_action = st.number_input(
+            "Wait min action (s)",
+            min_value=0.1,
+            max_value=5.0,
+            value=0.6,
+            step=0.1,
+            key="news_wait_min"
+        )
+    with col_wait_max:
+        wait_max_action = st.number_input(
+            "Wait max action (s)",
+            min_value=0.2,
+            max_value=8.0,
+            value=2.5,
+            step=0.1,
+            key="news_wait_max"
+        )
+
+    shuffle_urls = st.checkbox("Shuffle URLs", value=True, key="news_shuffle")
+
+    st.markdown("**Pipeline IA**")
+    col_clean, col_fallback = st.columns(2)
+    with col_clean:
+        st.selectbox(
+            "Agent clean DOM",
+            options=["clean_dom_v1"],
+            index=0,
+            key="news_clean_dom"
+        )
+    with col_fallback:
+        st.selectbox(
+            "Agent fallback",
+            options=["clean_dom_v2"],
+            index=0,
+            key="news_fallback"
+        )
+
+    output_language = st.selectbox(
+        "Output language",
+        options=["FR"],
+        index=0,
+        key="news_lang"
+    )
+    dry_run = st.checkbox("DRY RUN", value=True, key="news_dry_run")
+
+    st.markdown("**Safety**")
+    col_err, col_timeout = st.columns(2)
+    with col_err:
+        max_consecutive_errors = st.number_input(
+            "Max erreurs consécutives",
+            min_value=1,
+            max_value=10,
+            value=3,
+            step=1,
+            key="news_max_errors"
+        )
+    with col_timeout:
+        global_timeout_minutes = st.number_input(
+            "Timeout global job (min)",
+            min_value=1,
+            max_value=60,
+            value=15,
+            step=1,
+            key="news_timeout"
+        )
+
+    pause_on_captcha = st.checkbox(
+        "Pause en cas de captcha/wall",
+        value=True,
+        key="news_pause_captcha"
+    )
+    remove_buffer = st.checkbox(
+        "Supprimer buffer après succès",
+        value=True,
+        key="news_remove_buffer"
+    )
+
+    if launch:
+        config = JobConfig(
+            entry_url="https://www.tradingsat.com/actualites/",
+            mode="today" if mode == "Aujourd’hui" else "last_hours",
+            hours_window=int(hours_window),
+            max_articles_total=int(max_articles_total),
+            max_articles_per_bulletin=int(max_articles_per_bulletin),
+            scroll_min_px=int(scroll_min_px),
+            scroll_max_px=int(scroll_max_px),
+            min_page_time=int(min_page_time),
+            max_page_time=int(max_page_time),
+            wait_min_action=float(wait_min_action),
+            wait_max_action=float(wait_max_action),
+            shuffle_urls=bool(shuffle_urls),
+            clean_dom_agent="clean_dom_v1",
+            fallback_agent="clean_dom_v2",
+            output_language=output_language,
+            dry_run=bool(dry_run),
+            max_consecutive_errors=int(max_consecutive_errors),
+            global_timeout_minutes=int(global_timeout_minutes),
+            pause_on_captcha=bool(pause_on_captcha),
+            remove_buffer_after_success=bool(remove_buffer),
+        )
+        job.start(config)
+        st.success("Job lancé.")
+
+    if pause:
+        job.pause()
+    if resume:
+        job.resume()
+    if stop:
+        job.stop()
+
+    status = job.get_status()
+    st.divider()
+    st.caption(f"État : {status.get('state')}")
+    st.caption(f"Traités : {status.get('processed', 0)} · Skipped : {status.get('skipped', 0)}")
+    if status.get("buffer_path"):
+        st.caption(f"Buffer : {status.get('buffer_path')}")
+
+    if status.get("status_log"):
+        st.markdown("**Statut :**")
+        for line in status.get("status_log")[-20:]:
+            st.write(f"⏳ {line}")
+    if status.get("errors"):
+        st.markdown("**Erreurs :**")
+        for err in status.get("errors")[-5:]:
+            st.write(f"⚠️ {err}")
