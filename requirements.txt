@@ -3,5 +3,5 @@ supabase
 openai
 firecrawl
 yt-dlp
-
 playwright
+feedparser

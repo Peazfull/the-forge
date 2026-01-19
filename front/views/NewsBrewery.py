@@ -151,6 +151,15 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
         )
         dry_run = st.checkbox("DRY RUN", value=True, key="news_dry_run")
 
+        st.markdown("**Source URLs**")
+        rss_feed_url = st.text_input(
+            "RSS feed",
+            value="https://www.tradingsat.com/rssfeed.php",
+            key="news_rss_feed"
+        )
+        use_rss = st.checkbox("Mode RSS (prod)", value=True, key="news_use_rss")
+        use_firecrawl = st.checkbox("Scraper articles via Firecrawl", value=True, key="news_use_firecrawl")
+
         st.markdown("**Safety**")
         col_err, col_timeout = st.columns(2)
         with col_err:
@@ -211,6 +220,9 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
             pause_on_captcha=bool(pause_on_captcha),
             remove_buffer_after_success=bool(remove_buffer),
             headless=bool(headless),
+            use_rss=bool(use_rss),
+            rss_feed_url=rss_feed_url,
+            use_firecrawl=bool(use_firecrawl),
         )
         job.start(config)
         st.success("Job lancé.")
