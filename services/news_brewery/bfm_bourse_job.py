@@ -313,100 +313,110 @@ class BfmBourseJob:
         self.buffer_path = buffer_path
         self.status_log.append("🚀 Job démarré")
 
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=False)
-            context = browser.new_context()
-            page = context.new_page()
-            page.goto(config.entry_url, wait_until="domcontentloaded")
-            self._sleep_random(config.wait_min_action, config.wait_max_action)
+        try:
+            with sync_playwright() as p:
+                self.status_log.append("🧭 Lancement navigateur")
+                browser = p.chromium.launch(headless=False)
+                context = browser.new_context()
+                page = context.new_page()
+                page.set_default_timeout(60000)
 
-            articles = self._collect_article_urls(page, config)
-            if config.shuffle_urls:
-                random.shuffle(articles)
-
-            self.status_log.append(f"🔎 {len(articles)} URL(s) détectée(s)")
-
-            for idx, article in enumerate(articles, start=1):
-                if self._stop_event.is_set():
-                    break
-                self._wait_if_paused()
-                if self._stop_event.is_set():
-                    break
-
-                if time.time() - start_time > config.global_timeout_minutes * 60:
-                    self.state = "failed"
-                    self.errors.append("Timeout global atteint")
-                    break
-
-                url = article.get("url", "")
-                self.status_log.append(f"➡️ Article {idx}/{len(articles)}")
-                try:
-                    page.goto(url, wait_until="domcontentloaded")
-                except Exception as exc:
-                    self.errors.append(f"Erreur navigation: {exc}")
-                    self.consecutive_errors += 1
-                    if self.consecutive_errors >= config.max_consecutive_errors:
-                        self.state = "failed"
-                        break
-                    continue
-
+                self.status_log.append("🌐 Ouverture page actualités")
+                page.goto(config.entry_url, wait_until="domcontentloaded", timeout=60000)
                 self._sleep_random(config.wait_min_action, config.wait_max_action)
 
-                html = page.content()
-                if self._is_captcha_or_wall(html):
-                    msg = f"Captcha/wall détecté: {url}"
-                    self.errors.append(msg)
-                    self.status_log.append(f"⚠️ {msg}")
-                    if config.pause_on_captcha:
-                        self.state = "paused"
-                        self._pause_event.clear()
-                        self._wait_if_paused()
-                        if self._stop_event.is_set():
+                articles = self._collect_article_urls(page, config)
+                if config.shuffle_urls:
+                    random.shuffle(articles)
+
+                self.status_log.append(f"🔎 {len(articles)} URL(s) détectée(s)")
+
+                for idx, article in enumerate(articles, start=1):
+                    if self._stop_event.is_set():
+                        break
+                    self._wait_if_paused()
+                    if self._stop_event.is_set():
+                        break
+
+                    if time.time() - start_time > config.global_timeout_minutes * 60:
+                        self.state = "failed"
+                        self.errors.append("Timeout global atteint")
+                        break
+
+                    url = article.get("url", "")
+                    self.status_log.append(f"➡️ Article {idx}/{len(articles)}")
+                    try:
+                        page.goto(url, wait_until="domcontentloaded", timeout=60000)
+                    except Exception as exc:
+                        self.errors.append(f"Erreur navigation: {exc}")
+                        self.consecutive_errors += 1
+                        if self.consecutive_errors >= config.max_consecutive_errors:
+                            self.state = "failed"
                             break
-                    else:
+                        continue
+
+                    self._sleep_random(config.wait_min_action, config.wait_max_action)
+
+                    html = page.content()
+                    if self._is_captcha_or_wall(html):
+                        msg = f"Captcha/wall détecté: {url}"
+                        self.errors.append(msg)
+                        self.status_log.append(f"⚠️ {msg}")
+                        if config.pause_on_captcha:
+                            self.state = "paused"
+                            self._pause_event.clear()
+                            self._wait_if_paused()
+                            if self._stop_event.is_set():
+                                break
+                        else:
+                            self.skipped += 1
+                            continue
+
+                    scrolls = random.randint(1, 3)
+                    for _ in range(scrolls):
+                        scroll_px = random.randint(config.scroll_min_px, config.scroll_max_px)
+                        page.mouse.wheel(0, scroll_px)
+                        self._sleep_random(config.wait_min_action, config.wait_max_action)
+
+                    self._sleep_random(config.min_page_time, config.max_page_time)
+
+                    html = page.content()
+
+                    cleaned = self._run_text_prompt(PROMPT_CLEAN_DOM_V1, html, temperature=0)
+                    if not cleaned.strip():
+                        cleaned = self._run_text_prompt(PROMPT_CLEAN_DOM_V2, html, temperature=0)
+
+                    if not cleaned.strip():
+                        self.errors.append("Clean DOM vide")
                         self.skipped += 1
                         continue
 
-                scrolls = random.randint(1, 3)
-                for _ in range(scrolls):
-                    scroll_px = random.randint(config.scroll_min_px, config.scroll_max_px)
-                    page.mouse.wheel(0, scroll_px)
-                    self._sleep_random(config.wait_min_action, config.wait_max_action)
+                    rewritten = self._run_text_prompt(PROMPT_REWRITE, cleaned, temperature=0.2)
+                    if not rewritten.strip():
+                        self.errors.append("Rewrite vide")
+                        self.skipped += 1
+                        continue
 
-                self._sleep_random(config.min_page_time, config.max_page_time)
+                    structured = self._run_text_prompt(PROMPT_STRUCTURE, rewritten, temperature=0.2)
+                    if not structured.strip():
+                        self.errors.append("Structure vide")
+                        self.skipped += 1
+                        continue
 
-                html = page.content()
+                    with open(buffer_path, "a", encoding="utf-8") as f:
+                        f.write(self._format_buffer_block(article, structured))
+                        f.write("\n\n")
 
-                cleaned = self._run_text_prompt(PROMPT_CLEAN_DOM_V1, html, temperature=0)
-                if not cleaned.strip():
-                    cleaned = self._run_text_prompt(PROMPT_CLEAN_DOM_V2, html, temperature=0)
+                    self.processed += 1
+                    self.consecutive_errors = 0
 
-                if not cleaned.strip():
-                    self.errors.append("Clean DOM vide")
-                    self.skipped += 1
-                    continue
-
-                rewritten = self._run_text_prompt(PROMPT_REWRITE, cleaned, temperature=0.2)
-                if not rewritten.strip():
-                    self.errors.append("Rewrite vide")
-                    self.skipped += 1
-                    continue
-
-                structured = self._run_text_prompt(PROMPT_STRUCTURE, rewritten, temperature=0.2)
-                if not structured.strip():
-                    self.errors.append("Structure vide")
-                    self.skipped += 1
-                    continue
-
-                with open(buffer_path, "a", encoding="utf-8") as f:
-                    f.write(self._format_buffer_block(article, structured))
-                    f.write("\n\n")
-
-                self.processed += 1
-                self.consecutive_errors = 0
-
-            context.close()
-            browser.close()
+                context.close()
+                browser.close()
+        except Exception as exc:
+            self.state = "failed"
+            self.errors.append(f"Erreur job: {exc}")
+            self.status_log.append(f"❌ Job failed: {exc}")
+            return
 
         if self.state in ("failed", "stopped"):
             return
