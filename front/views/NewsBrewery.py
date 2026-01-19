@@ -25,21 +25,21 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
     with col_stop:
         stop = st.button("⏹️ Stop", use_container_width=True, key="news_bfm_stop")
 
-    st.markdown("**Fenêtre temporelle**")
-    mode = st.radio(
-        "Mode",
-        options=["Aujourd’hui", "Dernières X heures"],
-        horizontal=True,
-        key="news_mode"
-    )
-    hours_window = st.slider(
-        "Dernières X heures",
-        min_value=1,
-        max_value=24,
-        value=6,
-        step=1,
-        key="news_hours_window"
-    )
+    with st.expander("Fenêtre temporelle", expanded=False):
+        mode = st.radio(
+            "Mode",
+            options=["Aujourd’hui", "Dernières X heures"],
+            horizontal=True,
+            key="news_mode"
+        )
+        hours_window = st.slider(
+            "Dernières X heures",
+            min_value=1,
+            max_value=24,
+            value=6,
+            step=1,
+            key="news_hours_window"
+        )
 
     st.markdown("**Limites**")
     col_max_total, col_max_per = st.columns(2)
