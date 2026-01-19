@@ -38,29 +38,6 @@ st.markdown(
     html, body, [class*="css"] {
         font-family: 'Inter', sans-serif;
     }
-    /* Lean mode: remove expander frame and background */
-    div[data-testid="stExpander"] > details,
-    section[data-testid="stSidebar"] div[data-testid="stExpander"] > details {
-        border: none;
-        background: transparent;
-        box-shadow: none;
-    }
-    div[data-testid="stExpander"] > details > summary,
-    section[data-testid="stSidebar"] div[data-testid="stExpander"] > details > summary {
-        background: transparent;
-    }
-    /* Sidebar: remove button borders/frames */
-    section[data-testid="stSidebar"] button[kind="secondary"] {
-        border: none !important;
-        box-shadow: none !important;
-        background: transparent !important;
-    }
-    section[data-testid="stSidebar"] button[kind="secondary"] p {
-        text-align: left !important;
-    }
-    section[data-testid="stSidebar"] .stButton > button {
-        justify-content: flex-start !important;
-    }
     </style>
     """,
     unsafe_allow_html=True
