@@ -987,6 +987,10 @@ with st.expander("▸ Job — Bourse Direct", expanded=False):
         st.markdown("**Erreurs :**")
         for err in boursedirect_status.get("errors")[-3:]:
             st.write(f"⚠️ {err}")
+    if boursedirect_state in ("running", "paused"):
+        st.info("Job en cours — rafraîchissement automatique activé.")
+        time.sleep(2)
+        st.rerun()
 
     if boursedirect_status.get("buffer_text"):
         st.divider()
