@@ -191,6 +191,21 @@ def _parse_relative_time(text: str) -> datetime | None:
     return None
 
 
+def _parse_relative_time_en(text: str) -> datetime | None:
+    match = re.search(r"(\d+)\s+(minute|minutes|hour|hours|day|days)\s+ago", text, re.I)
+    if not match:
+        return None
+    value = int(match.group(1))
+    unit = match.group(2).lower()
+    if "minute" in unit:
+        return datetime.now() - timedelta(minutes=value)
+    if "hour" in unit:
+        return datetime.now() - timedelta(hours=value)
+    if "day" in unit:
+        return datetime.now() - timedelta(days=value)
+    return None
+
+
 def fetch_beincrypto_dom_items(
     page_url: str,
     max_items: int,
@@ -242,6 +257,76 @@ def fetch_beincrypto_dom_items(
                 label_dt = None
         if label_dt is None and time_text:
             label_dt = _parse_relative_time(time_text.strip())
+
+        if not _within_window(label_dt, mode, hours_window):
+            continue
+
+        items.append({
+            "url": url,
+            "title": title,
+            "label_dt": label_dt.isoformat() if label_dt else "",
+        })
+        if len(items) >= max_items:
+            break
+
+    return items
+
+
+def _parse_english_date(text: str) -> datetime | None:
+    try:
+        return datetime.strptime(text.strip(), "%b %d, %Y")
+    except Exception:
+        return None
+
+
+def fetch_coindesk_dom_items(
+    page_url: str,
+    max_items: int,
+    mode: str,
+    hours_window: int,
+) -> List[Dict[str, str]]:
+    try:
+        req = Request(page_url, headers={"User-Agent": "Mozilla/5.0"})
+        with urlopen(req, timeout=20) as resp:
+            html_text = resp.read().decode("utf-8", errors="ignore")
+    except Exception:
+        return []
+
+    items: List[Dict[str, str]] = []
+    seen = set()
+
+    container_match = re.search(
+        r"<h1[^>]*>Latest Crypto News</h1>(.*?)<div class=\"flex justify-center self-center",
+        html_text,
+        re.S,
+    )
+    content = container_match.group(1) if container_match else html_text
+
+    pattern = re.compile(
+        r'<a[^>]+class="[^"]*content-card-title[^"]*"[^>]+href="([^"]+)"[^>]*>.*?'
+        r'<h2[^>]*>(.*?)</h2>.*?'
+        r'<span[^>]+class="font-metadata[^"]*"[^>]*>(.*?)</span>',
+        re.S,
+    )
+
+    for href, title_html, time_text in pattern.findall(content):
+        url = href.strip()
+        if not url:
+            continue
+        if url.startswith("/"):
+            url = f"https://www.coindesk.com{url}"
+        if url in seen:
+            continue
+        seen.add(url)
+
+        title = re.sub(r"<.*?>", "", title_html)
+        title = unescape(title).strip()
+
+        label_dt = None
+        if time_text:
+            label_dt = _parse_relative_time_en(time_text.strip())
+            if label_dt is None:
+                label_dt = _parse_english_date(time_text.strip())
 
         if not _within_window(label_dt, mode, hours_window):
             continue
