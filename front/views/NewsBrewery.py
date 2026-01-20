@@ -206,12 +206,20 @@ with st.expander("▸ Mega Job — Run all", expanded=False):
 
     mega_selected_urls = []
     if st.session_state.mega_run_candidates:
-        available_sources = sorted({item.get("source_label", "") for item in st.session_state.mega_run_candidates if item.get("source_label")})
-        if "mega_run_sources" not in st.session_state:
-            st.session_state.mega_run_sources = available_sources
+        all_sources = [
+            "BFM Bourse",
+            "BeInCrypto",
+            "Bourse Direct",
+            "Bourse Direct Indices",
+            "Boursier Économie",
+            "Boursier Macroeconomie",
+            "Boursier France",
+        ]
+        if not st.session_state.mega_run_sources:
+            st.session_state.mega_run_sources = all_sources
         selected_sources = st.multiselect(
             "Sources",
-            options=available_sources,
+            options=all_sources,
             default=st.session_state.mega_run_sources,
             key="mega_run_sources",
         )
