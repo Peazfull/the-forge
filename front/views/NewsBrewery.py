@@ -1,7 +1,7 @@
 import time
 import streamlit as st
 from services.news_brewery.bfm_bourse_job import JobConfig, get_bfm_job
-from services.news_brewery.rss_utils import fetch_rss_items
+from services.news_brewery.rss_utils import fetch_dom_items, fetch_rss_items, merge_article_items
 from services.raw_storage.raw_news_service import fetch_raw_news
 
 
@@ -135,7 +135,6 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
 
         dry_run = st.checkbox("DRY RUN", value=True, key="news_dry_run")
 
-        # Source URLs moved outside the settings expander
         st.markdown("**Safety**")
         col_err, col_timeout = st.columns(2)
         with col_err:
@@ -175,6 +174,16 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
         )
         use_rss = st.checkbox("Mode RSS (prod)", value=True, key="news_use_rss")
         use_firecrawl = st.checkbox("Scraper articles via Firecrawl", value=True, key="news_use_firecrawl")
+        rss_ignore_time_filter = st.checkbox(
+            "Ignorer filtre temporel RSS",
+            value=False,
+            key="news_rss_ignore_time"
+        )
+        rss_use_dom_fallback = st.checkbox(
+            "Compléter via DOM (Tout)",
+            value=True,
+            key="news_rss_dom_fallback"
+        )
         headless = st.checkbox(
             "Headless (prod)",
             value=True,
@@ -230,6 +239,8 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
                     headless=bool(headless),
                     use_rss=bool(use_rss),
                     rss_feed_url=rss_feed_url,
+                    rss_ignore_time_filter=bool(rss_ignore_time_filter),
+                    rss_use_dom_fallback=bool(rss_use_dom_fallback),
                     use_firecrawl=bool(use_firecrawl),
                     urls_override=selected_urls,
                 )
@@ -237,12 +248,27 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
                 st.success("Scraping lancé.")
     if launch:
         if use_rss:
-            st.session_state.news_rss_candidates = fetch_rss_items(
+            rss_items = fetch_rss_items(
                 feed_url=rss_feed_url,
                 max_items=int(max_articles_total),
                 mode="today" if mode == "Aujourd’hui" else "last_hours",
                 hours_window=int(hours_window),
+                ignore_time_filter=bool(rss_ignore_time_filter),
             )
+            if rss_use_dom_fallback:
+                dom_items = fetch_dom_items(
+                    page_url="https://www.tradingsat.com/actualites/",
+                    max_items=int(max_articles_total),
+                    mode="today" if mode == "Aujourd’hui" else "last_hours",
+                    hours_window=int(hours_window),
+                )
+                st.session_state.news_rss_candidates = merge_article_items(
+                    dom_items,
+                    rss_items,
+                    int(max_articles_total),
+                )
+            else:
+                st.session_state.news_rss_candidates = rss_items
             job.status_log.append("🔎 URLs RSS chargées")
             st.rerun()
         else:

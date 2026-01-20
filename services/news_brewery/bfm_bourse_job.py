@@ -15,7 +15,7 @@ from playwright.sync_api import sync_playwright
 
 from services.raw_storage.raw_news_service import enrich_raw_items, insert_raw_news
 from services.hand_brewery.firecrawl_client import fetch_url_text
-from services.news_brewery.rss_utils import fetch_rss_items
+from services.news_brewery.rss_utils import fetch_dom_items, fetch_rss_items, merge_article_items
 from prompts.news_brewery.clean_dom_v1 import PROMPT_CLEAN_DOM_V1
 from prompts.news_brewery.clean_dom_v2 import PROMPT_CLEAN_DOM_V2
 from prompts.news_brewery.rewrite import PROMPT_REWRITE
@@ -51,6 +51,8 @@ class JobConfig:
     headless: bool
     use_rss: bool
     rss_feed_url: str
+    rss_ignore_time_filter: bool
+    rss_use_dom_fallback: bool
     use_firecrawl: bool
     urls_override: Optional[List[Dict[str, str]]]
 
@@ -336,6 +338,15 @@ class BfmBourseJob:
             max_items=config.max_articles_total,
             mode=config.mode,
             hours_window=config.hours_window,
+            ignore_time_filter=config.rss_ignore_time_filter,
+        )
+
+    def _collect_article_urls_dom(self, config: JobConfig) -> List[Dict[str, str]]:
+        return fetch_dom_items(
+            page_url=config.entry_url,
+            max_items=config.max_articles_total,
+            mode=config.mode,
+            hours_window=config.hours_window,
         )
 
     def _format_buffer_block(self, article: Dict[str, str], content: str) -> str:
@@ -416,7 +427,18 @@ class BfmBourseJob:
                 if config.urls_override:
                     articles = config.urls_override
                 else:
-                    articles = self._collect_article_urls_rss(config)
+                    articles_rss = self._collect_article_urls_rss(config)
+                    if config.rss_use_dom_fallback:
+                        articles_dom = self._collect_article_urls_dom(config)
+                        if articles_dom:
+                            self._log(f"🧩 DOM: {len(articles_dom)} URL(s) détectée(s)")
+                        articles = merge_article_items(
+                            articles_dom,
+                            articles_rss,
+                            config.max_articles_total,
+                        )
+                    else:
+                        articles = articles_rss
                 if config.shuffle_urls:
                     random.shuffle(articles)
                 self.total = len(articles)
