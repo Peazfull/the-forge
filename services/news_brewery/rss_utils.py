@@ -156,8 +156,10 @@ def _fetch_html_text(page_url: str) -> str:
         return ""
 
 
-def _slice_boursier_listing(html_text: str) -> str:
+def _slice_boursier_listing(html_text: str, required_path: str | None = None) -> str:
     # Restrict to the listing block to avoid cross-section contamination.
+    if required_path and required_path not in html_text:
+        return ""
     match = re.search(
         r'id="listing".*?<div class="items">(.*?)</div>\s*<nav class="pagination"',
         html_text,
@@ -407,7 +409,7 @@ def fetch_boursier_dom_items(
     items: List[Dict[str, str]] = []
     seen = set()
 
-    content = _slice_boursier_listing(html_text)
+    content = _slice_boursier_listing(html_text, "/actualites/economie/")
 
     pattern = re.compile(
         r'<article[^>]*class="[^"]*item[^"]*"[^>]*>.*?'
@@ -501,7 +503,7 @@ def fetch_boursier_macroeconomie_dom_items(
     items: List[Dict[str, str]] = []
     seen = set()
 
-    content = _slice_boursier_listing(html_text)
+    content = _slice_boursier_listing(html_text, "/actualites/macroeconomie/")
 
     pattern = re.compile(
         r'<div class="item[^"]*">.*?'
@@ -595,7 +597,7 @@ def fetch_boursier_france_dom_items(
     items: List[Dict[str, str]] = []
     seen = set()
 
-    content = _slice_boursier_listing(html_text)
+    content = _slice_boursier_listing(html_text, "/actualites/france/")
 
     pattern = re.compile(
         r'<div class="item[^"]*">.*?'
@@ -689,7 +691,7 @@ def fetch_boursier_etats_unis_dom_items(
     items: List[Dict[str, str]] = []
     seen = set()
 
-    content = _slice_boursier_listing(html_text)
+    content = _slice_boursier_listing(html_text, "/actualites/etats-unis/")
 
     pattern = re.compile(
         r'<div class="item[^"]*">.*?'
