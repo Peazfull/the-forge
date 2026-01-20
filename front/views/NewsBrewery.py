@@ -135,7 +135,7 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
 
         shuffle_urls = st.checkbox("Shuffle URLs", value=True, key="news_shuffle")
 
-        dry_run = st.checkbox("DRY RUN", value=True, key="news_dry_run")
+        dry_run = st.checkbox("DRY RUN", value=False, key="news_dry_run")
 
         st.markdown("**Safety**")
         col_err, col_timeout = st.columns(2)
