@@ -178,8 +178,8 @@ if st.button("🧹 Clear all jobs", use_container_width=True, key="news_clear_al
 
 with st.expander("▸ Mega Job — Run all", expanded=False):
     mega_mode = "last_hours"
-    mega_hours_window = 6
-    mega_max_items = 200
+    mega_hours_window = 24
+    mega_max_items = 50
 
     col_load, col_check, col_uncheck = st.columns(3)
     with col_load:
@@ -531,7 +531,7 @@ with st.expander("▸ Job — BFM Bourse", expanded=False):
             "Dernières X heures",
             min_value=1,
             max_value=24,
-            value=6,
+            value=24,
             step=1,
             key="news_hours_window"
         )
@@ -544,7 +544,7 @@ with st.expander("▸ Job — BFM Bourse", expanded=False):
                 "Max articles total",
                 min_value=1,
                 max_value=100,
-                value=20,
+                value=50,
                 step=1,
                 key="news_max_total"
             )
@@ -552,8 +552,8 @@ with st.expander("▸ Job — BFM Bourse", expanded=False):
             max_articles_per_bulletin = st.number_input(
                 "Max articles par bulletin",
                 min_value=1,
-                max_value=20,
-                value=20,
+                max_value=50,
+                value=50,
                 step=1,
                 key="news_max_per"
             )
@@ -902,7 +902,7 @@ with st.expander("▸ Job — BeInCrypto", expanded=False):
             "Dernières X heures",
             min_value=1,
             max_value=24,
-            value=6,
+            value=24,
             step=1,
             key="bein_hours_window",
         )
@@ -915,7 +915,7 @@ with st.expander("▸ Job — BeInCrypto", expanded=False):
                 "Max articles total",
                 min_value=1,
                 max_value=100,
-                value=20,
+                value=50,
                 step=1,
                 key="bein_max_total",
             )
@@ -923,8 +923,8 @@ with st.expander("▸ Job — BeInCrypto", expanded=False):
             bein_max_articles_per = st.number_input(
                 "Max articles par bulletin",
                 min_value=1,
-                max_value=20,
-                value=20,
+                max_value=50,
+                value=50,
                 step=1,
                 key="bein_max_per",
             )
@@ -1216,7 +1216,7 @@ with st.expander("▸ Job — Bourse Direct", expanded=False):
             "Dernières X heures",
             min_value=1,
             max_value=24,
-            value=6,
+            value=24,
             step=1,
             key="boursedirect_hours_window",
         )
@@ -1229,7 +1229,7 @@ with st.expander("▸ Job — Bourse Direct", expanded=False):
                 "Max articles total",
                 min_value=1,
                 max_value=100,
-                value=20,
+                value=50,
                 step=1,
                 key="boursedirect_max_total",
             )
@@ -1237,8 +1237,8 @@ with st.expander("▸ Job — Bourse Direct", expanded=False):
             boursedirect_max_articles_per = st.number_input(
                 "Max articles par bulletin",
                 min_value=1,
-                max_value=20,
-                value=20,
+                max_value=50,
+                value=50,
                 step=1,
                 key="boursedirect_max_per",
             )
@@ -1530,7 +1530,7 @@ with st.expander("▸ Job — Bourse Direct Indices", expanded=False):
             "Dernières X heures",
             min_value=1,
             max_value=24,
-            value=6,
+            value=24,
             step=1,
             key="boursedirect_indices_hours_window",
         )
@@ -1543,7 +1543,7 @@ with st.expander("▸ Job — Bourse Direct Indices", expanded=False):
                 "Max articles total",
                 min_value=1,
                 max_value=100,
-                value=20,
+                value=50,
                 step=1,
                 key="boursedirect_indices_max_total",
             )
@@ -1551,8 +1551,8 @@ with st.expander("▸ Job — Bourse Direct Indices", expanded=False):
             boursedirect_indices_max_articles_per = st.number_input(
                 "Max articles par bulletin",
                 min_value=1,
-                max_value=20,
-                value=20,
+                max_value=50,
+                value=50,
                 step=1,
                 key="boursedirect_indices_max_per",
             )
@@ -1859,7 +1859,7 @@ with st.expander("▸ Job — Boursier Economie", expanded=False):
             "Dernières X heures",
             min_value=1,
             max_value=24,
-            value=6,
+            value=24,
             step=1,
             key="boursier_economie_hours_window",
         )
@@ -1872,7 +1872,7 @@ with st.expander("▸ Job — Boursier Economie", expanded=False):
                 "Max articles total",
                 min_value=1,
                 max_value=100,
-                value=20,
+                value=50,
                 step=1,
                 key="boursier_economie_max_total",
             )
@@ -1880,8 +1880,8 @@ with st.expander("▸ Job — Boursier Economie", expanded=False):
             boursier_economie_max_articles_per = st.number_input(
                 "Max articles par bulletin",
                 min_value=1,
-                max_value=20,
-                value=20,
+                max_value=50,
+                value=50,
                 step=1,
                 key="boursier_economie_max_per",
             )
@@ -2189,7 +2189,7 @@ with st.expander("▸ Job — Boursier Macroeconomie", expanded=False):
             "Dernières X heures",
             min_value=1,
             max_value=24,
-            value=6,
+            value=24,
             step=1,
             key="boursier_macroeconomie_hours_window",
         )
@@ -2202,7 +2202,7 @@ with st.expander("▸ Job — Boursier Macroeconomie", expanded=False):
                 "Max articles total",
                 min_value=1,
                 max_value=100,
-                value=20,
+                value=50,
                 step=1,
                 key="boursier_macroeconomie_max_total",
             )
@@ -2210,8 +2210,8 @@ with st.expander("▸ Job — Boursier Macroeconomie", expanded=False):
             boursier_macroeconomie_max_articles_per = st.number_input(
                 "Max articles par bulletin",
                 min_value=1,
-                max_value=20,
-                value=20,
+                max_value=50,
+                value=50,
                 step=1,
                 key="boursier_macroeconomie_max_per",
             )
@@ -2519,7 +2519,7 @@ with st.expander("▸ Job — Boursier France", expanded=False):
             "Dernières X heures",
             min_value=1,
             max_value=24,
-            value=6,
+            value=24,
             step=1,
             key="boursier_france_hours_window",
         )
@@ -2532,7 +2532,7 @@ with st.expander("▸ Job — Boursier France", expanded=False):
                 "Max articles total",
                 min_value=1,
                 max_value=100,
-                value=20,
+                value=50,
                 step=1,
                 key="boursier_france_max_total",
             )
@@ -2540,8 +2540,8 @@ with st.expander("▸ Job — Boursier France", expanded=False):
             boursier_france_max_articles_per = st.number_input(
                 "Max articles par bulletin",
                 min_value=1,
-                max_value=20,
-                value=20,
+                max_value=50,
+                value=50,
                 step=1,
                 key="boursier_france_max_per",
             )
