@@ -220,6 +220,11 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
             if not selected_urls:
                 st.error("Sélectionne au moins un article.")
             else:
+                job.set_buffer_text("")
+                job.json_preview_text = ""
+                job.json_items = []
+                st.session_state.news_show_json_state = False
+                st.session_state.news_json_ready = False
                 config = JobConfig(
                     entry_url="https://www.tradingsat.com/actualites/",
                     mode="today" if mode == "Aujourd’hui" else "last_hours",
@@ -250,6 +255,11 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
                 st.success("Scraping lancé.")
     if launch:
         if use_rss:
+            job.set_buffer_text("")
+            job.json_preview_text = ""
+            job.json_items = []
+            st.session_state.news_show_json_state = False
+            st.session_state.news_json_ready = False
             rss_items = fetch_rss_items(
                 feed_url=rss_feed_url,
                 max_items=int(max_articles_total),
