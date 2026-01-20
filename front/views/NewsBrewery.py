@@ -284,6 +284,74 @@ def _collect_mega_urls(source_keys: list[str] | None = None) -> list[dict]:
     return results
 
 
+def _render_mega_job_previews(job, prefix: str, label: str) -> None:
+    show_key = f"mega_{prefix}_show_json_state"
+    ready_key = f"mega_{prefix}_json_ready"
+    if show_key not in st.session_state:
+        st.session_state[show_key] = False
+    if ready_key not in st.session_state:
+        st.session_state[ready_key] = False
+
+    status = job.get_status()
+    if status.get("buffer_text"):
+        st.divider()
+        st.markdown(f"**{label} — Preview concaténée (buffer)**")
+        edited_buffer = st.text_area(
+            label="",
+            value=status.get("buffer_text", ""),
+            height=260,
+            key=f"mega_{prefix}_buffer_editor",
+        )
+        col_json, col_clear_buf = st.columns(2)
+        with col_json:
+            if st.button("✅ Dédoublonner + JSON", use_container_width=True, key=f"mega_{prefix}_finalize"):
+                job.set_buffer_text(edited_buffer)
+                result = job.finalize_buffer()
+                if result.get("status") == "success":
+                    st.success(f"{len(result.get('items', []))} items générés")
+                    st.session_state[ready_key] = True
+                    st.session_state[show_key] = False
+                else:
+                    st.error(result.get("message", "Erreur JSON"))
+        with col_clear_buf:
+            if st.button("🧹 Clear buffer", use_container_width=True, key=f"mega_{prefix}_clear_buffer"):
+                job.set_buffer_text("")
+                st.rerun()
+
+    if (
+        st.session_state[ready_key]
+        and status.get("json_preview_text")
+        and not st.session_state[show_key]
+    ):
+        if st.button("🧾 Afficher preview JSON", use_container_width=True, key=f"mega_{prefix}_show_json_btn"):
+            st.session_state[show_key] = True
+            st.rerun()
+
+    if status.get("json_preview_text") and st.session_state[show_key]:
+        st.markdown(f"**{label} — Preview JSON**")
+        edited_json = st.text_area(
+            label="",
+            value=status.get("json_preview_text", ""),
+            height=320,
+            key=f"mega_{prefix}_json_editor",
+        )
+        col_send, col_clear_json = st.columns(2)
+        with col_send:
+            if st.button("✅ Envoyer en DB", use_container_width=True, key=f"mega_{prefix}_send_db"):
+                result = job.send_to_db()
+                if result.get("status") == "success":
+                    st.success(f"{result.get('inserted', 0)} items insérés en base")
+                else:
+                    st.error(result.get("message", "Erreur DB"))
+        with col_clear_json:
+            if st.button("🧹 Clear JSON", use_container_width=True, key=f"mega_{prefix}_clear_json"):
+                job.json_preview_text = ""
+                job.json_items = []
+                st.session_state[show_key] = False
+                st.session_state[ready_key] = False
+                st.rerun()
+
+
 if st.button("🧹 Clear all jobs", use_container_width=True, key="news_clear_all"):
     clear_all_jobs()
     st.success("Tous les jobs ont été réinitialisés.")
@@ -581,6 +649,14 @@ with st.expander("▸ Mega Job — Run all", expanded=False):
         state = status.get("state")
         if last_log:
             st.caption(f"{label} — {state} — {last_log}")
+
+    _render_mega_job_previews(get_boursier_economie_job(), "boursier_economie", "Boursier Économie")
+    _render_mega_job_previews(get_boursier_france_job(), "boursier_france", "Boursier France")
+    _render_mega_job_previews(get_boursier_macroeconomie_job(), "boursier_macroeconomie", "Boursier Macroeconomie")
+    _render_mega_job_previews(get_boursedirect_job(), "boursedirect", "Bourse Direct")
+    _render_mega_job_previews(get_boursedirect_indices_job(), "boursedirect_indices", "Bourse Direct Indices")
+    _render_mega_job_previews(get_beincrypto_job(), "beincrypto", "BeInCrypto")
+    _render_mega_job_previews(get_bfm_job(), "bfm_bourse", "BFM Bourse")
 
     if any(status.get("state") in ("running", "paused") for _, status in job_statuses):
         st.info("Mega job en cours — rafraîchissement automatique activé.")
