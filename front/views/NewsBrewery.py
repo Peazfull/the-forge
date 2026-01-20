@@ -76,12 +76,15 @@ def clear_all_jobs() -> None:
     _clear_mega_state()
 
 
-def _collect_mega_urls(
-    mode: str,
-    hours_window: int,
-    max_items: int,
-    source_keys: list[str] | None = None,
-) -> list[dict]:
+def _mode_from_label(label: str) -> str:
+    return "today" if label == "Aujourd’hui" else "last_hours"
+
+
+def _get_state(key: str, default):
+    return st.session_state.get(key, default)
+
+
+def _collect_mega_urls(source_keys: list[str] | None = None) -> list[dict]:
     results: list[dict] = []
     seen = set()
     source_keys = source_keys or []
@@ -102,80 +105,181 @@ def _collect_mega_urls(
                 "label_dt": item.get("label_dt", ""),
             })
 
-    _add(
-        "bfm",
-        "BFM Bourse",
-        fetch_dom_items(
+    bfm_use_rss = bool(_get_state("news_use_rss", True))
+    if bfm_use_rss:
+        bfm_mode = _mode_from_label(_get_state("news_mode", "Dernières X heures"))
+        bfm_hours = int(_get_state("news_hours_window", 24))
+        bfm_max = int(_get_state("news_max_total", 400))
+        bfm_rss_feed = _get_state("news_rss_feed", "https://www.tradingsat.com/rssfeed.php")
+        bfm_rss_ignore = bool(_get_state("news_rss_ignore_time", False))
+        bfm_rss_dom = bool(_get_state("news_rss_dom_fallback", True))
+        bfm_dom_items = fetch_dom_items(
             page_url="https://www.tradingsat.com/actualites/",
-            max_items=max_items,
-            mode=mode,
-            hours_window=hours_window,
-        ),
-    )
-    _add(
-        "beincrypto",
-        "BeInCrypto",
-        fetch_beincrypto_dom_items(
+            max_items=bfm_max,
+            mode=bfm_mode,
+            hours_window=bfm_hours,
+        )
+        bfm_rss_items = fetch_rss_items(
+            feed_url=bfm_rss_feed,
+            max_items=bfm_max,
+            mode=bfm_mode,
+            hours_window=bfm_hours,
+            ignore_time_filter=bfm_rss_ignore,
+        )
+        bfm_items = merge_article_items(bfm_dom_items, bfm_rss_items, bfm_max) if bfm_rss_dom else bfm_rss_items
+        _add("bfm", "BFM Bourse", bfm_items)
+
+    bein_use_rss = bool(_get_state("bein_use_rss", True))
+    if bein_use_rss:
+        bein_mode = _mode_from_label(_get_state("bein_mode", "Dernières X heures"))
+        bein_hours = int(_get_state("bein_hours_window", 24))
+        bein_max = int(_get_state("bein_max_total", 400))
+        bein_rss_feed = _get_state("bein_rss_feed", "https://fr.beincrypto.com/feed/")
+        bein_rss_ignore = bool(_get_state("bein_rss_ignore_time", False))
+        bein_rss_dom = bool(_get_state("bein_rss_dom_fallback", True))
+        bein_use_firecrawl = bool(_get_state("bein_use_firecrawl", True))
+        bein_rss_items = fetch_rss_items(
+            feed_url=bein_rss_feed,
+            max_items=bein_max,
+            mode=bein_mode,
+            hours_window=bein_hours,
+            ignore_time_filter=bein_rss_ignore,
+        )
+        bein_dom_items = fetch_beincrypto_dom_items(
             page_url="https://fr.beincrypto.com/",
-            max_items=max_items,
-            mode=mode,
-            hours_window=hours_window,
-            use_firecrawl_fallback=True,
-        ),
-    )
-    _add(
-        "boursedirect",
-        "Bourse Direct",
-        fetch_boursedirect_dom_items(
+            max_items=bein_max,
+            mode=bein_mode,
+            hours_window=bein_hours,
+            use_firecrawl_fallback=bein_use_firecrawl,
+        )
+        bein_items = merge_article_items(bein_dom_items, bein_rss_items, bein_max) if bein_rss_dom else bein_rss_items
+        _add("beincrypto", "BeInCrypto", bein_items)
+
+    bd_use_rss = bool(_get_state("boursedirect_use_rss", True))
+    if bd_use_rss:
+        bd_mode = _mode_from_label(_get_state("boursedirect_mode", "Dernières X heures"))
+        bd_hours = int(_get_state("boursedirect_hours_window", 24))
+        bd_max = int(_get_state("boursedirect_max_total", 400))
+        bd_rss_feed = _get_state("boursedirect_rss_feed", "https://www.boursedirect.fr/fr/actualites/categorie/marches")
+        bd_rss_ignore = bool(_get_state("boursedirect_rss_ignore_time", False))
+        bd_rss_dom = bool(_get_state("boursedirect_rss_dom_fallback", True))
+        bd_rss_items = fetch_rss_items(
+            feed_url=bd_rss_feed,
+            max_items=bd_max,
+            mode=bd_mode,
+            hours_window=bd_hours,
+            ignore_time_filter=bd_rss_ignore,
+        )
+        bd_dom_items = fetch_boursedirect_dom_items(
             page_url="https://www.boursedirect.fr/fr/actualites/categorie/marches",
-            max_items=max_items,
-            mode=mode,
-            hours_window=hours_window,
-        ),
-    )
-    _add(
-        "boursedirect_indices",
-        "Bourse Direct Indices",
-        fetch_boursedirect_dom_items(
+            max_items=bd_max,
+            mode=bd_mode,
+            hours_window=bd_hours,
+        )
+        bd_items = merge_article_items(bd_dom_items, bd_rss_items, bd_max) if bd_rss_dom else bd_rss_items
+        _add("boursedirect", "Bourse Direct", bd_items)
+
+    bdi_use_rss = bool(_get_state("boursedirect_indices_use_rss", True))
+    if bdi_use_rss:
+        bdi_mode = _mode_from_label(_get_state("boursedirect_indices_mode", "Dernières X heures"))
+        bdi_hours = int(_get_state("boursedirect_indices_hours_window", 24))
+        bdi_max = int(_get_state("boursedirect_indices_max_total", 400))
+        bdi_rss_feed = _get_state("boursedirect_indices_rss_feed", "https://www.boursedirect.fr/fr/actualites/categorie/indices")
+        bdi_rss_ignore = bool(_get_state("boursedirect_indices_rss_ignore_time", False))
+        bdi_rss_dom = bool(_get_state("boursedirect_indices_rss_dom_fallback", True))
+        bdi_rss_items = fetch_rss_items(
+            feed_url=bdi_rss_feed,
+            max_items=bdi_max,
+            mode=bdi_mode,
+            hours_window=bdi_hours,
+            ignore_time_filter=bdi_rss_ignore,
+        )
+        bdi_dom_items = fetch_boursedirect_dom_items(
             page_url="https://www.boursedirect.fr/fr/actualites/categorie/indices",
-            max_items=max_items,
-            mode=mode,
-            hours_window=hours_window,
-        ),
-    )
-    _add(
-        "boursier_economie",
-        "Boursier Économie",
-        fetch_boursier_dom_items(
+            max_items=bdi_max,
+            mode=bdi_mode,
+            hours_window=bdi_hours,
+        )
+        bdi_items = merge_article_items(bdi_dom_items, bdi_rss_items, bdi_max) if bdi_rss_dom else bdi_rss_items
+        _add("boursedirect_indices", "Bourse Direct Indices", bdi_items)
+
+    be_use_rss = bool(_get_state("boursier_economie_use_rss", True))
+    if be_use_rss:
+        be_mode = _mode_from_label(_get_state("boursier_economie_mode", "Dernières X heures"))
+        be_hours = int(_get_state("boursier_economie_hours_window", 24))
+        be_max = int(_get_state("boursier_economie_max_total", 400))
+        be_rss_feed = _get_state("boursier_economie_rss_feed", "https://www.boursier.com/actualites/economie")
+        be_rss_ignore = bool(_get_state("boursier_economie_rss_ignore_time", False))
+        be_rss_dom = bool(_get_state("boursier_economie_rss_dom_fallback", True))
+        be_use_firecrawl = bool(_get_state("boursier_economie_use_firecrawl", True))
+        be_rss_items = fetch_rss_items(
+            feed_url=be_rss_feed,
+            max_items=be_max,
+            mode=be_mode,
+            hours_window=be_hours,
+            ignore_time_filter=be_rss_ignore,
+        )
+        be_dom_items = fetch_boursier_dom_items(
             page_url="https://www.boursier.com/actualites/economie",
-            max_items=max_items,
-            mode=mode,
-            hours_window=hours_window,
-            use_firecrawl_fallback=True,
-        ),
-    )
-    _add(
-        "boursier_macroeconomie",
-        "Boursier Macroeconomie",
-        fetch_boursier_macroeconomie_dom_items(
+            max_items=be_max,
+            mode=be_mode,
+            hours_window=be_hours,
+            use_firecrawl_fallback=be_use_firecrawl,
+        )
+        be_items = merge_article_items(be_dom_items, be_rss_items, be_max) if be_rss_dom else be_rss_items
+        _add("boursier_economie", "Boursier Économie", be_items)
+
+    bm_use_rss = bool(_get_state("boursier_macroeconomie_use_rss", True))
+    if bm_use_rss:
+        bm_mode = _mode_from_label(_get_state("boursier_macroeconomie_mode", "Dernières X heures"))
+        bm_hours = int(_get_state("boursier_macroeconomie_hours_window", 24))
+        bm_max = int(_get_state("boursier_macroeconomie_max_total", 400))
+        bm_rss_feed = _get_state("boursier_macroeconomie_rss_feed", "https://www.boursier.com/actualites/macroeconomie")
+        bm_rss_ignore = bool(_get_state("boursier_macroeconomie_rss_ignore_time", False))
+        bm_rss_dom = bool(_get_state("boursier_macroeconomie_rss_dom_fallback", True))
+        bm_use_firecrawl = bool(_get_state("boursier_macroeconomie_use_firecrawl", True))
+        bm_rss_items = fetch_rss_items(
+            feed_url=bm_rss_feed,
+            max_items=bm_max,
+            mode=bm_mode,
+            hours_window=bm_hours,
+            ignore_time_filter=bm_rss_ignore,
+        )
+        bm_dom_items = fetch_boursier_macroeconomie_dom_items(
             page_url="https://www.boursier.com/actualites/macroeconomie",
-            max_items=max_items,
-            mode=mode,
-            hours_window=hours_window,
-            use_firecrawl_fallback=True,
-        ),
-    )
-    _add(
-        "boursier_france",
-        "Boursier France",
-        fetch_boursier_france_dom_items(
+            max_items=bm_max,
+            mode=bm_mode,
+            hours_window=bm_hours,
+            use_firecrawl_fallback=bm_use_firecrawl,
+        )
+        bm_items = merge_article_items(bm_dom_items, bm_rss_items, bm_max) if bm_rss_dom else bm_rss_items
+        _add("boursier_macroeconomie", "Boursier Macroeconomie", bm_items)
+
+    bf_use_rss = bool(_get_state("boursier_france_use_rss", True))
+    if bf_use_rss:
+        bf_mode = _mode_from_label(_get_state("boursier_france_mode", "Dernières X heures"))
+        bf_hours = int(_get_state("boursier_france_hours_window", 24))
+        bf_max = int(_get_state("boursier_france_max_total", 400))
+        bf_rss_feed = _get_state("boursier_france_rss_feed", "https://www.boursier.com/actualites/france")
+        bf_rss_ignore = bool(_get_state("boursier_france_rss_ignore_time", False))
+        bf_rss_dom = bool(_get_state("boursier_france_rss_dom_fallback", True))
+        bf_use_firecrawl = bool(_get_state("boursier_france_use_firecrawl", True))
+        bf_rss_items = fetch_rss_items(
+            feed_url=bf_rss_feed,
+            max_items=bf_max,
+            mode=bf_mode,
+            hours_window=bf_hours,
+            ignore_time_filter=bf_rss_ignore,
+        )
+        bf_dom_items = fetch_boursier_france_dom_items(
             page_url="https://www.boursier.com/actualites/france",
-            max_items=max_items,
-            mode=mode,
-            hours_window=hours_window,
-            use_firecrawl_fallback=True,
-        ),
-    )
+            max_items=bf_max,
+            mode=bf_mode,
+            hours_window=bf_hours,
+            use_firecrawl_fallback=bf_use_firecrawl,
+        )
+        bf_items = merge_article_items(bf_dom_items, bf_rss_items, bf_max) if bf_rss_dom else bf_rss_items
+        _add("boursier_france", "Boursier France", bf_items)
 
     return results
 
@@ -186,45 +290,7 @@ if st.button("🧹 Clear all jobs", use_container_width=True, key="news_clear_al
     st.rerun()
 
 with st.expander("▸ Mega Job — Run all", expanded=False):
-    with st.expander("Fenêtre temporelle", expanded=True):
-        mega_mode_label = st.radio(
-            "Mode",
-            options=["Aujourd’hui", "Dernières X heures"],
-            horizontal=True,
-            index=1,
-            key="mega_run_mode",
-        )
-        mega_hours_window = st.slider(
-            "Dernières X heures",
-            min_value=1,
-            max_value=24,
-            value=24,
-            step=1,
-            key="mega_run_hours_window",
-        )
-    mega_mode = "today" if mega_mode_label == "Aujourd’hui" else "last_hours"
-
-    with st.expander("Settings", expanded=False):
-        st.markdown("**Limites**")
-        col_max_total, col_max_per = st.columns(2)
-        with col_max_total:
-            mega_max_total = st.number_input(
-                "Max articles total",
-                min_value=1,
-                max_value=1000,
-                value=400,
-                step=1,
-                key="mega_run_max_total",
-            )
-        with col_max_per:
-            mega_max_per = st.number_input(
-                "Max articles par bulletin",
-                min_value=1,
-                max_value=1000,
-                value=400,
-                step=1,
-                key="mega_run_max_per",
-            )
+    st.caption("Le Mega Job utilise les paramètres de chaque job (fenêtre temporelle, limites, RSS/DOM, Firecrawl).")
 
     all_sources = [
         ("bfm", "BFM Bourse"),
@@ -252,9 +318,6 @@ with st.expander("▸ Mega Job — Run all", expanded=False):
         if st.button("🔎 Charger toutes les URLs", use_container_width=True, key="mega_run_load"):
             _clear_mega_state()
             st.session_state.mega_run_candidates = _collect_mega_urls(
-                mode=mega_mode,
-                hours_window=mega_hours_window,
-                max_items=int(mega_max_total),
                 source_keys=selected_source_keys,
             )
             st.rerun()
@@ -277,7 +340,7 @@ with st.expander("▸ Mega Job — Run all", expanded=False):
             item for item in st.session_state.mega_run_candidates
             if item.get("source_label") in selected_sources
         ]
-        st.caption(f"{len(filtered_candidates)} URL(s) détectée(s) — dernières {mega_hours_window}h")
+        st.caption(f"{len(filtered_candidates)} URL(s) détectée(s)")
         for idx, item in enumerate(st.session_state.mega_run_candidates):
             if item.get("source_label") not in selected_sources:
                 continue
@@ -308,168 +371,189 @@ with st.expander("▸ Mega Job — Run all", expanded=False):
                     })
 
                 if "bfm" in grouped:
+                    bfm_mode = _mode_from_label(_get_state("news_mode", "Dernières X heures"))
+                    bfm_hours = int(_get_state("news_hours_window", 24))
+                    bfm_max_per = int(_get_state("news_max_per", 400))
                     bfm_config = JobConfig(
                         entry_url="https://www.tradingsat.com/actualites/",
-                        mode=mega_mode,
-                        hours_window=mega_hours_window,
+                        mode=bfm_mode,
+                        hours_window=bfm_hours,
                         max_articles_total=len(grouped["bfm"]),
-                        max_articles_per_bulletin=int(mega_max_per),
-                        scroll_min_px=400,
-                        scroll_max_px=1200,
-                        min_page_time=10,
-                        max_page_time=45,
-                        wait_min_action=0.6,
-                        wait_max_action=2.5,
-                        shuffle_urls=True,
-                        dry_run=False,
-                        max_consecutive_errors=3,
-                        global_timeout_minutes=15,
-                        pause_on_captcha=True,
-                        remove_buffer_after_success=True,
-                        headless=True,
-                        use_rss=True,
-                        rss_feed_url="https://www.tradingsat.com/rssfeed.php",
-                        rss_ignore_time_filter=False,
-                        rss_use_dom_fallback=True,
-                        use_firecrawl=True,
+                        max_articles_per_bulletin=bfm_max_per,
+                        scroll_min_px=int(_get_state("news_scroll_min", 400)),
+                        scroll_max_px=int(_get_state("news_scroll_max", 1200)),
+                        min_page_time=int(_get_state("news_page_min", 10)),
+                        max_page_time=int(_get_state("news_page_max", 45)),
+                        wait_min_action=float(_get_state("news_wait_min", 0.6)),
+                        wait_max_action=float(_get_state("news_wait_max", 2.5)),
+                        shuffle_urls=bool(_get_state("news_shuffle", True)),
+                        dry_run=bool(_get_state("news_dry_run", False)),
+                        max_consecutive_errors=int(_get_state("news_max_errors", 3)),
+                        global_timeout_minutes=int(_get_state("news_timeout", 15)),
+                        pause_on_captcha=bool(_get_state("news_pause_captcha", True)),
+                        remove_buffer_after_success=bool(_get_state("news_remove_buffer", True)),
+                        headless=bool(_get_state("news_headless", True)),
+                        use_rss=bool(_get_state("news_use_rss", True)),
+                        rss_feed_url=_get_state("news_rss_feed", "https://www.tradingsat.com/rssfeed.php"),
+                        rss_ignore_time_filter=bool(_get_state("news_rss_ignore_time", False)),
+                        rss_use_dom_fallback=bool(_get_state("news_rss_dom_fallback", True)),
+                        use_firecrawl=bool(_get_state("news_use_firecrawl", True)),
                         urls_override=grouped["bfm"],
                     )
                     get_bfm_job().start(bfm_config)
 
                 if "beincrypto" in grouped:
+                    bein_mode = _mode_from_label(_get_state("bein_mode", "Dernières X heures"))
+                    bein_hours = int(_get_state("bein_hours_window", 24))
+                    bein_max_per = int(_get_state("bein_max_per", 400))
                     bein_config = BeInJobConfig(
                         entry_url="https://fr.beincrypto.com/",
-                        mode=mega_mode,
-                        hours_window=mega_hours_window,
+                        mode=bein_mode,
+                        hours_window=bein_hours,
                         max_articles_total=len(grouped["beincrypto"]),
-                        max_articles_per_bulletin=int(mega_max_per),
-                        wait_min_action=0.6,
-                        wait_max_action=2.5,
-                        shuffle_urls=True,
-                        dry_run=False,
-                        max_consecutive_errors=3,
-                        global_timeout_minutes=15,
-                        remove_buffer_after_success=True,
-                        use_rss=True,
-                        rss_feed_url="https://fr.beincrypto.com/feed/",
-                        rss_ignore_time_filter=False,
-                        rss_use_dom_fallback=True,
-                        use_firecrawl=True,
+                        max_articles_per_bulletin=bein_max_per,
+                        wait_min_action=float(_get_state("bein_wait_min", 0.6)),
+                        wait_max_action=float(_get_state("bein_wait_max", 2.5)),
+                        shuffle_urls=bool(_get_state("bein_shuffle", True)),
+                        dry_run=bool(_get_state("bein_dry_run", False)),
+                        max_consecutive_errors=int(_get_state("bein_max_errors", 3)),
+                        global_timeout_minutes=int(_get_state("bein_timeout", 15)),
+                        remove_buffer_after_success=bool(_get_state("bein_remove_buffer", True)),
+                        use_rss=bool(_get_state("bein_use_rss", True)),
+                        rss_feed_url=_get_state("bein_rss_feed", "https://fr.beincrypto.com/feed/"),
+                        rss_ignore_time_filter=bool(_get_state("bein_rss_ignore_time", False)),
+                        rss_use_dom_fallback=bool(_get_state("bein_rss_dom_fallback", True)),
+                        use_firecrawl=bool(_get_state("bein_use_firecrawl", True)),
                         urls_override=grouped["beincrypto"],
                     )
                     get_beincrypto_job().start(bein_config)
 
                 if "boursedirect" in grouped:
+                    bd_mode = _mode_from_label(_get_state("boursedirect_mode", "Dernières X heures"))
+                    bd_hours = int(_get_state("boursedirect_hours_window", 24))
+                    bd_max_per = int(_get_state("boursedirect_max_per", 400))
                     bd_config = BourseDirectJobConfig(
                         entry_url="https://www.boursedirect.fr/fr/actualites/categorie/marches",
-                        mode=mega_mode,
-                        hours_window=mega_hours_window,
+                        mode=bd_mode,
+                        hours_window=bd_hours,
                         max_articles_total=len(grouped["boursedirect"]),
-                        max_articles_per_bulletin=int(mega_max_per),
-                        wait_min_action=0.6,
-                        wait_max_action=2.5,
-                        shuffle_urls=True,
-                        dry_run=False,
-                        max_consecutive_errors=3,
-                        global_timeout_minutes=15,
-                        remove_buffer_after_success=True,
-                        use_rss=True,
-                        rss_feed_url="https://www.boursedirect.fr/fr/actualites/categorie/marches",
-                        rss_ignore_time_filter=False,
-                        rss_use_dom_fallback=True,
-                        use_firecrawl=True,
+                        max_articles_per_bulletin=bd_max_per,
+                        wait_min_action=float(_get_state("boursedirect_wait_min", 0.6)),
+                        wait_max_action=float(_get_state("boursedirect_wait_max", 2.5)),
+                        shuffle_urls=bool(_get_state("boursedirect_shuffle", True)),
+                        dry_run=bool(_get_state("boursedirect_dry_run", False)),
+                        max_consecutive_errors=int(_get_state("boursedirect_max_errors", 3)),
+                        global_timeout_minutes=int(_get_state("boursedirect_timeout", 15)),
+                        remove_buffer_after_success=bool(_get_state("boursedirect_remove_buffer", True)),
+                        use_rss=bool(_get_state("boursedirect_use_rss", True)),
+                        rss_feed_url=_get_state("boursedirect_rss_feed", "https://www.boursedirect.fr/fr/actualites/categorie/marches"),
+                        rss_ignore_time_filter=bool(_get_state("boursedirect_rss_ignore_time", False)),
+                        rss_use_dom_fallback=bool(_get_state("boursedirect_rss_dom_fallback", True)),
+                        use_firecrawl=bool(_get_state("boursedirect_use_firecrawl", True)),
                         urls_override=grouped["boursedirect"],
                     )
                     get_boursedirect_job().start(bd_config)
 
                 if "boursedirect_indices" in grouped:
+                    bdi_mode = _mode_from_label(_get_state("boursedirect_indices_mode", "Dernières X heures"))
+                    bdi_hours = int(_get_state("boursedirect_indices_hours_window", 24))
+                    bdi_max_per = int(_get_state("boursedirect_indices_max_per", 400))
                     bdi_config = BourseDirectIndicesJobConfig(
                         entry_url="https://www.boursedirect.fr/fr/actualites/categorie/indices",
-                        mode=mega_mode,
-                        hours_window=mega_hours_window,
+                        mode=bdi_mode,
+                        hours_window=bdi_hours,
                         max_articles_total=len(grouped["boursedirect_indices"]),
-                        max_articles_per_bulletin=int(mega_max_per),
-                        wait_min_action=0.6,
-                        wait_max_action=2.5,
-                        shuffle_urls=True,
-                        dry_run=False,
-                        max_consecutive_errors=3,
-                        global_timeout_minutes=15,
-                        remove_buffer_after_success=True,
-                        use_rss=True,
-                        rss_feed_url="https://www.boursedirect.fr/fr/actualites/categorie/indices",
-                        rss_ignore_time_filter=False,
-                        rss_use_dom_fallback=True,
-                        use_firecrawl=True,
+                        max_articles_per_bulletin=bdi_max_per,
+                        wait_min_action=float(_get_state("boursedirect_indices_wait_min", 0.6)),
+                        wait_max_action=float(_get_state("boursedirect_indices_wait_max", 2.5)),
+                        shuffle_urls=bool(_get_state("boursedirect_indices_shuffle", True)),
+                        dry_run=bool(_get_state("boursedirect_indices_dry_run", False)),
+                        max_consecutive_errors=int(_get_state("boursedirect_indices_max_errors", 3)),
+                        global_timeout_minutes=int(_get_state("boursedirect_indices_timeout", 15)),
+                        remove_buffer_after_success=bool(_get_state("boursedirect_indices_remove_buffer", True)),
+                        use_rss=bool(_get_state("boursedirect_indices_use_rss", True)),
+                        rss_feed_url=_get_state("boursedirect_indices_rss_feed", "https://www.boursedirect.fr/fr/actualites/categorie/indices"),
+                        rss_ignore_time_filter=bool(_get_state("boursedirect_indices_rss_ignore_time", False)),
+                        rss_use_dom_fallback=bool(_get_state("boursedirect_indices_rss_dom_fallback", True)),
+                        use_firecrawl=bool(_get_state("boursedirect_indices_use_firecrawl", True)),
                         urls_override=grouped["boursedirect_indices"],
                     )
                     get_boursedirect_indices_job().start(bdi_config)
 
                 if "boursier_economie" in grouped:
+                    be_mode = _mode_from_label(_get_state("boursier_economie_mode", "Dernières X heures"))
+                    be_hours = int(_get_state("boursier_economie_hours_window", 24))
+                    be_max_per = int(_get_state("boursier_economie_max_per", 400))
                     be_config = BoursierEconomieJobConfig(
                         entry_url="https://www.boursier.com/actualites/economie",
-                        mode=mega_mode,
-                        hours_window=mega_hours_window,
+                        mode=be_mode,
+                        hours_window=be_hours,
                         max_articles_total=len(grouped["boursier_economie"]),
-                        max_articles_per_bulletin=int(mega_max_per),
-                        wait_min_action=0.6,
-                        wait_max_action=2.5,
-                        shuffle_urls=True,
-                        dry_run=False,
-                        max_consecutive_errors=3,
-                        global_timeout_minutes=15,
-                        remove_buffer_after_success=True,
-                        use_rss=True,
-                        rss_feed_url="https://www.boursier.com/actualites/economie",
-                        rss_ignore_time_filter=False,
-                        rss_use_dom_fallback=True,
-                        use_firecrawl=True,
+                        max_articles_per_bulletin=be_max_per,
+                        wait_min_action=float(_get_state("boursier_economie_wait_min", 0.6)),
+                        wait_max_action=float(_get_state("boursier_economie_wait_max", 2.5)),
+                        shuffle_urls=bool(_get_state("boursier_economie_shuffle", True)),
+                        dry_run=bool(_get_state("boursier_economie_dry_run", False)),
+                        max_consecutive_errors=int(_get_state("boursier_economie_max_errors", 3)),
+                        global_timeout_minutes=int(_get_state("boursier_economie_timeout", 15)),
+                        remove_buffer_after_success=bool(_get_state("boursier_economie_remove_buffer", True)),
+                        use_rss=bool(_get_state("boursier_economie_use_rss", True)),
+                        rss_feed_url=_get_state("boursier_economie_rss_feed", "https://www.boursier.com/actualites/economie"),
+                        rss_ignore_time_filter=bool(_get_state("boursier_economie_rss_ignore_time", False)),
+                        rss_use_dom_fallback=bool(_get_state("boursier_economie_rss_dom_fallback", True)),
+                        use_firecrawl=bool(_get_state("boursier_economie_use_firecrawl", True)),
                         urls_override=grouped["boursier_economie"],
                     )
                     get_boursier_economie_job().start(be_config)
 
                 if "boursier_macroeconomie" in grouped:
+                    bm_mode = _mode_from_label(_get_state("boursier_macroeconomie_mode", "Dernières X heures"))
+                    bm_hours = int(_get_state("boursier_macroeconomie_hours_window", 24))
+                    bm_max_per = int(_get_state("boursier_macroeconomie_max_per", 400))
                     bm_config = BoursierMacroeconomieJobConfig(
                         entry_url="https://www.boursier.com/actualites/macroeconomie",
-                        mode=mega_mode,
-                        hours_window=mega_hours_window,
+                        mode=bm_mode,
+                        hours_window=bm_hours,
                         max_articles_total=len(grouped["boursier_macroeconomie"]),
-                        max_articles_per_bulletin=int(mega_max_per),
-                        wait_min_action=0.6,
-                        wait_max_action=2.5,
-                        shuffle_urls=True,
-                        dry_run=False,
-                        max_consecutive_errors=3,
-                        global_timeout_minutes=15,
-                        remove_buffer_after_success=True,
-                        use_rss=True,
-                        rss_feed_url="https://www.boursier.com/actualites/macroeconomie",
-                        rss_ignore_time_filter=False,
-                        rss_use_dom_fallback=True,
-                        use_firecrawl=True,
+                        max_articles_per_bulletin=bm_max_per,
+                        wait_min_action=float(_get_state("boursier_macroeconomie_wait_min", 0.6)),
+                        wait_max_action=float(_get_state("boursier_macroeconomie_wait_max", 2.5)),
+                        shuffle_urls=bool(_get_state("boursier_macroeconomie_shuffle", True)),
+                        dry_run=bool(_get_state("boursier_macroeconomie_dry_run", False)),
+                        max_consecutive_errors=int(_get_state("boursier_macroeconomie_max_errors", 3)),
+                        global_timeout_minutes=int(_get_state("boursier_macroeconomie_timeout", 15)),
+                        remove_buffer_after_success=bool(_get_state("boursier_macroeconomie_remove_buffer", True)),
+                        use_rss=bool(_get_state("boursier_macroeconomie_use_rss", True)),
+                        rss_feed_url=_get_state("boursier_macroeconomie_rss_feed", "https://www.boursier.com/actualites/macroeconomie"),
+                        rss_ignore_time_filter=bool(_get_state("boursier_macroeconomie_rss_ignore_time", False)),
+                        rss_use_dom_fallback=bool(_get_state("boursier_macroeconomie_rss_dom_fallback", True)),
+                        use_firecrawl=bool(_get_state("boursier_macroeconomie_use_firecrawl", True)),
                         urls_override=grouped["boursier_macroeconomie"],
                     )
                     get_boursier_macroeconomie_job().start(bm_config)
 
                 if "boursier_france" in grouped:
+                    bf_mode = _mode_from_label(_get_state("boursier_france_mode", "Dernières X heures"))
+                    bf_hours = int(_get_state("boursier_france_hours_window", 24))
+                    bf_max_per = int(_get_state("boursier_france_max_per", 400))
                     bf_config = BoursierFranceJobConfig(
                         entry_url="https://www.boursier.com/actualites/france",
-                        mode=mega_mode,
-                        hours_window=mega_hours_window,
+                        mode=bf_mode,
+                        hours_window=bf_hours,
                         max_articles_total=len(grouped["boursier_france"]),
-                        max_articles_per_bulletin=int(mega_max_per),
-                        wait_min_action=0.6,
-                        wait_max_action=2.5,
-                        shuffle_urls=True,
-                        dry_run=False,
-                        max_consecutive_errors=3,
-                        global_timeout_minutes=15,
-                        remove_buffer_after_success=True,
-                        use_rss=True,
-                        rss_feed_url="https://www.boursier.com/actualites/france",
-                        rss_ignore_time_filter=False,
-                        rss_use_dom_fallback=True,
-                        use_firecrawl=True,
+                        max_articles_per_bulletin=bf_max_per,
+                        wait_min_action=float(_get_state("boursier_france_wait_min", 0.6)),
+                        wait_max_action=float(_get_state("boursier_france_wait_max", 2.5)),
+                        shuffle_urls=bool(_get_state("boursier_france_shuffle", True)),
+                        dry_run=bool(_get_state("boursier_france_dry_run", False)),
+                        max_consecutive_errors=int(_get_state("boursier_france_max_errors", 3)),
+                        global_timeout_minutes=int(_get_state("boursier_france_timeout", 15)),
+                        remove_buffer_after_success=bool(_get_state("boursier_france_remove_buffer", True)),
+                        use_rss=bool(_get_state("boursier_france_use_rss", True)),
+                        rss_feed_url=_get_state("boursier_france_rss_feed", "https://www.boursier.com/actualites/france"),
+                        rss_ignore_time_filter=bool(_get_state("boursier_france_rss_ignore_time", False)),
+                        rss_use_dom_fallback=bool(_get_state("boursier_france_rss_dom_fallback", True)),
+                        use_firecrawl=bool(_get_state("boursier_france_use_firecrawl", True)),
                         urls_override=grouped["boursier_france"],
                     )
                     get_boursier_france_job().start(bf_config)
@@ -594,8 +678,8 @@ with st.expander("▸ Job — BFM Bourse", expanded=False):
             max_articles_total = st.number_input(
                 "Max articles total",
                 min_value=1,
-                max_value=100,
-                value=50,
+                max_value=1000,
+                value=400,
                 step=1,
                 key="news_max_total"
             )
@@ -603,8 +687,8 @@ with st.expander("▸ Job — BFM Bourse", expanded=False):
             max_articles_per_bulletin = st.number_input(
                 "Max articles par bulletin",
                 min_value=1,
-                max_value=50,
-                value=50,
+                max_value=1000,
+                value=400,
                 step=1,
                 key="news_max_per"
             )
@@ -965,8 +1049,8 @@ with st.expander("▸ Job — BeInCrypto", expanded=False):
             bein_max_articles_total = st.number_input(
                 "Max articles total",
                 min_value=1,
-                max_value=100,
-                value=50,
+                max_value=1000,
+                value=400,
                 step=1,
                 key="bein_max_total",
             )
@@ -974,8 +1058,8 @@ with st.expander("▸ Job — BeInCrypto", expanded=False):
             bein_max_articles_per = st.number_input(
                 "Max articles par bulletin",
                 min_value=1,
-                max_value=50,
-                value=50,
+                max_value=1000,
+                value=400,
                 step=1,
                 key="bein_max_per",
             )
@@ -1280,8 +1364,8 @@ with st.expander("▸ Job — Bourse Direct", expanded=False):
             boursedirect_max_articles_total = st.number_input(
                 "Max articles total",
                 min_value=1,
-                max_value=100,
-                value=50,
+                max_value=1000,
+                value=400,
                 step=1,
                 key="boursedirect_max_total",
             )
@@ -1289,8 +1373,8 @@ with st.expander("▸ Job — Bourse Direct", expanded=False):
             boursedirect_max_articles_per = st.number_input(
                 "Max articles par bulletin",
                 min_value=1,
-                max_value=50,
-                value=50,
+                max_value=1000,
+                value=400,
                 step=1,
                 key="boursedirect_max_per",
             )
@@ -1594,8 +1678,8 @@ with st.expander("▸ Job — Bourse Direct Indices", expanded=False):
             boursedirect_indices_max_articles_total = st.number_input(
                 "Max articles total",
                 min_value=1,
-                max_value=100,
-                value=50,
+                max_value=1000,
+                value=400,
                 step=1,
                 key="boursedirect_indices_max_total",
             )
@@ -1603,8 +1687,8 @@ with st.expander("▸ Job — Bourse Direct Indices", expanded=False):
             boursedirect_indices_max_articles_per = st.number_input(
                 "Max articles par bulletin",
                 min_value=1,
-                max_value=50,
-                value=50,
+                max_value=1000,
+                value=400,
                 step=1,
                 key="boursedirect_indices_max_per",
             )
@@ -1923,8 +2007,8 @@ with st.expander("▸ Job — Boursier Economie", expanded=False):
             boursier_economie_max_articles_total = st.number_input(
                 "Max articles total",
                 min_value=1,
-                max_value=100,
-                value=50,
+                max_value=1000,
+                value=400,
                 step=1,
                 key="boursier_economie_max_total",
             )
@@ -1932,8 +2016,8 @@ with st.expander("▸ Job — Boursier Economie", expanded=False):
             boursier_economie_max_articles_per = st.number_input(
                 "Max articles par bulletin",
                 min_value=1,
-                max_value=50,
-                value=50,
+                max_value=1000,
+                value=400,
                 step=1,
                 key="boursier_economie_max_per",
             )
@@ -2253,8 +2337,8 @@ with st.expander("▸ Job — Boursier Macroeconomie", expanded=False):
             boursier_macroeconomie_max_articles_total = st.number_input(
                 "Max articles total",
                 min_value=1,
-                max_value=100,
-                value=50,
+                max_value=1000,
+                value=400,
                 step=1,
                 key="boursier_macroeconomie_max_total",
             )
@@ -2262,8 +2346,8 @@ with st.expander("▸ Job — Boursier Macroeconomie", expanded=False):
             boursier_macroeconomie_max_articles_per = st.number_input(
                 "Max articles par bulletin",
                 min_value=1,
-                max_value=50,
-                value=50,
+                max_value=1000,
+                value=400,
                 step=1,
                 key="boursier_macroeconomie_max_per",
             )
@@ -2583,8 +2667,8 @@ with st.expander("▸ Job — Boursier France", expanded=False):
             boursier_france_max_articles_total = st.number_input(
                 "Max articles total",
                 min_value=1,
-                max_value=100,
-                value=50,
+                max_value=1000,
+                value=400,
                 step=1,
                 key="boursier_france_max_total",
             )
@@ -2592,8 +2676,8 @@ with st.expander("▸ Job — Boursier France", expanded=False):
             boursier_france_max_articles_per = st.number_input(
                 "Max articles par bulletin",
                 min_value=1,
-                max_value=50,
-                value=50,
+                max_value=1000,
+                value=400,
                 step=1,
                 key="boursier_france_max_per",
             )
