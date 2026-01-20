@@ -176,6 +176,87 @@ def fetch_dom_items(
     return items
 
 
+def _parse_relative_time(text: str) -> datetime | None:
+    match = re.search(r"il y a\s+(\d+)\s+(minute|minutes|heure|heures|jour|jours)", text, re.I)
+    if not match:
+        return None
+    value = int(match.group(1))
+    unit = match.group(2).lower()
+    if "minute" in unit:
+        return datetime.now() - timedelta(minutes=value)
+    if "heure" in unit:
+        return datetime.now() - timedelta(hours=value)
+    if "jour" in unit:
+        return datetime.now() - timedelta(days=value)
+    return None
+
+
+def fetch_beincrypto_dom_items(
+    page_url: str,
+    max_items: int,
+    mode: str,
+    hours_window: int,
+) -> List[Dict[str, str]]:
+    try:
+        req = Request(page_url, headers={"User-Agent": "Mozilla/5.0"})
+        with urlopen(req, timeout=20) as resp:
+            html_text = resp.read().decode("utf-8", errors="ignore")
+    except Exception:
+        return []
+
+    items: List[Dict[str, str]] = []
+    seen = set()
+
+    block_match = re.search(
+        r"Les dernières nouvelles.*?<div class=\"ant-card-body\">(.*?)</div>\s*</div>",
+        html_text,
+        re.S,
+    )
+    content = block_match.group(1) if block_match else html_text
+
+    pattern = re.compile(
+        r'<a[^>]+class="ArticleCardSmall[^"]*"[^>]+href="([^"]+)"[^>]*>.*?'
+        r'<time[^>]+datetime="([^"]+)"[^>]*>(.*?)</time>.*?'
+        r'<div[^>]+data-testid="main-element"[^>]*>(.*?)</div>',
+        re.S,
+    )
+
+    for href, datetime_attr, time_text, title_html in pattern.findall(content):
+        url = href.strip()
+        if not url:
+            continue
+        if url.startswith("/"):
+            url = f"https://fr.beincrypto.com{url}"
+        if url in seen:
+            continue
+        seen.add(url)
+
+        title = re.sub(r"<.*?>", "", title_html)
+        title = unescape(title).strip()
+
+        label_dt = None
+        if datetime_attr:
+            try:
+                label_dt = datetime.fromisoformat(datetime_attr.replace("Z", "+00:00")).replace(tzinfo=None)
+            except Exception:
+                label_dt = None
+        if label_dt is None and time_text:
+            label_dt = _parse_relative_time(time_text.strip())
+
+        if not _within_window(label_dt, mode, hours_window):
+            continue
+
+        items.append({
+            "url": url,
+            "title": title,
+            "label_dt": label_dt.isoformat() if label_dt else "",
+        })
+        if len(items) >= max_items:
+            break
+
+    return items
+
+
 def merge_article_items(
     primary: List[Dict[str, str]],
     secondary: List[Dict[str, str]],

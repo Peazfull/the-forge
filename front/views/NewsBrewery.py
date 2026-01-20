@@ -1,7 +1,13 @@
 import time
 import streamlit as st
 from services.news_brewery.bfm_bourse_job import JobConfig, get_bfm_job
-from services.news_brewery.rss_utils import fetch_dom_items, fetch_rss_items, merge_article_items
+from services.news_brewery.beincrypto_job import JobConfig as BeInJobConfig, get_beincrypto_job
+from services.news_brewery.rss_utils import (
+    fetch_beincrypto_dom_items,
+    fetch_dom_items,
+    fetch_rss_items,
+    merge_article_items,
+)
 from services.raw_storage.raw_news_service import fetch_raw_news
 
 
@@ -19,6 +25,12 @@ if "news_show_json_state" not in st.session_state:
     st.session_state.news_show_json_state = False
 if "news_json_ready" not in st.session_state:
     st.session_state.news_json_ready = False
+if "bein_rss_candidates" not in st.session_state:
+    st.session_state.bein_rss_candidates = []
+if "bein_show_json_state" not in st.session_state:
+    st.session_state.bein_show_json_state = False
+if "bein_json_ready" not in st.session_state:
+    st.session_state.bein_json_ready = False
 
 # =========================
 # JOB — BFM BOURSE
@@ -33,7 +45,7 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
     with col_clear:
         clear_job = st.button("🧹 Clear", use_container_width=True, key="news_bfm_clear")
 
-    with st.expander("Fenêtre temporelle", expanded=False):
+    with st.expander("Fenêtre temporelle", expanded=True):
         mode = st.radio(
             "Mode",
             options=["Aujourd’hui", "Dernières X heures"],
@@ -389,7 +401,322 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
                 st.rerun()
 
     st.divider()
-    with st.expander("🗄️ Derniers contenus en base", expanded=False):
+
+# =========================
+# JOB — BEINCRYPTO
+# =========================
+with st.expander("▸ Job — BeInCrypto", expanded=True):
+    bein_job = get_beincrypto_job()
+    col_open, col_launch, col_clear = st.columns([2, 1, 1])
+
+    with col_open:
+        st.link_button("🔗 Ouvrir l’URL", "https://fr.beincrypto.com/")
+    with col_launch:
+        bein_launch = st.button("▶️ Lancer", use_container_width=True, key="bein_launch")
+    with col_clear:
+        bein_clear = st.button("🧹 Clear", use_container_width=True, key="bein_clear")
+
+    with st.expander("Fenêtre temporelle", expanded=True):
+        bein_mode = st.radio(
+            "Mode",
+            options=["Aujourd’hui", "Dernières X heures"],
+            horizontal=True,
+            index=1,
+            key="bein_mode",
+        )
+        bein_hours_window = st.slider(
+            "Dernières X heures",
+            min_value=1,
+            max_value=24,
+            value=6,
+            step=1,
+            key="bein_hours_window",
+        )
+
+    with st.expander("Settings", expanded=False):
+        st.markdown("**Limites**")
+        col_max_total, col_max_per = st.columns(2)
+        with col_max_total:
+            bein_max_articles_total = st.number_input(
+                "Max articles total",
+                min_value=1,
+                max_value=100,
+                value=20,
+                step=1,
+                key="bein_max_total",
+            )
+        with col_max_per:
+            bein_max_articles_per = st.number_input(
+                "Max articles par bulletin",
+                min_value=1,
+                max_value=20,
+                value=20,
+                step=1,
+                key="bein_max_per",
+            )
+
+        st.markdown("**Timing**")
+        col_wait_min, col_wait_max = st.columns(2)
+        with col_wait_min:
+            bein_wait_min_action = st.number_input(
+                "Wait min action (s)",
+                min_value=0.1,
+                max_value=5.0,
+                value=0.6,
+                step=0.1,
+                key="bein_wait_min",
+            )
+        with col_wait_max:
+            bein_wait_max_action = st.number_input(
+                "Wait max action (s)",
+                min_value=0.2,
+                max_value=8.0,
+                value=2.5,
+                step=0.1,
+                key="bein_wait_max",
+            )
+
+        bein_shuffle_urls = st.checkbox("Shuffle URLs", value=True, key="bein_shuffle")
+        bein_dry_run = st.checkbox("DRY RUN", value=False, key="bein_dry_run")
+
+        st.markdown("**Safety**")
+        col_err, col_timeout = st.columns(2)
+        with col_err:
+            bein_max_consecutive_errors = st.number_input(
+                "Max erreurs consécutives",
+                min_value=1,
+                max_value=10,
+                value=3,
+                step=1,
+                key="bein_max_errors",
+            )
+        with col_timeout:
+            bein_global_timeout_minutes = st.number_input(
+                "Timeout global job (min)",
+                min_value=1,
+                max_value=60,
+                value=15,
+                step=1,
+                key="bein_timeout",
+            )
+
+        bein_remove_buffer = st.checkbox(
+            "Supprimer buffer après succès",
+            value=True,
+            key="bein_remove_buffer",
+        )
+
+        st.markdown("**Source URLs**")
+        bein_rss_feed_url = st.text_input(
+            "RSS feed",
+            value="https://fr.beincrypto.com/feed/",
+            key="bein_rss_feed",
+        )
+        bein_use_rss = st.checkbox("Mode RSS/DOM", value=True, key="bein_use_rss")
+        bein_use_firecrawl = st.checkbox("Scraper articles via Firecrawl", value=True, key="bein_use_firecrawl")
+        bein_rss_ignore_time_filter = st.checkbox(
+            "Ignorer filtre temporel RSS",
+            value=False,
+            key="bein_rss_ignore_time",
+        )
+        bein_rss_use_dom_fallback = st.checkbox(
+            "Compléter via DOM (bloc gauche)",
+            value=True,
+            key="bein_rss_dom_fallback",
+        )
+
+    bein_selected_urls = []
+    if bein_use_rss:
+        col_clear, col_uncheck = st.columns(2)
+        with col_clear:
+            if st.button("🧹 Clear liste", use_container_width=True, key="bein_rss_clear"):
+                st.session_state.bein_rss_candidates = []
+                st.rerun()
+        with col_uncheck:
+            if st.button("☐ Décocher tout", use_container_width=True, key="bein_rss_uncheck_all"):
+                for idx in range(len(st.session_state.bein_rss_candidates)):
+                    st.session_state[f"bein_rss_pick_{idx}"] = False
+                st.rerun()
+
+        if st.session_state.bein_rss_candidates:
+            st.caption("Sélectionne les articles à traiter :")
+            for idx, item in enumerate(st.session_state.bein_rss_candidates):
+                label = f"{item.get('title','')}".strip() or item.get("url", "")
+                key = f"bein_rss_pick_{idx}"
+                if key not in st.session_state:
+                    st.session_state[key] = True
+                checked = st.checkbox(label, key=key)
+                if checked:
+                    bein_selected_urls.append(item)
+            st.caption(f"{len(bein_selected_urls)} article(s) sélectionné(s)")
+        else:
+            st.caption("Clique sur Lancer pour charger la liste.")
+
+    if st.session_state.bein_rss_candidates:
+        if st.button("🧭 Scrapper les articles", use_container_width=True, key="bein_scrape_articles"):
+            if not bein_selected_urls:
+                st.error("Sélectionne au moins un article.")
+            else:
+                bein_job.set_buffer_text("")
+                bein_job.json_preview_text = ""
+                bein_job.json_items = []
+                st.session_state.bein_show_json_state = False
+                st.session_state.bein_json_ready = False
+                config = BeInJobConfig(
+                    entry_url="https://fr.beincrypto.com/",
+                    mode="today" if bein_mode == "Aujourd’hui" else "last_hours",
+                    hours_window=int(bein_hours_window),
+                    max_articles_total=int(bein_max_articles_total),
+                    max_articles_per_bulletin=int(bein_max_articles_per),
+                    wait_min_action=float(bein_wait_min_action),
+                    wait_max_action=float(bein_wait_max_action),
+                    shuffle_urls=bool(bein_shuffle_urls),
+                    dry_run=bool(bein_dry_run),
+                    max_consecutive_errors=int(bein_max_consecutive_errors),
+                    global_timeout_minutes=int(bein_global_timeout_minutes),
+                    remove_buffer_after_success=bool(bein_remove_buffer),
+                    use_rss=bool(bein_use_rss),
+                    rss_feed_url=bein_rss_feed_url,
+                    rss_ignore_time_filter=bool(bein_rss_ignore_time_filter),
+                    rss_use_dom_fallback=bool(bein_rss_use_dom_fallback),
+                    use_firecrawl=bool(bein_use_firecrawl),
+                    urls_override=bein_selected_urls,
+                )
+                bein_job.start(config)
+                st.success("Scraping lancé.")
+
+    if bein_launch:
+        if bein_use_rss:
+            bein_job.set_buffer_text("")
+            bein_job.json_preview_text = ""
+            bein_job.json_items = []
+            st.session_state.bein_show_json_state = False
+            st.session_state.bein_json_ready = False
+            rss_items = fetch_rss_items(
+                feed_url=bein_rss_feed_url,
+                max_items=int(bein_max_articles_total),
+                mode="today" if bein_mode == "Aujourd’hui" else "last_hours",
+                hours_window=int(bein_hours_window),
+                ignore_time_filter=bool(bein_rss_ignore_time_filter),
+            )
+            if bein_rss_use_dom_fallback:
+                dom_items = fetch_beincrypto_dom_items(
+                    page_url="https://fr.beincrypto.com/",
+                    max_items=int(bein_max_articles_total),
+                    mode="today" if bein_mode == "Aujourd’hui" else "last_hours",
+                    hours_window=int(bein_hours_window),
+                )
+                st.session_state.bein_rss_candidates = merge_article_items(
+                    dom_items,
+                    rss_items,
+                    int(bein_max_articles_total),
+                )
+            else:
+                st.session_state.bein_rss_candidates = rss_items
+            bein_job.status_log.append("🔎 URLs chargées")
+            st.rerun()
+        else:
+            st.warning("Mode RSS/DOM désactivé : active-le pour charger les URLs.")
+
+    if bein_clear:
+        bein_job.clear()
+        st.session_state.bein_rss_candidates = []
+        st.session_state.bein_show_json_state = False
+        st.session_state.bein_json_ready = False
+        st.rerun()
+
+    bein_status = bein_job.get_status()
+    st.divider()
+    st.caption(f"État : {bein_status.get('state')}")
+    bein_total = int(bein_status.get("total") or 0)
+    bein_processed = int(bein_status.get("processed", 0))
+    bein_skipped = int(bein_status.get("skipped", 0))
+    bein_started_at = bein_status.get("started_at")
+    bein_last_log = bein_status.get("last_log") or ""
+    if bein_total > 0:
+        progress_value = min(max((bein_processed + bein_skipped) / bein_total, 0.0), 1.0)
+        st.progress(progress_value)
+        st.caption(f"Progression : {bein_processed + bein_skipped}/{bein_total}")
+    st.caption(f"Traités : {bein_processed} · Skipped : {bein_skipped}")
+    if bein_started_at and (bein_processed + bein_skipped) > 0:
+        elapsed = max(time.time() - float(bein_started_at), 1.0)
+        avg_per_item = elapsed / max(bein_processed + bein_skipped, 1)
+        remaining = max(bein_total - (bein_processed + bein_skipped), 0)
+        eta_seconds = int(remaining * avg_per_item)
+        st.caption(f"ETA estimée : ~{eta_seconds // 60}m {eta_seconds % 60}s")
+    if bein_last_log:
+        st.caption(f"Dernier statut : {bein_last_log}")
+    if bein_status.get("buffer_path"):
+        st.caption(f"Buffer : {bein_status.get('buffer_path')}")
+    if bein_status.get("state") in ("running", "paused"):
+        st.info("Job en cours — rafraîchissement automatique activé.")
+        time.sleep(2)
+        st.rerun()
+
+    if bein_last_log:
+        st.caption(f"Statut : {bein_last_log}")
+    if bein_status.get("errors"):
+        st.markdown("**Erreurs :**")
+        for err in bein_status.get("errors")[-3:]:
+            st.write(f"⚠️ {err}")
+
+    if bein_status.get("buffer_text"):
+        st.divider()
+        st.markdown("**Preview concaténée (buffer)**")
+        bein_edited_buffer = st.text_area(
+            label="",
+            value=bein_status.get("buffer_text", ""),
+            height=320,
+            key="bein_buffer_editor",
+        )
+        col_json, col_clear_buf = st.columns(2)
+        with col_json:
+            if st.button("✅ Dédoublonner + JSON", use_container_width=True, key="bein_finalize"):
+                bein_job.set_buffer_text(bein_edited_buffer)
+                result = bein_job.finalize_buffer()
+                if result.get("status") == "success":
+                    st.success(f"{len(result.get('items', []))} items générés")
+                    st.session_state.bein_json_ready = True
+                    st.session_state.bein_show_json_state = False
+                    bein_status = bein_job.get_status()
+                else:
+                    st.error(result.get("message", "Erreur JSON"))
+        with col_clear_buf:
+            if st.button("🧹 Clear buffer", use_container_width=True, key="bein_clear_buffer"):
+                bein_job.set_buffer_text("")
+                st.rerun()
+
+    if st.session_state.bein_json_ready and bein_status.get("json_preview_text") and not st.session_state.bein_show_json_state:
+        if st.button("🧾 Afficher preview JSON", use_container_width=True, key="bein_show_json_btn"):
+            st.session_state.bein_show_json_state = True
+            st.rerun()
+
+    if bein_status.get("json_preview_text") and st.session_state.bein_show_json_state:
+        st.markdown("**Preview JSON**")
+        bein_edited_json = st.text_area(
+            label="",
+            value=bein_status.get("json_preview_text", ""),
+            height=350,
+            key="bein_json_editor",
+        )
+        col_send, col_clear_json = st.columns(2)
+        with col_send:
+            if st.button("✅ Envoyer en DB", use_container_width=True, key="bein_send_db"):
+                result = bein_job.send_to_db()
+                if result.get("status") == "success":
+                    st.success(f"{result.get('inserted', 0)} items insérés en base")
+                else:
+                    st.error(result.get("message", "Erreur DB"))
+        with col_clear_json:
+            if st.button("🧹 Clear JSON", use_container_width=True, key="bein_clear_json"):
+                bein_job.json_preview_text = ""
+                bein_job.json_items = []
+                st.session_state.bein_show_json_state = False
+                st.session_state.bein_json_ready = False
+                st.rerun()
+
+st.divider()
+with st.expander("🗄️ Derniers contenus en base", expanded=False):
         raw_items = fetch_raw_news(limit=50)
         if not raw_items:
             st.caption("Aucun contenu en base pour le moment")
