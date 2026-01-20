@@ -246,6 +246,8 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
 
     if clear_job:
         job.clear()
+        st.session_state.news_rss_candidates = []
+        st.rerun()
 
     status = job.get_status()
     st.divider()
