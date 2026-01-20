@@ -36,6 +36,7 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
             "Mode",
             options=["Aujourd’hui", "Dernières X heures"],
             horizontal=True,
+            index=1,
             key="news_mode"
         )
         hours_window = st.slider(
@@ -55,7 +56,7 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
                 "Max articles total",
                 min_value=1,
                 max_value=100,
-                value=15,
+                value=20,
                 step=1,
                 key="news_max_total"
             )
@@ -64,7 +65,7 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
                 "Max articles par bulletin",
                 min_value=1,
                 max_value=20,
-                value=5,
+                value=20,
                 step=1,
                 key="news_max_per"
             )
