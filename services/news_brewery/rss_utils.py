@@ -156,12 +156,22 @@ def _fetch_html_text(page_url: str) -> str:
         return ""
 
 
+def _has_required_path(html_text: str, required_path: str) -> bool:
+    if required_path in html_text:
+        return True
+    return re.search(
+        rf'<link[^>]+rel="canonical"[^>]+href="[^"]*{re.escape(required_path)}[^"]*"',
+        html_text,
+        re.I,
+    ) is not None
+
+
 def _slice_boursier_listing(html_text: str, required_path: str | None = None) -> str:
     # Restrict to the listing block to avoid cross-section contamination.
-    if required_path and required_path not in html_text:
+    if required_path and not _has_required_path(html_text, required_path):
         return ""
     match = re.search(
-        r'id="listing".*?<div class="items">(.*?)</div>\s*<nav class="pagination"',
+        r'<div[^>]*id="listing"[^>]*>.*?<div[^>]*class="items"[^>]*>(.*?)</div>\s*<nav class="pagination"',
         html_text,
         re.S,
     )
@@ -428,11 +438,11 @@ def fetch_boursier_dom_items(
     pattern = re.compile(
         r'<article[^>]*class="[^"]*item[^"]*"[^>]*>.*?'
         r'<h2[^>]*>\s*<a[^>]+href="([^"]+)"[^>]*>(.*?)</a>\s*</h2>.*?'
-        r'<time[^>]+class="date"[^>]+datetime="([^"]+)"',
+        r'<time[^>]+class="date"[^>]+datetime="([^"]+)"[^>]*>([^<]*)</time>',
         re.S,
     )
 
-    for href, title_html, datetime_attr in pattern.findall(content):
+    for href, title_html, datetime_attr, time_text in pattern.findall(content):
         url = href.strip()
         if not url:
             continue
@@ -451,6 +461,8 @@ def fetch_boursier_dom_items(
                 label_dt = datetime.fromisoformat(datetime_attr.strip())
             except Exception:
                 label_dt = None
+        if label_dt is None and time_text:
+            label_dt = _parse_time_label(time_text.strip())
 
         if label_dt is None:
             continue
@@ -514,12 +526,12 @@ def fetch_boursier_macroeconomie_dom_items(
 
     pattern = re.compile(
         r'<div class="item[^"]*">.*?'
-        r'<time[^>]+class="date"[^>]+datetime="([^"]+)".*?</time>.*?'
+        r'<time[^>]+class="date"[^>]+datetime="([^"]+)".*?>([^<]*)</time>.*?'
         r'<a href="([^"]+)".*?>(.*?)</a>',
         re.S,
     )
 
-    for datetime_attr, href, title_html in pattern.findall(content):
+    for datetime_attr, time_text, href, title_html in pattern.findall(content):
         url = href.strip()
         if not url:
             continue
@@ -538,6 +550,8 @@ def fetch_boursier_macroeconomie_dom_items(
                 label_dt = datetime.fromisoformat(datetime_attr.strip())
             except Exception:
                 label_dt = None
+        if label_dt is None and time_text:
+            label_dt = _parse_time_label(time_text.strip())
 
         if label_dt is None:
             continue
@@ -601,12 +615,12 @@ def fetch_boursier_france_dom_items(
 
     pattern = re.compile(
         r'<div class="item[^"]*">.*?'
-        r'<time[^>]+class="date"[^>]+datetime="([^"]+)".*?</time>.*?'
+        r'<time[^>]+class="date"[^>]+datetime="([^"]+)".*?>([^<]*)</time>.*?'
         r'<a href="([^"]+)".*?>(.*?)</a>',
         re.S,
     )
 
-    for datetime_attr, href, title_html in pattern.findall(content):
+    for datetime_attr, time_text, href, title_html in pattern.findall(content):
         url = href.strip()
         if not url:
             continue
@@ -625,6 +639,8 @@ def fetch_boursier_france_dom_items(
                 label_dt = datetime.fromisoformat(datetime_attr.strip())
             except Exception:
                 label_dt = None
+        if label_dt is None and time_text:
+            label_dt = _parse_time_label(time_text.strip())
 
         if label_dt is None:
             continue
@@ -688,13 +704,13 @@ def fetch_boursier_etats_unis_dom_items(
 
     pattern = re.compile(
         r'<div class="item[^"]*">.*?'
-        r'<time[^>]+class="date"[^>]+datetime="([^"]+)".*?</time>.*?'
+        r'<time[^>]+class="date"[^>]+datetime="([^"]+)".*?>([^<]*)</time>.*?'
         r'<a href="([^"]+)".*?>(.*?)</a>',
         re.S,
     )
 
     raw_items = []
-    for datetime_attr, href, title_html in pattern.findall(content):
+    for datetime_attr, time_text, href, title_html in pattern.findall(content):
         url = href.strip()
         if not url:
             continue
@@ -713,6 +729,8 @@ def fetch_boursier_etats_unis_dom_items(
                 label_dt = datetime.fromisoformat(datetime_attr.strip())
             except Exception:
                 label_dt = None
+        if label_dt is None and time_text:
+            label_dt = _parse_time_label(time_text.strip())
 
         if label_dt is None:
             continue
