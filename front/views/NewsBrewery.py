@@ -194,10 +194,15 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
 
     selected_urls = []
     if use_rss:
-        col_clear = st.columns(1)[0]
+        col_clear, col_uncheck = st.columns(2)
         with col_clear:
             if st.button("🧹 Clear liste", use_container_width=True, key="news_rss_clear"):
                 st.session_state.news_rss_candidates = []
+                st.rerun()
+        with col_uncheck:
+            if st.button("☐ Décocher tout", use_container_width=True, key="news_rss_uncheck_all"):
+                for idx in range(len(st.session_state.news_rss_candidates)):
+                    st.session_state[f"news_rss_pick_{idx}"] = False
                 st.rerun()
 
         if st.session_state.news_rss_candidates:
