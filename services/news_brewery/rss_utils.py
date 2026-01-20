@@ -688,69 +688,6 @@ def fetch_boursier_france_dom_items(
     return items
 
 
-def fetch_boursier_etats_unis_dom_items(
-    page_url: str,
-    max_items: int,
-    mode: str,
-    hours_window: int,
-    use_firecrawl_fallback: bool = False,
-) -> List[Dict[str, str]]:
-    html_text = _fetch_boursier_html(page_url, "/actualites/etats-unis/", use_firecrawl_fallback)
-
-    items: List[Dict[str, str]] = []
-    seen = set()
-
-    content = _slice_boursier_listing(html_text)
-
-    pattern = re.compile(
-        r'<div class="item[^"]*">.*?'
-        r'<time[^>]+class="date"[^>]+datetime="([^"]+)".*?>([^<]*)</time>.*?'
-        r'<a href="([^"]+)".*?>(.*?)</a>',
-        re.S,
-    )
-
-    items = []
-    for datetime_attr, time_text, href, title_html in pattern.findall(content):
-        url = href.strip()
-        if not url:
-            continue
-        if url.startswith("/"):
-            url = f"https://www.boursier.com{url}"
-        if url in seen:
-            continue
-        seen.add(url)
-
-        title = re.sub(r"<.*?>", "", title_html)
-        title = unescape(title).strip()
-
-        label_dt = None
-        if datetime_attr:
-            try:
-                label_dt = datetime.fromisoformat(datetime_attr.strip())
-            except Exception:
-                label_dt = None
-        if label_dt is None and time_text:
-            label_dt = _parse_time_label(time_text.strip())
-
-        if label_dt is None:
-            continue
-        if not _within_window(label_dt, mode, hours_window):
-            continue
-
-        items.append({
-            "url": url,
-            "title": title,
-            "label_dt": label_dt.isoformat() if label_dt else "",
-        })
-        if len(items) >= max_items:
-            break
-
-    if items:
-        return items
-
-    return items
-
-
 def merge_article_items(
     primary: List[Dict[str, str]],
     secondary: List[Dict[str, str]],
