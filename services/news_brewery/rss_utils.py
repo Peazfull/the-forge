@@ -372,6 +372,60 @@ def fetch_boursedirect_dom_items(
     return items
 
 
+def fetch_boursier_dom_items(
+    page_url: str,
+    max_items: int,
+    mode: str,
+    hours_window: int,
+) -> List[Dict[str, str]]:
+    html_text = _fetch_html_text(page_url)
+    if not html_text:
+        return []
+
+    items: List[Dict[str, str]] = []
+    seen = set()
+
+    pattern = re.compile(
+        r'<article[^>]*class="[^"]*item[^"]*"[^>]*>.*?'
+        r'<h2[^>]*>\s*<a[^>]+href="([^"]+)"[^>]*>(.*?)</a>\s*</h2>.*?'
+        r'<time[^>]+class="date"[^>]+datetime="([^"]+)"',
+        re.S,
+    )
+
+    for href, title_html, datetime_attr in pattern.findall(html_text):
+        url = href.strip()
+        if not url:
+            continue
+        if url.startswith("/"):
+            url = f"https://www.boursier.com{url}"
+        if url in seen:
+            continue
+        seen.add(url)
+
+        title = re.sub(r"<.*?>", "", title_html)
+        title = unescape(title).strip()
+
+        label_dt = None
+        if datetime_attr:
+            try:
+                label_dt = datetime.fromisoformat(datetime_attr.strip())
+            except Exception:
+                label_dt = None
+
+        if not _within_window(label_dt, mode, hours_window):
+            continue
+
+        items.append({
+            "url": url,
+            "title": title,
+            "label_dt": label_dt.isoformat() if label_dt else "",
+        })
+        if len(items) >= max_items:
+            break
+
+    return items
+
+
 def merge_article_items(
     primary: List[Dict[str, str]],
     secondary: List[Dict[str, str]],
