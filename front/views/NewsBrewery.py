@@ -4,6 +4,10 @@ from services.news_brewery.bfm_bourse_job import JobConfig, get_bfm_job
 from services.news_brewery.beincrypto_job import JobConfig as BeInJobConfig, get_beincrypto_job
 from services.news_brewery.cnbc_job import JobConfig as CnbcJobConfig, get_cnbc_job
 from services.news_brewery.boursedirect_job import JobConfig as BourseDirectJobConfig, get_boursedirect_job
+from services.news_brewery.boursedirect_indices_job import (
+    JobConfig as BourseDirectIndicesJobConfig,
+    get_boursedirect_indices_job,
+)
 from services.news_brewery.rss_utils import (
     fetch_beincrypto_dom_items,
     fetch_boursedirect_dom_items,
@@ -47,6 +51,12 @@ if "boursedirect_show_json_state" not in st.session_state:
     st.session_state.boursedirect_show_json_state = False
 if "boursedirect_json_ready" not in st.session_state:
     st.session_state.boursedirect_json_ready = False
+if "boursedirect_indices_rss_candidates" not in st.session_state:
+    st.session_state.boursedirect_indices_rss_candidates = []
+if "boursedirect_indices_show_json_state" not in st.session_state:
+    st.session_state.boursedirect_indices_show_json_state = False
+if "boursedirect_indices_json_ready" not in st.session_state:
+    st.session_state.boursedirect_indices_json_ready = False
 
 # =========================
 # JOB — BFM BOURSE
@@ -1049,6 +1059,335 @@ with st.expander("▸ Job — Bourse Direct", expanded=False):
                 boursedirect_job.json_items = []
                 st.session_state.boursedirect_show_json_state = False
                 st.session_state.boursedirect_json_ready = False
+                st.rerun()
+
+with st.expander("▸ Job — Bourse Direct Indices", expanded=False):
+    boursedirect_indices_job = get_boursedirect_indices_job()
+    col_open, col_launch, col_clear = st.columns([2, 1, 1])
+
+    with col_open:
+        st.link_button("🔗 Ouvrir l’URL", "https://www.boursedirect.fr/fr/actualites/categorie/indices")
+    with col_launch:
+        boursedirect_indices_launch = st.button("▶️ Lancer", use_container_width=True, key="boursedirect_indices_launch")
+    with col_clear:
+        boursedirect_indices_clear = st.button("🧹 Clear", use_container_width=True, key="boursedirect_indices_clear")
+
+    with st.expander("Fenêtre temporelle", expanded=True):
+        boursedirect_indices_mode = st.radio(
+            "Mode",
+            options=["Aujourd’hui", "Dernières X heures"],
+            horizontal=True,
+            index=1,
+            key="boursedirect_indices_mode",
+        )
+        boursedirect_indices_hours_window = st.slider(
+            "Dernières X heures",
+            min_value=1,
+            max_value=24,
+            value=6,
+            step=1,
+            key="boursedirect_indices_hours_window",
+        )
+
+    with st.expander("Settings", expanded=False):
+        st.markdown("**Limites**")
+        col_max_total, col_max_per = st.columns(2)
+        with col_max_total:
+            boursedirect_indices_max_articles_total = st.number_input(
+                "Max articles total",
+                min_value=1,
+                max_value=100,
+                value=20,
+                step=1,
+                key="boursedirect_indices_max_total",
+            )
+        with col_max_per:
+            boursedirect_indices_max_articles_per = st.number_input(
+                "Max articles par bulletin",
+                min_value=1,
+                max_value=20,
+                value=20,
+                step=1,
+                key="boursedirect_indices_max_per",
+            )
+
+        st.markdown("**Timing**")
+        col_wait_min, col_wait_max = st.columns(2)
+        with col_wait_min:
+            boursedirect_indices_wait_min_action = st.number_input(
+                "Wait min action (s)",
+                min_value=0.1,
+                max_value=5.0,
+                value=0.6,
+                step=0.1,
+                key="boursedirect_indices_wait_min",
+            )
+        with col_wait_max:
+            boursedirect_indices_wait_max_action = st.number_input(
+                "Wait max action (s)",
+                min_value=0.2,
+                max_value=8.0,
+                value=2.5,
+                step=0.1,
+                key="boursedirect_indices_wait_max",
+            )
+
+        boursedirect_indices_shuffle_urls = st.checkbox(
+            "Shuffle URLs",
+            value=True,
+            key="boursedirect_indices_shuffle",
+        )
+        boursedirect_indices_dry_run = st.checkbox(
+            "DRY RUN",
+            value=False,
+            key="boursedirect_indices_dry_run",
+        )
+
+        st.markdown("**Safety**")
+        col_err, col_timeout = st.columns(2)
+        with col_err:
+            boursedirect_indices_max_consecutive_errors = st.number_input(
+                "Max erreurs consécutives",
+                min_value=1,
+                max_value=10,
+                value=3,
+                step=1,
+                key="boursedirect_indices_max_errors",
+            )
+        with col_timeout:
+            boursedirect_indices_global_timeout_minutes = st.number_input(
+                "Timeout global job (min)",
+                min_value=1,
+                max_value=60,
+                value=15,
+                step=1,
+                key="boursedirect_indices_timeout",
+            )
+
+        boursedirect_indices_remove_buffer = st.checkbox(
+            "Supprimer buffer après succès",
+            value=True,
+            key="boursedirect_indices_remove_buffer",
+        )
+
+        st.markdown("**Source URLs**")
+        boursedirect_indices_rss_feed_url = st.text_input(
+            "RSS feed",
+            value="https://www.boursedirect.fr/fr/actualites/categorie/indices",
+            key="boursedirect_indices_rss_feed",
+        )
+        boursedirect_indices_use_rss = st.checkbox(
+            "Mode RSS/DOM",
+            value=True,
+            key="boursedirect_indices_use_rss",
+        )
+        boursedirect_indices_use_firecrawl = st.checkbox(
+            "Scraper articles via Firecrawl",
+            value=True,
+            key="boursedirect_indices_use_firecrawl",
+        )
+        boursedirect_indices_rss_ignore_time_filter = st.checkbox(
+            "Ignorer filtre temporel RSS",
+            value=False,
+            key="boursedirect_indices_rss_ignore_time",
+        )
+        boursedirect_indices_rss_use_dom_fallback = st.checkbox(
+            "Compléter via DOM (Indices)",
+            value=True,
+            key="boursedirect_indices_rss_dom_fallback",
+        )
+
+    boursedirect_indices_selected_urls = []
+    if boursedirect_indices_use_rss:
+        col_clear, col_uncheck = st.columns(2)
+        with col_clear:
+            if st.button("🧹 Clear liste", use_container_width=True, key="boursedirect_indices_rss_clear"):
+                st.session_state.boursedirect_indices_rss_candidates = []
+                st.rerun()
+        with col_uncheck:
+            if st.button("☐ Décocher tout", use_container_width=True, key="boursedirect_indices_rss_uncheck_all"):
+                for idx in range(len(st.session_state.boursedirect_indices_rss_candidates)):
+                    st.session_state[f"boursedirect_indices_rss_pick_{idx}"] = False
+                st.rerun()
+
+        if st.session_state.boursedirect_indices_rss_candidates:
+            st.caption("Sélectionne les articles à traiter :")
+            for idx, item in enumerate(st.session_state.boursedirect_indices_rss_candidates):
+                label = f"{item.get('title','')}".strip() or item.get("url", "")
+                key = f"boursedirect_indices_rss_pick_{idx}"
+                if key not in st.session_state:
+                    st.session_state[key] = True
+                checked = st.checkbox(label, key=key)
+                if checked:
+                    boursedirect_indices_selected_urls.append(item)
+            st.caption(f"{len(boursedirect_indices_selected_urls)} article(s) sélectionné(s)")
+        else:
+            st.caption("Clique sur Lancer pour charger la liste.")
+
+    if st.session_state.boursedirect_indices_rss_candidates:
+        if st.button("🧭 Scrapper les articles", use_container_width=True, key="boursedirect_indices_scrape_articles"):
+            if not boursedirect_indices_selected_urls:
+                st.error("Sélectionne au moins un article.")
+            else:
+                boursedirect_indices_job.set_buffer_text("")
+                boursedirect_indices_job.json_preview_text = ""
+                boursedirect_indices_job.json_items = []
+                st.session_state.boursedirect_indices_show_json_state = False
+                st.session_state.boursedirect_indices_json_ready = False
+                config = BourseDirectIndicesJobConfig(
+                    entry_url="https://www.boursedirect.fr/fr/actualites/categorie/indices",
+                    mode="today" if boursedirect_indices_mode == "Aujourd’hui" else "last_hours",
+                    hours_window=int(boursedirect_indices_hours_window),
+                    max_articles_total=int(boursedirect_indices_max_articles_total),
+                    max_articles_per_bulletin=int(boursedirect_indices_max_articles_per),
+                    wait_min_action=float(boursedirect_indices_wait_min_action),
+                    wait_max_action=float(boursedirect_indices_wait_max_action),
+                    shuffle_urls=bool(boursedirect_indices_shuffle_urls),
+                    dry_run=bool(boursedirect_indices_dry_run),
+                    max_consecutive_errors=int(boursedirect_indices_max_consecutive_errors),
+                    global_timeout_minutes=int(boursedirect_indices_global_timeout_minutes),
+                    remove_buffer_after_success=bool(boursedirect_indices_remove_buffer),
+                    use_rss=bool(boursedirect_indices_use_rss),
+                    rss_feed_url=boursedirect_indices_rss_feed_url,
+                    rss_ignore_time_filter=bool(boursedirect_indices_rss_ignore_time_filter),
+                    rss_use_dom_fallback=bool(boursedirect_indices_rss_use_dom_fallback),
+                    use_firecrawl=bool(boursedirect_indices_use_firecrawl),
+                    urls_override=boursedirect_indices_selected_urls,
+                )
+                boursedirect_indices_job.start(config)
+                st.success("Scraping lancé.")
+
+    if boursedirect_indices_launch:
+        if boursedirect_indices_use_rss:
+            boursedirect_indices_job.set_buffer_text("")
+            boursedirect_indices_job.json_preview_text = ""
+            boursedirect_indices_job.json_items = []
+            st.session_state.boursedirect_indices_show_json_state = False
+            st.session_state.boursedirect_indices_json_ready = False
+            rss_items = fetch_rss_items(
+                feed_url=boursedirect_indices_rss_feed_url,
+                max_items=int(boursedirect_indices_max_articles_total),
+                mode="today" if boursedirect_indices_mode == "Aujourd’hui" else "last_hours",
+                hours_window=int(boursedirect_indices_hours_window),
+                ignore_time_filter=bool(boursedirect_indices_rss_ignore_time_filter),
+            )
+            if boursedirect_indices_rss_use_dom_fallback:
+                dom_items = fetch_boursedirect_dom_items(
+                    page_url="https://www.boursedirect.fr/fr/actualites/categorie/indices",
+                    max_items=int(boursedirect_indices_max_articles_total),
+                    mode="today" if boursedirect_indices_mode == "Aujourd’hui" else "last_hours",
+                    hours_window=int(boursedirect_indices_hours_window),
+                )
+                st.session_state.boursedirect_indices_rss_candidates = merge_article_items(
+                    dom_items,
+                    rss_items,
+                    int(boursedirect_indices_max_articles_total),
+                )
+            else:
+                st.session_state.boursedirect_indices_rss_candidates = rss_items
+            boursedirect_indices_job.status_log.append("🔎 URLs chargées")
+            if not st.session_state.boursedirect_indices_rss_candidates:
+                st.warning("Aucune URL détectée. DOM vide ou bloqué ; active Firecrawl ou un RSS valide.")
+            st.rerun()
+
+    if boursedirect_indices_clear:
+        boursedirect_indices_job.clear()
+        st.session_state.boursedirect_indices_rss_candidates = []
+        st.session_state.boursedirect_indices_show_json_state = False
+        st.session_state.boursedirect_indices_json_ready = False
+        for key in list(st.session_state.keys()):
+            if key.startswith("boursedirect_indices_rss_pick_"):
+                st.session_state.pop(key, None)
+        st.success("Job réinitialisé.")
+        st.rerun()
+
+    boursedirect_indices_status = boursedirect_indices_job.get_status()
+    boursedirect_indices_state = boursedirect_indices_status.get("state")
+    boursedirect_indices_total = boursedirect_indices_status.get("total", 0)
+    boursedirect_indices_processed = boursedirect_indices_status.get("processed", 0)
+    boursedirect_indices_skipped = boursedirect_indices_status.get("skipped", 0)
+    boursedirect_indices_started_at = boursedirect_indices_status.get("started_at")
+    boursedirect_indices_last_log = boursedirect_indices_status.get("last_log", "")
+
+    st.progress(boursedirect_indices_processed / max(boursedirect_indices_total, 1))
+    status_parts = [
+        f"{boursedirect_indices_processed}/{boursedirect_indices_total} traités",
+        f"{boursedirect_indices_skipped} ignorés",
+    ]
+    if boursedirect_indices_state:
+        status_parts.append(f"état: {boursedirect_indices_state}")
+    if boursedirect_indices_started_at:
+        elapsed = int(time.time() - boursedirect_indices_started_at)
+        status_parts.append(f"{elapsed}s")
+    st.caption(" · ".join(status_parts))
+    if boursedirect_indices_last_log:
+        st.caption(f"Statut : {boursedirect_indices_last_log}")
+    if boursedirect_indices_status.get("errors"):
+        st.markdown("**Erreurs :**")
+        for err in boursedirect_indices_status.get("errors")[-3:]:
+            st.write(f"⚠️ {err}")
+    if boursedirect_indices_state in ("running", "paused"):
+        st.info("Job en cours — rafraîchissement automatique activé.")
+        time.sleep(2)
+        st.rerun()
+
+    if boursedirect_indices_status.get("buffer_text"):
+        st.divider()
+        st.markdown("**Preview concaténée (buffer)**")
+        boursedirect_indices_edited_buffer = st.text_area(
+            label="",
+            value=boursedirect_indices_status.get("buffer_text", ""),
+            height=320,
+            key="boursedirect_indices_buffer_editor",
+        )
+        col_json, col_clear_buf = st.columns(2)
+        with col_json:
+            if st.button("✅ Dédoublonner + JSON", use_container_width=True, key="boursedirect_indices_finalize"):
+                boursedirect_indices_job.set_buffer_text(boursedirect_indices_edited_buffer)
+                result = boursedirect_indices_job.finalize_buffer()
+                if result.get("status") == "success":
+                    st.success(f"{len(result.get('items', []))} items générés")
+                    st.session_state.boursedirect_indices_json_ready = True
+                    st.session_state.boursedirect_indices_show_json_state = False
+                    boursedirect_indices_status = boursedirect_indices_job.get_status()
+                else:
+                    st.error(result.get("message", "Erreur JSON"))
+        with col_clear_buf:
+            if st.button("🧹 Clear buffer", use_container_width=True, key="boursedirect_indices_clear_buffer"):
+                boursedirect_indices_job.set_buffer_text("")
+                st.rerun()
+
+    if (
+        st.session_state.boursedirect_indices_json_ready
+        and boursedirect_indices_status.get("json_preview_text")
+        and not st.session_state.boursedirect_indices_show_json_state
+    ):
+        if st.button("🧾 Afficher preview JSON", use_container_width=True, key="boursedirect_indices_show_json_btn"):
+            st.session_state.boursedirect_indices_show_json_state = True
+            st.rerun()
+
+    if boursedirect_indices_status.get("json_preview_text") and st.session_state.boursedirect_indices_show_json_state:
+        st.markdown("**Preview JSON**")
+        boursedirect_indices_edited_json = st.text_area(
+            label="",
+            value=boursedirect_indices_status.get("json_preview_text", ""),
+            height=350,
+            key="boursedirect_indices_json_editor",
+        )
+        col_send, col_clear_json = st.columns(2)
+        with col_send:
+            if st.button("✅ Envoyer en DB", use_container_width=True, key="boursedirect_indices_send_db"):
+                result = boursedirect_indices_job.send_to_db()
+                if result.get("status") == "success":
+                    st.success(f"{result.get('inserted', 0)} items insérés en base")
+                else:
+                    st.error(result.get("message", "Erreur DB"))
+        with col_clear_json:
+            if st.button("🧹 Clear JSON", use_container_width=True, key="boursedirect_indices_clear_json"):
+                boursedirect_indices_job.json_preview_text = ""
+                boursedirect_indices_job.json_items = []
+                st.session_state.boursedirect_indices_show_json_state = False
+                st.session_state.boursedirect_indices_json_ready = False
                 st.rerun()
 
 with st.expander("▸ Job — CNBC", expanded=False):
