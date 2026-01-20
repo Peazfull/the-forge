@@ -13,8 +13,10 @@ status = job.get_status()
 
 if "news_rss_candidates" not in st.session_state:
     st.session_state.news_rss_candidates = []
-if "news_show_json" not in st.session_state:
-    st.session_state.news_show_json = False
+if "news_show_json" in st.session_state:
+    st.session_state.pop("news_show_json", None)
+if "news_show_json_state" not in st.session_state:
+    st.session_state.news_show_json_state = False
 if "news_json_ready" not in st.session_state:
     st.session_state.news_json_ready = False
 
@@ -277,7 +279,7 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
     if clear_job:
         job.clear()
         st.session_state.news_rss_candidates = []
-        st.session_state.news_show_json = False
+        st.session_state.news_show_json_state = False
         st.session_state.news_json_ready = False
         st.rerun()
 
@@ -334,7 +336,7 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
                 if result.get("status") == "success":
                     st.success(f"{len(result.get('items', []))} items générés")
                     st.session_state.news_json_ready = True
-                    st.session_state.news_show_json = False
+                    st.session_state.news_show_json_state = False
                     status = job.get_status()
                 else:
                     st.error(result.get("message", "Erreur JSON"))
@@ -343,12 +345,12 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
                 job.set_buffer_text("")
                 st.rerun()
 
-    if st.session_state.news_json_ready and status.get("json_preview_text") and not st.session_state.news_show_json:
-        if st.button("🧾 Afficher preview JSON", use_container_width=True, key="news_show_json"):
-            st.session_state.news_show_json = True
+    if st.session_state.news_json_ready and status.get("json_preview_text") and not st.session_state.news_show_json_state:
+        if st.button("🧾 Afficher preview JSON", use_container_width=True, key="news_show_json_btn"):
+            st.session_state.news_show_json_state = True
             st.rerun()
 
-    if status.get("json_preview_text") and st.session_state.news_show_json:
+    if status.get("json_preview_text") and st.session_state.news_show_json_state:
         st.markdown("**Preview JSON**")
         edited_json = st.text_area(
             label="",
@@ -368,7 +370,7 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
             if st.button("🧹 Clear JSON", use_container_width=True, key="news_clear_json"):
                 job.json_preview_text = ""
                 job.json_items = []
-                st.session_state.news_show_json = False
+                st.session_state.news_show_json_state = False
                 st.session_state.news_json_ready = False
                 st.rerun()
 
