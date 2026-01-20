@@ -1,3 +1,4 @@
+import time
 import streamlit as st
 from services.news_brewery.bfm_bourse_job import JobConfig, get_bfm_job
 from services.news_brewery.rss_utils import fetch_rss_items
@@ -46,7 +47,7 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
             key="news_hours_window"
         )
 
-    with st.expander("Limites · Pipeline IA · Safety", expanded=False):
+    with st.expander("Limites · Safety", expanded=False):
         st.markdown("**Limites**")
         col_max_total, col_max_per = st.columns(2)
         with col_max_total:
@@ -131,62 +132,9 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
 
         shuffle_urls = st.checkbox("Shuffle URLs", value=True, key="news_shuffle")
 
-        st.markdown("**Pipeline IA**")
-        col_clean, col_fallback = st.columns(2)
-        with col_clean:
-            st.selectbox(
-                "Agent clean DOM",
-                options=["clean_dom_v1"],
-                index=0,
-                key="news_clean_dom"
-            )
-        with col_fallback:
-            st.selectbox(
-                "Agent fallback",
-                options=["clean_dom_v2"],
-                index=0,
-                key="news_fallback"
-            )
-
-        output_language = st.selectbox(
-            "Output language",
-            options=["FR"],
-            index=0,
-            key="news_lang"
-        )
         dry_run = st.checkbox("DRY RUN", value=True, key="news_dry_run")
 
-        st.markdown("**Source URLs**")
-        rss_feed_url = st.text_input(
-            "RSS feed",
-            value="https://www.tradingsat.com/rssfeed.php",
-            key="news_rss_feed"
-        )
-        use_rss = st.checkbox("Mode RSS (prod)", value=True, key="news_use_rss")
-        use_firecrawl = st.checkbox("Scraper articles via Firecrawl", value=True, key="news_use_firecrawl")
-        selected_urls = []
-        if use_rss:
-            col_clear = st.columns(1)[0]
-            with col_clear:
-                if st.button("🧹 Clear liste", use_container_width=True, key="news_rss_clear"):
-                    st.session_state.news_rss_candidates = []
-                    st.rerun()
-
-            if st.session_state.news_rss_candidates:
-                st.caption("Sélectionne les articles à traiter :")
-                for idx, item in enumerate(st.session_state.news_rss_candidates):
-                    label = f"{item.get('title','')}".strip() or item.get("url", "")
-                    checked = st.checkbox(
-                        label,
-                        value=True,
-                        key=f"news_rss_pick_{idx}"
-                    )
-                    if checked:
-                        selected_urls.append(item)
-                st.caption(f"{len(selected_urls)} article(s) sélectionné(s)")
-            else:
-                st.caption("Clique sur Lancer pour charger la liste RSS.")
-
+        # Source URLs moved outside the settings expander
         st.markdown("**Safety**")
         col_err, col_timeout = st.columns(2)
         with col_err:
@@ -218,6 +166,37 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
             value=True,
             key="news_remove_buffer"
         )
+    st.markdown("**Source URLs**")
+    rss_feed_url = st.text_input(
+        "RSS feed",
+        value="https://www.tradingsat.com/rssfeed.php",
+        key="news_rss_feed"
+    )
+    use_rss = st.checkbox("Mode RSS (prod)", value=True, key="news_use_rss")
+    use_firecrawl = st.checkbox("Scraper articles via Firecrawl", value=True, key="news_use_firecrawl")
+    selected_urls = []
+    if use_rss:
+        col_clear = st.columns(1)[0]
+        with col_clear:
+            if st.button("🧹 Clear liste", use_container_width=True, key="news_rss_clear"):
+                st.session_state.news_rss_candidates = []
+                st.rerun()
+
+        if st.session_state.news_rss_candidates:
+            st.caption("Sélectionne les articles à traiter :")
+            for idx, item in enumerate(st.session_state.news_rss_candidates):
+                label = f"{item.get('title','')}".strip() or item.get("url", "")
+                checked = st.checkbox(
+                    label,
+                    value=True,
+                    key=f"news_rss_pick_{idx}"
+                )
+                if checked:
+                    selected_urls.append(item)
+            st.caption(f"{len(selected_urls)} article(s) sélectionné(s)")
+        else:
+            st.caption("Clique sur Lancer pour charger la liste RSS.")
+
     headless = st.checkbox(
         "Headless (prod)",
         value=True,
@@ -255,9 +234,6 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
                     wait_min_action=float(wait_min_action),
                     wait_max_action=float(wait_max_action),
                     shuffle_urls=bool(shuffle_urls),
-                    clean_dom_agent="clean_dom_v1",
-                    fallback_agent="clean_dom_v2",
-                    output_language=output_language,
                     dry_run=bool(dry_run),
                     max_consecutive_errors=int(max_consecutive_errors),
                     global_timeout_minutes=int(global_timeout_minutes),
@@ -282,13 +258,30 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
     status = job.get_status()
     st.divider()
     st.caption(f"État : {status.get('state')}")
-    st.caption(f"Traités : {status.get('processed', 0)} · Skipped : {status.get('skipped', 0)}")
+    total = int(status.get("total") or 0)
+    processed = int(status.get("processed", 0))
+    skipped = int(status.get("skipped", 0))
+    started_at = status.get("started_at")
+    last_log = status.get("last_log") or ""
+    if total > 0:
+        progress_value = min(max((processed + skipped) / total, 0.0), 1.0)
+        st.progress(progress_value)
+        st.caption(f"Progression : {processed + skipped}/{total}")
+    st.caption(f"Traités : {processed} · Skipped : {skipped}")
+    if started_at and (processed + skipped) > 0:
+        elapsed = max(time.time() - float(started_at), 1.0)
+        avg_per_item = elapsed / max(processed + skipped, 1)
+        remaining = max(total - (processed + skipped), 0)
+        eta_seconds = int(remaining * avg_per_item)
+        st.caption(f"ETA estimée : ~{eta_seconds // 60}m {eta_seconds % 60}s")
+    if last_log:
+        st.caption(f"Dernier statut : {last_log}")
     if status.get("buffer_path"):
         st.caption(f"Buffer : {status.get('buffer_path')}")
     if status.get("state") in ("running", "paused"):
-        st.info("Job en cours — clique pour rafraîchir l’état.")
-        if st.button("🔄 Rafraîchir statut", key="news_refresh"):
-            st.rerun()
+        if hasattr(st, "autorefresh"):
+            st.autorefresh(interval=2000, key="news_autorefresh")
+        st.info("Job en cours — rafraîchissement automatique activé.")
 
     if status.get("status_log"):
         st.markdown("**Statut :**")

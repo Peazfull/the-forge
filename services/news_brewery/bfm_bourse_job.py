@@ -43,9 +43,6 @@ class JobConfig:
     wait_min_action: float
     wait_max_action: float
     shuffle_urls: bool
-    clean_dom_agent: str
-    fallback_agent: str
-    output_language: str
     dry_run: bool
     max_consecutive_errors: int
     global_timeout_minutes: int
@@ -65,6 +62,10 @@ class BfmBourseJob:
         self.errors: List[str] = []
         self.processed = 0
         self.skipped = 0
+        self.total = 0
+        self.current_index = 0
+        self.started_at: Optional[float] = None
+        self.last_log: str = ""
         self.consecutive_errors = 0
         self.buffer_path: Optional[str] = None
         self.buffer_text: str = ""
@@ -86,6 +87,10 @@ class BfmBourseJob:
         self.status_log = []
         self.processed = 0
         self.skipped = 0
+        self.total = 0
+        self.current_index = 0
+        self.started_at = time.time()
+        self.last_log = ""
         self.consecutive_errors = 0
         self.state = "running"
         self._thread = threading.Thread(target=self._run, daemon=True)
@@ -95,26 +100,30 @@ class BfmBourseJob:
         if self.state == "running":
             self.state = "paused"
             self._pause_event.clear()
-            self.status_log.append("⏸️ Job en pause")
+            self._log("⏸️ Job en pause")
 
     def resume(self) -> None:
         if self.state == "paused":
             self.state = "running"
             self._pause_event.set()
-            self.status_log.append("▶️ Job repris")
+            self._log("▶️ Job repris")
 
     def stop(self) -> None:
         self._stop_event.set()
         self._pause_event.set()
         if self.state in ("running", "paused"):
             self.state = "stopped"
-            self.status_log.append("⏹️ Job stoppé")
+            self._log("⏹️ Job stoppé")
 
     def get_status(self) -> Dict[str, object]:
         return {
             "state": self.state,
             "processed": self.processed,
             "skipped": self.skipped,
+            "total": self.total,
+            "current_index": self.current_index,
+            "started_at": self.started_at,
+            "last_log": self.last_log,
             "errors": self.errors,
             "status_log": self.status_log,
             "buffer_path": self.buffer_path,
@@ -172,6 +181,10 @@ class BfmBourseJob:
     def _sleep_random(self, min_value: float, max_value: float) -> None:
         wait_s = random.uniform(min_value, max_value)
         time.sleep(wait_s)
+
+    def _log(self, message: str) -> None:
+        self.last_log = message
+        self.status_log.append(message)
 
     def _run_text_prompt(self, prompt: str, content: str, temperature: float = 0.2) -> str:
         response = client.chat.completions.create(
@@ -378,18 +391,19 @@ class BfmBourseJob:
         start_time = time.time()
         buffer_path = f"/tmp/bfm_buffer_{datetime.now().strftime('%Y%m%d')}.txt"
         self.buffer_path = buffer_path
-        self.status_log.append("🚀 Job démarré")
+        self._log("🚀 Job démarré")
 
         if config.use_rss:
             try:
-                self.status_log.append("📰 Mode RSS activé")
+                self._log("📰 Mode RSS activé")
                 if config.urls_override:
                     articles = config.urls_override
                 else:
                     articles = self._collect_article_urls_rss(config)
                 if config.shuffle_urls:
                     random.shuffle(articles)
-                self.status_log.append(f"🔎 {len(articles)} URL(s) détectée(s)")
+                self.total = len(articles)
+                self._log(f"🔎 {len(articles)} URL(s) détectée(s)")
 
                 for idx, article in enumerate(articles, start=1):
                     if self._stop_event.is_set():
@@ -397,6 +411,7 @@ class BfmBourseJob:
                     self._wait_if_paused()
                     if self._stop_event.is_set():
                         break
+                    self.current_index = idx
 
                     if time.time() - start_time > config.global_timeout_minutes * 60:
                         self.state = "failed"
@@ -404,7 +419,7 @@ class BfmBourseJob:
                         break
 
                     url = article.get("url", "")
-                    self.status_log.append(f"➡️ Article {idx}/{len(articles)}")
+                    self._log(f"➡️ Article {idx}/{len(articles)}")
 
                     if not config.use_firecrawl:
                         self.errors.append("Firecrawl désactivé, impossible de récupérer l'article")
@@ -445,22 +460,22 @@ class BfmBourseJob:
 
                     self.processed += 1
                     self.consecutive_errors = 0
-                    self.status_log.append(f"✅ Article {idx} terminé")
+                    self._log(f"✅ Article {idx} terminé")
 
             except Exception as exc:
                 self.state = "failed"
                 self.errors.append(f"Erreur job: {exc}")
-                self.status_log.append(f"❌ Job failed: {exc}")
+                self._log(f"❌ Job failed: {exc}")
                 return
         else:
             try:
                 with sync_playwright() as p:
-                    self.status_log.append("🧭 Lancement navigateur")
+                    self._log("🧭 Lancement navigateur")
                     try:
                         browser = p.chromium.launch(headless=config.headless)
                     except Exception as exc:
                         if "Executable doesn't exist" in str(exc):
-                            self.status_log.append("⬇️ Installation Playwright (chromium)…")
+                            self._log("⬇️ Installation Playwright (chromium)…")
                             subprocess.run(
                                 [sys.executable, "-m", "playwright", "install", "chromium"],
                                 check=True
@@ -472,7 +487,7 @@ class BfmBourseJob:
                     page = context.new_page()
                     page.set_default_timeout(60000)
 
-                    self.status_log.append("🌐 Ouverture page actualités")
+                    self._log("🌐 Ouverture page actualités")
                     page.goto(config.entry_url, wait_until="domcontentloaded", timeout=60000)
                     self._sleep_random(config.wait_min_action, config.wait_max_action)
 
@@ -480,7 +495,8 @@ class BfmBourseJob:
                     if config.shuffle_urls:
                         random.shuffle(articles)
 
-                    self.status_log.append(f"🔎 {len(articles)} URL(s) détectée(s)")
+                    self.total = len(articles)
+                    self._log(f"🔎 {len(articles)} URL(s) détectée(s)")
 
                     for idx, article in enumerate(articles, start=1):
                         if self._stop_event.is_set():
@@ -488,6 +504,7 @@ class BfmBourseJob:
                         self._wait_if_paused()
                         if self._stop_event.is_set():
                             break
+                        self.current_index = idx
 
                         if time.time() - start_time > config.global_timeout_minutes * 60:
                             self.state = "failed"
@@ -495,7 +512,7 @@ class BfmBourseJob:
                             break
 
                         url = article.get("url", "")
-                        self.status_log.append(f"➡️ Article {idx}/{len(articles)}")
+                        self._log(f"➡️ Article {idx}/{len(articles)}")
                         try:
                             page.goto(url, wait_until="domcontentloaded", timeout=60000)
                         except Exception as exc:
@@ -512,7 +529,7 @@ class BfmBourseJob:
                         if self._is_captcha_or_wall(html):
                             msg = f"Captcha/wall détecté: {url}"
                             self.errors.append(msg)
-                            self.status_log.append(f"⚠️ {msg}")
+                            self._log(f"⚠️ {msg}")
                             if config.pause_on_captcha:
                                 self.state = "paused"
                                 self._pause_event.clear()
@@ -560,14 +577,14 @@ class BfmBourseJob:
 
                         self.processed += 1
                         self.consecutive_errors = 0
-                        self.status_log.append(f"✅ Article {idx} terminé")
+                        self._log(f"✅ Article {idx} terminé")
 
                     context.close()
                     browser.close()
             except Exception as exc:
                 self.state = "failed"
                 self.errors.append(f"Erreur job: {exc}")
-                self.status_log.append(f"❌ Job failed: {exc}")
+                self._log(f"❌ Job failed: {exc}")
                 return
 
         if self.state in ("failed", "stopped"):
