@@ -19,6 +19,7 @@ from services.news_brewery.boursier_france_job import (
     JobConfig as BoursierFranceJobConfig,
     get_boursier_france_job,
 )
+from services.news_brewery.mega_job import MegaJobConfig, get_mega_job
 from services.news_brewery.rss_utils import (
     fetch_beincrypto_dom_items,
     fetch_boursedirect_dom_items,
@@ -39,6 +40,12 @@ if "mega_run_candidates" not in st.session_state:
     st.session_state.mega_run_candidates = []
 if "mega_run_sources" not in st.session_state:
     st.session_state.mega_run_sources = []
+if "mega_run_launched_sources" not in st.session_state:
+    st.session_state.mega_run_launched_sources = []
+if "mega_job_show_json_state" not in st.session_state:
+    st.session_state.mega_job_show_json_state = False
+if "mega_job_json_ready" not in st.session_state:
+    st.session_state.mega_job_json_ready = False
 
 def _clear_job_state(prefix: str) -> None:
     for key in list(st.session_state.keys()):
@@ -437,6 +444,19 @@ with st.expander("▸ Mega Job — Run all", expanded=False):
                         "title": item.get("title", ""),
                         "label_dt": item.get("label_dt", ""),
                     })
+                st.session_state.mega_run_launched_sources = list(grouped.keys())
+                mega_job = get_mega_job()
+                mega_job.set_config(MegaJobConfig(
+                    source_name="Mega Job",
+                    source_link="",
+                    remove_buffer_after_success=False,
+                    dry_run=False,
+                ))
+                mega_job.set_buffer_text("")
+                mega_job.json_preview_text = ""
+                mega_job.json_items = []
+                st.session_state.mega_job_show_json_state = False
+                st.session_state.mega_job_json_ready = False
 
                 if "bfm" in grouped:
                     bfm_mode = _mode_from_label(_get_state("news_mode", "Dernières X heures"))
@@ -650,13 +670,88 @@ with st.expander("▸ Mega Job — Run all", expanded=False):
         if last_log:
             st.caption(f"{label} — {state} — {last_log}")
 
-    _render_mega_job_previews(get_boursier_economie_job(), "boursier_economie", "Boursier Économie")
-    _render_mega_job_previews(get_boursier_france_job(), "boursier_france", "Boursier France")
-    _render_mega_job_previews(get_boursier_macroeconomie_job(), "boursier_macroeconomie", "Boursier Macroeconomie")
-    _render_mega_job_previews(get_boursedirect_job(), "boursedirect", "Bourse Direct")
-    _render_mega_job_previews(get_boursedirect_indices_job(), "boursedirect_indices", "Bourse Direct Indices")
-    _render_mega_job_previews(get_beincrypto_job(), "beincrypto", "BeInCrypto")
-    _render_mega_job_previews(get_bfm_job(), "bfm_bourse", "BFM Bourse")
+    if st.session_state.mega_run_launched_sources:
+        st.divider()
+        st.markdown("**Mega Job — Preview concaténée (buffer)**")
+        source_to_job = {
+            "bfm": ("BFM Bourse", get_bfm_job()),
+            "beincrypto": ("BeInCrypto", get_beincrypto_job()),
+            "boursedirect": ("Bourse Direct", get_boursedirect_job()),
+            "boursedirect_indices": ("Bourse Direct Indices", get_boursedirect_indices_job()),
+            "boursier_economie": ("Boursier Économie", get_boursier_economie_job()),
+            "boursier_macroeconomie": ("Boursier Macroeconomie", get_boursier_macroeconomie_job()),
+            "boursier_france": ("Boursier France", get_boursier_france_job()),
+        }
+        if st.button("🧩 Construire buffer Mega", use_container_width=True, key="mega_build_buffer"):
+            chunks = []
+            for key in st.session_state.mega_run_launched_sources:
+                label, job = source_to_job.get(key, ("", None))
+                if not job:
+                    continue
+                buffer_text = job.get_status().get("buffer_text", "")
+                if buffer_text.strip():
+                    chunks.append(f"=== SOURCE: {label} ===\n{buffer_text.strip()}")
+            get_mega_job().set_buffer_text("\n\n".join(chunks))
+            st.session_state.mega_job_show_json_state = False
+            st.session_state.mega_job_json_ready = False
+            st.rerun()
+
+        mega_job = get_mega_job()
+        if mega_job.buffer_text.strip():
+            mega_buffer = st.text_area(
+                label="",
+                value=mega_job.buffer_text,
+                height=320,
+                key="mega_job_buffer_editor",
+            )
+            col_json, col_clear_buf = st.columns(2)
+            with col_json:
+                if st.button("✅ Dédoublonner + JSON", use_container_width=True, key="mega_job_finalize"):
+                    mega_job.set_buffer_text(mega_buffer)
+                    result = mega_job.finalize_buffer()
+                    if result.get("status") == "success":
+                        st.success(f"{len(result.get('items', []))} items générés")
+                        st.session_state.mega_job_json_ready = True
+                        st.session_state.mega_job_show_json_state = False
+                    else:
+                        st.error(result.get("message", "Erreur JSON"))
+            with col_clear_buf:
+                if st.button("🧹 Clear buffer", use_container_width=True, key="mega_job_clear_buffer"):
+                    mega_job.set_buffer_text("")
+                    st.rerun()
+
+        if (
+            st.session_state.mega_job_json_ready
+            and mega_job.json_preview_text
+            and not st.session_state.mega_job_show_json_state
+        ):
+            if st.button("🧾 Afficher preview JSON", use_container_width=True, key="mega_job_show_json_btn"):
+                st.session_state.mega_job_show_json_state = True
+                st.rerun()
+
+        if mega_job.json_preview_text and st.session_state.mega_job_show_json_state:
+            st.markdown("**Mega Job — Preview JSON**")
+            mega_json = st.text_area(
+                label="",
+                value=mega_job.json_preview_text,
+                height=350,
+                key="mega_job_json_editor",
+            )
+            col_send, col_clear_json = st.columns(2)
+            with col_send:
+                if st.button("✅ Envoyer en DB", use_container_width=True, key="mega_job_send_db"):
+                    result = mega_job.send_to_db()
+                    if result.get("status") == "success":
+                        st.success(f"{result.get('inserted', 0)} items insérés en base")
+                    else:
+                        st.error(result.get("message", "Erreur DB"))
+            with col_clear_json:
+                if st.button("🧹 Clear JSON", use_container_width=True, key="mega_job_clear_json"):
+                    mega_job.json_preview_text = ""
+                    mega_job.json_items = []
+                    st.session_state.mega_job_show_json_state = False
+                    st.session_state.mega_job_json_ready = False
+                    st.rerun()
 
     if any(status.get("state") in ("running", "paused") for _, status in job_statuses):
         st.info("Mega job en cours — rafraîchissement automatique activé.")
