@@ -631,6 +631,91 @@ def fetch_boursier_france_dom_items(
     return items
 
 
+def fetch_boursier_etats_unis_dom_items(
+    page_url: str,
+    max_items: int,
+    mode: str,
+    hours_window: int,
+    use_firecrawl_fallback: bool = False,
+) -> List[Dict[str, str]]:
+    html_text = _fetch_html_text(page_url)
+    if not html_text:
+        html_text = ""
+
+    items: List[Dict[str, str]] = []
+    seen = set()
+
+    pattern = re.compile(
+        r'<div class="item[^"]*">.*?'
+        r'<time[^>]+class="date"[^>]+datetime="([^"]+)".*?</time>.*?'
+        r'<a href="([^"]+)".*?>(.*?)</a>',
+        re.S,
+    )
+
+    for datetime_attr, href, title_html in pattern.findall(html_text):
+        url = href.strip()
+        if not url:
+            continue
+        if url.startswith("/"):
+            url = f"https://www.boursier.com{url}"
+        if url in seen:
+            continue
+        seen.add(url)
+
+        title = re.sub(r"<.*?>", "", title_html)
+        title = unescape(title).strip()
+
+        label_dt = None
+        if datetime_attr:
+            try:
+                label_dt = datetime.fromisoformat(datetime_attr.strip())
+            except Exception:
+                label_dt = None
+
+        if not _within_window(label_dt, mode, hours_window):
+            continue
+
+        items.append({
+            "url": url,
+            "title": title,
+            "label_dt": label_dt.isoformat() if label_dt else "",
+        })
+        if len(items) >= max_items:
+            break
+
+    if items:
+        return items
+
+    if use_firecrawl_fallback and fetch_url_text:
+        try:
+            markdown = fetch_url_text(page_url)
+        except Exception:
+            markdown = ""
+        if markdown:
+            link_pattern = re.compile(r"\[([^\]]+)\]\((https?://www\.boursier\.com/[^)]+)\)")
+            for title_text, href in link_pattern.findall(markdown):
+                url = href.strip()
+                if "/actualites/etats-unis/" not in url and "/actions/actualites/" not in url and "/indices/actualites/" not in url:
+                    continue
+                if url in seen:
+                    continue
+                seen.add(url)
+                title = title_text.strip()
+                if not title:
+                    continue
+                items.append({
+                    "url": url,
+                    "title": title,
+                    "label_dt": "",
+                })
+                if len(items) >= max_items:
+                    break
+            if items:
+                return items
+
+    return items
+
+
 def merge_article_items(
     primary: List[Dict[str, str]],
     secondary: List[Dict[str, str]],
