@@ -13,6 +13,10 @@ status = job.get_status()
 
 if "news_rss_candidates" not in st.session_state:
     st.session_state.news_rss_candidates = []
+if "news_show_json" not in st.session_state:
+    st.session_state.news_show_json = False
+if "news_json_ready" not in st.session_state:
+    st.session_state.news_json_ready = False
 
 # =========================
 # JOB — BFM BOURSE
@@ -43,7 +47,7 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
             key="news_hours_window"
         )
 
-    with st.expander("Limites · Safety", expanded=False):
+    with st.expander("Settings", expanded=False):
         st.markdown("**Limites**")
         col_max_total, col_max_per = st.columns(2)
         with col_max_total:
@@ -162,14 +166,52 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
             value=True,
             key="news_remove_buffer"
         )
-    st.markdown("**Source URLs**")
-    rss_feed_url = st.text_input(
-        "RSS feed",
-        value="https://www.tradingsat.com/rssfeed.php",
-        key="news_rss_feed"
-    )
-    use_rss = st.checkbox("Mode RSS (prod)", value=True, key="news_use_rss")
-    use_firecrawl = st.checkbox("Scraper articles via Firecrawl", value=True, key="news_use_firecrawl")
+        st.markdown("**Source URLs**")
+        rss_feed_url = st.text_input(
+            "RSS feed",
+            value="https://www.tradingsat.com/rssfeed.php",
+            key="news_rss_feed"
+        )
+        use_rss = st.checkbox("Mode RSS (prod)", value=True, key="news_use_rss")
+        use_firecrawl = st.checkbox("Scraper articles via Firecrawl", value=True, key="news_use_firecrawl")
+        headless = st.checkbox(
+            "Headless (prod)",
+            value=True,
+            key="news_headless"
+        )
+
+        if st.session_state.news_rss_candidates:
+            if st.button("🧭 Scrapper les articles", use_container_width=True, key="news_scrape_articles"):
+                if not selected_urls:
+                    st.error("Sélectionne au moins un article.")
+                else:
+                    config = JobConfig(
+                        entry_url="https://www.tradingsat.com/actualites/",
+                        mode="today" if mode == "Aujourd’hui" else "last_hours",
+                        hours_window=int(hours_window),
+                        max_articles_total=int(max_articles_total),
+                        max_articles_per_bulletin=int(max_articles_per_bulletin),
+                        scroll_min_px=int(scroll_min_px),
+                        scroll_max_px=int(scroll_max_px),
+                        min_page_time=int(min_page_time),
+                        max_page_time=int(max_page_time),
+                        wait_min_action=float(wait_min_action),
+                        wait_max_action=float(wait_max_action),
+                        shuffle_urls=bool(shuffle_urls),
+                        dry_run=bool(dry_run),
+                        max_consecutive_errors=int(max_consecutive_errors),
+                        global_timeout_minutes=int(global_timeout_minutes),
+                        pause_on_captcha=bool(pause_on_captcha),
+                        remove_buffer_after_success=bool(remove_buffer),
+                        headless=bool(headless),
+                        use_rss=bool(use_rss),
+                        rss_feed_url=rss_feed_url,
+                        use_firecrawl=bool(use_firecrawl),
+                        urls_override=selected_urls,
+                    )
+                    job.start(config)
+                    st.success("Scraping lancé.")
+
     selected_urls = []
     if use_rss:
         col_clear = st.columns(1)[0]
@@ -193,12 +235,6 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
         else:
             st.caption("Clique sur Lancer pour charger la liste RSS.")
 
-    headless = st.checkbox(
-        "Headless (prod)",
-        value=True,
-        key="news_headless"
-    )
-
     if launch:
         if use_rss:
             st.session_state.news_rss_candidates = fetch_rss_items(
@@ -212,41 +248,11 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
         else:
             st.warning("Mode RSS désactivé : active-le pour charger les URLs.")
 
-    if st.session_state.news_rss_candidates:
-        if st.button("🧭 Scrapper les articles", use_container_width=True, key="news_scrape_articles"):
-            if not selected_urls:
-                st.error("Sélectionne au moins un article.")
-            else:
-                config = JobConfig(
-                    entry_url="https://www.tradingsat.com/actualites/",
-                    mode="today" if mode == "Aujourd’hui" else "last_hours",
-                    hours_window=int(hours_window),
-                    max_articles_total=int(max_articles_total),
-                    max_articles_per_bulletin=int(max_articles_per_bulletin),
-                    scroll_min_px=int(scroll_min_px),
-                    scroll_max_px=int(scroll_max_px),
-                    min_page_time=int(min_page_time),
-                    max_page_time=int(max_page_time),
-                    wait_min_action=float(wait_min_action),
-                    wait_max_action=float(wait_max_action),
-                    shuffle_urls=bool(shuffle_urls),
-                    dry_run=bool(dry_run),
-                    max_consecutive_errors=int(max_consecutive_errors),
-                    global_timeout_minutes=int(global_timeout_minutes),
-                    pause_on_captcha=bool(pause_on_captcha),
-                    remove_buffer_after_success=bool(remove_buffer),
-                    headless=bool(headless),
-                    use_rss=bool(use_rss),
-                    rss_feed_url=rss_feed_url,
-                    use_firecrawl=bool(use_firecrawl),
-                    urls_override=selected_urls,
-                )
-                job.start(config)
-                st.success("Scraping lancé.")
-
     if clear_job:
         job.clear()
         st.session_state.news_rss_candidates = []
+        st.session_state.news_show_json = False
+        st.session_state.news_json_ready = False
         st.rerun()
 
     status = job.get_status()
@@ -273,17 +279,16 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
     if status.get("buffer_path"):
         st.caption(f"Buffer : {status.get('buffer_path')}")
     if status.get("state") in ("running", "paused"):
-        if hasattr(st, "autorefresh"):
-            st.autorefresh(interval=2000, key="news_autorefresh")
         st.info("Job en cours — rafraîchissement automatique activé.")
+        time.sleep(2)
+        st.rerun()
 
-    if status.get("status_log"):
-        st.markdown("**Statut :**")
-        for line in status.get("status_log")[-20:]:
-            st.write(f"⏳ {line}")
+    # Statut compact (une seule ligne)
+    if last_log:
+        st.caption(f"Statut : {last_log}")
     if status.get("errors"):
         st.markdown("**Erreurs :**")
-        for err in status.get("errors")[-5:]:
+        for err in status.get("errors")[-3:]:
             st.write(f"⚠️ {err}")
 
     if status.get("buffer_text"):
@@ -302,6 +307,9 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
                 result = job.finalize_buffer()
                 if result.get("status") == "success":
                     st.success(f"{len(result.get('items', []))} items générés")
+                    st.session_state.news_json_ready = True
+                    st.session_state.news_show_json = False
+                    status = job.get_status()
                 else:
                     st.error(result.get("message", "Erreur JSON"))
         with col_clear_buf:
@@ -309,7 +317,12 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
                 job.set_buffer_text("")
                 st.rerun()
 
-    if status.get("json_preview_text"):
+    if st.session_state.news_json_ready and status.get("json_preview_text") and not st.session_state.news_show_json:
+        if st.button("🧾 Afficher preview JSON", use_container_width=True, key="news_show_json"):
+            st.session_state.news_show_json = True
+            st.rerun()
+
+    if status.get("json_preview_text") and st.session_state.news_show_json:
         st.markdown("**Preview JSON**")
         edited_json = st.text_area(
             label="",
@@ -329,6 +342,8 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
             if st.button("🧹 Clear JSON", use_container_width=True, key="news_clear_json"):
                 job.json_preview_text = ""
                 job.json_items = []
+                st.session_state.news_show_json = False
+                st.session_state.news_json_ready = False
                 st.rerun()
 
     st.divider()
