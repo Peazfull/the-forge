@@ -209,11 +209,10 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
             st.caption("Sélectionne les articles à traiter :")
             for idx, item in enumerate(st.session_state.news_rss_candidates):
                 label = f"{item.get('title','')}".strip() or item.get("url", "")
-                checked = st.checkbox(
-                    label,
-                    value=True,
-                    key=f"news_rss_pick_{idx}"
-                )
+                key = f"news_rss_pick_{idx}"
+                if key not in st.session_state:
+                    st.session_state[key] = True
+                checked = st.checkbox(label, key=key)
                 if checked:
                     selected_urls.append(item)
             st.caption(f"{len(selected_urls)} article(s) sélectionné(s)")
