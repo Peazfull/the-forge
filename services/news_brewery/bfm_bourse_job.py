@@ -419,6 +419,14 @@ class BfmBourseJob:
         start_time = time.time()
         buffer_path = f"/tmp/bfm_buffer_{datetime.now().strftime('%Y%m%d')}.txt"
         self.buffer_path = buffer_path
+        self.buffer_text = ""
+        self.json_preview_text = ""
+        self.json_items = []
+        try:
+            with open(buffer_path, "w", encoding="utf-8") as f:
+                f.write("")
+        except Exception:
+            pass
         self._log("🚀 Job démarré")
 
         if config.use_rss:

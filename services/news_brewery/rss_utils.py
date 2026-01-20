@@ -106,6 +106,8 @@ def _within_window(label_dt: datetime | None, mode: str, hours_window: int) -> b
     if label_dt is None:
         return True
     now = datetime.now()
+    if label_dt - now > timedelta(hours=1):
+        label_dt = label_dt - timedelta(days=1)
     if mode == "today":
         return label_dt.date() == now.date()
     if mode == "last_hours":
