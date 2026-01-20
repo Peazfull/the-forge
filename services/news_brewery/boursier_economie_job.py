@@ -302,6 +302,7 @@ class BoursierEconomieJob:
                         max_items=config.max_articles_total,
                         mode=config.mode,
                         hours_window=config.hours_window,
+                        use_firecrawl_fallback=config.use_firecrawl,
                     )
                     if articles_dom:
                         self._log(f"🧩 DOM: {len(articles_dom)} URL(s) détectée(s)")

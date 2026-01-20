@@ -1607,6 +1607,7 @@ with st.expander("▸ Job — Boursier Economie", expanded=False):
                     max_items=int(boursier_economie_max_articles_total),
                     mode="today" if boursier_economie_mode == "Aujourd’hui" else "last_hours",
                     hours_window=int(boursier_economie_hours_window),
+                    use_firecrawl_fallback=bool(boursier_economie_use_firecrawl),
                 )
                 st.session_state.boursier_economie_rss_candidates = merge_article_items(
                     dom_items,

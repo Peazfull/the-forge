@@ -10,6 +10,10 @@ except Exception:
     brotli = None
 
 import re
+try:
+    from services.hand_brewery.firecrawl_client import fetch_url_text
+except Exception:
+    fetch_url_text = None
 
 import feedparser
 
@@ -377,10 +381,11 @@ def fetch_boursier_dom_items(
     max_items: int,
     mode: str,
     hours_window: int,
+    use_firecrawl_fallback: bool = False,
 ) -> List[Dict[str, str]]:
     html_text = _fetch_html_text(page_url)
     if not html_text:
-        return []
+        html_text = ""
 
     items: List[Dict[str, str]] = []
     seen = set()
@@ -422,6 +427,36 @@ def fetch_boursier_dom_items(
         })
         if len(items) >= max_items:
             break
+
+    if items:
+        return items
+
+    if use_firecrawl_fallback and fetch_url_text:
+        try:
+            markdown = fetch_url_text(page_url)
+        except Exception:
+            markdown = ""
+        if markdown:
+            link_pattern = re.compile(r"\[([^\]]+)\]\((https?://www\.boursier\.com/[^)]+)\)")
+            for title_text, href in link_pattern.findall(markdown):
+                url = href.strip()
+                if "/actualites/economie/" not in url and "/actions/actualites/economie/" not in url:
+                    continue
+                if url in seen:
+                    continue
+                seen.add(url)
+                title = title_text.strip()
+                if not title:
+                    continue
+                items.append({
+                    "url": url,
+                    "title": title,
+                    "label_dt": "",
+                })
+                if len(items) >= max_items:
+                    break
+            if items:
+                return items
 
     return items
 
