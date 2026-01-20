@@ -15,6 +15,7 @@ def fetch_rss_items(
     hours_window: int,
     ignore_time_filter: bool = False,
 ) -> List[Dict[str, str]]:
+    # Parse RSS feed and return a list of URL + title + timestamp.
     parsed = feedparser.parse(feed_url)
     items: List[Dict[str, str]] = []
     now = datetime.now(timezone.utc)
@@ -33,6 +34,7 @@ def fetch_rss_items(
             except Exception:
                 published_dt = None
 
+        # Apply time filter unless explicitly disabled.
         if published_dt and not ignore_time_filter:
             if mode == "today" and published_dt.date() != now.date():
                 continue
@@ -56,6 +58,7 @@ def fetch_rss_items(
 
 
 def _parse_time_label(text: str) -> datetime | None:
+    # Parse timestamps like "11h44" or "12/01/2026" or "12 janvier 2026".
     time_match = re.search(r"\b(\d{1,2})h(\d{2})\b", text)
     if time_match:
         hour = int(time_match.group(1))
@@ -103,9 +106,11 @@ def _parse_time_label(text: str) -> datetime | None:
 
 
 def _within_window(label_dt: datetime | None, mode: str, hours_window: int) -> bool:
+    # Filter by time window ("today" or "last_hours").
     if label_dt is None:
         return True
     now = datetime.now()
+    # If the hour appears "in the future", assume it belongs to yesterday.
     if label_dt - now > timedelta(hours=1):
         label_dt = label_dt - timedelta(days=1)
     if mode == "today":
@@ -121,6 +126,7 @@ def fetch_dom_items(
     mode: str,
     hours_window: int,
 ) -> List[Dict[str, str]]:
+    # Fetch the "TOUT" list directly from the HTML DOM (no JS required).
     try:
         req = Request(page_url, headers={"User-Agent": "Mozilla/5.0"})
         with urlopen(req, timeout=20) as resp:
@@ -128,11 +134,13 @@ def fetch_dom_items(
     except Exception:
         return []
 
+    # Narrow HTML to the news list block to reduce noise.
     wrapper_match = re.search(r'<div class="wrapper-news-list">(.*?)<div class="pagination">', html_text, re.S)
     content = wrapper_match.group(1) if wrapper_match else html_text
 
     items: List[Dict[str, str]] = []
     seen = set()
+    # Extract time + href + title from each ".item".
     pattern = re.compile(
         r'<div class="item">.*?<div class="meta-date">\s*([^<]+)\s*</div>.*?<a\s+[^>]*href="([^"]+)"[^>]*>(.*?)</a>',
         re.S,
@@ -148,9 +156,11 @@ def fetch_dom_items(
             continue
         seen.add(url)
 
+        # Strip HTML tags from the title.
         title = re.sub(r"<.*?>", "", title_html)
         title = unescape(title).strip()
 
+        # Apply time window filter.
         label_dt = _parse_time_label(time_text.strip())
         if not _within_window(label_dt, mode, hours_window):
             continue
@@ -171,6 +181,7 @@ def merge_article_items(
     secondary: List[Dict[str, str]],
     limit: int,
 ) -> List[Dict[str, str]]:
+    # Merge lists without duplicates, keep order (primary first).
     seen = set()
     merged: List[Dict[str, str]] = []
     for group in (primary, secondary):

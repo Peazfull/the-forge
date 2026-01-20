@@ -25,66 +25,106 @@ from prompts.news_brewery.jsonfy import PROMPT_JSONFY
 from prompts.news_brewery.json_secure import PROMPT_JSON_SECURE
 
 
+# Global timeout for each OpenAI request (seconds).
 REQUEST_TIMEOUT = 60
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 
+# Runtime config for a single job launch.
 @dataclass
 class JobConfig:
+    # Entry page for Playwright mode (actualites list).
     entry_url: str
+    # Time filter mode ("today" or "last_hours").
     mode: str  # "today" or "last_hours"
+    # Time window (hours) used for "last_hours".
     hours_window: int
+    # Hard cap on number of URLs to process.
     max_articles_total: int
+    # Max number of items to keep after dedup for JSON output.
     max_articles_per_bulletin: int
+    # Playwright scroll behavior (human-like).
     scroll_min_px: int
     scroll_max_px: int
+    # Time spent on each article page (human-like).
     min_page_time: int
     max_page_time: int
+    # Wait time between actions (human-like).
     wait_min_action: float
     wait_max_action: float
+    # Shuffle URLs before processing.
     shuffle_urls: bool
+    # If True, skip DB insert.
     dry_run: bool
+    # Stop job after too many consecutive errors.
     max_consecutive_errors: int
+    # Global timeout to prevent runaway jobs.
     global_timeout_minutes: int
+    # Pause job when captcha/wall is detected.
     pause_on_captcha: bool
+    # Remove buffer file after successful DB insert.
     remove_buffer_after_success: bool
+    # Playwright headless mode (prod).
     headless: bool
+    # Use RSS + Firecrawl mode (prod-friendly).
     use_rss: bool
+    # RSS feed URL.
     rss_feed_url: str
+    # Ignore time filter on RSS timestamps.
     rss_ignore_time_filter: bool
+    # Merge DOM list (TOUT) with RSS list.
     rss_use_dom_fallback: bool
+    # Use Firecrawl when in RSS mode.
     use_firecrawl: bool
+    # Pre-selected URLs from the UI (override RSS/DOM).
     urls_override: Optional[List[Dict[str, str]]]
 
 
 class BfmBourseJob:
+    # Orchestrates a single BFM Bourse scraping job with:
+    # - URL collection (RSS / DOM / Playwright)
+    # - Article-by-article AI pipeline
+    # - Buffer + JSON preview
+    # - Optional DB insertion
     def __init__(self) -> None:
+        # Job lifecycle state.
         self.state = "idle"
+        # Rolling status log for UI.
         self.status_log: List[str] = []
+        # Error messages collected during run.
         self.errors: List[str] = []
+        # Counters for progress display.
         self.processed = 0
         self.skipped = 0
         self.total = 0
         self.current_index = 0
+        # Runtime timings for ETA.
         self.started_at: Optional[float] = None
+        # Last status message (compact UI).
         self.last_log: str = ""
+        # Circuit breaker for repeated errors.
         self.consecutive_errors = 0
+        # Buffer file path and in-memory views.
         self.buffer_path: Optional[str] = None
         self.buffer_text: str = ""
         self.json_preview_text: str = ""
         self.json_items: List[Dict[str, object]] = []
+        # Pause / stop controls.
         self._pause_event = threading.Event()
         self._pause_event.set()
         self._stop_event = threading.Event()
         self._thread: Optional[threading.Thread] = None
+        # Last JobConfig used.
         self._config: Optional[JobConfig] = None
 
     def start(self, config: JobConfig) -> None:
+        # Start a background thread (one job at a time).
         if self.state == "running":
             return
         self._config = config
         self._stop_event.clear()
         self._pause_event.set()
+        # Reset counters and logs for a clean run.
         self.errors = []
         self.status_log = []
         self.processed = 0
@@ -99,18 +139,21 @@ class BfmBourseJob:
         self._thread.start()
 
     def pause(self) -> None:
+        # Pause processing loop (keeps thread alive).
         if self.state == "running":
             self.state = "paused"
             self._pause_event.clear()
             self._log("⏸️ Job en pause")
 
     def resume(self) -> None:
+        # Resume processing loop.
         if self.state == "paused":
             self.state = "running"
             self._pause_event.set()
             self._log("▶️ Job repris")
 
     def stop(self) -> None:
+        # Stop processing loop; keeps existing buffer for inspection.
         self._stop_event.set()
         self._pause_event.set()
         if self.state in ("running", "paused"):
@@ -118,6 +161,7 @@ class BfmBourseJob:
             self._log("⏹️ Job stoppé")
 
     def clear(self) -> None:
+        # Reset job state and previews (UI "Clear").
         self._stop_event.set()
         self._pause_event.set()
         self.state = "idle"
@@ -135,6 +179,7 @@ class BfmBourseJob:
         self.json_items = []
 
     def get_status(self) -> Dict[str, object]:
+        # Snapshot for Streamlit UI.
         return {
             "state": self.state,
             "processed": self.processed,
@@ -151,9 +196,11 @@ class BfmBourseJob:
         }
 
     def set_buffer_text(self, text: str) -> None:
+        # Allow UI edits to replace buffer content.
         self.buffer_text = text or ""
 
     def finalize_buffer(self) -> Dict[str, object]:
+        # Convert buffer -> deduplicate -> JSON -> secure JSON.
         if not self.buffer_text.strip():
             return {"status": "error", "message": "Buffer vide"}
         structured_text = self._extract_structured_text(self.buffer_text)
@@ -167,6 +214,7 @@ class BfmBourseJob:
         return {"status": "success", "items": self.json_items}
 
     def send_to_db(self) -> Dict[str, object]:
+        # Final DB insert, with dry-run guard.
         if not self.json_items:
             return {"status": "error", "message": "Aucun item à insérer"}
         if self._config and self._config.dry_run:
@@ -192,20 +240,24 @@ class BfmBourseJob:
         return result
 
     def _wait_if_paused(self) -> None:
+        # Block loop while paused (polling).
         while not self._pause_event.is_set():
             if self._stop_event.is_set():
                 return
             time.sleep(0.5)
 
     def _sleep_random(self, min_value: float, max_value: float) -> None:
+        # Human-like wait.
         wait_s = random.uniform(min_value, max_value)
         time.sleep(wait_s)
 
     def _log(self, message: str) -> None:
+        # One place to update the compact status + full log.
         self.last_log = message
         self.status_log.append(message)
 
     def _run_text_prompt(self, prompt: str, content: str, temperature: float = 0.2) -> str:
+        # Shared helper for all text prompts.
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -218,6 +270,7 @@ class BfmBourseJob:
         return response.choices[0].message.content or ""
 
     def _is_captcha_or_wall(self, html: str) -> bool:
+        # Very simple wall detection (string match).
         text = html.lower()
         keywords = [
             "captcha",
@@ -231,6 +284,7 @@ class BfmBourseJob:
         return any(k in text for k in keywords)
 
     def _parse_time_label(self, text: str) -> Optional[datetime]:
+        # Parse "11h44" or "12/01/2026" or "12 janvier 2026".
         time_match = re.search(r"\b(\d{1,2})h(\d{2})\b", text)
         if time_match:
             hour = int(time_match.group(1))
@@ -277,6 +331,7 @@ class BfmBourseJob:
         return None
 
     def _within_window(self, label_dt: Optional[datetime], config: JobConfig) -> bool:
+        # Apply time filter based on config.
         if label_dt is None:
             return True
         now = datetime.now()
@@ -287,6 +342,7 @@ class BfmBourseJob:
         return True
 
     def _collect_article_urls(self, page, config: JobConfig) -> List[Dict[str, str]]:
+        # Playwright: parse the "TOUT" list from DOM.
         try:
             page.get_by_role("link", name=re.compile(r"^tout$", re.I)).click(timeout=2000)
             self._sleep_random(config.wait_min_action, config.wait_max_action)
@@ -333,6 +389,7 @@ class BfmBourseJob:
         return results
 
     def _collect_article_urls_rss(self, config: JobConfig) -> List[Dict[str, str]]:
+        # RSS list (fast, production-friendly).
         return fetch_rss_items(
             feed_url=config.rss_feed_url,
             max_items=config.max_articles_total,
@@ -342,6 +399,7 @@ class BfmBourseJob:
         )
 
     def _collect_article_urls_dom(self, config: JobConfig) -> List[Dict[str, str]]:
+        # DOM fallback list (TOUT page).
         return fetch_dom_items(
             page_url=config.entry_url,
             max_items=config.max_articles_total,
@@ -350,6 +408,7 @@ class BfmBourseJob:
         )
 
     def _format_buffer_block(self, article: Dict[str, str], content: str) -> str:
+        # Buffer block format (one article per block).
         return (
             "=== ARTICLE ===\n"
             f"URL: {article.get('url','')}\n"
@@ -360,17 +419,20 @@ class BfmBourseJob:
         )
 
     def _deduplicate_blocks(self, text: str) -> str:
+        # Global dedup step on concatenated text.
         if not text.strip():
             return ""
         return self._run_text_prompt(PROMPT_DEDUPLICATE, text, temperature=0.1).strip()
 
     def _limit_blocks(self, text: str, limit: int) -> str:
+        # Hard cap on number of blocks (post-dedup).
         if limit <= 0:
             return text
         blocks = [b.strip() for b in text.split("\n\n") if b.strip()]
         return "\n\n".join(blocks[:limit])
 
     def _extract_structured_text(self, buffer_text: str) -> str:
+        # Keep only the "content" part of each buffer block.
         blocks = [b.strip() for b in buffer_text.split("=== ARTICLE ===") if b.strip()]
         contents = []
         for block in blocks:
@@ -381,6 +443,7 @@ class BfmBourseJob:
         return "\n\n".join(contents)
 
     def _jsonfy(self, text: str) -> Dict[str, object]:
+        # JSON conversion with strict schema + secure pass.
         if not text.strip():
             return {"status": "error", "message": "Texte vide", "items": []}
         try:
@@ -412,6 +475,7 @@ class BfmBourseJob:
             return {"status": "error", "message": str(exc), "items": []}
 
     def _run(self) -> None:
+        # Main job flow (RSS/DOM or Playwright).
         config = self._config
         if not config:
             self.state = "failed"
@@ -419,6 +483,7 @@ class BfmBourseJob:
         start_time = time.time()
         buffer_path = f"/tmp/bfm_buffer_{datetime.now().strftime('%Y%m%d')}.txt"
         self.buffer_path = buffer_path
+        # Always reset buffers to avoid stale data.
         self.buffer_text = ""
         self.json_preview_text = ""
         self.json_items = []
@@ -433,8 +498,10 @@ class BfmBourseJob:
             try:
                 self._log("📰 Mode RSS activé")
                 if config.urls_override:
+                    # UI-selected URLs override everything.
                     articles = config.urls_override
                 else:
+                    # Merge DOM + RSS if requested.
                     articles_rss = self._collect_article_urls_rss(config)
                     if config.rss_use_dom_fallback:
                         articles_dom = self._collect_article_urls_dom(config)
@@ -460,6 +527,7 @@ class BfmBourseJob:
                         break
                     self.current_index = idx
 
+                    # Global timeout guard.
                     if time.time() - start_time > config.global_timeout_minutes * 60:
                         self.state = "failed"
                         self.errors.append("Timeout global atteint")
@@ -474,12 +542,14 @@ class BfmBourseJob:
                         continue
 
                     try:
+                        # Fetch article text with Firecrawl.
                         raw_text = fetch_url_text(url)
                     except Exception as exc:
                         self.errors.append(f"Firecrawl error: {exc}")
                         self.skipped += 1
                         continue
 
+                    # AI pipeline: clean -> rewrite -> structure.
                     cleaned = self._run_text_prompt(PROMPT_CLEAN_DOM_V1, raw_text, temperature=0)
                     if not cleaned.strip():
                         cleaned = self._run_text_prompt(PROMPT_CLEAN_DOM_V2, raw_text, temperature=0)
@@ -501,6 +571,7 @@ class BfmBourseJob:
                         self.skipped += 1
                         continue
 
+                    # Append to buffer file.
                     with open(buffer_path, "a", encoding="utf-8") as f:
                         f.write(self._format_buffer_block(article, structured))
                         f.write("\n\n")
@@ -516,6 +587,7 @@ class BfmBourseJob:
                 return
         else:
             try:
+                # Playwright branch (interactive / local).
                 with sync_playwright() as p:
                     self._log("🧭 Lancement navigateur")
                     try:
@@ -553,6 +625,7 @@ class BfmBourseJob:
                             break
                         self.current_index = idx
 
+                        # Global timeout guard.
                         if time.time() - start_time > config.global_timeout_minutes * 60:
                             self.state = "failed"
                             self.errors.append("Timeout global atteint")
@@ -587,16 +660,19 @@ class BfmBourseJob:
                                 self.skipped += 1
                                 continue
 
+                        # Scroll a bit for lazy content.
                         scrolls = random.randint(1, 3)
                         for _ in range(scrolls):
                             scroll_px = random.randint(config.scroll_min_px, config.scroll_max_px)
                             page.mouse.wheel(0, scroll_px)
                             self._sleep_random(config.wait_min_action, config.wait_max_action)
 
+                        # Wait on page to mimic reading.
                         self._sleep_random(config.min_page_time, config.max_page_time)
 
                         html = page.content()
 
+                        # AI pipeline: clean -> rewrite -> structure.
                         cleaned = self._run_text_prompt(PROMPT_CLEAN_DOM_V1, html, temperature=0)
                         if not cleaned.strip():
                             cleaned = self._run_text_prompt(PROMPT_CLEAN_DOM_V2, html, temperature=0)
@@ -618,6 +694,7 @@ class BfmBourseJob:
                             self.skipped += 1
                             continue
 
+                        # Append to buffer file.
                         with open(buffer_path, "a", encoding="utf-8") as f:
                             f.write(self._format_buffer_block(article, structured))
                             f.write("\n\n")
@@ -637,6 +714,7 @@ class BfmBourseJob:
         if self.state in ("failed", "stopped"):
             return
 
+        # Load buffer file into memory for preview.
         try:
             with open(buffer_path, "r", encoding="utf-8") as f:
                 self.buffer_text = f.read()
@@ -652,6 +730,7 @@ _JOB_INSTANCE: Optional[BfmBourseJob] = None
 
 
 def get_bfm_job() -> BfmBourseJob:
+    # Singleton used by Streamlit UI.
     global _JOB_INSTANCE
     if _JOB_INSTANCE is None:
         _JOB_INSTANCE = BfmBourseJob()
