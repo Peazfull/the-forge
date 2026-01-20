@@ -556,6 +556,11 @@ def fetch_boursier_france_dom_items(
     html_text = _fetch_html_text(page_url)
     if not html_text:
         html_text = ""
+        if use_firecrawl_fallback and fetch_url_text:
+            try:
+                html_text = fetch_url_text(page_url) or ""
+            except Exception:
+                html_text = ""
 
     items: List[Dict[str, str]] = []
     seen = set()
@@ -641,6 +646,11 @@ def fetch_boursier_etats_unis_dom_items(
     html_text = _fetch_html_text(page_url)
     if not html_text:
         html_text = ""
+        if use_firecrawl_fallback and fetch_url_text:
+            try:
+                html_text = fetch_url_text(page_url) or ""
+            except Exception:
+                html_text = ""
 
     items: List[Dict[str, str]] = []
     seen = set()
@@ -695,7 +705,7 @@ def fetch_boursier_etats_unis_dom_items(
             link_pattern = re.compile(r"\[([^\]]+)\]\((https?://www\.boursier\.com/[^)]+)\)")
             for title_text, href in link_pattern.findall(markdown):
                 url = href.strip()
-                if "/actualites/etats-unis/" not in url and "/actions/actualites/" not in url and "/indices/actualites/" not in url:
+                if "/actualites/etats-unis/" not in url:
                     continue
                 if url in seen:
                     continue
