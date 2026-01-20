@@ -698,14 +698,13 @@ def fetch_boursier_etats_unis_dom_items(
         re.S,
     )
 
+    raw_items = []
     for datetime_attr, href, title_html in pattern.findall(content):
         url = href.strip()
         if not url:
             continue
         if url.startswith("/"):
             url = f"https://www.boursier.com{url}"
-        if "/actualites/etats-unis/" not in url:
-            continue
         if url in seen:
             continue
         seen.add(url)
@@ -725,13 +724,17 @@ def fetch_boursier_etats_unis_dom_items(
         if not _within_window(label_dt, mode, hours_window):
             continue
 
-        items.append({
+        raw_items.append({
             "url": url,
             "title": title,
             "label_dt": label_dt.isoformat() if label_dt else "",
         })
-        if len(items) >= max_items:
+        if len(raw_items) >= max_items:
             break
+
+    # Prefer the explicit Etats-Unis category when present, otherwise keep all.
+    filtered = [item for item in raw_items if "/actualites/etats-unis/" in item.get("url", "")]
+    items = filtered if filtered else raw_items
 
     if items:
         return items
