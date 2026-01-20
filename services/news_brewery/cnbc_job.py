@@ -317,6 +317,13 @@ class CnbcJob:
                 random.shuffle(articles)
             self.total = len(articles)
             self._log(f"🔎 {len(articles)} URL(s) détectée(s)")
+            if self.total == 0:
+                self.state = "failed"
+                self.errors.append(
+                    "Aucune URL détectée. DOM vide ou bloqué ; "
+                    "active Firecrawl ou renseigne un RSS valide."
+                )
+                return
 
             for idx, article in enumerate(articles, start=1):
                 if self._stop_event.is_set():

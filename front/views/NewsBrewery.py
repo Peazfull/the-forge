@@ -939,6 +939,8 @@ with st.expander("▸ Job — CNBC", expanded=False):
             else:
                 st.session_state.cnbc_rss_candidates = rss_items
             cnbc_job.status_log.append("🔎 URLs chargées")
+            if not st.session_state.cnbc_rss_candidates:
+                st.warning("Aucune URL détectée. DOM vide ou bloqué ; active Firecrawl ou un RSS valide.")
             st.rerun()
 
     if cnbc_clear:
