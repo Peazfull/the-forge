@@ -180,38 +180,6 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
             key="news_headless"
         )
 
-        if st.session_state.news_rss_candidates:
-            if st.button("🧭 Scrapper les articles", use_container_width=True, key="news_scrape_articles"):
-                if not selected_urls:
-                    st.error("Sélectionne au moins un article.")
-                else:
-                    config = JobConfig(
-                        entry_url="https://www.tradingsat.com/actualites/",
-                        mode="today" if mode == "Aujourd’hui" else "last_hours",
-                        hours_window=int(hours_window),
-                        max_articles_total=int(max_articles_total),
-                        max_articles_per_bulletin=int(max_articles_per_bulletin),
-                        scroll_min_px=int(scroll_min_px),
-                        scroll_max_px=int(scroll_max_px),
-                        min_page_time=int(min_page_time),
-                        max_page_time=int(max_page_time),
-                        wait_min_action=float(wait_min_action),
-                        wait_max_action=float(wait_max_action),
-                        shuffle_urls=bool(shuffle_urls),
-                        dry_run=bool(dry_run),
-                        max_consecutive_errors=int(max_consecutive_errors),
-                        global_timeout_minutes=int(global_timeout_minutes),
-                        pause_on_captcha=bool(pause_on_captcha),
-                        remove_buffer_after_success=bool(remove_buffer),
-                        headless=bool(headless),
-                        use_rss=bool(use_rss),
-                        rss_feed_url=rss_feed_url,
-                        use_firecrawl=bool(use_firecrawl),
-                        urls_override=selected_urls,
-                    )
-                    job.start(config)
-                    st.success("Scraping lancé.")
-
     selected_urls = []
     if use_rss:
         col_clear = st.columns(1)[0]
@@ -235,6 +203,37 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
         else:
             st.caption("Clique sur Lancer pour charger la liste RSS.")
 
+    if st.session_state.news_rss_candidates:
+        if st.button("🧭 Scrapper les articles", use_container_width=True, key="news_scrape_articles"):
+            if not selected_urls:
+                st.error("Sélectionne au moins un article.")
+            else:
+                config = JobConfig(
+                    entry_url="https://www.tradingsat.com/actualites/",
+                    mode="today" if mode == "Aujourd’hui" else "last_hours",
+                    hours_window=int(hours_window),
+                    max_articles_total=int(max_articles_total),
+                    max_articles_per_bulletin=int(max_articles_per_bulletin),
+                    scroll_min_px=int(scroll_min_px),
+                    scroll_max_px=int(scroll_max_px),
+                    min_page_time=int(min_page_time),
+                    max_page_time=int(max_page_time),
+                    wait_min_action=float(wait_min_action),
+                    wait_max_action=float(wait_max_action),
+                    shuffle_urls=bool(shuffle_urls),
+                    dry_run=bool(dry_run),
+                    max_consecutive_errors=int(max_consecutive_errors),
+                    global_timeout_minutes=int(global_timeout_minutes),
+                    pause_on_captcha=bool(pause_on_captcha),
+                    remove_buffer_after_success=bool(remove_buffer),
+                    headless=bool(headless),
+                    use_rss=bool(use_rss),
+                    rss_feed_url=rss_feed_url,
+                    use_firecrawl=bool(use_firecrawl),
+                    urls_override=selected_urls,
+                )
+                job.start(config)
+                st.success("Scraping lancé.")
     if launch:
         if use_rss:
             st.session_state.news_rss_candidates = fetch_rss_items(
