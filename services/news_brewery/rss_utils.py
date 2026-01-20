@@ -4,6 +4,11 @@ from html import unescape
 from typing import Dict, List
 from urllib.request import Request, urlopen
 import gzip
+try:
+    import brotli  # type: ignore
+except Exception:
+    brotli = None
+
 import re
 
 import feedparser
@@ -128,6 +133,7 @@ def _fetch_html_text(page_url: str) -> str:
                       "Chrome/120.0.0.0 Safari/537.36",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.9,fr;q=0.8",
+        "Accept-Encoding": "identity",
         "Cache-Control": "no-cache",
         "Pragma": "no-cache",
     }
@@ -138,6 +144,8 @@ def _fetch_html_text(page_url: str) -> str:
             encoding = (resp.headers.get("Content-Encoding") or "").lower()
             if "gzip" in encoding:
                 raw = gzip.decompress(raw)
+            elif "br" in encoding and brotli:
+                raw = brotli.decompress(raw)
             return raw.decode("utf-8", errors="ignore")
     except Exception:
         return ""
@@ -211,21 +219,6 @@ def _parse_relative_time(text: str) -> datetime | None:
     return None
 
 
-def _parse_relative_time_en(text: str) -> datetime | None:
-    match = re.search(r"(\d+)\s+(minute|minutes|hour|hours|day|days)\s+ago", text, re.I)
-    if not match:
-        return None
-    value = int(match.group(1))
-    unit = match.group(2).lower()
-    if "minute" in unit:
-        return datetime.now() - timedelta(minutes=value)
-    if "hour" in unit:
-        return datetime.now() - timedelta(hours=value)
-    if "day" in unit:
-        return datetime.now() - timedelta(days=value)
-    return None
-
-
 def fetch_beincrypto_dom_items(
     page_url: str,
     max_items: int,
@@ -289,14 +282,15 @@ def fetch_beincrypto_dom_items(
     return items
 
 
-def _parse_english_date(text: str) -> datetime | None:
+def _parse_cnbc_date(text: str) -> datetime | None:
+    clean = re.sub(r"(\d{1,2})(st|nd|rd|th)", r"\1", text.strip(), flags=re.I)
     try:
-        return datetime.strptime(text.strip(), "%b %d, %Y")
+        return datetime.strptime(clean, "%a, %b %d %Y")
     except Exception:
         return None
 
 
-def fetch_coindesk_dom_items(
+def fetch_cnbc_dom_items(
     page_url: str,
     max_items: int,
     mode: str,
@@ -309,22 +303,17 @@ def fetch_coindesk_dom_items(
     items: List[Dict[str, str]] = []
     seen = set()
 
-    content = html_text
-
     card_pattern = re.compile(
-        r'<a[^>]+class="[^"]*content-card-title[^"]*"[^>]+href="([^"]+)"[^>]*>\s*'
-        r'<h2[^>]*>(.*?)</h2>.*?'
-        r'<span[^>]+class="[^"]*font-metadata[^"]*"[^>]*>(.*?)</span>',
+        r'<div[^>]+class="[^"]*Card-[^"]*"[^>]*>.*?'
+        r'<a[^>]+class="Card-title"[^>]+href="([^"]+)"[^>]*>(.*?)</a>.*?'
+        r'<span[^>]+class="Card-time"[^>]*>(.*?)</span>',
         re.S,
     )
 
-    matches = card_pattern.findall(content)
-    for href, title_html, time_text in matches:
+    for href, title_html, time_text in card_pattern.findall(html_text):
         url = href.strip()
         if not url:
             continue
-        if url.startswith("/"):
-            url = f"https://www.coindesk.com{url}"
         if url in seen:
             continue
         seen.add(url)
@@ -332,14 +321,9 @@ def fetch_coindesk_dom_items(
         title = re.sub(r"<.*?>", "", title_html)
         title = unescape(title).strip()
 
-        time_text = re.sub(r"<.*?>", "", time_text).strip()
-
         label_dt = None
         if time_text:
-            label_dt = _parse_relative_time_en(time_text.strip())
-            if label_dt is None:
-                label_dt = _parse_english_date(time_text.strip())
-
+            label_dt = _parse_cnbc_date(re.sub(r"<.*?>", "", time_text).strip())
         if not _within_window(label_dt, mode, hours_window):
             continue
 
@@ -347,35 +331,6 @@ def fetch_coindesk_dom_items(
             "url": url,
             "title": title,
             "label_dt": label_dt.isoformat() if label_dt else "",
-        })
-        if len(items) >= max_items:
-            break
-
-    if items:
-        return items
-
-    # Fallback: extract anchors only, skip time filtering when missing.
-    anchor_pattern = re.compile(
-        r'<a[^>]+class="[^"]*content-card-title[^"]*"[^>]+href="([^"]+)"[^>]*>\s*<h2[^>]*>(.*?)</h2>',
-        re.S,
-    )
-    for href, title_html in anchor_pattern.findall(content):
-        url = href.strip()
-        if not url:
-            continue
-        if url.startswith("/"):
-            url = f"https://www.coindesk.com{url}"
-        if url in seen:
-            continue
-        seen.add(url)
-
-        title = re.sub(r"<.*?>", "", title_html)
-        title = unescape(title).strip()
-
-        items.append({
-            "url": url,
-            "title": title,
-            "label_dt": "",
         })
         if len(items) >= max_items:
             break

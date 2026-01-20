@@ -2,10 +2,10 @@ import time
 import streamlit as st
 from services.news_brewery.bfm_bourse_job import JobConfig, get_bfm_job
 from services.news_brewery.beincrypto_job import JobConfig as BeInJobConfig, get_beincrypto_job
-from services.news_brewery.coindesk_job import JobConfig as CoinDeskJobConfig, get_coindesk_job
+from services.news_brewery.cnbc_job import JobConfig as CnbcJobConfig, get_cnbc_job
 from services.news_brewery.rss_utils import (
     fetch_beincrypto_dom_items,
-    fetch_coindesk_dom_items,
+    fetch_cnbc_dom_items,
     fetch_dom_items,
     fetch_rss_items,
     merge_article_items,
@@ -33,12 +33,12 @@ if "bein_show_json_state" not in st.session_state:
     st.session_state.bein_show_json_state = False
 if "bein_json_ready" not in st.session_state:
     st.session_state.bein_json_ready = False
-if "coindesk_rss_candidates" not in st.session_state:
-    st.session_state.coindesk_rss_candidates = []
-if "coindesk_show_json_state" not in st.session_state:
-    st.session_state.coindesk_show_json_state = False
-if "coindesk_json_ready" not in st.session_state:
-    st.session_state.coindesk_json_ready = False
+if "cnbc_rss_candidates" not in st.session_state:
+    st.session_state.cnbc_rss_candidates = []
+if "cnbc_show_json_state" not in st.session_state:
+    st.session_state.cnbc_show_json_state = False
+if "cnbc_json_ready" not in st.session_state:
+    st.session_state.cnbc_json_ready = False
 
 # =========================
 # JOB — BFM BOURSE
@@ -728,314 +728,305 @@ st.divider()
 # =========================
 # JOB — COINDESK
 # =========================
-with st.expander("▸ Job — CoinDesk", expanded=False):
-    coindesk_job = get_coindesk_job()
+
+with st.expander("▸ Job — CNBC", expanded=False):
+    cnbc_job = get_cnbc_job()
     col_open, col_launch, col_clear = st.columns([2, 1, 1])
 
     with col_open:
-        st.link_button("🔗 Ouvrir l’URL", "https://www.coindesk.com/latest-crypto-news")
+        st.link_button("🔗 Ouvrir l’URL", "https://www.cnbc.com/economy/")
     with col_launch:
-        coindesk_launch = st.button("▶️ Lancer", use_container_width=True, key="coindesk_launch")
+        cnbc_launch = st.button("▶️ Lancer", use_container_width=True, key="cnbc_launch")
     with col_clear:
-        coindesk_clear = st.button("🧹 Clear", use_container_width=True, key="coindesk_clear")
+        cnbc_clear = st.button("🧹 Clear", use_container_width=True, key="cnbc_clear")
 
     with st.expander("Fenêtre temporelle", expanded=True):
-        coindesk_mode = st.radio(
+        cnbc_mode = st.radio(
             "Mode",
             options=["Aujourd’hui", "Dernières X heures"],
             horizontal=True,
             index=1,
-            key="coindesk_mode",
+            key="cnbc_mode",
         )
-        coindesk_hours_window = st.slider(
+        cnbc_hours_window = st.slider(
             "Dernières X heures",
             min_value=1,
             max_value=24,
             value=6,
             step=1,
-            key="coindesk_hours_window",
+            key="cnbc_hours_window",
         )
 
     with st.expander("Settings", expanded=False):
         st.markdown("**Limites**")
         col_max_total, col_max_per = st.columns(2)
         with col_max_total:
-            coindesk_max_articles_total = st.number_input(
+            cnbc_max_articles_total = st.number_input(
                 "Max articles total",
                 min_value=1,
                 max_value=100,
                 value=20,
                 step=1,
-                key="coindesk_max_total",
+                key="cnbc_max_total",
             )
         with col_max_per:
-            coindesk_max_articles_per = st.number_input(
+            cnbc_max_articles_per = st.number_input(
                 "Max articles par bulletin",
                 min_value=1,
                 max_value=20,
                 value=20,
                 step=1,
-                key="coindesk_max_per",
+                key="cnbc_max_per",
             )
 
         st.markdown("**Timing**")
         col_wait_min, col_wait_max = st.columns(2)
         with col_wait_min:
-            coindesk_wait_min_action = st.number_input(
+            cnbc_wait_min_action = st.number_input(
                 "Wait min action (s)",
                 min_value=0.1,
                 max_value=5.0,
                 value=0.6,
                 step=0.1,
-                key="coindesk_wait_min",
+                key="cnbc_wait_min",
             )
         with col_wait_max:
-            coindesk_wait_max_action = st.number_input(
+            cnbc_wait_max_action = st.number_input(
                 "Wait max action (s)",
                 min_value=0.2,
                 max_value=8.0,
                 value=2.5,
                 step=0.1,
-                key="coindesk_wait_max",
+                key="cnbc_wait_max",
             )
 
-        coindesk_shuffle_urls = st.checkbox("Shuffle URLs", value=True, key="coindesk_shuffle")
-        coindesk_dry_run = st.checkbox("DRY RUN", value=False, key="coindesk_dry_run")
+        cnbc_shuffle_urls = st.checkbox("Shuffle URLs", value=True, key="cnbc_shuffle")
+        cnbc_dry_run = st.checkbox("DRY RUN", value=False, key="cnbc_dry_run")
 
         st.markdown("**Safety**")
         col_err, col_timeout = st.columns(2)
         with col_err:
-            coindesk_max_consecutive_errors = st.number_input(
+            cnbc_max_consecutive_errors = st.number_input(
                 "Max erreurs consécutives",
                 min_value=1,
                 max_value=10,
                 value=3,
                 step=1,
-                key="coindesk_max_errors",
+                key="cnbc_max_errors",
             )
         with col_timeout:
-            coindesk_global_timeout_minutes = st.number_input(
+            cnbc_global_timeout_minutes = st.number_input(
                 "Timeout global job (min)",
                 min_value=1,
                 max_value=60,
                 value=15,
                 step=1,
-                key="coindesk_timeout",
+                key="cnbc_timeout",
             )
 
-        coindesk_remove_buffer = st.checkbox(
+        cnbc_remove_buffer = st.checkbox(
             "Supprimer buffer après succès",
             value=True,
-            key="coindesk_remove_buffer",
+            key="cnbc_remove_buffer",
         )
 
         st.markdown("**Source URLs**")
-        coindesk_rss_feed_url = st.text_input(
+        cnbc_rss_feed_url = st.text_input(
             "RSS feed",
-            value="https://www.coindesk.com/latest-crypto-news",
-            key="coindesk_rss_feed",
+            value="https://www.cnbc.com/economy/",
+            key="cnbc_rss_feed",
         )
-        coindesk_use_rss = st.checkbox("Mode RSS/DOM", value=True, key="coindesk_use_rss")
-        coindesk_use_firecrawl = st.checkbox("Scraper articles via Firecrawl", value=True, key="coindesk_use_firecrawl")
-        coindesk_rss_ignore_time_filter = st.checkbox(
+        cnbc_use_rss = st.checkbox("Mode RSS/DOM", value=True, key="cnbc_use_rss")
+        cnbc_use_firecrawl = st.checkbox("Scraper articles via Firecrawl", value=True, key="cnbc_use_firecrawl")
+        cnbc_rss_ignore_time_filter = st.checkbox(
             "Ignorer filtre temporel RSS",
             value=False,
-            key="coindesk_rss_ignore_time",
+            key="cnbc_rss_ignore_time",
         )
-        coindesk_rss_use_dom_fallback = st.checkbox(
-            "Compléter via DOM (Latest Crypto News)",
+        cnbc_rss_use_dom_fallback = st.checkbox(
+            "Compléter via DOM (Economy)",
             value=True,
-            key="coindesk_rss_dom_fallback",
+            key="cnbc_rss_dom_fallback",
         )
 
-    coindesk_selected_urls = []
-    if coindesk_use_rss:
+    cnbc_selected_urls = []
+    if cnbc_use_rss:
         col_clear, col_uncheck = st.columns(2)
         with col_clear:
-            if st.button("🧹 Clear liste", use_container_width=True, key="coindesk_rss_clear"):
-                st.session_state.coindesk_rss_candidates = []
+            if st.button("🧹 Clear liste", use_container_width=True, key="cnbc_rss_clear"):
+                st.session_state.cnbc_rss_candidates = []
                 st.rerun()
         with col_uncheck:
-            if st.button("☐ Décocher tout", use_container_width=True, key="coindesk_rss_uncheck_all"):
-                for idx in range(len(st.session_state.coindesk_rss_candidates)):
-                    st.session_state[f"coindesk_rss_pick_{idx}"] = False
+            if st.button("☐ Décocher tout", use_container_width=True, key="cnbc_rss_uncheck_all"):
+                for idx in range(len(st.session_state.cnbc_rss_candidates)):
+                    st.session_state[f"cnbc_rss_pick_{idx}"] = False
                 st.rerun()
 
-        if st.session_state.coindesk_rss_candidates:
+        if st.session_state.cnbc_rss_candidates:
             st.caption("Sélectionne les articles à traiter :")
-            for idx, item in enumerate(st.session_state.coindesk_rss_candidates):
+            for idx, item in enumerate(st.session_state.cnbc_rss_candidates):
                 label = f"{item.get('title','')}".strip() or item.get("url", "")
-                key = f"coindesk_rss_pick_{idx}"
+                key = f"cnbc_rss_pick_{idx}"
                 if key not in st.session_state:
                     st.session_state[key] = True
                 checked = st.checkbox(label, key=key)
                 if checked:
-                    coindesk_selected_urls.append(item)
-            st.caption(f"{len(coindesk_selected_urls)} article(s) sélectionné(s)")
+                    cnbc_selected_urls.append(item)
+            st.caption(f"{len(cnbc_selected_urls)} article(s) sélectionné(s)")
         else:
             st.caption("Clique sur Lancer pour charger la liste.")
 
-    if st.session_state.coindesk_rss_candidates:
-        if st.button("🧭 Scrapper les articles", use_container_width=True, key="coindesk_scrape_articles"):
-            if not coindesk_selected_urls:
+    if st.session_state.cnbc_rss_candidates:
+        if st.button("🧭 Scrapper les articles", use_container_width=True, key="cnbc_scrape_articles"):
+            if not cnbc_selected_urls:
                 st.error("Sélectionne au moins un article.")
             else:
-                coindesk_job.set_buffer_text("")
-                coindesk_job.json_preview_text = ""
-                coindesk_job.json_items = []
-                st.session_state.coindesk_show_json_state = False
-                st.session_state.coindesk_json_ready = False
-                config = CoinDeskJobConfig(
-                    entry_url="https://www.coindesk.com/latest-crypto-news",
-                    mode="today" if coindesk_mode == "Aujourd’hui" else "last_hours",
-                    hours_window=int(coindesk_hours_window),
-                    max_articles_total=int(coindesk_max_articles_total),
-                    max_articles_per_bulletin=int(coindesk_max_articles_per),
-                    wait_min_action=float(coindesk_wait_min_action),
-                    wait_max_action=float(coindesk_wait_max_action),
-                    shuffle_urls=bool(coindesk_shuffle_urls),
-                    dry_run=bool(coindesk_dry_run),
-                    max_consecutive_errors=int(coindesk_max_consecutive_errors),
-                    global_timeout_minutes=int(coindesk_global_timeout_minutes),
-                    remove_buffer_after_success=bool(coindesk_remove_buffer),
-                    use_rss=bool(coindesk_use_rss),
-                    rss_feed_url=coindesk_rss_feed_url,
-                    rss_ignore_time_filter=bool(coindesk_rss_ignore_time_filter),
-                    rss_use_dom_fallback=bool(coindesk_rss_use_dom_fallback),
-                    use_firecrawl=bool(coindesk_use_firecrawl),
-                    urls_override=coindesk_selected_urls,
+                cnbc_job.set_buffer_text("")
+                cnbc_job.json_preview_text = ""
+                cnbc_job.json_items = []
+                st.session_state.cnbc_show_json_state = False
+                st.session_state.cnbc_json_ready = False
+                config = CnbcJobConfig(
+                    entry_url="https://www.cnbc.com/economy/",
+                    mode="today" if cnbc_mode == "Aujourd’hui" else "last_hours",
+                    hours_window=int(cnbc_hours_window),
+                    max_articles_total=int(cnbc_max_articles_total),
+                    max_articles_per_bulletin=int(cnbc_max_articles_per),
+                    wait_min_action=float(cnbc_wait_min_action),
+                    wait_max_action=float(cnbc_wait_max_action),
+                    shuffle_urls=bool(cnbc_shuffle_urls),
+                    dry_run=bool(cnbc_dry_run),
+                    max_consecutive_errors=int(cnbc_max_consecutive_errors),
+                    global_timeout_minutes=int(cnbc_global_timeout_minutes),
+                    remove_buffer_after_success=bool(cnbc_remove_buffer),
+                    use_rss=bool(cnbc_use_rss),
+                    rss_feed_url=cnbc_rss_feed_url,
+                    rss_ignore_time_filter=bool(cnbc_rss_ignore_time_filter),
+                    rss_use_dom_fallback=bool(cnbc_rss_use_dom_fallback),
+                    use_firecrawl=bool(cnbc_use_firecrawl),
+                    urls_override=cnbc_selected_urls,
                 )
-                coindesk_job.start(config)
+                cnbc_job.start(config)
                 st.success("Scraping lancé.")
 
-    if coindesk_launch:
-        if coindesk_use_rss:
-            coindesk_job.set_buffer_text("")
-            coindesk_job.json_preview_text = ""
-            coindesk_job.json_items = []
-            st.session_state.coindesk_show_json_state = False
-            st.session_state.coindesk_json_ready = False
+    if cnbc_launch:
+        if cnbc_use_rss:
+            cnbc_job.set_buffer_text("")
+            cnbc_job.json_preview_text = ""
+            cnbc_job.json_items = []
+            st.session_state.cnbc_show_json_state = False
+            st.session_state.cnbc_json_ready = False
             rss_items = fetch_rss_items(
-                feed_url=coindesk_rss_feed_url,
-                max_items=int(coindesk_max_articles_total),
-                mode="today" if coindesk_mode == "Aujourd’hui" else "last_hours",
-                hours_window=int(coindesk_hours_window),
-                ignore_time_filter=bool(coindesk_rss_ignore_time_filter),
+                feed_url=cnbc_rss_feed_url,
+                max_items=int(cnbc_max_articles_total),
+                mode="today" if cnbc_mode == "Aujourd’hui" else "last_hours",
+                hours_window=int(cnbc_hours_window),
+                ignore_time_filter=bool(cnbc_rss_ignore_time_filter),
             )
-            if coindesk_rss_use_dom_fallback:
-                dom_items = fetch_coindesk_dom_items(
-                    page_url="https://www.coindesk.com/latest-crypto-news",
-                    max_items=int(coindesk_max_articles_total),
-                    mode="today" if coindesk_mode == "Aujourd’hui" else "last_hours",
-                    hours_window=int(coindesk_hours_window),
+            if cnbc_rss_use_dom_fallback:
+                dom_items = fetch_cnbc_dom_items(
+                    page_url="https://www.cnbc.com/economy/",
+                    max_items=int(cnbc_max_articles_total),
+                    mode="today" if cnbc_mode == "Aujourd’hui" else "last_hours",
+                    hours_window=int(cnbc_hours_window),
                 )
-                st.session_state.coindesk_rss_candidates = merge_article_items(
+                st.session_state.cnbc_rss_candidates = merge_article_items(
                     dom_items,
                     rss_items,
-                    int(coindesk_max_articles_total),
+                    int(cnbc_max_articles_total),
                 )
             else:
-                st.session_state.coindesk_rss_candidates = rss_items
-            coindesk_job.status_log.append("🔎 URLs chargées")
+                st.session_state.cnbc_rss_candidates = rss_items
+            cnbc_job.status_log.append("🔎 URLs chargées")
             st.rerun()
-        else:
-            st.warning("Mode RSS/DOM désactivé : active-le pour charger les URLs.")
 
-    if coindesk_clear:
-        coindesk_job.clear()
-        st.session_state.coindesk_rss_candidates = []
-        st.session_state.coindesk_show_json_state = False
-        st.session_state.coindesk_json_ready = False
+    if cnbc_clear:
+        cnbc_job.clear()
+        st.session_state.cnbc_rss_candidates = []
+        st.session_state.cnbc_show_json_state = False
+        st.session_state.cnbc_json_ready = False
+        for key in list(st.session_state.keys()):
+            if key.startswith("cnbc_rss_pick_"):
+                st.session_state.pop(key, None)
+        st.success("Job réinitialisé.")
         st.rerun()
 
-    coindesk_status = coindesk_job.get_status()
-    st.divider()
-    st.caption(f"État : {coindesk_status.get('state')}")
-    coindesk_total = int(coindesk_status.get("total") or 0)
-    coindesk_processed = int(coindesk_status.get("processed", 0))
-    coindesk_skipped = int(coindesk_status.get("skipped", 0))
-    coindesk_started_at = coindesk_status.get("started_at")
-    coindesk_last_log = coindesk_status.get("last_log") or ""
-    if coindesk_total > 0:
-        progress_value = min(max((coindesk_processed + coindesk_skipped) / coindesk_total, 0.0), 1.0)
-        st.progress(progress_value)
-        st.caption(f"Progression : {coindesk_processed + coindesk_skipped}/{coindesk_total}")
-    st.caption(f"Traités : {coindesk_processed} · Skipped : {coindesk_skipped}")
-    if coindesk_started_at and (coindesk_processed + coindesk_skipped) > 0:
-        elapsed = max(time.time() - float(coindesk_started_at), 1.0)
-        avg_per_item = elapsed / max(coindesk_processed + coindesk_skipped, 1)
-        remaining = max(coindesk_total - (coindesk_processed + coindesk_skipped), 0)
-        eta_seconds = int(remaining * avg_per_item)
-        st.caption(f"ETA estimée : ~{eta_seconds // 60}m {eta_seconds % 60}s")
-    if coindesk_last_log:
-        st.caption(f"Dernier statut : {coindesk_last_log}")
-    if coindesk_status.get("buffer_path"):
-        st.caption(f"Buffer : {coindesk_status.get('buffer_path')}")
-    if coindesk_status.get("state") in ("running", "paused"):
-        st.info("Job en cours — rafraîchissement automatique activé.")
-        time.sleep(2)
-        st.rerun()
+    cnbc_status = cnbc_job.get_status()
+    cnbc_state = cnbc_status.get("state")
+    cnbc_total = cnbc_status.get("total", 0)
+    cnbc_processed = cnbc_status.get("processed", 0)
+    cnbc_skipped = cnbc_status.get("skipped", 0)
+    cnbc_started_at = cnbc_status.get("started_at")
+    cnbc_last_log = cnbc_status.get("last_log", "")
 
-    if coindesk_last_log:
-        st.caption(f"Statut : {coindesk_last_log}")
-    if coindesk_status.get("errors"):
+    st.progress(cnbc_processed / max(cnbc_total, 1))
+    status_parts = [f"{cnbc_processed}/{cnbc_total} traités", f"{cnbc_skipped} ignorés"]
+    if cnbc_state:
+        status_parts.append(f"état: {cnbc_state}")
+    if cnbc_started_at:
+        elapsed = int(time.time() - cnbc_started_at)
+        status_parts.append(f"{elapsed}s")
+    st.caption(" · ".join(status_parts))
+    if cnbc_last_log:
+        st.caption(f"Statut : {cnbc_last_log}")
+    if cnbc_status.get("errors"):
         st.markdown("**Erreurs :**")
-        for err in coindesk_status.get("errors")[-3:]:
+        for err in cnbc_status.get("errors")[-3:]:
             st.write(f"⚠️ {err}")
 
-    if coindesk_status.get("buffer_text"):
+    if cnbc_status.get("buffer_text"):
         st.divider()
         st.markdown("**Preview concaténée (buffer)**")
-        coindesk_edited_buffer = st.text_area(
+        cnbc_edited_buffer = st.text_area(
             label="",
-            value=coindesk_status.get("buffer_text", ""),
+            value=cnbc_status.get("buffer_text", ""),
             height=320,
-            key="coindesk_buffer_editor",
+            key="cnbc_buffer_editor",
         )
         col_json, col_clear_buf = st.columns(2)
         with col_json:
-            if st.button("✅ Dédoublonner + JSON", use_container_width=True, key="coindesk_finalize"):
-                coindesk_job.set_buffer_text(coindesk_edited_buffer)
-                result = coindesk_job.finalize_buffer()
+            if st.button("✅ Dédoublonner + JSON", use_container_width=True, key="cnbc_finalize"):
+                cnbc_job.set_buffer_text(cnbc_edited_buffer)
+                result = cnbc_job.finalize_buffer()
                 if result.get("status") == "success":
                     st.success(f"{len(result.get('items', []))} items générés")
-                    st.session_state.coindesk_json_ready = True
-                    st.session_state.coindesk_show_json_state = False
-                    coindesk_status = coindesk_job.get_status()
+                    st.session_state.cnbc_json_ready = True
+                    st.session_state.cnbc_show_json_state = False
+                    cnbc_status = cnbc_job.get_status()
                 else:
                     st.error(result.get("message", "Erreur JSON"))
         with col_clear_buf:
-            if st.button("🧹 Clear buffer", use_container_width=True, key="coindesk_clear_buffer"):
-                coindesk_job.set_buffer_text("")
+            if st.button("🧹 Clear buffer", use_container_width=True, key="cnbc_clear_buffer"):
+                cnbc_job.set_buffer_text("")
                 st.rerun()
 
-    if st.session_state.coindesk_json_ready and coindesk_status.get("json_preview_text") and not st.session_state.coindesk_show_json_state:
-        if st.button("🧾 Afficher preview JSON", use_container_width=True, key="coindesk_show_json_btn"):
-            st.session_state.coindesk_show_json_state = True
+    if st.session_state.cnbc_json_ready and cnbc_status.get("json_preview_text") and not st.session_state.cnbc_show_json_state:
+        if st.button("🧾 Afficher preview JSON", use_container_width=True, key="cnbc_show_json_btn"):
+            st.session_state.cnbc_show_json_state = True
             st.rerun()
 
-    if coindesk_status.get("json_preview_text") and st.session_state.coindesk_show_json_state:
+    if cnbc_status.get("json_preview_text") and st.session_state.cnbc_show_json_state:
         st.markdown("**Preview JSON**")
-        coindesk_edited_json = st.text_area(
+        cnbc_edited_json = st.text_area(
             label="",
-            value=coindesk_status.get("json_preview_text", ""),
+            value=cnbc_status.get("json_preview_text", ""),
             height=350,
-            key="coindesk_json_editor",
+            key="cnbc_json_editor",
         )
         col_send, col_clear_json = st.columns(2)
         with col_send:
-            if st.button("✅ Envoyer en DB", use_container_width=True, key="coindesk_send_db"):
-                result = coindesk_job.send_to_db()
+            if st.button("✅ Envoyer en DB", use_container_width=True, key="cnbc_send_db"):
+                result = cnbc_job.send_to_db()
                 if result.get("status") == "success":
                     st.success(f"{result.get('inserted', 0)} items insérés en base")
                 else:
                     st.error(result.get("message", "Erreur DB"))
         with col_clear_json:
-            if st.button("🧹 Clear JSON", use_container_width=True, key="coindesk_clear_json"):
-                coindesk_job.json_preview_text = ""
-                coindesk_job.json_items = []
-                st.session_state.coindesk_show_json_state = False
-                st.session_state.coindesk_json_ready = False
+            if st.button("🧹 Clear JSON", use_container_width=True, key="cnbc_clear_json"):
+                cnbc_job.json_preview_text = ""
+                cnbc_job.json_items = []
+                st.session_state.cnbc_show_json_state = False
+                st.session_state.cnbc_json_ready = False
                 st.rerun()
 
 st.divider()

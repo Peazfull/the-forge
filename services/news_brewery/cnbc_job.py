@@ -12,7 +12,7 @@ from openai import OpenAI
 from services.raw_storage.raw_news_service import enrich_raw_items, insert_raw_news
 from services.hand_brewery.firecrawl_client import fetch_url_text
 from services.news_brewery.rss_utils import (
-    fetch_coindesk_dom_items,
+    fetch_cnbc_dom_items,
     fetch_rss_items,
     merge_article_items,
 )
@@ -51,7 +51,7 @@ class JobConfig:
     urls_override: Optional[List[Dict[str, str]]]
 
 
-class CoinDeskJob:
+class CnbcJob:
     def __init__(self) -> None:
         self.state = "idle"
         self.status_log: List[str] = []
@@ -157,7 +157,7 @@ class CoinDeskJob:
             self.json_items,
             flow="news_brewery",
             source_type="news",
-            source_name="CoinDesk",
+            source_name="CNBC",
             source_link=self._config.entry_url if self._config else "",
             source_date=datetime.now().isoformat(),
             source_raw=None,
@@ -267,7 +267,7 @@ class CoinDeskJob:
             self.state = "failed"
             return
         start_time = time.time()
-        buffer_path = f"/tmp/coindesk_buffer_{datetime.now().strftime('%Y%m%d')}.txt"
+        buffer_path = f"/tmp/cnbc_buffer_{datetime.now().strftime('%Y%m%d')}.txt"
         self.buffer_path = buffer_path
         self.buffer_text = ""
         self.json_preview_text = ""
@@ -280,7 +280,7 @@ class CoinDeskJob:
         self._log("🚀 Job démarré")
 
         if not config.use_rss:
-            self.errors.append("Mode RSS/DOM requis pour CoinDesk")
+            self.errors.append("Mode RSS/DOM requis pour CNBC")
             self.state = "failed"
             return
 
@@ -297,7 +297,7 @@ class CoinDeskJob:
                     ignore_time_filter=config.rss_ignore_time_filter,
                 )
                 if config.rss_use_dom_fallback:
-                    articles_dom = fetch_coindesk_dom_items(
+                    articles_dom = fetch_cnbc_dom_items(
                         page_url=config.entry_url,
                         max_items=config.max_articles_total,
                         mode=config.mode,
@@ -394,11 +394,11 @@ class CoinDeskJob:
         self.state = "ready"
 
 
-_JOB_INSTANCE: Optional[CoinDeskJob] = None
+_JOB_INSTANCE: Optional[CnbcJob] = None
 
 
-def get_coindesk_job() -> CoinDeskJob:
+def get_cnbc_job() -> CnbcJob:
     global _JOB_INSTANCE
     if _JOB_INSTANCE is None:
-        _JOB_INSTANCE = CoinDeskJob()
+        _JOB_INSTANCE = CnbcJob()
     return _JOB_INSTANCE
