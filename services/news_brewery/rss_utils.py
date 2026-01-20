@@ -704,6 +704,8 @@ def fetch_boursier_etats_unis_dom_items(
             continue
         if url.startswith("/"):
             url = f"https://www.boursier.com{url}"
+        if "/actualites/etats-unis/" not in url:
+            continue
         if url in seen:
             continue
         seen.add(url)

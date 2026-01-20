@@ -29,6 +29,10 @@ REQUEST_TIMEOUT = 60
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 
+def _should_use_rss(feed_url: str) -> bool:
+    return "rss" in (feed_url or "").lower() or (feed_url or "").lower().endswith(".xml")
+
+
 @dataclass
 class JobConfig:
     entry_url: str
@@ -289,13 +293,16 @@ class BoursierEtatsUnisJob:
             if config.urls_override:
                 articles = config.urls_override
             else:
-                articles_rss = fetch_rss_items(
-                    feed_url=config.rss_feed_url,
-                    max_items=config.max_articles_total,
-                    mode=config.mode,
-                    hours_window=config.hours_window,
-                    ignore_time_filter=config.rss_ignore_time_filter,
-                )
+                if _should_use_rss(config.rss_feed_url):
+                    articles_rss = fetch_rss_items(
+                        feed_url=config.rss_feed_url,
+                        max_items=config.max_articles_total,
+                        mode=config.mode,
+                        hours_window=config.hours_window,
+                        ignore_time_filter=config.rss_ignore_time_filter,
+                    )
+                else:
+                    articles_rss = []
                 if config.rss_use_dom_fallback:
                     articles_dom = fetch_boursier_etats_unis_dom_items(
                         page_url=config.entry_url,
