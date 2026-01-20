@@ -489,6 +489,10 @@ if "boursier_france_json_ready" not in st.session_state:
     st.session_state.boursier_france_json_ready = False
 if "boursier_france_last_params" not in st.session_state:
     st.session_state.boursier_france_last_params = None
+if "mega_run_candidates" not in st.session_state:
+    st.session_state.mega_run_candidates = []
+if "mega_run_sources" not in st.session_state:
+    st.session_state.mega_run_sources = []
 
 # =========================
 # JOB — BFM BOURSE
