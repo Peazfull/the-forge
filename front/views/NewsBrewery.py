@@ -11,10 +11,15 @@ from services.news_brewery.boursier_economie_job import (
     JobConfig as BoursierEconomieJobConfig,
     get_boursier_economie_job,
 )
+from services.news_brewery.boursier_macroeconomie_job import (
+    JobConfig as BoursierMacroeconomieJobConfig,
+    get_boursier_macroeconomie_job,
+)
 from services.news_brewery.rss_utils import (
     fetch_beincrypto_dom_items,
     fetch_boursedirect_dom_items,
     fetch_boursier_dom_items,
+    fetch_boursier_macroeconomie_dom_items,
     fetch_dom_items,
     fetch_rss_items,
     merge_article_items,
@@ -60,6 +65,12 @@ if "boursier_economie_show_json_state" not in st.session_state:
     st.session_state.boursier_economie_show_json_state = False
 if "boursier_economie_json_ready" not in st.session_state:
     st.session_state.boursier_economie_json_ready = False
+if "boursier_macroeconomie_rss_candidates" not in st.session_state:
+    st.session_state.boursier_macroeconomie_rss_candidates = []
+if "boursier_macroeconomie_show_json_state" not in st.session_state:
+    st.session_state.boursier_macroeconomie_show_json_state = False
+if "boursier_macroeconomie_json_ready" not in st.session_state:
+    st.session_state.boursier_macroeconomie_json_ready = False
 
 # =========================
 # JOB — BFM BOURSE
@@ -1719,6 +1730,336 @@ with st.expander("▸ Job — Boursier Economie", expanded=False):
                 boursier_economie_job.json_items = []
                 st.session_state.boursier_economie_show_json_state = False
                 st.session_state.boursier_economie_json_ready = False
+                st.rerun()
+
+with st.expander("▸ Job — Boursier Macroeconomie", expanded=False):
+    boursier_macroeconomie_job = get_boursier_macroeconomie_job()
+    col_open, col_launch, col_clear = st.columns([2, 1, 1])
+
+    with col_open:
+        st.link_button("🔗 Ouvrir l’URL", "https://www.boursier.com/actualites/macroeconomie")
+    with col_launch:
+        boursier_macroeconomie_launch = st.button("▶️ Lancer", use_container_width=True, key="boursier_macroeconomie_launch")
+    with col_clear:
+        boursier_macroeconomie_clear = st.button("🧹 Clear", use_container_width=True, key="boursier_macroeconomie_clear")
+
+    with st.expander("Fenêtre temporelle", expanded=True):
+        boursier_macroeconomie_mode = st.radio(
+            "Mode",
+            options=["Aujourd’hui", "Dernières X heures"],
+            horizontal=True,
+            index=1,
+            key="boursier_macroeconomie_mode",
+        )
+        boursier_macroeconomie_hours_window = st.slider(
+            "Dernières X heures",
+            min_value=1,
+            max_value=24,
+            value=6,
+            step=1,
+            key="boursier_macroeconomie_hours_window",
+        )
+
+    with st.expander("Settings", expanded=False):
+        st.markdown("**Limites**")
+        col_max_total, col_max_per = st.columns(2)
+        with col_max_total:
+            boursier_macroeconomie_max_articles_total = st.number_input(
+                "Max articles total",
+                min_value=1,
+                max_value=100,
+                value=20,
+                step=1,
+                key="boursier_macroeconomie_max_total",
+            )
+        with col_max_per:
+            boursier_macroeconomie_max_articles_per = st.number_input(
+                "Max articles par bulletin",
+                min_value=1,
+                max_value=20,
+                value=20,
+                step=1,
+                key="boursier_macroeconomie_max_per",
+            )
+
+        st.markdown("**Timing**")
+        col_wait_min, col_wait_max = st.columns(2)
+        with col_wait_min:
+            boursier_macroeconomie_wait_min_action = st.number_input(
+                "Wait min action (s)",
+                min_value=0.1,
+                max_value=5.0,
+                value=0.6,
+                step=0.1,
+                key="boursier_macroeconomie_wait_min",
+            )
+        with col_wait_max:
+            boursier_macroeconomie_wait_max_action = st.number_input(
+                "Wait max action (s)",
+                min_value=0.2,
+                max_value=8.0,
+                value=2.5,
+                step=0.1,
+                key="boursier_macroeconomie_wait_max",
+            )
+
+        boursier_macroeconomie_shuffle_urls = st.checkbox(
+            "Shuffle URLs",
+            value=True,
+            key="boursier_macroeconomie_shuffle",
+        )
+        boursier_macroeconomie_dry_run = st.checkbox(
+            "DRY RUN",
+            value=False,
+            key="boursier_macroeconomie_dry_run",
+        )
+
+        st.markdown("**Safety**")
+        col_err, col_timeout = st.columns(2)
+        with col_err:
+            boursier_macroeconomie_max_consecutive_errors = st.number_input(
+                "Max erreurs consécutives",
+                min_value=1,
+                max_value=10,
+                value=3,
+                step=1,
+                key="boursier_macroeconomie_max_errors",
+            )
+        with col_timeout:
+            boursier_macroeconomie_global_timeout_minutes = st.number_input(
+                "Timeout global job (min)",
+                min_value=1,
+                max_value=60,
+                value=15,
+                step=1,
+                key="boursier_macroeconomie_timeout",
+            )
+
+        boursier_macroeconomie_remove_buffer = st.checkbox(
+            "Supprimer buffer après succès",
+            value=True,
+            key="boursier_macroeconomie_remove_buffer",
+        )
+
+        st.markdown("**Source URLs**")
+        boursier_macroeconomie_rss_feed_url = st.text_input(
+            "RSS feed",
+            value="https://www.boursier.com/actualites/macroeconomie",
+            key="boursier_macroeconomie_rss_feed",
+        )
+        boursier_macroeconomie_use_rss = st.checkbox(
+            "Mode RSS/DOM",
+            value=True,
+            key="boursier_macroeconomie_use_rss",
+        )
+        boursier_macroeconomie_use_firecrawl = st.checkbox(
+            "Scraper articles via Firecrawl",
+            value=True,
+            key="boursier_macroeconomie_use_firecrawl",
+        )
+        boursier_macroeconomie_rss_ignore_time_filter = st.checkbox(
+            "Ignorer filtre temporel RSS",
+            value=False,
+            key="boursier_macroeconomie_rss_ignore_time",
+        )
+        boursier_macroeconomie_rss_use_dom_fallback = st.checkbox(
+            "Compléter via DOM (Macroeconomie)",
+            value=True,
+            key="boursier_macroeconomie_rss_dom_fallback",
+        )
+
+    boursier_macroeconomie_selected_urls = []
+    if boursier_macroeconomie_use_rss:
+        col_clear, col_uncheck = st.columns(2)
+        with col_clear:
+            if st.button("🧹 Clear liste", use_container_width=True, key="boursier_macroeconomie_rss_clear"):
+                st.session_state.boursier_macroeconomie_rss_candidates = []
+                st.rerun()
+        with col_uncheck:
+            if st.button("☐ Décocher tout", use_container_width=True, key="boursier_macroeconomie_rss_uncheck_all"):
+                for idx in range(len(st.session_state.boursier_macroeconomie_rss_candidates)):
+                    st.session_state[f"boursier_macroeconomie_rss_pick_{idx}"] = False
+                st.rerun()
+
+        if st.session_state.boursier_macroeconomie_rss_candidates:
+            st.caption("Sélectionne les articles à traiter :")
+            for idx, item in enumerate(st.session_state.boursier_macroeconomie_rss_candidates):
+                label = f"{item.get('title','')}".strip() or item.get("url", "")
+                key = f"boursier_macroeconomie_rss_pick_{idx}"
+                if key not in st.session_state:
+                    st.session_state[key] = True
+                checked = st.checkbox(label, key=key)
+                if checked:
+                    boursier_macroeconomie_selected_urls.append(item)
+            st.caption(f"{len(boursier_macroeconomie_selected_urls)} article(s) sélectionné(s)")
+        else:
+            st.caption("Clique sur Lancer pour charger la liste.")
+
+    if st.session_state.boursier_macroeconomie_rss_candidates:
+        if st.button("🧭 Scrapper les articles", use_container_width=True, key="boursier_macroeconomie_scrape_articles"):
+            if not boursier_macroeconomie_selected_urls:
+                st.error("Sélectionne au moins un article.")
+            else:
+                boursier_macroeconomie_job.set_buffer_text("")
+                boursier_macroeconomie_job.json_preview_text = ""
+                boursier_macroeconomie_job.json_items = []
+                st.session_state.boursier_macroeconomie_show_json_state = False
+                st.session_state.boursier_macroeconomie_json_ready = False
+                config = BoursierMacroeconomieJobConfig(
+                    entry_url="https://www.boursier.com/actualites/macroeconomie",
+                    mode="today" if boursier_macroeconomie_mode == "Aujourd’hui" else "last_hours",
+                    hours_window=int(boursier_macroeconomie_hours_window),
+                    max_articles_total=int(boursier_macroeconomie_max_articles_total),
+                    max_articles_per_bulletin=int(boursier_macroeconomie_max_articles_per),
+                    wait_min_action=float(boursier_macroeconomie_wait_min_action),
+                    wait_max_action=float(boursier_macroeconomie_wait_max_action),
+                    shuffle_urls=bool(boursier_macroeconomie_shuffle_urls),
+                    dry_run=bool(boursier_macroeconomie_dry_run),
+                    max_consecutive_errors=int(boursier_macroeconomie_max_consecutive_errors),
+                    global_timeout_minutes=int(boursier_macroeconomie_global_timeout_minutes),
+                    remove_buffer_after_success=bool(boursier_macroeconomie_remove_buffer),
+                    use_rss=bool(boursier_macroeconomie_use_rss),
+                    rss_feed_url=boursier_macroeconomie_rss_feed_url,
+                    rss_ignore_time_filter=bool(boursier_macroeconomie_rss_ignore_time_filter),
+                    rss_use_dom_fallback=bool(boursier_macroeconomie_rss_use_dom_fallback),
+                    use_firecrawl=bool(boursier_macroeconomie_use_firecrawl),
+                    urls_override=boursier_macroeconomie_selected_urls,
+                )
+                boursier_macroeconomie_job.start(config)
+                st.success("Scraping lancé.")
+
+    if boursier_macroeconomie_launch:
+        if boursier_macroeconomie_use_rss:
+            boursier_macroeconomie_job.set_buffer_text("")
+            boursier_macroeconomie_job.json_preview_text = ""
+            boursier_macroeconomie_job.json_items = []
+            st.session_state.boursier_macroeconomie_show_json_state = False
+            st.session_state.boursier_macroeconomie_json_ready = False
+            rss_items = fetch_rss_items(
+                feed_url=boursier_macroeconomie_rss_feed_url,
+                max_items=int(boursier_macroeconomie_max_articles_total),
+                mode="today" if boursier_macroeconomie_mode == "Aujourd’hui" else "last_hours",
+                hours_window=int(boursier_macroeconomie_hours_window),
+                ignore_time_filter=bool(boursier_macroeconomie_rss_ignore_time_filter),
+            )
+            if boursier_macroeconomie_rss_use_dom_fallback:
+                dom_items = fetch_boursier_macroeconomie_dom_items(
+                    page_url="https://www.boursier.com/actualites/macroeconomie",
+                    max_items=int(boursier_macroeconomie_max_articles_total),
+                    mode="today" if boursier_macroeconomie_mode == "Aujourd’hui" else "last_hours",
+                    hours_window=int(boursier_macroeconomie_hours_window),
+                    use_firecrawl_fallback=bool(boursier_macroeconomie_use_firecrawl),
+                )
+                st.session_state.boursier_macroeconomie_rss_candidates = merge_article_items(
+                    dom_items,
+                    rss_items,
+                    int(boursier_macroeconomie_max_articles_total),
+                )
+            else:
+                st.session_state.boursier_macroeconomie_rss_candidates = rss_items
+            boursier_macroeconomie_job.status_log.append("🔎 URLs chargées")
+            if not st.session_state.boursier_macroeconomie_rss_candidates:
+                st.warning("Aucune URL détectée. DOM vide ou bloqué ; active Firecrawl ou un RSS valide.")
+            st.rerun()
+
+    if boursier_macroeconomie_clear:
+        boursier_macroeconomie_job.clear()
+        st.session_state.boursier_macroeconomie_rss_candidates = []
+        st.session_state.boursier_macroeconomie_show_json_state = False
+        st.session_state.boursier_macroeconomie_json_ready = False
+        for key in list(st.session_state.keys()):
+            if key.startswith("boursier_macroeconomie_rss_pick_"):
+                st.session_state.pop(key, None)
+        st.success("Job réinitialisé.")
+        st.rerun()
+
+    boursier_macroeconomie_status = boursier_macroeconomie_job.get_status()
+    boursier_macroeconomie_state = boursier_macroeconomie_status.get("state")
+    boursier_macroeconomie_total = boursier_macroeconomie_status.get("total", 0)
+    boursier_macroeconomie_processed = boursier_macroeconomie_status.get("processed", 0)
+    boursier_macroeconomie_skipped = boursier_macroeconomie_status.get("skipped", 0)
+    boursier_macroeconomie_started_at = boursier_macroeconomie_status.get("started_at")
+    boursier_macroeconomie_last_log = boursier_macroeconomie_status.get("last_log", "")
+
+    st.progress(boursier_macroeconomie_processed / max(boursier_macroeconomie_total, 1))
+    status_parts = [
+        f"{boursier_macroeconomie_processed}/{boursier_macroeconomie_total} traités",
+        f"{boursier_macroeconomie_skipped} ignorés",
+    ]
+    if boursier_macroeconomie_state:
+        status_parts.append(f"état: {boursier_macroeconomie_state}")
+    if boursier_macroeconomie_started_at:
+        elapsed = int(time.time() - boursier_macroeconomie_started_at)
+        status_parts.append(f"{elapsed}s")
+    st.caption(" · ".join(status_parts))
+    if boursier_macroeconomie_last_log:
+        st.caption(f"Statut : {boursier_macroeconomie_last_log}")
+    if boursier_macroeconomie_status.get("errors"):
+        st.markdown("**Erreurs :**")
+        for err in boursier_macroeconomie_status.get("errors")[-3:]:
+            st.write(f"⚠️ {err}")
+    if boursier_macroeconomie_state in ("running", "paused"):
+        st.info("Job en cours — rafraîchissement automatique activé.")
+        time.sleep(2)
+        st.rerun()
+
+    if boursier_macroeconomie_status.get("buffer_text"):
+        st.divider()
+        st.markdown("**Preview concaténée (buffer)**")
+        boursier_macroeconomie_edited_buffer = st.text_area(
+            label="",
+            value=boursier_macroeconomie_status.get("buffer_text", ""),
+            height=320,
+            key="boursier_macroeconomie_buffer_editor",
+        )
+        col_json, col_clear_buf = st.columns(2)
+        with col_json:
+            if st.button("✅ Dédoublonner + JSON", use_container_width=True, key="boursier_macroeconomie_finalize"):
+                boursier_macroeconomie_job.set_buffer_text(boursier_macroeconomie_edited_buffer)
+                result = boursier_macroeconomie_job.finalize_buffer()
+                if result.get("status") == "success":
+                    st.success(f"{len(result.get('items', []))} items générés")
+                    st.session_state.boursier_macroeconomie_json_ready = True
+                    st.session_state.boursier_macroeconomie_show_json_state = False
+                    boursier_macroeconomie_status = boursier_macroeconomie_job.get_status()
+                else:
+                    st.error(result.get("message", "Erreur JSON"))
+        with col_clear_buf:
+            if st.button("🧹 Clear buffer", use_container_width=True, key="boursier_macroeconomie_clear_buffer"):
+                boursier_macroeconomie_job.set_buffer_text("")
+                st.rerun()
+
+    if (
+        st.session_state.boursier_macroeconomie_json_ready
+        and boursier_macroeconomie_status.get("json_preview_text")
+        and not st.session_state.boursier_macroeconomie_show_json_state
+    ):
+        if st.button("🧾 Afficher preview JSON", use_container_width=True, key="boursier_macroeconomie_show_json_btn"):
+            st.session_state.boursier_macroeconomie_show_json_state = True
+            st.rerun()
+
+    if boursier_macroeconomie_status.get("json_preview_text") and st.session_state.boursier_macroeconomie_show_json_state:
+        st.markdown("**Preview JSON**")
+        boursier_macroeconomie_edited_json = st.text_area(
+            label="",
+            value=boursier_macroeconomie_status.get("json_preview_text", ""),
+            height=350,
+            key="boursier_macroeconomie_json_editor",
+        )
+        col_send, col_clear_json = st.columns(2)
+        with col_send:
+            if st.button("✅ Envoyer en DB", use_container_width=True, key="boursier_macroeconomie_send_db"):
+                result = boursier_macroeconomie_job.send_to_db()
+                if result.get("status") == "success":
+                    st.success(f"{result.get('inserted', 0)} items insérés en base")
+                else:
+                    st.error(result.get("message", "Erreur DB"))
+        with col_clear_json:
+            if st.button("🧹 Clear JSON", use_container_width=True, key="boursier_macroeconomie_clear_json"):
+                boursier_macroeconomie_job.json_preview_text = ""
+                boursier_macroeconomie_job.json_items = []
+                st.session_state.boursier_macroeconomie_show_json_state = False
+                st.session_state.boursier_macroeconomie_json_ready = False
                 st.rerun()
 
 st.divider()
