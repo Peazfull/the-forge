@@ -297,15 +297,14 @@ def fetch_coindesk_dom_items(
 
     content = html_text
 
-    anchor_pattern = re.compile(
-        r'<a[^>]+class="[^"]*content-card-title[^"]*"[^>]+href="([^"]+)"[^>]*>.*?<h2[^>]*>(.*?)</h2>',
+    card_pattern = re.compile(
+        r'<a[^>]+class="[^"]*content-card-title[^"]*"[^>]+href="([^"]+)"[^>]*>\s*'
+        r'<h2[^>]*>(.*?)</h2>.*?'
+        r'<span[^>]+class="[^"]*font-metadata[^"]*"[^>]*>(.*?)</span>',
         re.S,
     )
 
-    for match in anchor_pattern.finditer(content):
-        href = match.group(1)
-        title_html = match.group(2)
-
+    for href, title_html, time_text in card_pattern.findall(content):
         url = href.strip()
         if not url:
             continue
@@ -318,11 +317,7 @@ def fetch_coindesk_dom_items(
         title = re.sub(r"<.*?>", "", title_html)
         title = unescape(title).strip()
 
-        time_text = ""
-        tail = content[match.end(): match.end() + 500]
-        time_match = re.search(r'<span[^>]+class="font-metadata[^"]*"[^>]*>(.*?)</span>', tail, re.S)
-        if time_match:
-            time_text = re.sub(r"<.*?>", "", time_match.group(1)).strip()
+        time_text = re.sub(r"<.*?>", "", time_text).strip()
 
         label_dt = None
         if time_text:
