@@ -700,7 +700,7 @@ def fetch_boursier_etats_unis_dom_items(
     items: List[Dict[str, str]] = []
     seen = set()
 
-    content = _slice_boursier_listing(html_text, "/actualites/etats-unis/")
+    content = _slice_boursier_listing(html_text)
 
     pattern = re.compile(
         r'<div class="item[^"]*">.*?'
@@ -709,7 +709,7 @@ def fetch_boursier_etats_unis_dom_items(
         re.S,
     )
 
-    raw_items = []
+    items = []
     for datetime_attr, time_text, href, title_html in pattern.findall(content):
         url = href.strip()
         if not url:
@@ -737,17 +737,13 @@ def fetch_boursier_etats_unis_dom_items(
         if not _within_window(label_dt, mode, hours_window):
             continue
 
-        raw_items.append({
+        items.append({
             "url": url,
             "title": title,
             "label_dt": label_dt.isoformat() if label_dt else "",
         })
-        if len(raw_items) >= max_items:
+        if len(items) >= max_items:
             break
-
-    # Prefer the explicit Etats-Unis category when present, otherwise keep all.
-    filtered = [item for item in raw_items if "/actualites/etats-unis/" in item.get("url", "")]
-    items = filtered if filtered else raw_items
 
     if items:
         return items
