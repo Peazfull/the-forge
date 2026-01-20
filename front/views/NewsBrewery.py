@@ -35,6 +35,11 @@ from services.raw_storage.raw_news_service import fetch_raw_news
 st.title("🗞️ NEWS Brewery")
 st.divider()
 
+if "mega_run_candidates" not in st.session_state:
+    st.session_state.mega_run_candidates = []
+if "mega_run_sources" not in st.session_state:
+    st.session_state.mega_run_sources = []
+
 def _clear_job_state(prefix: str) -> None:
     for key in list(st.session_state.keys()):
         if key.startswith(f"{prefix}rss_pick_"):
