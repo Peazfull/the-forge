@@ -294,6 +294,45 @@ def _parse_cnbc_date(text: str) -> datetime | None:
         return None
 
 
+def _parse_boursedirect_datetime(day_text: str, month_year_text: str, time_text: str) -> datetime | None:
+    month_year = month_year_text.strip().split()
+    if len(month_year) < 1:
+        return None
+    month_name = month_year[0].lower()
+    year = int(month_year[1]) if len(month_year) > 1 and month_year[1].isdigit() else datetime.now().year
+    months = {
+        "janvier": 1,
+        "février": 2,
+        "fevrier": 2,
+        "mars": 3,
+        "avril": 4,
+        "mai": 5,
+        "juin": 6,
+        "juillet": 7,
+        "août": 8,
+        "aout": 8,
+        "septembre": 9,
+        "octobre": 10,
+        "novembre": 11,
+        "décembre": 12,
+        "decembre": 12,
+    }
+    month = months.get(month_name)
+    if not month:
+        return None
+    try:
+        day = int(day_text)
+    except Exception:
+        return None
+    hour, minute = 0, 0
+    if time_text:
+        time_match = re.search(r"(\d{1,2}):(\d{2})", time_text)
+        if time_match:
+            hour = int(time_match.group(1))
+            minute = int(time_match.group(2))
+    return datetime(year, month, day, hour, minute)
+
+
 def fetch_cnbc_dom_items(
     page_url: str,
     max_items: int,
@@ -369,6 +408,57 @@ def fetch_cnbc_dom_items(
                     break
             if items:
                 return items
+
+    return items
+
+
+def fetch_boursedirect_dom_items(
+    page_url: str,
+    max_items: int,
+    mode: str,
+    hours_window: int,
+) -> List[Dict[str, str]]:
+    html_text = _fetch_html_text(page_url)
+    if not html_text:
+        return []
+
+    items: List[Dict[str, str]] = []
+    seen = set()
+
+    pattern = re.compile(
+        r'<div class="timeline-item[^"]*">.*?'
+        r'<div class="timeline-date-left[^"]*">([^<]+)</div>.*?'
+        r'<span class="publishDay">(\d{1,2})</span>.*?'
+        r'<span class="text-muted">([^<]+)</span>.*?'
+        r'<a href="([^"]+)">.*?'
+        r'<h2 class="timeline-title[^"]*">(.*?)</h2>',
+        re.S,
+    )
+
+    for time_text, day_text, month_year_text, href, title_html in pattern.findall(html_text):
+        url = href.strip()
+        if not url:
+            continue
+        if url.startswith("/"):
+            url = f"https://www.boursedirect.fr{url}"
+        if url in seen:
+            continue
+        seen.add(url)
+
+        title = re.sub(r"<.*?>", "", title_html)
+        title = unescape(title).strip()
+
+        label_dt = _parse_boursedirect_datetime(day_text, month_year_text, time_text)
+        if not _within_window(label_dt, mode, hours_window):
+            continue
+
+        items.append({
+            "url": url,
+            "title": title,
+            "label_dt": label_dt.isoformat() if label_dt else "",
+        })
+        if len(items) >= max_items:
+            break
 
     return items
 
