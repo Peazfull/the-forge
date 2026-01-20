@@ -3,6 +3,7 @@ from email.utils import parsedate_to_datetime
 from html import unescape
 from typing import Dict, List
 from urllib.request import Request, urlopen
+import gzip
 import re
 
 import feedparser
@@ -120,6 +121,28 @@ def _within_window(label_dt: datetime | None, mode: str, hours_window: int) -> b
     return True
 
 
+def _fetch_html_text(page_url: str) -> str:
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+                      "AppleWebKit/537.36 (KHTML, like Gecko) "
+                      "Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9,fr;q=0.8",
+        "Cache-Control": "no-cache",
+        "Pragma": "no-cache",
+    }
+    try:
+        req = Request(page_url, headers=headers)
+        with urlopen(req, timeout=20) as resp:
+            raw = resp.read()
+            encoding = (resp.headers.get("Content-Encoding") or "").lower()
+            if "gzip" in encoding:
+                raw = gzip.decompress(raw)
+            return raw.decode("utf-8", errors="ignore")
+    except Exception:
+        return ""
+
+
 def fetch_dom_items(
     page_url: str,
     max_items: int,
@@ -127,11 +150,8 @@ def fetch_dom_items(
     hours_window: int,
 ) -> List[Dict[str, str]]:
     # Fetch the "TOUT" list directly from the HTML DOM (no JS required).
-    try:
-        req = Request(page_url, headers={"User-Agent": "Mozilla/5.0"})
-        with urlopen(req, timeout=20) as resp:
-            html_text = resp.read().decode("utf-8", errors="ignore")
-    except Exception:
+    html_text = _fetch_html_text(page_url)
+    if not html_text:
         return []
 
     # Narrow HTML to the news list block to reduce noise.
@@ -212,11 +232,8 @@ def fetch_beincrypto_dom_items(
     mode: str,
     hours_window: int,
 ) -> List[Dict[str, str]]:
-    try:
-        req = Request(page_url, headers={"User-Agent": "Mozilla/5.0"})
-        with urlopen(req, timeout=20) as resp:
-            html_text = resp.read().decode("utf-8", errors="ignore")
-    except Exception:
+    html_text = _fetch_html_text(page_url)
+    if not html_text:
         return []
 
     items: List[Dict[str, str]] = []
@@ -285,11 +302,8 @@ def fetch_coindesk_dom_items(
     mode: str,
     hours_window: int,
 ) -> List[Dict[str, str]]:
-    try:
-        req = Request(page_url, headers={"User-Agent": "Mozilla/5.0"})
-        with urlopen(req, timeout=20) as resp:
-            html_text = resp.read().decode("utf-8", errors="ignore")
-    except Exception:
+    html_text = _fetch_html_text(page_url)
+    if not html_text:
         return []
 
     items: List[Dict[str, str]] = []
@@ -304,7 +318,8 @@ def fetch_coindesk_dom_items(
         re.S,
     )
 
-    for href, title_html, time_text in card_pattern.findall(content):
+    matches = card_pattern.findall(content)
+    for href, title_html, time_text in matches:
         url = href.strip()
         if not url:
             continue
@@ -332,6 +347,35 @@ def fetch_coindesk_dom_items(
             "url": url,
             "title": title,
             "label_dt": label_dt.isoformat() if label_dt else "",
+        })
+        if len(items) >= max_items:
+            break
+
+    if items:
+        return items
+
+    # Fallback: extract anchors only, skip time filtering when missing.
+    anchor_pattern = re.compile(
+        r'<a[^>]+class="[^"]*content-card-title[^"]*"[^>]+href="([^"]+)"[^>]*>\s*<h2[^>]*>(.*?)</h2>',
+        re.S,
+    )
+    for href, title_html in anchor_pattern.findall(content):
+        url = href.strip()
+        if not url:
+            continue
+        if url.startswith("/"):
+            url = f"https://www.coindesk.com{url}"
+        if url in seen:
+            continue
+        seen.add(url)
+
+        title = re.sub(r"<.*?>", "", title_html)
+        title = unescape(title).strip()
+
+        items.append({
+            "url": url,
+            "title": title,
+            "label_dt": "",
         })
         if len(items) >= max_items:
             break
