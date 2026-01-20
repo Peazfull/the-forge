@@ -35,7 +35,7 @@ if "bein_json_ready" not in st.session_state:
 # =========================
 # JOB — BFM BOURSE
 # =========================
-with st.expander("▸ Job — BFM Bourse", expanded=True):
+with st.expander("▸ Job — BFM Bourse", expanded=False):
     col_open, col_launch, col_clear = st.columns([2, 1, 1])
 
     with col_open:
@@ -405,7 +405,7 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
 # =========================
 # JOB — BEINCRYPTO
 # =========================
-with st.expander("▸ Job — BeInCrypto", expanded=True):
+with st.expander("▸ Job — BeInCrypto", expanded=False):
     bein_job = get_beincrypto_job()
     col_open, col_launch, col_clear = st.columns([2, 1, 1])
 
