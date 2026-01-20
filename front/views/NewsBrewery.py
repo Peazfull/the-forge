@@ -2612,6 +2612,10 @@ with st.expander("▸ Job — Boursier Etats-Unis", expanded=False):
 
     if boursier_etats_unis_launch:
         if boursier_etats_unis_use_rss:
+            st.session_state.boursier_etats_unis_rss_candidates = []
+            for key in list(st.session_state.keys()):
+                if key.startswith("boursier_etats_unis_rss_pick_"):
+                    st.session_state.pop(key, None)
             boursier_etats_unis_job.set_buffer_text("")
             boursier_etats_unis_job.json_preview_text = ""
             boursier_etats_unis_job.json_items = []
