@@ -76,11 +76,19 @@ def clear_all_jobs() -> None:
     _clear_mega_state()
 
 
-def _collect_mega_urls(mode: str, hours_window: int, max_items: int) -> list[dict]:
+def _collect_mega_urls(
+    mode: str,
+    hours_window: int,
+    max_items: int,
+    source_keys: list[str] | None = None,
+) -> list[dict]:
     results: list[dict] = []
     seen = set()
+    source_keys = source_keys or []
 
     def _add(source_key: str, source_label: str, items: list[dict]) -> None:
+        if source_keys and source_key not in source_keys:
+            return
         for item in items:
             url = item.get("url", "")
             if not url or url in seen:
@@ -218,6 +226,27 @@ with st.expander("▸ Mega Job — Run all", expanded=False):
                 key="mega_run_max_per",
             )
 
+    all_sources = [
+        ("bfm", "BFM Bourse"),
+        ("beincrypto", "BeInCrypto"),
+        ("boursedirect", "Bourse Direct"),
+        ("boursedirect_indices", "Bourse Direct Indices"),
+        ("boursier_economie", "Boursier Économie"),
+        ("boursier_macroeconomie", "Boursier Macroeconomie"),
+        ("boursier_france", "Boursier France"),
+    ]
+    source_labels = [label for _, label in all_sources]
+    if not st.session_state.mega_run_sources:
+        st.session_state.mega_run_sources = source_labels
+    selected_sources = st.multiselect(
+        "Sources",
+        options=source_labels,
+        key="mega_run_sources",
+    )
+    selected_source_keys = [
+        key for key, label in all_sources if label in selected_sources
+    ]
+
     col_load, col_check, col_uncheck = st.columns(3)
     with col_load:
         if st.button("🔎 Charger toutes les URLs", use_container_width=True, key="mega_run_load"):
@@ -226,6 +255,7 @@ with st.expander("▸ Mega Job — Run all", expanded=False):
                 mode=mega_mode,
                 hours_window=mega_hours_window,
                 max_items=int(mega_max_total),
+                source_keys=selected_source_keys,
             )
             st.rerun()
     with col_check:
@@ -243,22 +273,6 @@ with st.expander("▸ Mega Job — Run all", expanded=False):
 
     mega_selected_urls = []
     if st.session_state.mega_run_candidates:
-        all_sources = [
-            "BFM Bourse",
-            "BeInCrypto",
-            "Bourse Direct",
-            "Bourse Direct Indices",
-            "Boursier Économie",
-            "Boursier Macroeconomie",
-            "Boursier France",
-        ]
-        if not st.session_state.mega_run_sources:
-            st.session_state.mega_run_sources = all_sources
-        selected_sources = st.multiselect(
-            "Sources",
-            options=all_sources,
-            key="mega_run_sources",
-        )
         filtered_candidates = [
             item for item in st.session_state.mega_run_candidates
             if item.get("source_label") in selected_sources
