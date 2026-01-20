@@ -11,9 +11,10 @@ except Exception:
 
 import re
 try:
-    from services.hand_brewery.firecrawl_client import fetch_url_text
+    from services.hand_brewery.firecrawl_client import fetch_url_text, fetch_url_html
 except Exception:
     fetch_url_text = None
+    fetch_url_html = None
 
 import feedparser
 
@@ -386,6 +387,11 @@ def fetch_boursier_dom_items(
     html_text = _fetch_html_text(page_url)
     if not html_text:
         html_text = ""
+        if use_firecrawl_fallback and fetch_url_html:
+            try:
+                html_text = fetch_url_html(page_url) or ""
+            except Exception:
+                html_text = ""
 
     items: List[Dict[str, str]] = []
     seen = set()
@@ -471,6 +477,11 @@ def fetch_boursier_macroeconomie_dom_items(
     html_text = _fetch_html_text(page_url)
     if not html_text:
         html_text = ""
+        if use_firecrawl_fallback and fetch_url_html:
+            try:
+                html_text = fetch_url_html(page_url) or ""
+            except Exception:
+                html_text = ""
 
     items: List[Dict[str, str]] = []
     seen = set()
@@ -556,9 +567,9 @@ def fetch_boursier_france_dom_items(
     html_text = _fetch_html_text(page_url)
     if not html_text:
         html_text = ""
-        if use_firecrawl_fallback and fetch_url_text:
+        if use_firecrawl_fallback and fetch_url_html:
             try:
-                html_text = fetch_url_text(page_url) or ""
+                html_text = fetch_url_html(page_url) or ""
             except Exception:
                 html_text = ""
 
@@ -646,9 +657,9 @@ def fetch_boursier_etats_unis_dom_items(
     html_text = _fetch_html_text(page_url)
     if not html_text:
         html_text = ""
-        if use_firecrawl_fallback and fetch_url_text:
+        if use_firecrawl_fallback and fetch_url_html:
             try:
-                html_text = fetch_url_text(page_url) or ""
+                html_text = fetch_url_html(page_url) or ""
             except Exception:
                 html_text = ""
 
