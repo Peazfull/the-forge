@@ -220,7 +220,6 @@ with st.expander("▸ Mega Job — Run all", expanded=False):
         selected_sources = st.multiselect(
             "Sources",
             options=all_sources,
-            default=st.session_state.mega_run_sources,
             key="mega_run_sources",
         )
         filtered_candidates = [
