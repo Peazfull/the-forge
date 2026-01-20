@@ -202,8 +202,8 @@ with st.expander("▸ Mega Job — Run all", expanded=False):
             mega_max_total = st.number_input(
                 "Max articles total",
                 min_value=1,
-                max_value=100,
-                value=50,
+                max_value=1000,
+                value=400,
                 step=1,
                 key="mega_run_max_total",
             )
@@ -211,8 +211,8 @@ with st.expander("▸ Mega Job — Run all", expanded=False):
             mega_max_per = st.number_input(
                 "Max articles par bulletin",
                 min_value=1,
-                max_value=50,
-                value=50,
+                max_value=1000,
+                value=400,
                 step=1,
                 key="mega_run_max_per",
             )
