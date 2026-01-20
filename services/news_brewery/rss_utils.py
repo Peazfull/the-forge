@@ -10,10 +10,6 @@ except Exception:
     brotli = None
 
 import re
-try:
-    from services.hand_brewery.firecrawl_client import fetch_url_text
-except Exception:
-    fetch_url_text = None
 
 import feedparser
 
@@ -286,14 +282,6 @@ def fetch_beincrypto_dom_items(
     return items
 
 
-def _parse_cnbc_date(text: str) -> datetime | None:
-    clean = re.sub(r"(\d{1,2})(st|nd|rd|th)", r"\1", text.strip(), flags=re.I)
-    try:
-        return datetime.strptime(clean, "%a, %b %d %Y")
-    except Exception:
-        return None
-
-
 def _parse_boursedirect_datetime(day_text: str, month_year_text: str, time_text: str) -> datetime | None:
     month_year = month_year_text.strip().split()
     if len(month_year) < 1:
@@ -331,85 +319,6 @@ def _parse_boursedirect_datetime(day_text: str, month_year_text: str, time_text:
             hour = int(time_match.group(1))
             minute = int(time_match.group(2))
     return datetime(year, month, day, hour, minute)
-
-
-def fetch_cnbc_dom_items(
-    page_url: str,
-    max_items: int,
-    mode: str,
-    hours_window: int,
-    use_firecrawl_fallback: bool = False,
-) -> List[Dict[str, str]]:
-    html_text = _fetch_html_text(page_url)
-    if not html_text:
-        return []
-
-    items: List[Dict[str, str]] = []
-    seen = set()
-
-    card_pattern = re.compile(
-        r'<div[^>]+class="[^"]*Card-[^"]*"[^>]*>.*?'
-        r'<a[^>]+class="Card-title"[^>]+href="([^"]+)"[^>]*>(.*?)</a>.*?'
-        r'<span[^>]+class="Card-time"[^>]*>(.*?)</span>',
-        re.S,
-    )
-
-    for href, title_html, time_text in card_pattern.findall(html_text):
-        url = href.strip()
-        if not url:
-            continue
-        if url in seen:
-            continue
-        seen.add(url)
-
-        title = re.sub(r"<.*?>", "", title_html)
-        title = unescape(title).strip()
-
-        label_dt = None
-        if time_text:
-            label_dt = _parse_cnbc_date(re.sub(r"<.*?>", "", time_text).strip())
-        if not _within_window(label_dt, mode, hours_window):
-            continue
-
-        items.append({
-            "url": url,
-            "title": title,
-            "label_dt": label_dt.isoformat() if label_dt else "",
-        })
-        if len(items) >= max_items:
-            break
-
-    if items:
-        return items
-
-    if use_firecrawl_fallback and fetch_url_text:
-        try:
-            markdown = fetch_url_text(page_url)
-        except Exception:
-            markdown = ""
-        if markdown:
-            link_pattern = re.compile(
-                r"\[([^\]]+)\]\((https?://www\.cnbc\.com/\\d{4}/\\d{2}/\\d{2}/[^)]+)\)"
-            )
-            for title_text, href in link_pattern.findall(markdown):
-                url = href.strip()
-                if url in seen:
-                    continue
-                seen.add(url)
-                title = title_text.strip()
-                if not title:
-                    continue
-                items.append({
-                    "url": url,
-                    "title": title,
-                    "label_dt": "",
-                })
-                if len(items) >= max_items:
-                    break
-            if items:
-                return items
-
-    return items
 
 
 def fetch_boursedirect_dom_items(
