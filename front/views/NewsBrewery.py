@@ -87,12 +87,16 @@ if "boursier_france_show_json_state" not in st.session_state:
     st.session_state.boursier_france_show_json_state = False
 if "boursier_france_json_ready" not in st.session_state:
     st.session_state.boursier_france_json_ready = False
+if "boursier_france_last_params" not in st.session_state:
+    st.session_state.boursier_france_last_params = None
 if "boursier_etats_unis_rss_candidates" not in st.session_state:
     st.session_state.boursier_etats_unis_rss_candidates = []
 if "boursier_etats_unis_show_json_state" not in st.session_state:
     st.session_state.boursier_etats_unis_show_json_state = False
 if "boursier_etats_unis_json_ready" not in st.session_state:
     st.session_state.boursier_etats_unis_json_ready = False
+if "boursier_etats_unis_last_params" not in st.session_state:
+    st.session_state.boursier_etats_unis_last_params = None
 
 # =========================
 # JOB — BFM BOURSE
@@ -2220,6 +2224,21 @@ with st.expander("▸ Job — Boursier France", expanded=False):
             key="boursier_france_rss_dom_fallback",
         )
 
+    boursier_france_params = (
+        boursier_france_mode,
+        int(boursier_france_hours_window),
+        int(boursier_france_max_articles_total),
+        bool(boursier_france_rss_ignore_time_filter),
+        bool(boursier_france_rss_use_dom_fallback),
+        boursier_france_rss_feed_url,
+    )
+    if st.session_state.boursier_france_last_params != boursier_france_params:
+        st.session_state.boursier_france_rss_candidates = []
+        for key in list(st.session_state.keys()):
+            if key.startswith("boursier_france_rss_pick_"):
+                st.session_state.pop(key, None)
+        st.session_state.boursier_france_last_params = boursier_france_params
+
     boursier_france_selected_urls = []
     if boursier_france_use_rss:
         col_clear, col_uncheck = st.columns(2)
@@ -2319,6 +2338,7 @@ with st.expander("▸ Job — Boursier France", expanded=False):
         st.session_state.boursier_france_rss_candidates = []
         st.session_state.boursier_france_show_json_state = False
         st.session_state.boursier_france_json_ready = False
+        st.session_state.boursier_france_last_params = None
         for key in list(st.session_state.keys()):
             if key.startswith("boursier_france_rss_pick_"):
                 st.session_state.pop(key, None)
@@ -2550,6 +2570,21 @@ with st.expander("▸ Job — Boursier Etats-Unis", expanded=False):
             key="boursier_etats_unis_rss_dom_fallback",
         )
 
+    boursier_etats_unis_params = (
+        boursier_etats_unis_mode,
+        int(boursier_etats_unis_hours_window),
+        int(boursier_etats_unis_max_articles_total),
+        bool(boursier_etats_unis_rss_ignore_time_filter),
+        bool(boursier_etats_unis_rss_use_dom_fallback),
+        boursier_etats_unis_rss_feed_url,
+    )
+    if st.session_state.boursier_etats_unis_last_params != boursier_etats_unis_params:
+        st.session_state.boursier_etats_unis_rss_candidates = []
+        for key in list(st.session_state.keys()):
+            if key.startswith("boursier_etats_unis_rss_pick_"):
+                st.session_state.pop(key, None)
+        st.session_state.boursier_etats_unis_last_params = boursier_etats_unis_params
+
     boursier_etats_unis_selected_urls = []
     if boursier_etats_unis_use_rss:
         col_clear, col_uncheck = st.columns(2)
@@ -2653,6 +2688,7 @@ with st.expander("▸ Job — Boursier Etats-Unis", expanded=False):
         st.session_state.boursier_etats_unis_rss_candidates = []
         st.session_state.boursier_etats_unis_show_json_state = False
         st.session_state.boursier_etats_unis_json_ready = False
+        st.session_state.boursier_etats_unis_last_params = None
         for key in list(st.session_state.keys()):
             if key.startswith("boursier_etats_unis_rss_pick_"):
                 st.session_state.pop(key, None)
