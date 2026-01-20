@@ -169,6 +169,27 @@ def _slice_boursier_listing(html_text: str, required_path: str | None = None) ->
         return match.group(1)
     return html_text
 
+
+def _fetch_boursier_html(page_url: str, required_path: str | None, use_firecrawl_fallback: bool) -> str:
+    html_text = _fetch_html_text(page_url)
+    if not html_text and use_firecrawl_fallback and fetch_url_html:
+        try:
+            html_text = fetch_url_html(page_url) or ""
+        except Exception:
+            html_text = ""
+    if required_path and required_path not in html_text:
+        alt_url = page_url.rstrip("/") if page_url.endswith("/") else f"{page_url}/"
+        if alt_url != page_url:
+            alt_html = _fetch_html_text(alt_url)
+            if not alt_html and use_firecrawl_fallback and fetch_url_html:
+                try:
+                    alt_html = fetch_url_html(alt_url) or ""
+                except Exception:
+                    alt_html = ""
+            if required_path in alt_html:
+                html_text = alt_html
+    return html_text
+
 def fetch_dom_items(
     page_url: str,
     max_items: int,
@@ -397,14 +418,7 @@ def fetch_boursier_dom_items(
     hours_window: int,
     use_firecrawl_fallback: bool = False,
 ) -> List[Dict[str, str]]:
-    html_text = _fetch_html_text(page_url)
-    if not html_text:
-        html_text = ""
-        if use_firecrawl_fallback and fetch_url_html:
-            try:
-                html_text = fetch_url_html(page_url) or ""
-            except Exception:
-                html_text = ""
+    html_text = _fetch_boursier_html(page_url, "/actualites/economie/", use_firecrawl_fallback)
 
     items: List[Dict[str, str]] = []
     seen = set()
@@ -491,14 +505,7 @@ def fetch_boursier_macroeconomie_dom_items(
     hours_window: int,
     use_firecrawl_fallback: bool = False,
 ) -> List[Dict[str, str]]:
-    html_text = _fetch_html_text(page_url)
-    if not html_text:
-        html_text = ""
-        if use_firecrawl_fallback and fetch_url_html:
-            try:
-                html_text = fetch_url_html(page_url) or ""
-            except Exception:
-                html_text = ""
+    html_text = _fetch_boursier_html(page_url, "/actualites/macroeconomie/", use_firecrawl_fallback)
 
     items: List[Dict[str, str]] = []
     seen = set()
@@ -585,14 +592,7 @@ def fetch_boursier_france_dom_items(
     hours_window: int,
     use_firecrawl_fallback: bool = False,
 ) -> List[Dict[str, str]]:
-    html_text = _fetch_html_text(page_url)
-    if not html_text:
-        html_text = ""
-        if use_firecrawl_fallback and fetch_url_html:
-            try:
-                html_text = fetch_url_html(page_url) or ""
-            except Exception:
-                html_text = ""
+    html_text = _fetch_boursier_html(page_url, "/actualites/france/", use_firecrawl_fallback)
 
     items: List[Dict[str, str]] = []
     seen = set()
@@ -679,14 +679,7 @@ def fetch_boursier_etats_unis_dom_items(
     hours_window: int,
     use_firecrawl_fallback: bool = False,
 ) -> List[Dict[str, str]]:
-    html_text = _fetch_html_text(page_url)
-    if not html_text:
-        html_text = ""
-        if use_firecrawl_fallback and fetch_url_html:
-            try:
-                html_text = fetch_url_html(page_url) or ""
-            except Exception:
-                html_text = ""
+    html_text = _fetch_boursier_html(page_url, "/actualites/etats-unis/", use_firecrawl_fallback)
 
     items: List[Dict[str, str]] = []
     seen = set()
