@@ -929,6 +929,7 @@ with st.expander("▸ Job — CNBC", expanded=False):
                     max_items=int(cnbc_max_articles_total),
                     mode="today" if cnbc_mode == "Aujourd’hui" else "last_hours",
                     hours_window=int(cnbc_hours_window),
+                    use_firecrawl_fallback=bool(cnbc_use_firecrawl),
                 )
                 st.session_state.cnbc_rss_candidates = merge_article_items(
                     dom_items,
