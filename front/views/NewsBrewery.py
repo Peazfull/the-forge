@@ -177,9 +177,45 @@ if st.button("🧹 Clear all jobs", use_container_width=True, key="news_clear_al
     st.rerun()
 
 with st.expander("▸ Mega Job — Run all", expanded=False):
-    mega_mode = "last_hours"
-    mega_hours_window = 24
-    mega_max_items = 50
+    with st.expander("Fenêtre temporelle", expanded=True):
+        mega_mode_label = st.radio(
+            "Mode",
+            options=["Aujourd’hui", "Dernières X heures"],
+            horizontal=True,
+            index=1,
+            key="mega_run_mode",
+        )
+        mega_hours_window = st.slider(
+            "Dernières X heures",
+            min_value=1,
+            max_value=24,
+            value=24,
+            step=1,
+            key="mega_run_hours_window",
+        )
+    mega_mode = "today" if mega_mode_label == "Aujourd’hui" else "last_hours"
+
+    with st.expander("Settings", expanded=False):
+        st.markdown("**Limites**")
+        col_max_total, col_max_per = st.columns(2)
+        with col_max_total:
+            mega_max_total = st.number_input(
+                "Max articles total",
+                min_value=1,
+                max_value=100,
+                value=50,
+                step=1,
+                key="mega_run_max_total",
+            )
+        with col_max_per:
+            mega_max_per = st.number_input(
+                "Max articles par bulletin",
+                min_value=1,
+                max_value=50,
+                value=50,
+                step=1,
+                key="mega_run_max_per",
+            )
 
     col_load, col_check, col_uncheck = st.columns(3)
     with col_load:
@@ -188,7 +224,7 @@ with st.expander("▸ Mega Job — Run all", expanded=False):
             st.session_state.mega_run_candidates = _collect_mega_urls(
                 mode=mega_mode,
                 hours_window=mega_hours_window,
-                max_items=mega_max_items,
+                max_items=int(mega_max_total),
             )
             st.rerun()
     with col_check:
@@ -262,7 +298,7 @@ with st.expander("▸ Mega Job — Run all", expanded=False):
                         mode=mega_mode,
                         hours_window=mega_hours_window,
                         max_articles_total=len(grouped["bfm"]),
-                        max_articles_per_bulletin=20,
+                        max_articles_per_bulletin=int(mega_max_per),
                         scroll_min_px=400,
                         scroll_max_px=1200,
                         min_page_time=10,
@@ -291,7 +327,7 @@ with st.expander("▸ Mega Job — Run all", expanded=False):
                         mode=mega_mode,
                         hours_window=mega_hours_window,
                         max_articles_total=len(grouped["beincrypto"]),
-                        max_articles_per_bulletin=20,
+                        max_articles_per_bulletin=int(mega_max_per),
                         wait_min_action=0.6,
                         wait_max_action=2.5,
                         shuffle_urls=True,
@@ -314,7 +350,7 @@ with st.expander("▸ Mega Job — Run all", expanded=False):
                         mode=mega_mode,
                         hours_window=mega_hours_window,
                         max_articles_total=len(grouped["boursedirect"]),
-                        max_articles_per_bulletin=20,
+                        max_articles_per_bulletin=int(mega_max_per),
                         wait_min_action=0.6,
                         wait_max_action=2.5,
                         shuffle_urls=True,
@@ -337,7 +373,7 @@ with st.expander("▸ Mega Job — Run all", expanded=False):
                         mode=mega_mode,
                         hours_window=mega_hours_window,
                         max_articles_total=len(grouped["boursedirect_indices"]),
-                        max_articles_per_bulletin=20,
+                        max_articles_per_bulletin=int(mega_max_per),
                         wait_min_action=0.6,
                         wait_max_action=2.5,
                         shuffle_urls=True,
@@ -360,7 +396,7 @@ with st.expander("▸ Mega Job — Run all", expanded=False):
                         mode=mega_mode,
                         hours_window=mega_hours_window,
                         max_articles_total=len(grouped["boursier_economie"]),
-                        max_articles_per_bulletin=20,
+                        max_articles_per_bulletin=int(mega_max_per),
                         wait_min_action=0.6,
                         wait_max_action=2.5,
                         shuffle_urls=True,
@@ -383,7 +419,7 @@ with st.expander("▸ Mega Job — Run all", expanded=False):
                         mode=mega_mode,
                         hours_window=mega_hours_window,
                         max_articles_total=len(grouped["boursier_macroeconomie"]),
-                        max_articles_per_bulletin=20,
+                        max_articles_per_bulletin=int(mega_max_per),
                         wait_min_action=0.6,
                         wait_max_action=2.5,
                         shuffle_urls=True,
@@ -406,7 +442,7 @@ with st.expander("▸ Mega Job — Run all", expanded=False):
                         mode=mega_mode,
                         hours_window=mega_hours_window,
                         max_articles_total=len(grouped["boursier_france"]),
-                        max_articles_per_bulletin=20,
+                        max_articles_per_bulletin=int(mega_max_per),
                         wait_min_action=0.6,
                         wait_max_action=2.5,
                         shuffle_urls=True,
