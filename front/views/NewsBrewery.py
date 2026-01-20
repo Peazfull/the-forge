@@ -35,6 +35,411 @@ from services.raw_storage.raw_news_service import fetch_raw_news
 st.title("🗞️ NEWS Brewery")
 st.divider()
 
+def _clear_job_state(prefix: str) -> None:
+    for key in list(st.session_state.keys()):
+        if key.startswith(f"{prefix}rss_pick_"):
+            st.session_state.pop(key, None)
+    for suffix in ("rss_candidates", "show_json_state", "json_ready", "last_params"):
+        st.session_state.pop(f"{prefix}{suffix}", None)
+
+
+def _clear_mega_state() -> None:
+    for key in list(st.session_state.keys()):
+        if key.startswith("mega_run_pick_"):
+            st.session_state.pop(key, None)
+    st.session_state.mega_run_candidates = []
+
+
+def clear_all_jobs() -> None:
+    get_bfm_job().clear()
+    get_beincrypto_job().clear()
+    get_boursedirect_job().clear()
+    get_boursedirect_indices_job().clear()
+    get_boursier_economie_job().clear()
+    get_boursier_macroeconomie_job().clear()
+    get_boursier_france_job().clear()
+    for prefix in (
+        "news_",
+        "bein_",
+        "boursedirect_",
+        "boursedirect_indices_",
+        "boursier_economie_",
+        "boursier_macroeconomie_",
+        "boursier_france_",
+    ):
+        _clear_job_state(prefix)
+    _clear_mega_state()
+
+
+def _collect_mega_urls(mode: str, hours_window: int, max_items: int) -> list[dict]:
+    results: list[dict] = []
+    seen = set()
+
+    def _add(source_key: str, source_label: str, items: list[dict]) -> None:
+        for item in items:
+            url = item.get("url", "")
+            if not url or url in seen:
+                continue
+            seen.add(url)
+            results.append({
+                "source_key": source_key,
+                "source_label": source_label,
+                "url": url,
+                "title": item.get("title", ""),
+                "label_dt": item.get("label_dt", ""),
+            })
+
+    _add(
+        "bfm",
+        "BFM Bourse",
+        fetch_dom_items(
+            page_url="https://www.tradingsat.com/actualites/",
+            max_items=max_items,
+            mode=mode,
+            hours_window=hours_window,
+        ),
+    )
+    _add(
+        "beincrypto",
+        "BeInCrypto",
+        fetch_beincrypto_dom_items(
+            page_url="https://fr.beincrypto.com/",
+            max_items=max_items,
+            mode=mode,
+            hours_window=hours_window,
+        ),
+    )
+    _add(
+        "boursedirect",
+        "Bourse Direct",
+        fetch_boursedirect_dom_items(
+            page_url="https://www.boursedirect.fr/fr/actualites/categorie/marches",
+            max_items=max_items,
+            mode=mode,
+            hours_window=hours_window,
+        ),
+    )
+    _add(
+        "boursedirect_indices",
+        "Bourse Direct Indices",
+        fetch_boursedirect_dom_items(
+            page_url="https://www.boursedirect.fr/fr/actualites/categorie/indices",
+            max_items=max_items,
+            mode=mode,
+            hours_window=hours_window,
+        ),
+    )
+    _add(
+        "boursier_economie",
+        "Boursier Économie",
+        fetch_boursier_dom_items(
+            page_url="https://www.boursier.com/actualites/economie",
+            max_items=max_items,
+            mode=mode,
+            hours_window=hours_window,
+            use_firecrawl_fallback=True,
+        ),
+    )
+    _add(
+        "boursier_macroeconomie",
+        "Boursier Macroeconomie",
+        fetch_boursier_macroeconomie_dom_items(
+            page_url="https://www.boursier.com/actualites/macroeconomie",
+            max_items=max_items,
+            mode=mode,
+            hours_window=hours_window,
+            use_firecrawl_fallback=True,
+        ),
+    )
+    _add(
+        "boursier_france",
+        "Boursier France",
+        fetch_boursier_france_dom_items(
+            page_url="https://www.boursier.com/actualites/france",
+            max_items=max_items,
+            mode=mode,
+            hours_window=hours_window,
+            use_firecrawl_fallback=True,
+        ),
+    )
+
+    return results
+
+
+if st.button("🧹 Clear all jobs", use_container_width=True, key="news_clear_all"):
+    clear_all_jobs()
+    st.success("Tous les jobs ont été réinitialisés.")
+    st.rerun()
+
+with st.expander("▸ Mega Job — Run all", expanded=False):
+    mega_mode = "last_hours"
+    mega_hours_window = 6
+    mega_max_items = 200
+
+    col_load, col_check, col_uncheck = st.columns(3)
+    with col_load:
+        if st.button("🔎 Charger toutes les URLs", use_container_width=True, key="mega_run_load"):
+            _clear_mega_state()
+            st.session_state.mega_run_candidates = _collect_mega_urls(
+                mode=mega_mode,
+                hours_window=mega_hours_window,
+                max_items=mega_max_items,
+            )
+            st.rerun()
+    with col_check:
+        if st.button("☑️ Cocher tout", use_container_width=True, key="mega_run_check_all"):
+            for idx, item in enumerate(st.session_state.mega_run_candidates):
+                if item.get("source_label") in st.session_state.get("mega_run_sources", []):
+                    st.session_state[f"mega_run_pick_{idx}"] = True
+            st.rerun()
+    with col_uncheck:
+        if st.button("☐ Décocher tout", use_container_width=True, key="mega_run_uncheck_all"):
+            for idx, item in enumerate(st.session_state.mega_run_candidates):
+                if item.get("source_label") in st.session_state.get("mega_run_sources", []):
+                    st.session_state[f"mega_run_pick_{idx}"] = False
+            st.rerun()
+
+    mega_selected_urls = []
+    if st.session_state.mega_run_candidates:
+        available_sources = sorted({item.get("source_label", "") for item in st.session_state.mega_run_candidates if item.get("source_label")})
+        if "mega_run_sources" not in st.session_state:
+            st.session_state.mega_run_sources = available_sources
+        selected_sources = st.multiselect(
+            "Sources",
+            options=available_sources,
+            default=st.session_state.mega_run_sources,
+            key="mega_run_sources",
+        )
+        filtered_candidates = [
+            item for item in st.session_state.mega_run_candidates
+            if item.get("source_label") in selected_sources
+        ]
+        st.caption(f"{len(filtered_candidates)} URL(s) détectée(s) — dernières {mega_hours_window}h")
+        for idx, item in enumerate(st.session_state.mega_run_candidates):
+            if item.get("source_label") not in selected_sources:
+                continue
+            label = f"[{item.get('source_label','')}] {item.get('title','')}".strip()
+            if not label or label == "[]":
+                label = item.get("url", "")
+            key = f"mega_run_pick_{idx}"
+            if key not in st.session_state:
+                st.session_state[key] = True
+            checked = st.checkbox(label, key=key)
+            if checked:
+                mega_selected_urls.append(item)
+        st.caption(f"{len(mega_selected_urls)} article(s) sélectionné(s)")
+    else:
+        st.caption("Clique sur “Charger toutes les URLs” pour générer la liste.")
+
+    if st.session_state.mega_run_candidates:
+        if st.button("🚀 Lancer sélection", use_container_width=True, key="mega_run_launch"):
+            if not mega_selected_urls:
+                st.error("Sélectionne au moins un article.")
+            else:
+                grouped: dict[str, list[dict]] = {}
+                for item in mega_selected_urls:
+                    grouped.setdefault(item["source_key"], []).append({
+                        "url": item.get("url", ""),
+                        "title": item.get("title", ""),
+                        "label_dt": item.get("label_dt", ""),
+                    })
+
+                if "bfm" in grouped:
+                    bfm_config = JobConfig(
+                        entry_url="https://www.tradingsat.com/actualites/",
+                        mode=mega_mode,
+                        hours_window=mega_hours_window,
+                        max_articles_total=len(grouped["bfm"]),
+                        max_articles_per_bulletin=20,
+                        scroll_min_px=400,
+                        scroll_max_px=1200,
+                        min_page_time=10,
+                        max_page_time=45,
+                        wait_min_action=0.6,
+                        wait_max_action=2.5,
+                        shuffle_urls=True,
+                        dry_run=False,
+                        max_consecutive_errors=3,
+                        global_timeout_minutes=15,
+                        pause_on_captcha=True,
+                        remove_buffer_after_success=True,
+                        headless=True,
+                        use_rss=True,
+                        rss_feed_url="https://www.tradingsat.com/rssfeed.php",
+                        rss_ignore_time_filter=False,
+                        rss_use_dom_fallback=True,
+                        use_firecrawl=True,
+                        urls_override=grouped["bfm"],
+                    )
+                    get_bfm_job().start(bfm_config)
+
+                if "beincrypto" in grouped:
+                    bein_config = BeInJobConfig(
+                        entry_url="https://fr.beincrypto.com/",
+                        mode=mega_mode,
+                        hours_window=mega_hours_window,
+                        max_articles_total=len(grouped["beincrypto"]),
+                        max_articles_per_bulletin=20,
+                        wait_min_action=0.6,
+                        wait_max_action=2.5,
+                        shuffle_urls=True,
+                        dry_run=False,
+                        max_consecutive_errors=3,
+                        global_timeout_minutes=15,
+                        remove_buffer_after_success=True,
+                        use_rss=True,
+                        rss_feed_url="https://fr.beincrypto.com/feed/",
+                        rss_ignore_time_filter=False,
+                        rss_use_dom_fallback=True,
+                        use_firecrawl=True,
+                        urls_override=grouped["beincrypto"],
+                    )
+                    get_beincrypto_job().start(bein_config)
+
+                if "boursedirect" in grouped:
+                    bd_config = BourseDirectJobConfig(
+                        entry_url="https://www.boursedirect.fr/fr/actualites/categorie/marches",
+                        mode=mega_mode,
+                        hours_window=mega_hours_window,
+                        max_articles_total=len(grouped["boursedirect"]),
+                        max_articles_per_bulletin=20,
+                        wait_min_action=0.6,
+                        wait_max_action=2.5,
+                        shuffle_urls=True,
+                        dry_run=False,
+                        max_consecutive_errors=3,
+                        global_timeout_minutes=15,
+                        remove_buffer_after_success=True,
+                        use_rss=True,
+                        rss_feed_url="https://www.boursedirect.fr/fr/actualites/categorie/marches",
+                        rss_ignore_time_filter=False,
+                        rss_use_dom_fallback=True,
+                        use_firecrawl=True,
+                        urls_override=grouped["boursedirect"],
+                    )
+                    get_boursedirect_job().start(bd_config)
+
+                if "boursedirect_indices" in grouped:
+                    bdi_config = BourseDirectIndicesJobConfig(
+                        entry_url="https://www.boursedirect.fr/fr/actualites/categorie/indices",
+                        mode=mega_mode,
+                        hours_window=mega_hours_window,
+                        max_articles_total=len(grouped["boursedirect_indices"]),
+                        max_articles_per_bulletin=20,
+                        wait_min_action=0.6,
+                        wait_max_action=2.5,
+                        shuffle_urls=True,
+                        dry_run=False,
+                        max_consecutive_errors=3,
+                        global_timeout_minutes=15,
+                        remove_buffer_after_success=True,
+                        use_rss=True,
+                        rss_feed_url="https://www.boursedirect.fr/fr/actualites/categorie/indices",
+                        rss_ignore_time_filter=False,
+                        rss_use_dom_fallback=True,
+                        use_firecrawl=True,
+                        urls_override=grouped["boursedirect_indices"],
+                    )
+                    get_boursedirect_indices_job().start(bdi_config)
+
+                if "boursier_economie" in grouped:
+                    be_config = BoursierEconomieJobConfig(
+                        entry_url="https://www.boursier.com/actualites/economie",
+                        mode=mega_mode,
+                        hours_window=mega_hours_window,
+                        max_articles_total=len(grouped["boursier_economie"]),
+                        max_articles_per_bulletin=20,
+                        wait_min_action=0.6,
+                        wait_max_action=2.5,
+                        shuffle_urls=True,
+                        dry_run=False,
+                        max_consecutive_errors=3,
+                        global_timeout_minutes=15,
+                        remove_buffer_after_success=True,
+                        use_rss=True,
+                        rss_feed_url="https://www.boursier.com/actualites/economie",
+                        rss_ignore_time_filter=False,
+                        rss_use_dom_fallback=True,
+                        use_firecrawl=True,
+                        urls_override=grouped["boursier_economie"],
+                    )
+                    get_boursier_economie_job().start(be_config)
+
+                if "boursier_macroeconomie" in grouped:
+                    bm_config = BoursierMacroeconomieJobConfig(
+                        entry_url="https://www.boursier.com/actualites/macroeconomie",
+                        mode=mega_mode,
+                        hours_window=mega_hours_window,
+                        max_articles_total=len(grouped["boursier_macroeconomie"]),
+                        max_articles_per_bulletin=20,
+                        wait_min_action=0.6,
+                        wait_max_action=2.5,
+                        shuffle_urls=True,
+                        dry_run=False,
+                        max_consecutive_errors=3,
+                        global_timeout_minutes=15,
+                        remove_buffer_after_success=True,
+                        use_rss=True,
+                        rss_feed_url="https://www.boursier.com/actualites/macroeconomie",
+                        rss_ignore_time_filter=False,
+                        rss_use_dom_fallback=True,
+                        use_firecrawl=True,
+                        urls_override=grouped["boursier_macroeconomie"],
+                    )
+                    get_boursier_macroeconomie_job().start(bm_config)
+
+                if "boursier_france" in grouped:
+                    bf_config = BoursierFranceJobConfig(
+                        entry_url="https://www.boursier.com/actualites/france",
+                        mode=mega_mode,
+                        hours_window=mega_hours_window,
+                        max_articles_total=len(grouped["boursier_france"]),
+                        max_articles_per_bulletin=20,
+                        wait_min_action=0.6,
+                        wait_max_action=2.5,
+                        shuffle_urls=True,
+                        dry_run=False,
+                        max_consecutive_errors=3,
+                        global_timeout_minutes=15,
+                        remove_buffer_after_success=True,
+                        use_rss=True,
+                        rss_feed_url="https://www.boursier.com/actualites/france",
+                        rss_ignore_time_filter=False,
+                        rss_use_dom_fallback=True,
+                        use_firecrawl=True,
+                        urls_override=grouped["boursier_france"],
+                    )
+                    get_boursier_france_job().start(bf_config)
+
+                st.success("Mega job lancé.")
+                st.rerun()
+
+    # Aggregate progress/status
+    job_statuses = [
+        ("BFM Bourse", get_bfm_job().get_status()),
+        ("BeInCrypto", get_beincrypto_job().get_status()),
+        ("Bourse Direct", get_boursedirect_job().get_status()),
+        ("Bourse Direct Indices", get_boursedirect_indices_job().get_status()),
+        ("Boursier Économie", get_boursier_economie_job().get_status()),
+        ("Boursier Macroeconomie", get_boursier_macroeconomie_job().get_status()),
+        ("Boursier France", get_boursier_france_job().get_status()),
+    ]
+    total_all = sum(status.get("total", 0) for _, status in job_statuses)
+    processed_all = sum(status.get("processed", 0) for _, status in job_statuses)
+    skipped_all = sum(status.get("skipped", 0) for _, status in job_statuses)
+    st.progress(processed_all / max(total_all, 1))
+    st.caption(f"{processed_all}/{total_all} traités · {skipped_all} ignorés")
+    for label, status in job_statuses:
+        last_log = status.get("last_log")
+        state = status.get("state")
+        if last_log:
+            st.caption(f"{label} — {state} — {last_log}")
+
+    if any(status.get("state") in ("running", "paused") for _, status in job_statuses):
+        st.info("Mega job en cours — rafraîchissement automatique activé.")
+        time.sleep(2)
+        st.rerun()
+
 job = get_bfm_job()
 status = job.get_status()
 
