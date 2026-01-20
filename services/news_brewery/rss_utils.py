@@ -334,6 +334,64 @@ def fetch_beincrypto_dom_items(
         if len(items) >= max_items:
             break
 
+    if items:
+        return items
+
+    fallback_pattern = re.compile(
+        r'<a[^>]+href="([^"]+)"[^>]*>(.*?)</a>',
+        re.S,
+    )
+    for href, title_html in fallback_pattern.findall(content):
+        url = href.strip()
+        if not url:
+            continue
+        if url.startswith("/"):
+            url = f"https://fr.beincrypto.com{url}"
+        if "/news/" not in url:
+            continue
+        if url in seen:
+            continue
+        seen.add(url)
+        title = re.sub(r"<.*?>", "", title_html)
+        title = unescape(title).strip()
+        if not title:
+            continue
+        items.append({
+            "url": url,
+            "title": title,
+            "label_dt": "",
+        })
+        if len(items) >= max_items:
+            break
+
+    if items:
+        return items
+
+    if use_firecrawl_fallback and fetch_url_text:
+        try:
+            markdown = fetch_url_text(page_url)
+        except Exception:
+            markdown = ""
+        if markdown:
+            link_pattern = re.compile(r"\[([^\]]+)\]\((https?://fr\.beincrypto\.com/[^)]+)\)")
+            for title_text, href in link_pattern.findall(markdown):
+                url = href.strip()
+                if "/news/" not in url:
+                    continue
+                if url in seen:
+                    continue
+                seen.add(url)
+                title = title_text.strip()
+                if not title:
+                    continue
+                items.append({
+                    "url": url,
+                    "title": title,
+                    "label_dt": "",
+                })
+                if len(items) >= max_items:
+                    break
+
     return items
 
 
