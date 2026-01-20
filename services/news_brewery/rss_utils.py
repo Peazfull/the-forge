@@ -273,8 +273,14 @@ def fetch_beincrypto_dom_items(
     max_items: int,
     mode: str,
     hours_window: int,
+    use_firecrawl_fallback: bool = False,
 ) -> List[Dict[str, str]]:
     html_text = _fetch_html_text(page_url)
+    if not html_text and use_firecrawl_fallback and fetch_url_html:
+        try:
+            html_text = fetch_url_html(page_url) or ""
+        except Exception:
+            html_text = ""
     if not html_text:
         return []
 

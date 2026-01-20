@@ -112,6 +112,7 @@ def _collect_mega_urls(mode: str, hours_window: int, max_items: int) -> list[dic
             max_items=max_items,
             mode=mode,
             hours_window=hours_window,
+            use_firecrawl_fallback=True,
         ),
     )
     _add(
@@ -1115,6 +1116,7 @@ with st.expander("▸ Job — BeInCrypto", expanded=False):
                     max_items=int(bein_max_articles_total),
                     mode="today" if bein_mode == "Aujourd’hui" else "last_hours",
                     hours_window=int(bein_hours_window),
+                    use_firecrawl_fallback=bool(bein_use_firecrawl),
                 )
                 st.session_state.bein_rss_candidates = merge_article_items(
                     dom_items,
