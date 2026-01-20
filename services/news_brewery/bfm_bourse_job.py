@@ -115,6 +115,23 @@ class BfmBourseJob:
             self.state = "stopped"
             self._log("⏹️ Job stoppé")
 
+    def clear(self) -> None:
+        self._stop_event.set()
+        self._pause_event.set()
+        self.state = "idle"
+        self.errors = []
+        self.status_log = []
+        self.processed = 0
+        self.skipped = 0
+        self.total = 0
+        self.current_index = 0
+        self.started_at = None
+        self.last_log = ""
+        self.buffer_path = None
+        self.buffer_text = ""
+        self.json_preview_text = ""
+        self.json_items = []
+
     def get_status(self) -> Dict[str, object]:
         return {
             "state": self.state,

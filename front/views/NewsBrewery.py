@@ -18,18 +18,14 @@ if "news_rss_candidates" not in st.session_state:
 # JOB — BFM BOURSE
 # =========================
 with st.expander("▸ Job — BFM Bourse", expanded=True):
-    col_open, col_launch, col_pause, col_resume, col_stop = st.columns([2, 1, 1, 1, 1])
+    col_open, col_launch, col_clear = st.columns([2, 1, 1])
 
     with col_open:
         st.link_button("🔗 Ouvrir l’URL", "https://www.tradingsat.com/actualites/")
     with col_launch:
         launch = st.button("▶️ Lancer", use_container_width=True, key="news_bfm_launch")
-    with col_pause:
-        pause = st.button("⏸️ Pause", use_container_width=True, key="news_bfm_pause")
-    with col_resume:
-        resume = st.button("▶️ Reprendre", use_container_width=True, key="news_bfm_resume")
-    with col_stop:
-        stop = st.button("⏹️ Stop", use_container_width=True, key="news_bfm_stop")
+    with col_clear:
+        clear_job = st.button("🧹 Clear", use_container_width=True, key="news_bfm_clear")
 
     with st.expander("Fenêtre temporelle", expanded=False):
         mode = st.radio(
@@ -248,12 +244,8 @@ with st.expander("▸ Job — BFM Bourse", expanded=True):
                 job.start(config)
                 st.success("Scraping lancé.")
 
-    if pause:
-        job.pause()
-    if resume:
-        job.resume()
-    if stop:
-        job.stop()
+    if clear_job:
+        job.clear()
 
     status = job.get_status()
     st.divider()
