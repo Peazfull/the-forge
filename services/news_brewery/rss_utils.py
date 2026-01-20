@@ -156,6 +156,17 @@ def _fetch_html_text(page_url: str) -> str:
         return ""
 
 
+def _slice_boursier_listing(html_text: str) -> str:
+    # Restrict to the listing block to avoid cross-section contamination.
+    match = re.search(
+        r'id="listing".*?<div class="items">(.*?)</div>\s*<nav class="pagination"',
+        html_text,
+        re.S,
+    )
+    if match:
+        return match.group(1)
+    return html_text
+
 def fetch_dom_items(
     page_url: str,
     max_items: int,
@@ -396,6 +407,8 @@ def fetch_boursier_dom_items(
     items: List[Dict[str, str]] = []
     seen = set()
 
+    content = _slice_boursier_listing(html_text)
+
     pattern = re.compile(
         r'<article[^>]*class="[^"]*item[^"]*"[^>]*>.*?'
         r'<h2[^>]*>\s*<a[^>]+href="([^"]+)"[^>]*>(.*?)</a>\s*</h2>.*?'
@@ -403,7 +416,7 @@ def fetch_boursier_dom_items(
         re.S,
     )
 
-    for href, title_html, datetime_attr in pattern.findall(html_text):
+    for href, title_html, datetime_attr in pattern.findall(content):
         url = href.strip()
         if not url:
             continue
@@ -423,6 +436,8 @@ def fetch_boursier_dom_items(
             except Exception:
                 label_dt = None
 
+        if label_dt is None:
+            continue
         if not _within_window(label_dt, mode, hours_window):
             continue
 
@@ -486,6 +501,8 @@ def fetch_boursier_macroeconomie_dom_items(
     items: List[Dict[str, str]] = []
     seen = set()
 
+    content = _slice_boursier_listing(html_text)
+
     pattern = re.compile(
         r'<div class="item[^"]*">.*?'
         r'<time[^>]+class="date"[^>]+datetime="([^"]+)".*?</time>.*?'
@@ -493,7 +510,7 @@ def fetch_boursier_macroeconomie_dom_items(
         re.S,
     )
 
-    for datetime_attr, href, title_html in pattern.findall(html_text):
+    for datetime_attr, href, title_html in pattern.findall(content):
         url = href.strip()
         if not url:
             continue
@@ -513,6 +530,8 @@ def fetch_boursier_macroeconomie_dom_items(
             except Exception:
                 label_dt = None
 
+        if label_dt is None:
+            continue
         if not _within_window(label_dt, mode, hours_window):
             continue
 
@@ -576,6 +595,8 @@ def fetch_boursier_france_dom_items(
     items: List[Dict[str, str]] = []
     seen = set()
 
+    content = _slice_boursier_listing(html_text)
+
     pattern = re.compile(
         r'<div class="item[^"]*">.*?'
         r'<time[^>]+class="date"[^>]+datetime="([^"]+)".*?</time>.*?'
@@ -583,7 +604,7 @@ def fetch_boursier_france_dom_items(
         re.S,
     )
 
-    for datetime_attr, href, title_html in pattern.findall(html_text):
+    for datetime_attr, href, title_html in pattern.findall(content):
         url = href.strip()
         if not url:
             continue
@@ -603,6 +624,8 @@ def fetch_boursier_france_dom_items(
             except Exception:
                 label_dt = None
 
+        if label_dt is None:
+            continue
         if not _within_window(label_dt, mode, hours_window):
             continue
 
@@ -666,6 +689,8 @@ def fetch_boursier_etats_unis_dom_items(
     items: List[Dict[str, str]] = []
     seen = set()
 
+    content = _slice_boursier_listing(html_text)
+
     pattern = re.compile(
         r'<div class="item[^"]*">.*?'
         r'<time[^>]+class="date"[^>]+datetime="([^"]+)".*?</time>.*?'
@@ -673,7 +698,7 @@ def fetch_boursier_etats_unis_dom_items(
         re.S,
     )
 
-    for datetime_attr, href, title_html in pattern.findall(html_text):
+    for datetime_attr, href, title_html in pattern.findall(content):
         url = href.strip()
         if not url:
             continue
@@ -693,6 +718,8 @@ def fetch_boursier_etats_unis_dom_items(
             except Exception:
                 label_dt = None
 
+        if label_dt is None:
+            continue
         if not _within_window(label_dt, mode, hours_window):
             continue
 
@@ -706,33 +733,6 @@ def fetch_boursier_etats_unis_dom_items(
 
     if items:
         return items
-
-    if use_firecrawl_fallback and fetch_url_text:
-        try:
-            markdown = fetch_url_text(page_url)
-        except Exception:
-            markdown = ""
-        if markdown:
-            link_pattern = re.compile(r"\[([^\]]+)\]\((https?://www\.boursier\.com/[^)]+)\)")
-            for title_text, href in link_pattern.findall(markdown):
-                url = href.strip()
-                if "/actualites/etats-unis/" not in url:
-                    continue
-                if url in seen:
-                    continue
-                seen.add(url)
-                title = title_text.strip()
-                if not title:
-                    continue
-                items.append({
-                    "url": url,
-                    "title": title,
-                    "label_dt": "",
-                })
-                if len(items) >= max_items:
-                    break
-            if items:
-                return items
 
     return items
 
