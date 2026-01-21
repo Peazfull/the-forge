@@ -11,7 +11,7 @@ from prompts.youtube_brewery.jsonfy import PROMPT_JSONFY
 from prompts.youtube_brewery.json_secure import PROMPT_JSON_SECURE
 
 
-REQUEST_TIMEOUT = 300
+REQUEST_TIMEOUT = 600
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 
