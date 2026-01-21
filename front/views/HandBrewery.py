@@ -254,6 +254,7 @@ else:
                 article["extract_text"] = st.session_state[extract_key]
 
                 if st.button("✅ JSONify", use_container_width=True, key=f"jsonify_{article_id}"):
+                    article["extract_text"] = st.session_state[extract_key]
                     _run_jsonify(article)
                     st.rerun()
 
