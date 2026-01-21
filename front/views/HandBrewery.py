@@ -41,6 +41,7 @@ def _get_article_index(article_id: str) -> int:
 
 
 def _reset_article(article: dict) -> None:
+    article["raw_text"] = ""
     article["rewrite_text"] = ""
     article["extract_text"] = ""
     article["final_items"] = []
@@ -194,6 +195,9 @@ else:
             with col_actions_2:
                 if st.button("🧹 Clear article", use_container_width=True, key=f"clear_{article_id}"):
                     _reset_article(article)
+                    st.session_state[raw_key] = ""
+                    st.session_state[rewrite_key] = ""
+                    st.session_state[extract_key] = ""
                     st.rerun()
 
             with col_actions_3:
