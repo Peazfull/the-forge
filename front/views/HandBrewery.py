@@ -24,7 +24,7 @@ def _new_article(raw_text: str = "") -> dict:
         "id": str(uuid.uuid4()),
         "raw_text": raw_text,
         "rewrite_text": "",
-        "structured_news": [],
+        "extract_text": "",
         "final_items": [],
         "status": "idle",
         "error": None,
@@ -42,7 +42,7 @@ def _get_article_index(article_id: str) -> int:
 
 def _reset_article(article: dict) -> None:
     article["rewrite_text"] = ""
-    article["structured_news"] = []
+    article["extract_text"] = ""
     article["final_items"] = []
     article["status"] = "idle"
     article["error"] = None
@@ -85,7 +85,7 @@ def _run_jsonify(article: dict) -> bool:
     article["status"] = "processing"
     article["error"] = None
 
-    result = run_jsonify(article["structured_news"])
+    result = run_jsonify(article["extract_text"])
     if result["status"] != "success":
         _set_error(article, result.get("message", "Erreur inconnue"))
         return False
@@ -109,12 +109,7 @@ def _run_extract(article: dict) -> bool:
     if result["status"] != "success":
         _set_error(article, result.get("message", "Erreur inconnue"))
         return False
-
-    article["structured_news"] = result.get("structured_news", [])
-    if result.get("needs_clarification"):
-        _set_questions(article, result.get("questions", []))
-        return False
-
+    article["extract_text"] = result.get("extracted_text", "")
     article["status"] = "ready"
     return True
 
@@ -251,40 +246,17 @@ else:
                     _run_jsonify(article)
                     st.rerun()
 
-            if article.get("structured_news"):
-                st.markdown("**Preview news extraites (titre + paragraphe)**")
-                for n_idx, news in enumerate(article["structured_news"]):
-                    sections = news.get("sections", []) if isinstance(news, dict) else []
-                    display_title = ""
-                    display_content = ""
-                    if sections:
-                        first = sections[0] if isinstance(sections[0], dict) else {}
-                        display_title = first.get("title", "")
-                        contents = []
-                        for section in sections:
-                            if isinstance(section, dict):
-                                content = section.get("content")
-                                if content:
-                                    contents.append(content)
-                        display_content = "\n\n".join(contents)
-
-                    with st.expander(f"News {n_idx + 1}", expanded=False):
-                        title_key = f"news_title_{article_id}_{n_idx}"
-                        content_key = f"news_content_{article_id}_{n_idx}"
-                        if title_key not in st.session_state:
-                            st.session_state[title_key] = display_title
-                        if content_key not in st.session_state:
-                            st.session_state[content_key] = display_content
-
-                        st.text_input("Titre", key=title_key)
-                        st.text_area("Paragraphe", key=content_key, height=140)
-
-                        news["sections"] = [
-                            {
-                                "title": st.session_state[title_key],
-                                "content": st.session_state[content_key],
-                            }
-                        ]
+            if article.get("extract_text"):
+                st.markdown("**Preview news extraites (buffer éditable)**")
+                extract_key = f"extract_{article_id}"
+                if extract_key not in st.session_state:
+                    st.session_state[extract_key] = article.get("extract_text", "")
+                st.text_area(
+                    label="",
+                    height=220,
+                    key=extract_key,
+                )
+                article["extract_text"] = st.session_state[extract_key]
 
             if article.get("final_items"):
                 st.markdown("**Preview JSON (avant DB)**")

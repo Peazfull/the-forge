@@ -3,9 +3,8 @@ import streamlit as st
 from openai import OpenAI
 
 from prompts.hand_brewery.rewrite_only import PROMPT_REWRITE_ONLY
-from prompts.hand_brewery.split_structured import PROMPT_SPLIT_STRUCTURED
-from prompts.hand_brewery.final_items import PROMPT_FINAL_ITEMS
 from prompts.hand_brewery.extract_news import PROMPT_EXTRACT_NEWS
+from prompts.hand_brewery.jsonfy import PROMPT_JSONFY
 
 
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
@@ -136,17 +135,17 @@ def run_extract_news(rewrite_text: str) -> dict:
                 {"role": "system", "content": PROMPT_EXTRACT_NEWS},
                 {"role": "user", "content": rewrite_text},
             ],
-            temperature=0,
-            response_format={"type": "json_object"},
+            temperature=0.2,
         )
-        payload = _safe_json_load(response.choices[0].message.content)
-        if payload.get("status") == "error":
-            return payload
+        extracted_text = (response.choices[0].message.content or "").strip()
+        if not extracted_text:
+            return {
+                "status": "error",
+                "message": "Empty extract output",
+            }
         return {
             "status": "success",
-            "structured_news": payload.get("structured_news", []),
-            "needs_clarification": payload.get("needs_clarification", False),
-            "questions": payload.get("questions", []),
+            "extracted_text": extracted_text,
         }
     except Exception as exc:
         return {
@@ -155,34 +154,41 @@ def run_extract_news(rewrite_text: str) -> dict:
         }
 
 
-def run_jsonify(structured_news: list) -> dict:
-    if not structured_news:
+def run_jsonify(extract_text: str) -> dict:
+    if not extract_text or not extract_text.strip():
         return {
             "status": "error",
-            "message": "No structured news",
+            "message": "Empty extract text",
         }
 
-    items = []
-    for idx, news in enumerate(structured_news, start=1):
-        sections = news.get("sections", []) if isinstance(news, dict) else []
-        if not sections:
-            continue
-        first = sections[0] if isinstance(sections[0], dict) else {}
-        title = first.get("title") or f"News {idx}"
-        contents = []
-        for section in sections:
-            if not isinstance(section, dict):
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": PROMPT_JSONFY},
+                {"role": "user", "content": extract_text},
+            ],
+            temperature=0,
+            response_format={"type": "json_object"},
+        )
+        payload = _safe_json_load(response.choices[0].message.content)
+        if payload.get("status") == "error":
+            return payload
+        raw_items = payload.get("items", [])
+        clean_items = []
+        for item in raw_items:
+            if not isinstance(item, dict):
                 continue
-            content = section.get("content")
-            if content:
-                contents.append(content)
-        content_text = "\n\n".join(contents).strip()
-        items.append({
-            "title": title,
-            "content": content_text,
-        })
-
-    return {
-        "status": "success",
-        "items": items,
-    }
+            clean_items.append({
+                "title": item.get("title"),
+                "content": item.get("content"),
+            })
+        return {
+            "status": "success",
+            "items": clean_items,
+        }
+    except Exception as exc:
+        return {
+            "status": "error",
+            "message": str(exc),
+        }
