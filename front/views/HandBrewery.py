@@ -185,6 +185,10 @@ else:
     for idx, article in enumerate(st.session_state.articles, start=1):
         article_id = article["id"]
         with st.expander(f"📝 Article {idx}", expanded=True):
+            raw_key = f"raw_{article_id}"
+            rewrite_key = f"rewrite_{article_id}"
+            extract_key = f"extract_{article_id}"
+
             col_actions_1, col_actions_2, col_actions_3 = st.columns(3)
 
             with col_actions_1:
@@ -217,7 +221,6 @@ else:
                 for q in article["questions"]:
                     st.write(f"- {q}")
 
-            raw_key = f"raw_{article_id}"
             if raw_key not in st.session_state:
                 st.session_state[raw_key] = article.get("raw_text", "")
             st.text_area(
@@ -229,7 +232,6 @@ else:
 
             st.divider()
             st.markdown("**Preview rewrite (buffer éditable)**")
-            rewrite_key = f"rewrite_{article_id}"
             if rewrite_key not in st.session_state:
                 st.session_state[rewrite_key] = article.get("rewrite_text", "")
             st.text_area(
@@ -247,7 +249,6 @@ else:
 
             if article.get("extract_text"):
                 st.markdown("**Preview news extraites (buffer éditable)**")
-                extract_key = f"extract_{article_id}"
                 if extract_key not in st.session_state:
                     st.session_state[extract_key] = article.get("extract_text", "")
                 st.text_area(
