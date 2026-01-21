@@ -235,15 +235,10 @@ else:
             )
             article["rewrite_text"] = st.session_state[rewrite_key]
 
-            col_extract, col_jsonify = st.columns(2)
+            col_extract, _ = st.columns(2)
             with col_extract:
                 if st.button("🧠 Extraire news", use_container_width=True, key=f"extract_run_{article_id}"):
                     _run_extract(article)
-                    st.rerun()
-
-            with col_jsonify:
-                if st.button("✅ JSONify", use_container_width=True, key=f"jsonify_{article_id}"):
-                    _run_jsonify(article)
                     st.rerun()
 
             if article.get("extract_text"):
@@ -257,6 +252,10 @@ else:
                     key=extract_key,
                 )
                 article["extract_text"] = st.session_state[extract_key]
+
+                if st.button("✅ JSONify", use_container_width=True, key=f"jsonify_{article_id}"):
+                    _run_jsonify(article)
+                    st.rerun()
 
             if article.get("final_items"):
                 st.markdown("**Preview JSON (avant DB)**")
