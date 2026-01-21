@@ -2,7 +2,11 @@ import json
 import uuid
 import streamlit as st
 
-from services.hand_brewery.article_pipeline import run_rewrite, run_jsonify
+from services.hand_brewery.article_pipeline import (
+    run_rewrite,
+    run_extract_news,
+    run_jsonify,
+)
 from services.hand_brewery.firecrawl_client import fetch_url_text
 from services.raw_storage.raw_news_service import (
     enrich_raw_items,
@@ -20,6 +24,7 @@ def _new_article(raw_text: str = "") -> dict:
         "id": str(uuid.uuid4()),
         "raw_text": raw_text,
         "rewrite_text": "",
+        "structured_news": [],
         "final_items": [],
         "status": "idle",
         "error": None,
@@ -37,6 +42,7 @@ def _get_article_index(article_id: str) -> int:
 
 def _reset_article(article: dict) -> None:
     article["rewrite_text"] = ""
+    article["structured_news"] = []
     article["final_items"] = []
     article["status"] = "idle"
     article["error"] = None
@@ -79,7 +85,7 @@ def _run_jsonify(article: dict) -> bool:
     article["status"] = "processing"
     article["error"] = None
 
-    result = run_jsonify(article["rewrite_text"])
+    result = run_jsonify(article["structured_news"])
     if result["status"] != "success":
         _set_error(article, result.get("message", "Erreur inconnue"))
         return False
@@ -87,6 +93,26 @@ def _run_jsonify(article: dict) -> bool:
     article["final_items"] = result.get("items", [])
     if not article["final_items"]:
         _set_error(article, "Aucun item JSON généré")
+        return False
+
+    article["status"] = "ready"
+    return True
+
+
+def _run_extract(article: dict) -> bool:
+    article["status"] = "processing"
+    article["error"] = None
+    article["needs_clarification"] = False
+    article["questions"] = []
+
+    result = run_extract_news(article["rewrite_text"])
+    if result["status"] != "success":
+        _set_error(article, result.get("message", "Erreur inconnue"))
+        return False
+
+    article["structured_news"] = result.get("structured_news", [])
+    if result.get("needs_clarification"):
+        _set_questions(article, result.get("questions", []))
         return False
 
     article["status"] = "ready"
@@ -214,29 +240,51 @@ else:
             )
             article["rewrite_text"] = st.session_state[rewrite_key]
 
-            col_jsonify, col_send = st.columns(2)
+            col_extract, col_jsonify = st.columns(2)
+            with col_extract:
+                if st.button("🧠 Extraire news", use_container_width=True, key=f"extract_{article_id}"):
+                    _run_extract(article)
+                    st.rerun()
+
             with col_jsonify:
                 if st.button("✅ JSONify", use_container_width=True, key=f"jsonify_{article_id}"):
                     _run_jsonify(article)
                     st.rerun()
 
-            with col_send:
-                if st.button("📤 Envoyer en DB", use_container_width=True, key=f"send_{article_id}"):
-                    if not article.get("final_items"):
-                        st.error("Aucun JSON prêt. Lance d'abord JSONify.")
-                    else:
-                        enriched_items = enrich_raw_items(
-                            article["final_items"],
-                            flow="hand_text",
-                            source_type="manual",
-                            source_raw=None,
-                        )
-                        result = insert_raw_news(enriched_items)
-                        if result["status"] == "success":
-                            st.success(f"✅ {result['inserted']} items insérés en base")
-                        else:
-                            st.error("❌ Erreur lors de l'insertion en DB")
-                            st.caption(result.get("message", "Erreur inconnue"))
+            if article.get("structured_news"):
+                st.markdown("**Preview news extraites (titre + paragraphe)**")
+                for n_idx, news in enumerate(article["structured_news"]):
+                    sections = news.get("sections", []) if isinstance(news, dict) else []
+                    display_title = ""
+                    display_content = ""
+                    if sections:
+                        first = sections[0] if isinstance(sections[0], dict) else {}
+                        display_title = first.get("title", "")
+                        contents = []
+                        for section in sections:
+                            if isinstance(section, dict):
+                                content = section.get("content")
+                                if content:
+                                    contents.append(content)
+                        display_content = "\n\n".join(contents)
+
+                    with st.expander(f"News {n_idx + 1}", expanded=False):
+                        title_key = f"news_title_{article_id}_{n_idx}"
+                        content_key = f"news_content_{article_id}_{n_idx}"
+                        if title_key not in st.session_state:
+                            st.session_state[title_key] = display_title
+                        if content_key not in st.session_state:
+                            st.session_state[content_key] = display_content
+
+                        st.text_input("Titre", key=title_key)
+                        st.text_area("Paragraphe", key=content_key, height=140)
+
+                        news["sections"] = [
+                            {
+                                "title": st.session_state[title_key],
+                                "content": st.session_state[content_key],
+                            }
+                        ]
 
             if article.get("final_items"):
                 st.markdown("**Preview JSON (avant DB)**")
@@ -246,6 +294,20 @@ else:
                     height=240,
                     key=f"json_preview_{article_id}",
                 )
+
+                if st.button("📤 Envoyer en DB", use_container_width=True, key=f"send_{article_id}"):
+                    enriched_items = enrich_raw_items(
+                        article["final_items"],
+                        flow="hand_text",
+                        source_type="manual",
+                        source_raw=None,
+                    )
+                    result = insert_raw_news(enriched_items)
+                    if result["status"] == "success":
+                        st.success(f"✅ {result['inserted']} items insérés en base")
+                    else:
+                        st.error("❌ Erreur lors de l'insertion en DB")
+                        st.caption(result.get("message", "Erreur inconnue"))
 
 
 # ======================================================
