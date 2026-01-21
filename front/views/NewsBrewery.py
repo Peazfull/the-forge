@@ -479,6 +479,10 @@ with st.expander("▸ Mega Job — Run all", expanded=False):
     if st.session_state.mega_run_status:
         total_jobs = len(st.session_state.mega_run_status)
         st.caption(f"Jobs {total_jobs}/{total_jobs} listés")
+        total_reported = sum(entry.get("count", 0) for entry in st.session_state.mega_run_status)
+        total_unique = len(st.session_state.mega_run_candidates)
+        duplicates = max(0, total_reported - total_unique)
+        st.caption(f"Total brut: {total_reported} · Uniques: {total_unique} · Doublons: {duplicates}")
         for entry in st.session_state.mega_run_status:
             status = entry.get("status")
             if status == "ok":
