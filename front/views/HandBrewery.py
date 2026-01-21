@@ -237,7 +237,7 @@ else:
 
             col_extract, col_jsonify = st.columns(2)
             with col_extract:
-                if st.button("🧠 Extraire news", use_container_width=True, key=f"extract_{article_id}"):
+                if st.button("🧠 Extraire news", use_container_width=True, key=f"extract_run_{article_id}"):
                     _run_extract(article)
                     st.rerun()
 
