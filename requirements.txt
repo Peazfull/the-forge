@@ -5,3 +5,5 @@ firecrawl
 yt-dlp
 playwright
 feedparser
+yfinance
+pandas

@@ -1,0 +1,96 @@
+"""
+===========================================
+🔧 INIT ASSETS
+===========================================
+Script d'initialisation de la table assets
+À lancer UNE SEULE FOIS si la table est vide
+"""
+
+from db.supabase_client import get_supabase
+from services.marketbrewery.listes_market import (
+    US_TOP_200,
+    FR_SBF_120,
+    EU_TOP_200,
+    CRYPTO_TOP_30,
+    INDICES,
+    COMMODITIES
+)
+
+
+def init_assets():
+    """
+    Peuple la table assets avec tous les symboles
+    """
+    print("\n" + "="*60)
+    print("🔧 INIT ASSETS — START")
+    print("="*60 + "\n")
+    
+    supabase = get_supabase()
+    
+    # Vérifier si des assets existent déjà
+    existing = supabase.table("assets").select("id").limit(1).execute()
+    
+    if existing.data:
+        print("⚠️  La table 'assets' contient déjà des données.")
+        confirm = input("Voulez-vous continuer et ajouter les symboles manquants ? (y/n) : ")
+        if confirm.lower() != 'y':
+            print("❌ Annulé")
+            return
+    
+    # Définir les listes avec leur zone
+    symbol_lists = [
+        ("US", "stock", US_TOP_200),
+        ("FR", "stock", FR_SBF_120),
+        ("EU", "stock", EU_TOP_200),
+        ("CRYPTO", "crypto", CRYPTO_TOP_30),
+        ("GLOBAL", "index", INDICES),
+        ("GLOBAL", "commodity", COMMODITIES)
+    ]
+    
+    total_inserted = 0
+    total_skipped = 0
+    
+    for zone, asset_type, symbols in symbol_lists:
+        print(f"\n📍 Zone : {zone} / Type : {asset_type} ({len(symbols)} symboles)")
+        print("-" * 60)
+        
+        for symbol in symbols:
+            try:
+                # Vérifier si le symbol existe déjà
+                check = supabase.table("assets")\
+                    .select("id")\
+                    .eq("symbol", symbol)\
+                    .limit(1)\
+                    .execute()
+                
+                if check.data:
+                    print(f"⏭️  {symbol} : déjà existant (skip)")
+                    total_skipped += 1
+                    continue
+                
+                # Insérer
+                supabase.table("assets").insert({
+                    "symbol": symbol,
+                    "name": symbol,  # Par défaut, name = symbol
+                    "type": asset_type,
+                    "zone": zone
+                }).execute()
+                
+                print(f"✅ {symbol} : inséré")
+                total_inserted += 1
+                
+            except Exception as e:
+                print(f"❌ {symbol} : erreur ({e})")
+    
+    # Résumé
+    print("\n" + "="*60)
+    print(f"✅ TERMINÉ : {total_inserted} insérés, {total_skipped} skippés")
+    print("="*60 + "\n")
+
+
+# ============================================
+# MAIN
+# ============================================
+
+if __name__ == "__main__":
+    init_assets()
