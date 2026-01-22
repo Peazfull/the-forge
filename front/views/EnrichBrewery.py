@@ -260,29 +260,57 @@ try:
     items = response.data or []
     
     if items:
-        st.info(f"📊 {len(items)} items affichés (max 50)")
+        st.info(f"📊 {len(items)} items affichés (max 50) - Cliquez sur une ligne pour voir le contenu complet")
         
         # Afficher le tableau
         import pandas as pd
         
         df = pd.DataFrame(items)
         
-        # Sélectionner et réordonner les colonnes
-        df_display = df[["title", "content", "tags", "labels", "entities", "zone", "country"]]
+        # Créer un DataFrame pour l'affichage avec contenus tronqués
+        df_display = df.copy()
+        df_display["title_short"] = df_display["title"].str[:40] + "..."
+        df_display["content_short"] = df_display["content"].str[:60] + "..."
         
-        # Renommer les colonnes pour l'affichage
-        df_display.columns = ["Titre", "Contenu", "Tag", "Label", "Entités", "Zone", "Pays"]
+        # Sélectionner les colonnes à afficher
+        df_table = df_display[["title_short", "content_short", "tags", "labels", "entities", "zone", "country"]]
+        df_table.columns = ["Titre", "Contenu", "Tag", "Label", "Entités", "Zone", "Pays"]
         
-        # Tronquer les titres et contenus longs
-        df_display["Titre"] = df_display["Titre"].str[:40] + "..."
-        df_display["Contenu"] = df_display["Contenu"].str[:60] + "..."
-        
-        st.dataframe(
-            df_display,
+        # Afficher le tableau avec sélection
+        event = st.dataframe(
+            df_table,
             use_container_width=True,
             hide_index=True,
-            height=600
+            height=400,
+            on_select="rerun",
+            selection_mode="single-row"
         )
+        
+        # Si une ligne est sélectionnée, afficher le détail complet
+        if event.selection and "rows" in event.selection and len(event.selection["rows"]) > 0:
+            selected_idx = event.selection["rows"][0]
+            selected_item = df.iloc[selected_idx]
+            
+            st.divider()
+            st.subheader("📄 Détail complet")
+            
+            col1, col2 = st.columns([2, 1])
+            
+            with col1:
+                st.markdown(f"**Titre :**")
+                st.info(selected_item["title"])
+                
+                st.markdown(f"**Contenu :**")
+                st.write(selected_item["content"])
+            
+            with col2:
+                st.metric("Tag", selected_item["tags"])
+                st.metric("Label", selected_item["labels"])
+                st.metric("Entités", selected_item["entities"])
+                st.metric("Zone", selected_item["zone"])
+                st.metric("Pays", selected_item["country"])
+        else:
+            st.info("👆 Cliquez sur une ligne du tableau pour afficher le contenu complet")
     else:
         st.info("Aucun item enrichi trouvé avec ces filtres")
         
