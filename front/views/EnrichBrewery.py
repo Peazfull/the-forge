@@ -38,17 +38,17 @@ with col_limit:
         limit_value = int(limit_option)
 
 with col_button:
-    # Compter les items non enrichis
-    items_to_enrich = fetch_items_to_enrich(limit=limit_value)
+    # Compter les items à enrichir (tous les items)
+    items_to_enrich = fetch_items_to_enrich(limit=limit_value, force_all=True)
     items_count = len(items_to_enrich)
     
     if items_count == 0:
-        st.info("✅ Tous les items sont déjà enrichis !")
+        st.info("📭 Aucun item dans la base de données")
     else:
-        st.info(f"📊 {items_count} items à enrichir")
+        st.warning(f"⚠️ {items_count} items seront (ré)enrichis - Les métadonnées existantes seront écrasées")
 
 if items_count > 0:
-    if st.button("🚀 Lancer l'enrichissement", type="primary", use_container_width=True):
+    if st.button("🚀 Lancer l'enrichissement (écrase existant)", type="primary", use_container_width=True):
         
         # Progress bar container
         progress_container = st.container()
@@ -64,8 +64,8 @@ if items_count > 0:
         # Lancer l'enrichissement
         start_time = time.time()
         
-        # Simuler le traitement item par item pour afficher la progression
-        items = fetch_items_to_enrich(limit=limit_value)
+        # Récupérer TOUS les items (force_all=True)
+        items = fetch_items_to_enrich(limit=limit_value, force_all=True)
         total = len(items)
         success_count = 0
         error_count = 0

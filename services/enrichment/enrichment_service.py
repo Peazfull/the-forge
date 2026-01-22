@@ -5,12 +5,14 @@ from services.enrichment.update_metadata import update_item_metadata
 import time
 
 
-def fetch_items_to_enrich(limit: Optional[int] = None) -> List[Dict]:
+def fetch_items_to_enrich(limit: Optional[int] = None, force_all: bool = True) -> List[Dict]:
     """
-    Récupère les items qui n'ont pas encore été enrichis (labels IS NULL).
+    Récupère les items à enrichir.
     
     Args:
         limit: Nombre max d'items à récupérer (None = tous)
+        force_all: Si True, récupère TOUS les items (même déjà enrichis)
+                   Si False, uniquement ceux avec labels IS NULL
     
     Returns:
         Liste d'items avec id, title, content
@@ -18,7 +20,11 @@ def fetch_items_to_enrich(limit: Optional[int] = None) -> List[Dict]:
     try:
         supabase = get_supabase()
         
-        query = supabase.table("brew_items").select("id, title, content").is_("labels", "null")
+        query = supabase.table("brew_items").select("id, title, content")
+        
+        # Si force_all = False, filtrer uniquement les non-enrichis
+        if not force_all:
+            query = query.is_("labels", "null")
         
         if limit:
             query = query.limit(limit)
