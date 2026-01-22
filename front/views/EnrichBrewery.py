@@ -244,7 +244,7 @@ try:
     
     query = supabase.table("brew_items").select(
         "id, title, content, tags, labels, entities, zone, country, processed_at"
-    ).not_.is_("labels", "null").order("processed_at", desc=True).limit(50)
+    ).not_.is_("labels", "null").order("processed_at", desc=True)
     
     # Appliquer les filtres
     if filter_tag != "Tous":
@@ -260,7 +260,7 @@ try:
     items = response.data or []
     
     if items:
-        st.info(f"📊 {len(items)} items affichés (max 50) - Cliquez sur une ligne pour voir le contenu complet")
+        st.info(f"📊 {len(items)} items affichés - Cliquez sur une ligne pour voir le contenu complet")
         
         # Afficher le tableau
         import pandas as pd
