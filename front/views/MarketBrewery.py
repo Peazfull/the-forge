@@ -7,6 +7,8 @@ Weekly market movements (close-based)
 
 import streamlit as st
 import pandas as pd
+from datetime import datetime
+from db.supabase_client import get_supabase
 from services.marketbrewery.market_brewery_service import (
     refresh_data,
     get_top_flop_weekly
@@ -16,6 +18,37 @@ from services.marketbrewery.market_brewery_service import (
 # ======================================================
 # HELPER FUNCTIONS
 # ======================================================
+
+@st.cache_data
+def get_last_refresh_date():
+    """
+    Récupère la date du dernier refresh depuis la DB
+    """
+    try:
+        supabase = get_supabase()
+        response = supabase.table("market_daily_close")\
+            .select("date")\
+            .order("date", desc=True)\
+            .limit(1)\
+            .execute()
+        
+        if response.data and len(response.data) > 0:
+            date_str = response.data[0]["date"]
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+            return date_obj.strftime("%d/%m/%Y")
+        else:
+            return None
+    except Exception as e:
+        return None
+
+
+@st.cache_data
+def get_top_flop_weekly_cached(zone, limit=10):
+    """
+    Version cachée de get_top_flop_weekly
+    """
+    return get_top_flop_weekly(zone, limit)
+
 
 def format_pct(value):
     """Formate un pourcentage avec couleur"""
@@ -58,7 +91,7 @@ def render_zone_section(zone_code, zone_name, zone_flag):
     """
     st.markdown(f"## {zone_flag} {zone_name}")
     
-    weekly_data = get_top_flop_weekly(zone_code, limit=10)
+    weekly_data = get_top_flop_weekly_cached(zone_code, limit=10)
     
     col_top_weekly, col_flop_weekly = st.columns(2)
     
@@ -92,7 +125,7 @@ st.divider()
 
 # ========== REFRESH BUTTON ==========
 
-col_refresh, col_spacer = st.columns([1, 3])
+col_refresh, col_date = st.columns([1, 3])
 
 with col_refresh:
     if st.button("🔄 Refresh Market Data", use_container_width=True, type="primary"):
@@ -100,10 +133,19 @@ with col_refresh:
             result = refresh_data()
             
             if result["status"] == "success":
+                # Vider le cache pour forcer le rechargement
+                st.cache_data.clear()
                 st.success("✅ " + result["message"])
                 st.rerun()
             else:
                 st.error(f"❌ Erreur : {result['message']}")
+
+with col_date:
+    last_refresh = get_last_refresh_date()
+    if last_refresh:
+        st.markdown(f"📅 **Dernières données :** {last_refresh}")
+    else:
+        st.markdown("📅 **Aucune donnée** — Lancer un refresh")
 
 st.divider()
 
