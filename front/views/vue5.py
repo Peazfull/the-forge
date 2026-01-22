@@ -1,6 +1,6 @@
 """
 ===========================================
-🍺 MARKET BREWERY — MARKET SCREENER
+📈 MARKET BREWERY — MARKET SCREENER
 ===========================================
 Daily & Weekly market movements (close-based)
 """
@@ -112,7 +112,7 @@ def render_zone_section(zone_code, zone_name, zone_flag):
 # MAIN PAGE
 # ======================================================
 
-st.title("🍺 Market Brewery — Market Screener")
+st.title("📈 Market Brewery — Market Screener")
 st.markdown("*Daily & Weekly market movements (close-based)*")
 
 st.divider()

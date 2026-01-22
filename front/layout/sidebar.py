@@ -24,7 +24,7 @@ def render_sidebar():
                 st.session_state.current_page = "front/views/YoutubeBrewery"
             if st.button("👨🏻‍💻 Hand brewery", key="hand_brewery", use_container_width=True):
                 st.session_state.current_page = "front/views/HandBrewery"
-            if st.button("📦 Vue 5", key="vue5", use_container_width=True):
+            if st.button("📈 Market Brewery", key="vue5", use_container_width=True):
                 st.session_state.current_page = "front/views/vue5"
             if st.button("🚀 Vue 6", key="vue6", use_container_width=True):
                 st.session_state.current_page = "front/views/vue6"

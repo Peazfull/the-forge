@@ -68,12 +68,33 @@ def init_assets():
                     total_skipped += 1
                     continue
                 
+                # Déterminer la currency selon la zone
+                currency = "USD"
+                if zone == "FR":
+                    currency = "EUR"
+                elif zone == "EU":
+                    # Pour l'EU, on va regarder le suffix du symbol
+                    if ".PA" in symbol or ".DE" in symbol or ".AS" in symbol or ".MI" in symbol or ".BR" in symbol or ".VI" in symbol:
+                        currency = "EUR"
+                    elif ".L" in symbol:
+                        currency = "GBP"
+                    elif ".SW" in symbol:
+                        currency = "CHF"
+                    elif ".ST" in symbol or ".CO" in symbol or ".OL" in symbol or ".HE" in symbol:
+                        currency = "EUR"  # Nordic countries
+                    else:
+                        currency = "USD"
+                elif zone == "CRYPTO":
+                    currency = "USD"
+                
                 # Insérer
                 supabase.table("assets").insert({
                     "symbol": symbol,
                     "name": symbol,  # Par défaut, name = symbol
-                    "type": asset_type,
-                    "zone": zone
+                    "asset_type": asset_type,
+                    "market": zone,
+                    "currency": currency,
+                    "is_active": True
                 }).execute()
                 
                 print(f"✅ {symbol} : inséré")
