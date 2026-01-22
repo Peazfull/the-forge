@@ -39,43 +39,42 @@ def inject_custom_css():
         padding-top: 2rem !important;
     }
     
-    /* Cards pour les zones */
+    /* Cards pour les zones - version lean */
     .zone-card {
         background: var(--gray-50);
         border: 1px solid var(--gray-200);
-        border-radius: 12px;
-        padding: 24px;
-        margin: 24px 0;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        border-radius: 8px;
+        padding: 16px 20px;
+        margin: 16px 0;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.04);
     }
     
     .zone-card h2 {
         margin-top: 0 !important;
-        margin-bottom: 16px !important;
-        font-size: 24px !important;
+        margin-bottom: 12px !important;
+        font-size: 20px !important;
         font-weight: 600 !important;
     }
     
-    /* Header section */
+    /* Header section - version épurée */
     .market-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 32px;
-        border-radius: 16px;
-        margin-bottom: 32px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        background: transparent;
+        color: var(--gray-900);
+        padding: 24px 0;
+        margin-bottom: 24px;
+        border-bottom: 2px solid var(--gray-200);
     }
     
     .market-header h1 {
         margin: 0 !important;
-        font-size: 32px !important;
+        font-size: 28px !important;
         font-weight: 700 !important;
     }
     
     .market-header p {
-        margin: 8px 0 0 0 !important;
-        opacity: 0.9;
-        font-size: 16px !important;
+        margin: 4px 0 0 0 !important;
+        color: var(--gray-600);
+        font-size: 14px !important;
     }
     
     /* Badges */
@@ -125,19 +124,19 @@ def inject_custom_css():
         color: var(--gray-900);
     }
     
-    /* Section headers */
+    /* Section headers - version compacte */
     .section-header {
         display: flex;
         align-items: center;
-        gap: 12px;
-        margin-bottom: 16px;
+        gap: 10px;
+        margin-bottom: 12px;
     }
     
     .section-title {
-        font-size: 18px;
+        font-size: 15px;
         font-weight: 600;
         color: var(--gray-900);
-        margin: 0;
+        margin: 0 0 8px 0;
     }
     </style>
     """, unsafe_allow_html=True)
