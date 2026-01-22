@@ -9,21 +9,64 @@ import time
 
 
 # ======================================================
+# CUSTOM CSS
+# ======================================================
+
+st.markdown("""
+<style>
+    /* Cards modernes */
+    .card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        margin-bottom: 16px;
+    }
+    
+    /* Stats cards */
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        padding: 20px;
+        color: white;
+        text-align: center;
+    }
+    
+    /* Header épuré */
+    h1 {
+        font-weight: 600 !important;
+        font-size: 2rem !important;
+        margin-bottom: 8px !important;
+    }
+    
+    /* Suppression dividers par défaut */
+    hr {
+        margin: 2rem 0 !important;
+        border: none !important;
+        height: 1px !important;
+        background: linear-gradient(90deg, transparent, #e0e0e0, transparent) !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+
+# ======================================================
 # HEADER
 # ======================================================
 
-st.title("🏛️ The Ministry — Enrich Metadata")
-st.markdown("**Enrichissement automatique des métadonnées** (tag, label, entities, zone, country)")
-st.divider()
+st.markdown("# 🏛️ Enrich")
+st.markdown("Enrichissement automatique des métadonnées")
+st.markdown("")
 
 
 # ======================================================
 # SECTION 1 : LANCER L'ENRICHISSEMENT
 # ======================================================
 
-st.subheader("🚀 Lancer l'enrichissement")
-
-col_button, col_limit = st.columns([3, 1])
+with st.container():
+    st.markdown("### ⚡ Enrichissement")
+    
+    col_button, col_limit = st.columns([3, 1])
 
 with col_limit:
     limit_option = st.selectbox(
@@ -47,8 +90,8 @@ with col_button:
     else:
         st.info(f"📊 {items_count} items prêts")
 
-if items_count > 0:
-    if st.button("🚀 Lancer l'enrichissement (écrase existant)", type="primary", use_container_width=True):
+    if items_count > 0:
+        if st.button("🚀 Lancer l'enrichissement", type="primary", use_container_width=True):
         
         # Progress bar container
         progress_container = st.container()
@@ -108,159 +151,121 @@ if items_count > 0:
         
         st.success(f"🎉 Enrichissement terminé ! {success_count}/{total} items traités avec succès.")
         
-        # Forcer le rechargement des stats
-        st.rerun()
+            # Forcer le rechargement des stats
+            st.rerun()
 
-st.divider()
+st.markdown("")
 
 
 # ======================================================
 # SECTION 2 : STATISTIQUES
 # ======================================================
 
-st.subheader("📊 Statistiques d'enrichissement")
-
-stats = get_enrichment_stats()
-
-if stats.get("status") == "error":
-    st.error(f"Erreur : {stats.get('message')}")
-else:
-    # Métriques globales
-    col1, col2, col3 = st.columns(3)
+with st.container():
+    st.markdown("### 📊 Statistiques")
+    st.markdown("")
     
-    with col1:
-        st.metric("📦 Total items", stats["total_items"])
-    with col2:
-        st.metric("✅ Items enrichis", stats["enriched_items"])
-    with col3:
-        st.metric("⏳ À enrichir", stats["not_enriched"])
+    stats = get_enrichment_stats()
     
-    st.divider()
-    
-    # Répartition par TAG
-    st.markdown("### 🏷️ Répartition par TAG")
-    
-    by_tags = stats.get("by_tags", {})
-    
-    if by_tags:
-        col_eco, col_bourse, col_action, col_crypto = st.columns(4)
-        
-        with col_eco:
-            eco_count = by_tags.get("ECO", 0)
-            st.metric("🌍 ECO", eco_count)
-        
-        with col_bourse:
-            bourse_count = by_tags.get("BOURSE", 0)
-            st.metric("📈 BOURSE", bourse_count)
-        
-        with col_action:
-            action_count = by_tags.get("ACTION", 0)
-            st.metric("🏢 ACTION", action_count)
-        
-        with col_crypto:
-            crypto_count = by_tags.get("CRYPTO", 0)
-            st.metric("₿ CRYPTO", crypto_count)
+    if stats.get("status") == "error":
+        st.error(f"Erreur : {stats.get('message')}")
     else:
-        st.info("Aucun item enrichi pour le moment")
-    
-    st.divider()
-    
-    # Répartition par LABEL
-    st.markdown("### 🏷️ Répartition par LABEL")
-    
-    by_labels = stats.get("by_labels", {})
-    
-    if by_labels:
-        col1, col2, col3, col4 = st.columns(4)
+        # Métriques globales en grid
+        col1, col2, col3 = st.columns(3)
         
         with col1:
-            st.metric("🌐 Eco_GeoPol", by_labels.get("Eco_GeoPol", 0))
+            st.metric("📦 Total", stats["total_items"])
         with col2:
-            st.metric("🇪🇺 PEA", by_labels.get("PEA", 0))
+            st.metric("✅ Enrichis", stats["enriched_items"])
         with col3:
-            st.metric("🇺🇸 Action_USA", by_labels.get("Action_USA", 0))
-        with col4:
-            st.metric("🌏 Action", by_labels.get("Action", 0))
-    else:
-        st.info("Aucun item enrichi pour le moment")
-    
-    st.divider()
-    
-    # Répartition par ZONE
-    st.markdown("### 🌍 Répartition par ZONE")
-    
-    by_zone = stats.get("by_zone", {})
-    
-    if by_zone:
-        col1, col2, col3, col4 = st.columns(4)
+            st.metric("⏳ Restants", stats["not_enriched"])
         
-        with col1:
-            st.metric("🇪🇺 Europe", by_zone.get("Europe", 0))
-        with col2:
-            st.metric("🇺🇸 USA", by_zone.get("USA", 0))
-        with col3:
-            st.metric("🌏 ASIA", by_zone.get("ASIA", 0))
-        with col4:
-            st.metric("🌊 OCEANIA", by_zone.get("OCEANIA", 0))
-    else:
-        st.info("Aucun item enrichi pour le moment")
+        st.markdown("")
+        
+        # Répartition par TAG avec gradient
+        by_tags = stats.get("by_tags", {})
+        
+        if by_tags:
+            col_eco, col_bourse, col_action, col_crypto = st.columns(4)
+            
+            with col_eco:
+                st.metric("🌍 ECO", by_tags.get("ECO", 0))
+            
+            with col_bourse:
+                st.metric("📈 BOURSE", by_tags.get("BOURSE", 0))
+            
+            with col_action:
+                st.metric("🏢 ACTION", by_tags.get("ACTION", 0))
+            
+            with col_crypto:
+                st.metric("₿ CRYPTO", by_tags.get("CRYPTO", 0))
 
-st.divider()
+st.markdown("")
 
 
 # ======================================================
 # SECTION 3 : PREVIEW DB
 # ======================================================
 
-st.subheader("👁️ Preview DB enrichie")
+with st.container():
+    st.markdown("### 👁️ Base de données")
+    st.markdown("")
+    
+    # Filtres
+    col_tag, col_label, col_zone = st.columns(3)
 
-# Filtres
-col_tag, col_label, col_zone = st.columns(3)
+    with col_tag:
+        filter_tag = st.selectbox(
+            "Tag",
+            options=["Tous", "ECO", "BOURSE", "ACTION", "CRYPTO"],
+            index=0,
+            label_visibility="collapsed",
+            placeholder="Tag"
+        )
+    
+    with col_label:
+        filter_label = st.selectbox(
+            "Label",
+            options=["Tous", "Eco_GeoPol", "PEA", "Action_USA", "Action"],
+            index=0,
+            label_visibility="collapsed",
+            placeholder="Label"
+        )
+    
+    with col_zone:
+        filter_zone = st.selectbox(
+            "Zone",
+            options=["Tous", "Europe", "USA", "ASIA", "OCEANIA"],
+            index=0,
+            label_visibility="collapsed",
+            placeholder="Zone"
+        )
+    
+    st.markdown("")
 
-with col_tag:
-    filter_tag = st.selectbox(
-        "Filtrer par TAG",
-        options=["Tous", "ECO", "BOURSE", "ACTION", "CRYPTO"],
-        index=0
-    )
-
-with col_label:
-    filter_label = st.selectbox(
-        "Filtrer par LABEL",
-        options=["Tous", "Eco_GeoPol", "PEA", "Action_USA", "Action"],
-        index=0
-    )
-
-with col_zone:
-    filter_zone = st.selectbox(
-        "Filtrer par ZONE",
-        options=["Tous", "Europe", "USA", "ASIA", "OCEANIA"],
-        index=0
-    )
-
-# Requête DB avec filtres
-try:
-    supabase = get_supabase()
+    # Requête DB avec filtres
+    try:
+        supabase = get_supabase()
     
-    query = supabase.table("brew_items").select(
-        "id, title, content, tags, labels, entities, zone, country, processed_at"
-    ).not_.is_("labels", "null").order("processed_at", desc=True)
-    
-    # Appliquer les filtres
-    if filter_tag != "Tous":
-        query = query.eq("tags", filter_tag)
-    
-    if filter_label != "Tous":
-        query = query.eq("labels", filter_label)
-    
-    if filter_zone != "Tous":
-        query = query.eq("zone", filter_zone)
-    
-    response = query.execute()
-    items = response.data or []
-    
-    if items:
-        st.info(f"📊 {len(items)} items affichés - Cliquez sur une ligne pour voir le contenu complet")
+        query = supabase.table("brew_items").select(
+            "id, title, content, tags, labels, entities, zone, country, processed_at"
+        ).not_.is_("labels", "null").order("processed_at", desc=True)
+        
+        # Appliquer les filtres
+        if filter_tag != "Tous":
+            query = query.eq("tags", filter_tag)
+        
+        if filter_label != "Tous":
+            query = query.eq("labels", filter_label)
+        
+        if filter_zone != "Tous":
+            query = query.eq("zone", filter_zone)
+        
+        response = query.execute()
+        items = response.data or []
+        
+        if items:
+            st.caption(f"📊 {len(items)} items · Cliquez pour voir le détail")
         
         # Afficher le tableau
         import pandas as pd
@@ -276,58 +281,52 @@ try:
         df_table = df_display[["title_short", "content_short", "tags", "labels", "entities", "zone", "country"]]
         df_table.columns = ["Titre", "Contenu", "Tag", "Label", "Entités", "Zone", "Pays"]
         
-        # Fonction de style pour colorer les tags
-        def color_tags(val):
-            if val == "ECO":
-                return "background-color: #4A90E2; color: white; font-weight: bold;"
-            elif val == "BOURSE":
-                return "background-color: #9B59B6; color: white; font-weight: bold;"
-            elif val == "ACTION":
-                return "background-color: #27AE60; color: white; font-weight: bold;"
-            elif val == "CRYPTO":
-                return "background-color: #F39C12; color: white; font-weight: bold;"
-            return ""
+            # Fonction de style pour colorer les tags avec gradient transparent
+            def color_tags(val):
+                if val == "ECO":
+                    return "background: linear-gradient(135deg, rgba(74, 144, 226, 0.15) 0%, rgba(74, 144, 226, 0.25) 100%); color: #2c5aa0; font-weight: 600; border-radius: 6px; padding: 4px 12px;"
+                elif val == "BOURSE":
+                    return "background: linear-gradient(135deg, rgba(155, 89, 182, 0.15) 0%, rgba(155, 89, 182, 0.25) 100%); color: #6c3483; font-weight: 600; border-radius: 6px; padding: 4px 12px;"
+                elif val == "ACTION":
+                    return "background: linear-gradient(135deg, rgba(39, 174, 96, 0.15) 0%, rgba(39, 174, 96, 0.25) 100%); color: #1e7e34; font-weight: 600; border-radius: 6px; padding: 4px 12px;"
+                elif val == "CRYPTO":
+                    return "background: linear-gradient(135deg, rgba(243, 156, 18, 0.15) 0%, rgba(243, 156, 18, 0.25) 100%); color: #c87f0a; font-weight: 600; border-radius: 6px; padding: 4px 12px;"
+                return ""
         
         # Appliquer le style sur la colonne Tag
         styled_df = df_table.style.applymap(color_tags, subset=["Tag"])
         
-        # Afficher le tableau avec sélection
-        event = st.dataframe(
-            styled_df,
-            use_container_width=True,
-            hide_index=True,
-            height=400,
-            on_select="rerun",
-            selection_mode="single-row"
-        )
+            # Afficher le tableau avec sélection
+            event = st.dataframe(
+                styled_df,
+                use_container_width=True,
+                hide_index=True,
+                height=450,
+                on_select="rerun",
+                selection_mode="single-row"
+            )
         
-        # Si une ligne est sélectionnée, afficher le détail complet
-        if event.selection and "rows" in event.selection and len(event.selection["rows"]) > 0:
-            selected_idx = event.selection["rows"][0]
-            selected_item = df.iloc[selected_idx]
-            
-            st.divider()
-            st.subheader("📄 Détail complet")
-            
-            col1, col2 = st.columns([2, 1])
-            
-            with col1:
-                st.markdown(f"**Titre :**")
-                st.info(selected_item["title"])
+            # Si une ligne est sélectionnée, afficher le détail complet
+            if event.selection and "rows" in event.selection and len(event.selection["rows"]) > 0:
+                selected_idx = event.selection["rows"][0]
+                selected_item = df.iloc[selected_idx]
                 
-                st.markdown(f"**Contenu :**")
-                st.write(selected_item["content"])
-            
-            with col2:
-                st.metric("Tag", selected_item["tags"])
-                st.metric("Label", selected_item["labels"])
-                st.metric("Entités", selected_item["entities"])
-                st.metric("Zone", selected_item["zone"])
-                st.metric("Pays", selected_item["country"])
+                st.markdown("")
+                st.markdown("#### 📄 Détail")
+                
+                col1, col2 = st.columns([2, 1])
+                
+                with col1:
+                    st.markdown(f"**{selected_item['title']}**")
+                    st.markdown(selected_item["content"])
+                
+                with col2:
+                    st.metric("Tag", selected_item["tags"])
+                    st.metric("Label", selected_item["labels"])
+                    st.metric("Entités", selected_item["entities"])
+                    st.caption(f"{selected_item['zone']} · {selected_item['country']}")
         else:
-            st.info("👆 Cliquez sur une ligne du tableau pour afficher le contenu complet")
-    else:
-        st.info("Aucun item enrichi trouvé avec ces filtres")
-        
-except Exception as e:
-    st.error(f"Erreur lors de la récupération des données : {e}")
+            st.info("Aucun item enrichi trouvé avec ces filtres")
+            
+    except Exception as e:
+        st.error(f"Erreur : {e}")
