@@ -4,8 +4,8 @@ from db.supabase_client import get_supabase
 
 def update_item_metadata(
     item_id: str,
-    tag: Optional[str],
-    label: Optional[str],
+    tags: Optional[str],
+    labels: Optional[str],
     entities: Optional[str],
     zone: Optional[str],
     country: Optional[str],
@@ -16,8 +16,8 @@ def update_item_metadata(
     
     Args:
         item_id: UUID de l'item
-        tag: Valeur du tag (ECO, BOURSE, CRYPTO)
-        label: Valeur du label (Eco_GeoPol, PEA, Action_USA, Action)
+        tags: Valeur du tag (ECO, BOURSE, CRYPTO)
+        labels: Valeur du label (Eco_GeoPol, PEA, Action_USA, Action)
         entities: Entités (ex: "Apple, Trump")
         zone: Zone géographique (Europe, USA, ASIA, OCEANIA)
         country: Pays d'origine
@@ -32,8 +32,8 @@ def update_item_metadata(
         
         # Construire l'objet de mise à jour
         update_data = {
-            "tag": tag,
-            "label": label,
+            "tags": tags,
+            "labels": labels,
             "entities": entities,
             "zone": zone,
             "country": country,
@@ -73,8 +73,8 @@ def batch_update_metadata(items_metadata: list) -> Dict[str, object]:
             [
                 {
                     "id": "uuid",
-                    "tag": "ECO",
-                    "label": "Eco_GeoPol",
+                    "tags": "ECO",
+                    "labels": "Eco_GeoPol",
                     "entities": "Trump",
                     "zone": "USA",
                     "country": "USA"
@@ -104,8 +104,8 @@ def batch_update_metadata(items_metadata: list) -> Dict[str, object]:
         
         result = update_item_metadata(
             item_id=item_id,
-            tag=item.get("tag"),
-            label=item.get("label"),
+            tags=item.get("tags"),
+            labels=item.get("labels"),
             entities=item.get("entities"),
             zone=item.get("zone"),
             country=item.get("country"),

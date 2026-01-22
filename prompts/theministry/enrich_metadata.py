@@ -142,8 +142,8 @@ FORMAT DE SORTIE JSON
 ───────────────────────────────────────────────────────
 
 {
-  "tag": "ECO" | "BOURSE" | "CRYPTO",
-  "label": "Eco_GeoPol" | "PEA" | "Action_USA" | "Action",
+  "tags": "ECO" | "BOURSE" | "CRYPTO",
+  "labels": "Eco_GeoPol" | "PEA" | "Action_USA" | "Action",
   "entities": "Entité1, Entité2" ou "Entité1" ou "N/A",
   "zone": "Europe" | "USA" | "ASIA" | "OCEANIA",
   "country": "Nom du pays" ou "Zone"
@@ -159,8 +159,8 @@ Content : "Les inquiétudes concernant les menaces de droits de douane de la Mai
 
 OUTPUT :
 {
-  "tag": "ECO",
-  "label": "Eco_GeoPol",
+  "tags": "ECO",
+  "labels": "Eco_GeoPol",
   "entities": "Donald Trump",
   "zone": "USA",
   "country": "USA"
@@ -172,8 +172,8 @@ Content : "Le géant français du luxe LVMH a annoncé une baisse de 3% de ses r
 
 OUTPUT :
 {
-  "tag": "BOURSE",
-  "label": "PEA",
+  "tags": "BOURSE",
+  "labels": "PEA",
   "entities": "LVMH",
   "zone": "Europe",
   "country": "France"
@@ -185,8 +185,8 @@ Content : "Apple a franchi un cap historique en dépassant les 3 trillions de do
 
 OUTPUT :
 {
-  "tag": "BOURSE",
-  "label": "Action_USA",
+  "tags": "BOURSE",
+  "labels": "Action_USA",
   "entities": "Apple",
   "zone": "USA",
   "country": "USA"
@@ -198,8 +198,8 @@ Content : "La Réserve fédérale américaine a maintenu ses taux directeurs à 
 
 OUTPUT :
 {
-  "tag": "ECO",
-  "label": "Eco_GeoPol",
+  "tags": "ECO",
+  "labels": "Eco_GeoPol",
   "entities": "Fed",
   "zone": "USA",
   "country": "USA"
@@ -211,8 +211,8 @@ Content : "Le Bitcoin a atteint un nouveau record historique en franchissant..."
 
 OUTPUT :
 {
-  "tag": "CRYPTO",
-  "label": "Eco_GeoPol",
+  "tags": "CRYPTO",
+  "labels": "Eco_GeoPol",
   "entities": "N/A",
   "zone": "USA",
   "country": "USA"

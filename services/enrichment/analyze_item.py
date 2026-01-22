@@ -20,8 +20,8 @@ def analyze_metadata(title: str, content: str) -> Dict[str, object]:
     Returns:
         {
             "status": "success" | "error",
-            "tag": str,
-            "label": str,
+            "tags": str,
+            "labels": str,
             "entities": str,
             "zone": str,
             "country": str,
@@ -33,8 +33,8 @@ def analyze_metadata(title: str, content: str) -> Dict[str, object]:
         return {
             "status": "error",
             "message": "Titre ou contenu manquant",
-            "tag": None,
-            "label": None,
+            "tags": None,
+            "labels": None,
             "entities": None,
             "zone": None,
             "country": None,
@@ -59,14 +59,14 @@ def analyze_metadata(title: str, content: str) -> Dict[str, object]:
         data = json.loads(raw_json)
         
         # Validation des champs
-        required_fields = ["tag", "label", "entities", "zone", "country"]
+        required_fields = ["tags", "labels", "entities", "zone", "country"]
         for field in required_fields:
             if field not in data:
                 return {
                     "status": "error",
                     "message": f"Champ manquant: {field}",
-                    "tag": None,
-                    "label": None,
+                    "tags": None,
+                    "labels": None,
                     "entities": None,
                     "zone": None,
                     "country": None,
@@ -74,8 +74,8 @@ def analyze_metadata(title: str, content: str) -> Dict[str, object]:
         
         return {
             "status": "success",
-            "tag": data["tag"],
-            "label": data["label"],
+            "tags": data["tags"],
+            "labels": data["labels"],
             "entities": data["entities"],
             "zone": data["zone"],
             "country": data["country"],
@@ -85,8 +85,8 @@ def analyze_metadata(title: str, content: str) -> Dict[str, object]:
         return {
             "status": "error",
             "message": f"Erreur JSON: {str(e)}",
-            "tag": None,
-            "label": None,
+            "tags": None,
+            "labels": None,
             "entities": None,
             "zone": None,
             "country": None,
@@ -95,8 +95,8 @@ def analyze_metadata(title: str, content: str) -> Dict[str, object]:
         return {
             "status": "error",
             "message": f"Erreur analyse: {str(e)}",
-            "tag": None,
-            "label": None,
+            "tags": None,
+            "labels": None,
             "entities": None,
             "zone": None,
             "country": None,

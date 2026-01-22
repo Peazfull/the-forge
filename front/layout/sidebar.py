@@ -15,7 +15,7 @@ def render_sidebar():
         st.divider()
 
         # ===== MENU 1 =====
-        with st.expander("🍺 The brewery", expanded=True):
+        with st.expander("🍺 The brewery", expanded=False):
             if st.button("🗞️ News brewery", key="news_brewery", use_container_width=True):
                 st.session_state.current_page = "front/views/NewsBrewery"
             if st.button("📨 NL brewery", key="nl_brewery", use_container_width=True):

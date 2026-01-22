@@ -140,21 +140,21 @@ else:
     # Répartition par TAG
     st.markdown("### 🏷️ Répartition par TAG")
     
-    by_tag = stats.get("by_tag", {})
+    by_tags = stats.get("by_tags", {})
     
-    if by_tag:
+    if by_tags:
         col_eco, col_bourse, col_crypto = st.columns(3)
         
         with col_eco:
-            eco_count = by_tag.get("ECO", 0)
+            eco_count = by_tags.get("ECO", 0)
             st.metric("🌍 ECO", eco_count)
         
         with col_bourse:
-            bourse_count = by_tag.get("BOURSE", 0)
+            bourse_count = by_tags.get("BOURSE", 0)
             st.metric("📈 BOURSE", bourse_count)
         
         with col_crypto:
-            crypto_count = by_tag.get("CRYPTO", 0)
+            crypto_count = by_tags.get("CRYPTO", 0)
             st.metric("₿ CRYPTO", crypto_count)
     else:
         st.info("Aucun item enrichi pour le moment")
@@ -164,19 +164,19 @@ else:
     # Répartition par LABEL
     st.markdown("### 🏷️ Répartition par LABEL")
     
-    by_label = stats.get("by_label", {})
+    by_labels = stats.get("by_labels", {})
     
-    if by_label:
+    if by_labels:
         col1, col2, col3, col4 = st.columns(4)
         
         with col1:
-            st.metric("🌐 Eco_GeoPol", by_label.get("Eco_GeoPol", 0))
+            st.metric("🌐 Eco_GeoPol", by_labels.get("Eco_GeoPol", 0))
         with col2:
-            st.metric("🇪🇺 PEA", by_label.get("PEA", 0))
+            st.metric("🇪🇺 PEA", by_labels.get("PEA", 0))
         with col3:
-            st.metric("🇺🇸 Action_USA", by_label.get("Action_USA", 0))
+            st.metric("🇺🇸 Action_USA", by_labels.get("Action_USA", 0))
         with col4:
-            st.metric("🌏 Action", by_label.get("Action", 0))
+            st.metric("🌏 Action", by_labels.get("Action", 0))
     else:
         st.info("Aucun item enrichi pour le moment")
     
@@ -239,15 +239,15 @@ try:
     supabase = get_supabase()
     
     query = supabase.table("brew_items").select(
-        "id, title, tag, label, entities, zone, country, processed_at"
-    ).not_.is_("label", "null").order("processed_at", desc=True).limit(50)
+        "id, title, tags, labels, entities, zone, country, processed_at"
+    ).not_.is_("labels", "null").order("processed_at", desc=True).limit(50)
     
     # Appliquer les filtres
     if filter_tag != "Tous":
-        query = query.eq("tag", filter_tag)
+        query = query.eq("tags", filter_tag)
     
     if filter_label != "Tous":
-        query = query.eq("label", filter_label)
+        query = query.eq("labels", filter_label)
     
     if filter_zone != "Tous":
         query = query.eq("zone", filter_zone)
@@ -264,7 +264,7 @@ try:
         df = pd.DataFrame(items)
         
         # Sélectionner et réordonner les colonnes
-        df_display = df[["title", "tag", "label", "entities", "zone", "country"]]
+        df_display = df[["title", "tags", "labels", "entities", "zone", "country"]]
         
         # Renommer les colonnes pour l'affichage
         df_display.columns = ["Titre", "Tag", "Label", "Entités", "Zone", "Pays"]

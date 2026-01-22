@@ -7,7 +7,7 @@ import time
 
 def fetch_items_to_enrich(limit: Optional[int] = None) -> List[Dict]:
     """
-    Récupère les items qui n'ont pas encore été enrichis (label IS NULL).
+    Récupère les items qui n'ont pas encore été enrichis (labels IS NULL).
     
     Args:
         limit: Nombre max d'items à récupérer (None = tous)
@@ -18,7 +18,7 @@ def fetch_items_to_enrich(limit: Optional[int] = None) -> List[Dict]:
     try:
         supabase = get_supabase()
         
-        query = supabase.table("brew_items").select("id, title, content").is_("label", "null")
+        query = supabase.table("brew_items").select("id, title, content").is_("labels", "null")
         
         if limit:
             query = query.limit(limit)
@@ -51,8 +51,8 @@ def enrich_single_item(item_id: str, title: str, content: str) -> Dict[str, obje
         # Logger l'erreur en DB
         update_item_metadata(
             item_id=item_id,
-            tag=None,
-            label=None,
+            tags=None,
+            labels=None,
             entities=None,
             zone=None,
             country=None,
@@ -67,8 +67,8 @@ def enrich_single_item(item_id: str, title: str, content: str) -> Dict[str, obje
     # Mettre à jour en DB
     update_result = update_item_metadata(
         item_id=item_id,
-        tag=analysis["tag"],
-        label=analysis["label"],
+        tags=analysis["tags"],
+        labels=analysis["labels"],
         entities=analysis["entities"],
         zone=analysis["zone"],
         country=analysis["country"]
@@ -85,8 +85,8 @@ def enrich_single_item(item_id: str, title: str, content: str) -> Dict[str, obje
         "status": "success",
         "item_id": item_id,
         "metadata": {
-            "tag": analysis["tag"],
-            "label": analysis["label"],
+            "tags": analysis["tags"],
+            "labels": analysis["labels"],
             "entities": analysis["entities"],
             "zone": analysis["zone"],
             "country": analysis["country"]
@@ -179,8 +179,8 @@ def get_enrichment_stats() -> Dict[str, object]:
             "total_items": int,
             "enriched_items": int,
             "not_enriched": int,
-            "by_tag": {"ECO": X, "BOURSE": Y, "CRYPTO": Z},
-            "by_label": {...},
+            "by_tags": {"ECO": X, "BOURSE": Y, "CRYPTO": Z},
+            "by_labels": {...},
             "by_zone": {...}
         }
     """
@@ -193,26 +193,26 @@ def get_enrichment_stats() -> Dict[str, object]:
         total_items = total_response.count or 0
         
         # Items enrichis
-        enriched_response = supabase.table("brew_items").select("id", count="exact").not_.is_("label", "null").execute()
+        enriched_response = supabase.table("brew_items").select("id", count="exact").not_.is_("labels", "null").execute()
         enriched_items = enriched_response.count or 0
         
-        # Items par tag
-        tag_response = supabase.table("brew_items").select("tag").not_.is_("tag", "null").execute()
-        tags_data = tag_response.data or []
-        by_tag = {}
+        # Items par tags
+        tags_response = supabase.table("brew_items").select("tags").not_.is_("tags", "null").execute()
+        tags_data = tags_response.data or []
+        by_tags = {}
         for item in tags_data:
-            tag = item.get("tag")
+            tag = item.get("tags")
             if tag:
-                by_tag[tag] = by_tag.get(tag, 0) + 1
+                by_tags[tag] = by_tags.get(tag, 0) + 1
         
-        # Items par label
-        label_response = supabase.table("brew_items").select("label").not_.is_("label", "null").execute()
-        labels_data = label_response.data or []
-        by_label = {}
+        # Items par labels
+        labels_response = supabase.table("brew_items").select("labels").not_.is_("labels", "null").execute()
+        labels_data = labels_response.data or []
+        by_labels = {}
         for item in labels_data:
-            label = item.get("label")
+            label = item.get("labels")
             if label:
-                by_label[label] = by_label.get(label, 0) + 1
+                by_labels[label] = by_labels.get(label, 0) + 1
         
         # Items par zone
         zone_response = supabase.table("brew_items").select("zone").not_.is_("zone", "null").execute()
@@ -228,8 +228,8 @@ def get_enrichment_stats() -> Dict[str, object]:
             "total_items": total_items,
             "enriched_items": enriched_items,
             "not_enriched": total_items - enriched_items,
-            "by_tag": by_tag,
-            "by_label": by_label,
+            "by_tags": by_tags,
+            "by_labels": by_labels,
             "by_zone": by_zone
         }
         
