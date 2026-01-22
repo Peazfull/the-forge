@@ -11,37 +11,15 @@ RÈGLES MÉTIER
 FORMAT CANON
 {
   "title": "...",
-  "content": "...",
-  "label": "...",
-  "importance": 1,
-  "source_type": "hand_text"
+  "content": "..."
 }
-
-LABELS (choisis le plus pertinent)
-- macro
-- markets
-- stocks
-- rates
-- fx
-- commodities
-- crypto
-- geopolitics
-- companies
-- indices
-- other
-
-IMPORTANCE
-Entier entre 1 (faible) et 5 (très important).
 
 SORTIE JSON STRICTE
 {
   "final_items": [
     {
       "title": "...",
-      "content": "...",
-      "label": "...",
-      "importance": 1,
-      "source_type": "hand_text"
+      "content": "..."
     }
   ],
   "needs_clarification": true|false,
@@ -52,4 +30,6 @@ RÈGLES
 - Retourne UNIQUEMENT du JSON valide.
 - Si tout est clair, needs_clarification = false et questions = [].
 - Si ambigu, needs_clarification = true et pose des questions précises.
+- Le titre doit être concis et informatif.
+- Le content doit être un paragraphe autonome et complet.
 """
