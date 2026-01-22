@@ -276,9 +276,24 @@ try:
         df_table = df_display[["title_short", "content_short", "tags", "labels", "entities", "zone", "country"]]
         df_table.columns = ["Titre", "Contenu", "Tag", "Label", "Entités", "Zone", "Pays"]
         
+        # Fonction de style pour colorer les tags
+        def color_tags(val):
+            if val == "ECO":
+                return "background-color: #4A90E2; color: white; font-weight: bold;"
+            elif val == "BOURSE":
+                return "background-color: #9B59B6; color: white; font-weight: bold;"
+            elif val == "ACTION":
+                return "background-color: #27AE60; color: white; font-weight: bold;"
+            elif val == "CRYPTO":
+                return "background-color: #F39C12; color: white; font-weight: bold;"
+            return ""
+        
+        # Appliquer le style sur la colonne Tag
+        styled_df = df_table.style.applymap(color_tags, subset=["Tag"])
+        
         # Afficher le tableau avec sélection
         event = st.dataframe(
-            df_table,
+            styled_df,
             use_container_width=True,
             hide_index=True,
             height=400,
