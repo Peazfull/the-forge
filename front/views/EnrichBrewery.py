@@ -226,7 +226,7 @@ with st.container():
     with col_label:
         filter_label = st.selectbox(
             "Label",
-            options=["Tous", "Eco_GeoPol", "PEA", "Action_USA", "Action"],
+            options=["Tous", "Eco_GeoPol", "Marchés", "PEA", "Action_USA", "Action", "Crypto"],
             index=0,
             label_visibility="collapsed",
             placeholder="Label"

@@ -42,10 +42,17 @@ Choisis EXACTEMENT 1 valeur parmi :
   - Décisions économiques majeures (Fed, BCE, gouvernements)
   - Tensions commerciales, sanctions, accords internationaux
   
+• "Marchés" → 
+  - Marchés financiers généraux, indices boursiers (CAC 40, S&P 500, etc.)
+  - Performance globale des marchés, tendances sectorielles
+  - Sentiments de marché, mouvements globaux
+  - ATTENTION : Si TAG "BOURSE" + valeurs EUROPÉENNES → choisir "PEA" (pas Marchés)
+  
 • "PEA" → 
   - Actualités d'entreprises EUROPÉENNES ou FRANÇAISES cotées en bourse
   - Résultats financiers, fusions-acquisitions, stratégies d'entreprises EU/FR
   - Exemples : LVMH, TotalEnergies, Airbus, SAP, ASML
+  - Priorisé si TAG "BOURSE" + entreprises européennes
   
 • "Action_USA" → 
   - Actualités d'entreprises AMÉRICAINES cotées en bourse
@@ -54,18 +61,29 @@ Choisis EXACTEMENT 1 valeur parmi :
 • "Action" → 
   - Actualités d'entreprises cotées HORS Europe/France/USA
   - Exemples : entreprises chinoises, japonaises, brésiliennes, etc.
+  
+• "Crypto" → 
+  - Actualités cryptomonnaies, blockchain, Web3
+  - TOUJOURS utilisé si TAG = "CRYPTO"
 
 HIÉRARCHIE DE DÉCISION :
-1. Si c'est une déclaration politique/économique majeure → Eco_GeoPol
-2. Sinon, si c'est une entreprise cotée → regarder la zone géographique
-3. Si plusieurs entreprises mentionnées → choisir la plus importante
+1. Si TAG = "CRYPTO" → LABEL = "Crypto"
+2. Si TAG = "BOURSE" + valeurs européennes → LABEL = "PEA"
+3. Si TAG = "BOURSE" + marchés généraux/indices → LABEL = "Marchés"
+4. Si déclaration politique/économique majeure → LABEL = "Eco_GeoPol"
+5. Sinon, si entreprise cotée → regarder la zone géographique
+6. Si plusieurs entreprises → choisir la plus importante
 
 EXEMPLES :
 - "Trump menace l'Europe de droits de douane" → Eco_GeoPol
 - "Christine Lagarde évoque un effet inflationniste" → Eco_GeoPol
+- "Le CAC 40 termine en hausse de 1,5%" → Marchés
+- "Les indices européens progressent" → Marchés
 - "LVMH enregistre une baisse de son chiffre d'affaires" → PEA
 - "Apple lance un nouveau produit" → Action_USA
 - "Tencent investit dans l'IA" → Action
+- "Bitcoin franchit les 100k$" → Crypto
+- "Ethereum prépare sa mise à jour" → Crypto
 - "La Fed baisse ses taux, les marchés s'envolent" → Eco_GeoPol (décision majeure)
 
 ───────────────────────────────────────────────────────
@@ -150,7 +168,7 @@ FORMAT DE SORTIE JSON
 
 {
   "tags": "ECO" | "BOURSE" | "ACTION" | "CRYPTO",
-  "labels": "Eco_GeoPol" | "PEA" | "Action_USA" | "Action",
+  "labels": "Eco_GeoPol" | "Marchés" | "PEA" | "Action_USA" | "Action" | "Crypto",
   "entities": "Entité1, Entité2" ou "Entité1" (JAMAIS vide),
   "zone": "Europe" | "USA" | "ASIA" | "OCEANIA",
   "country": "Nom du pays" ou "Zone"
@@ -219,7 +237,7 @@ Content : "Le Bitcoin a atteint un nouveau record historique en franchissant..."
 OUTPUT :
 {
   "tags": "CRYPTO",
-  "labels": "Eco_GeoPol",
+  "labels": "Crypto",
   "entities": "Bitcoin",
   "zone": "USA",
   "country": "USA"
@@ -232,10 +250,23 @@ Content : "Les indices boursiers européens ont clôturé en hausse de 1,5% grâ
 OUTPUT :
 {
   "tags": "BOURSE",
-  "labels": "Eco_GeoPol",
+  "labels": "Marchés",
   "entities": "Marchés européens",
   "zone": "Europe",
   "country": "Europe"
+}
+
+EXEMPLE 7 :
+Titre : "Airbus annonce des commandes records"
+Content : "Le constructeur aéronautique européen Airbus a annoncé un carnet de commandes..."
+
+OUTPUT :
+{
+  "tags": "ACTION",
+  "labels": "PEA",
+  "entities": "Airbus",
+  "zone": "Europe",
+  "country": "France"
 }
 
 ───────────────────────────────────────────────────────
