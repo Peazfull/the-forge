@@ -262,46 +262,27 @@ try:
     if items:
         st.info(f"📊 {len(items)} items affichés (max 50)")
         
-        # Afficher les items avec titre + content expandable
-        for idx, item in enumerate(items, start=1):
-            with st.container():
-                col1, col2, col3, col4, col5 = st.columns([3, 1, 1, 1, 1])
-                
-                with col1:
-                    # Titre cliquable qui ouvre le content
-                    title = item.get("title", "Sans titre")
-                    content = item.get("content", "")
-                    
-                    with st.expander(f"**{title[:80]}...**" if len(title) > 80 else f"**{title}**"):
-                        st.markdown(content)
-                
-                with col2:
-                    tag = item.get("tags", "—")
-                    if tag == "ECO":
-                        st.markdown("🌍 **ECO**")
-                    elif tag == "BOURSE":
-                        st.markdown("📈 **BOURSE**")
-                    elif tag == "ACTION":
-                        st.markdown("🏢 **ACTION**")
-                    elif tag == "CRYPTO":
-                        st.markdown("₿ **CRYPTO**")
-                    else:
-                        st.markdown(f"**{tag}**")
-                
-                with col3:
-                    label = item.get("labels", "—")
-                    st.caption(label)
-                
-                with col4:
-                    entities = item.get("entities", "—")
-                    st.caption(entities)
-                
-                with col5:
-                    zone = item.get("zone", "—")
-                    country = item.get("country", "—")
-                    st.caption(f"{zone} · {country}")
-                
-                st.divider()
+        # Afficher le tableau
+        import pandas as pd
+        
+        df = pd.DataFrame(items)
+        
+        # Sélectionner et réordonner les colonnes
+        df_display = df[["title", "content", "tags", "labels", "entities", "zone", "country"]]
+        
+        # Renommer les colonnes pour l'affichage
+        df_display.columns = ["Titre", "Contenu", "Tag", "Label", "Entités", "Zone", "Pays"]
+        
+        # Tronquer les titres et contenus longs
+        df_display["Titre"] = df_display["Titre"].str[:40] + "..."
+        df_display["Contenu"] = df_display["Contenu"].str[:60] + "..."
+        
+        st.dataframe(
+            df_display,
+            use_container_width=True,
+            hide_index=True,
+            height=600
+        )
     else:
         st.info("Aucun item enrichi trouvé avec ces filtres")
         
