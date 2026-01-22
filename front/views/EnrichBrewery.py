@@ -45,7 +45,7 @@ with col_button:
     if items_count == 0:
         st.info("📭 Aucun item dans la base de données")
     else:
-        st.warning(f"⚠️ {items_count} items seront (ré)enrichis - Les métadonnées existantes seront écrasées")
+        st.info(f"📊 {items_count} items prêts")
 
 if items_count > 0:
     if st.button("🚀 Lancer l'enrichissement (écrase existant)", type="primary", use_container_width=True):
