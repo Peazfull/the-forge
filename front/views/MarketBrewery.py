@@ -39,21 +39,21 @@ def inject_custom_css():
         padding-top: 2rem !important;
     }
     
-    /* Cards pour les zones - version lean */
-    .zone-card {
-        background: var(--gray-50);
-        border: 1px solid var(--gray-200);
-        border-radius: 8px;
-        padding: 16px 20px;
-        margin: 16px 0;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    /* Zone headers - sans card, juste texte */
+    .zone-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px 0 12px 0;
+        border-bottom: 1px solid var(--gray-200);
+        margin: 32px 0 20px 0;
     }
     
-    .zone-card h2 {
-        margin-top: 0 !important;
-        margin-bottom: 12px !important;
-        font-size: 20px !important;
+    .zone-header h2 {
+        margin: 0 !important;
+        font-size: 18px !important;
         font-weight: 600 !important;
+        color: var(--gray-900);
     }
     
     /* Header section - version épurée */
@@ -267,20 +267,18 @@ def style_dataframe(df):
 
 def render_zone_section(zone_code, zone_name, zone_flag):
     """
-    Affiche une section complète pour une zone (version stylée)
+    Affiche une section complète pour une zone (version minimaliste)
     """
     weekly_data = get_top_flop_weekly_cached(zone_code, limit=10)
     
     # Calculer le nombre d'actifs
     num_assets = len(weekly_data.get("top", [])) if weekly_data.get("status") == "success" else 0
     
-    # Card wrapper
+    # Header simple avec séparateur
     st.markdown(f"""
-    <div class="zone-card">
-        <div class="section-header">
-            <h2>{zone_flag} {zone_name}</h2>
-            <span class="badge badge-info">{num_assets} actifs</span>
-        </div>
+    <div class="zone-header">
+        <h2>{zone_flag} {zone_name}</h2>
+        <span class="badge badge-info">{num_assets} actifs</span>
     </div>
     """, unsafe_allow_html=True)
     
@@ -303,8 +301,6 @@ def render_zone_section(zone_code, zone_name, zone_flag):
             st.dataframe(styled_df, use_container_width=True, hide_index=True)
         else:
             st.info("Aucune donnée disponible")
-    
-    st.markdown("<br>", unsafe_allow_html=True)
 
 
 # ======================================================
