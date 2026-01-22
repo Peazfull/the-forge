@@ -15,16 +15,19 @@ CHAMP 1 : TAG (catégorie principale)
 
 Choisis EXACTEMENT 1 valeur parmi :
 
-• "ECO" → Actualités économiques, macro-économie, indicateurs, politiques économiques, décisions gouvernementales
-• "BOURSE" → Marchés financiers, actions, indices boursiers, performance des entreprises cotées
+• "ECO" → Actualités économiques générales, macro-économie, indicateurs, politiques économiques, décisions gouvernementales
+• "BOURSE" → Marchés financiers généraux, indices boursiers, performance globale des marchés
+• "ACTION" → Actualité concernant UNE entreprise en particulier (pour les investisseurs qui suivent cette action)
 • "CRYPTO" → Cryptomonnaies, blockchain, Web3, régulation crypto
 
 EXEMPLES :
 - "La Fed maintient ses taux à 5,5%" → ECO
-- "Apple dépasse 3 trillions de capitalisation" → BOURSE
+- "Le CAC 40 termine en hausse de 1,2%" → BOURSE
+- "Apple dépasse 3 trillions de capitalisation" → ACTION (entreprise spécifique)
+- "LVMH annonce une baisse de ses revenus" → ACTION (entreprise spécifique)
 - "Bitcoin franchit les 100k$" → CRYPTO
 - "Le PIB français progresse de 0,8%" → ECO
-- "Le CAC 40 termine en hausse de 1,2%" → BOURSE
+- "Les marchés européens en hausse" → BOURSE (marchés généraux)
 
 ───────────────────────────────────────────────────────
 CHAMP 2 : LABEL (catégorie précise)
@@ -73,23 +76,27 @@ Liste les 2 ENTITÉS PRINCIPALES (maximum 2) :
 - Entreprises cotées (ex: "Apple", "LVMH", "Tesla")
 - Personnalités (ex: "Donald Trump", "Christine Lagarde", "Elon Musk")
 - Institutions (ex: "Fed", "BCE", "Banque d'Angleterre")
+- Sujets principaux en 1-2 mots (ex: "Marchés européens", "Taux directeurs", "Inflation")
 
 FORMAT : String avec virgule comme séparateur
 - Si 2 entités : "Entité1, Entité2"
 - Si 1 seule entité : "Entité1"
-- Si aucune entité précise : "N/A"
+- JAMAIS "N/A" → trouve TOUJOURS le sujet principal en 1-2 mots
 
 RÈGLES :
 - Priorise les noms les plus spécifiques et impactants
-- Évite les termes génériques ("les marchés", "les investisseurs")
+- Si aucune entité précise → identifie le SUJET PRINCIPAL en 1-2 mots
 - Nom officiel de l'entreprise (pas de ticker)
+- Évite les termes trop vagues ("actualité", "information")
 
 EXEMPLES :
 - "Trump menace l'Europe, les marchés chutent" → "Donald Trump"
 - "Apple et Microsoft annoncent un partenariat" → "Apple, Microsoft"
 - "La Fed maintient ses taux" → "Fed"
 - "LVMH rachète une marque de luxe" → "LVMH"
-- "Les indices européens terminent en hausse" → "N/A"
+- "Les indices européens terminent en hausse" → "Marchés européens"
+- "L'inflation ralentit aux États-Unis" → "Inflation"
+- "Les taux directeurs restent stables" → "Taux directeurs"
 
 ───────────────────────────────────────────────────────
 CHAMP 4 : ZONE (zone géographique)
@@ -142,9 +149,9 @@ FORMAT DE SORTIE JSON
 ───────────────────────────────────────────────────────
 
 {
-  "tags": "ECO" | "BOURSE" | "CRYPTO",
+  "tags": "ECO" | "BOURSE" | "ACTION" | "CRYPTO",
   "labels": "Eco_GeoPol" | "PEA" | "Action_USA" | "Action",
-  "entities": "Entité1, Entité2" ou "Entité1" ou "N/A",
+  "entities": "Entité1, Entité2" ou "Entité1" (JAMAIS vide),
   "zone": "Europe" | "USA" | "ASIA" | "OCEANIA",
   "country": "Nom du pays" ou "Zone"
 }
@@ -172,7 +179,7 @@ Content : "Le géant français du luxe LVMH a annoncé une baisse de 3% de ses r
 
 OUTPUT :
 {
-  "tags": "BOURSE",
+  "tags": "ACTION",
   "labels": "PEA",
   "entities": "LVMH",
   "zone": "Europe",
@@ -185,7 +192,7 @@ Content : "Apple a franchi un cap historique en dépassant les 3 trillions de do
 
 OUTPUT :
 {
-  "tags": "BOURSE",
+  "tags": "ACTION",
   "labels": "Action_USA",
   "entities": "Apple",
   "zone": "USA",
@@ -213,9 +220,22 @@ OUTPUT :
 {
   "tags": "CRYPTO",
   "labels": "Eco_GeoPol",
-  "entities": "N/A",
+  "entities": "Bitcoin",
   "zone": "USA",
   "country": "USA"
+}
+
+EXEMPLE 6 :
+Titre : "Les marchés européens terminent en hausse"
+Content : "Les indices boursiers européens ont clôturé en hausse de 1,5% grâce..."
+
+OUTPUT :
+{
+  "tags": "BOURSE",
+  "labels": "Eco_GeoPol",
+  "entities": "Marchés européens",
+  "zone": "Europe",
+  "country": "Europe"
 }
 
 ───────────────────────────────────────────────────────

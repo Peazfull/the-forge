@@ -143,7 +143,7 @@ else:
     by_tags = stats.get("by_tags", {})
     
     if by_tags:
-        col_eco, col_bourse, col_crypto = st.columns(3)
+        col_eco, col_bourse, col_action, col_crypto = st.columns(4)
         
         with col_eco:
             eco_count = by_tags.get("ECO", 0)
@@ -152,6 +152,10 @@ else:
         with col_bourse:
             bourse_count = by_tags.get("BOURSE", 0)
             st.metric("📈 BOURSE", bourse_count)
+        
+        with col_action:
+            action_count = by_tags.get("ACTION", 0)
+            st.metric("🏢 ACTION", action_count)
         
         with col_crypto:
             crypto_count = by_tags.get("CRYPTO", 0)
@@ -216,7 +220,7 @@ col_tag, col_label, col_zone = st.columns(3)
 with col_tag:
     filter_tag = st.selectbox(
         "Filtrer par TAG",
-        options=["Tous", "ECO", "BOURSE", "CRYPTO"],
+        options=["Tous", "ECO", "BOURSE", "ACTION", "CRYPTO"],
         index=0
     )
 
@@ -239,7 +243,7 @@ try:
     supabase = get_supabase()
     
     query = supabase.table("brew_items").select(
-        "id, title, tags, labels, entities, zone, country, processed_at"
+        "id, title, content, tags, labels, entities, zone, country, processed_at"
     ).not_.is_("labels", "null").order("processed_at", desc=True).limit(50)
     
     # Appliquer les filtres
@@ -258,25 +262,46 @@ try:
     if items:
         st.info(f"📊 {len(items)} items affichés (max 50)")
         
-        # Afficher le tableau
-        import pandas as pd
-        
-        df = pd.DataFrame(items)
-        
-        # Sélectionner et réordonner les colonnes
-        df_display = df[["title", "tags", "labels", "entities", "zone", "country"]]
-        
-        # Renommer les colonnes pour l'affichage
-        df_display.columns = ["Titre", "Tag", "Label", "Entités", "Zone", "Pays"]
-        
-        # Tronquer les titres longs
-        df_display["Titre"] = df_display["Titre"].str[:60] + "..."
-        
-        st.dataframe(
-            df_display,
-            use_container_width=True,
-            hide_index=True
-        )
+        # Afficher les items avec titre + content expandable
+        for idx, item in enumerate(items, start=1):
+            with st.container():
+                col1, col2, col3, col4, col5 = st.columns([3, 1, 1, 1, 1])
+                
+                with col1:
+                    # Titre cliquable qui ouvre le content
+                    title = item.get("title", "Sans titre")
+                    content = item.get("content", "")
+                    
+                    with st.expander(f"**{title[:80]}...**" if len(title) > 80 else f"**{title}**"):
+                        st.markdown(content)
+                
+                with col2:
+                    tag = item.get("tags", "—")
+                    if tag == "ECO":
+                        st.markdown("🌍 **ECO**")
+                    elif tag == "BOURSE":
+                        st.markdown("📈 **BOURSE**")
+                    elif tag == "ACTION":
+                        st.markdown("🏢 **ACTION**")
+                    elif tag == "CRYPTO":
+                        st.markdown("₿ **CRYPTO**")
+                    else:
+                        st.markdown(f"**{tag}**")
+                
+                with col3:
+                    label = item.get("labels", "—")
+                    st.caption(label)
+                
+                with col4:
+                    entities = item.get("entities", "—")
+                    st.caption(entities)
+                
+                with col5:
+                    zone = item.get("zone", "—")
+                    country = item.get("country", "—")
+                    st.caption(f"{zone} · {country}")
+                
+                st.divider()
     else:
         st.info("Aucun item enrichi trouvé avec ces filtres")
         
