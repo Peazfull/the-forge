@@ -67,92 +67,92 @@ with st.container():
     st.markdown("### ⚡ Enrichissement")
     
     col_button, col_limit = st.columns([3, 1])
-
-with col_limit:
-    limit_option = st.selectbox(
-        "Limite",
-        options=[10, 50, 100, 500, "Tous"],
-        index=0
-    )
     
-    if limit_option == "Tous":
-        limit_value = None
-    else:
-        limit_value = int(limit_option)
-
-with col_button:
-    # Compter les items à enrichir (tous les items)
-    items_to_enrich = fetch_items_to_enrich(limit=limit_value, force_all=True)
-    items_count = len(items_to_enrich)
+    with col_limit:
+        limit_option = st.selectbox(
+            "Limite",
+            options=[10, 50, 100, 500, "Tous"],
+            index=0
+        )
+        
+        if limit_option == "Tous":
+            limit_value = None
+        else:
+            limit_value = int(limit_option)
     
-    if items_count == 0:
-        st.info("📭 Aucun item dans la base de données")
-    else:
-        st.info(f"📊 {items_count} items prêts")
-
-    if items_count > 0:
-        if st.button("🚀 Lancer l'enrichissement", type="primary", use_container_width=True):
-            
-            # Progress bar container
-            progress_container = st.container()
-            status_container = st.container()
-            
-            with progress_container:
-                progress_bar = st.progress(0)
-                progress_text = st.empty()
-            
-            with status_container:
-                status_text = st.empty()
-            
-            # Lancer l'enrichissement
-            start_time = time.time()
-            
-            # Récupérer TOUS les items (force_all=True)
-            items = fetch_items_to_enrich(limit=limit_value, force_all=True)
-            total = len(items)
-            success_count = 0
-            error_count = 0
-            
-            from services.enrichment.enrichment_service import enrich_single_item
-            
-            for idx, item in enumerate(items, start=1):
-                item_id = item.get("id")
-                title = item.get("title", "")
-                content = item.get("content", "")
+    with col_button:
+        # Compter les items à enrichir (tous les items)
+        items_to_enrich = fetch_items_to_enrich(limit=limit_value, force_all=True)
+        items_count = len(items_to_enrich)
+        
+        if items_count == 0:
+            st.info("📭 Aucun item dans la base de données")
+        else:
+            st.info(f"📊 {items_count} items prêts")
+    
+        if items_count > 0:
+            if st.button("🚀 Lancer l'enrichissement", type="primary", use_container_width=True):
                 
-                # Afficher la progression
-                progress = idx / total
-                progress_bar.progress(progress)
-                progress_text.markdown(f"**Traitement : {idx}/{total} items** ({int(progress*100)}%)")
-                status_text.text(f"Item en cours : {title[:50]}...")
+                # Progress bar container
+                progress_container = st.container()
+                status_container = st.container()
                 
-                # Enrichir l'item
-                result = enrich_single_item(item_id, title, content)
+                with progress_container:
+                    progress_bar = st.progress(0)
+                    progress_text = st.empty()
                 
-                if result["status"] == "success":
-                    success_count += 1
-                else:
-                    error_count += 1
-            
-            duration = time.time() - start_time
-            
-            # Afficher les résultats
-            progress_bar.progress(1.0)
-            progress_text.markdown(f"**✅ Enrichissement terminé !**")
-            status_text.empty()
-            
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric("✅ Succès", success_count)
-            with col2:
-                st.metric("❌ Erreurs", error_count)
-            with col3:
-                st.metric("⏱️ Durée", f"{duration:.1f}s")
-            
-            st.success(f"🎉 Enrichissement terminé ! {success_count}/{total} items traités avec succès.")
-            
-            # Forcer le rechargement des stats
-            st.rerun()
+                with status_container:
+                    status_text = st.empty()
+                
+                # Lancer l'enrichissement
+                start_time = time.time()
+                
+                # Récupérer TOUS les items (force_all=True)
+                items = fetch_items_to_enrich(limit=limit_value, force_all=True)
+                total = len(items)
+                success_count = 0
+                error_count = 0
+                
+                from services.enrichment.enrichment_service import enrich_single_item
+                
+                for idx, item in enumerate(items, start=1):
+                    item_id = item.get("id")
+                    title = item.get("title", "")
+                    content = item.get("content", "")
+                    
+                    # Afficher la progression
+                    progress = idx / total
+                    progress_bar.progress(progress)
+                    progress_text.markdown(f"**Traitement : {idx}/{total} items** ({int(progress*100)}%)")
+                    status_text.text(f"Item en cours : {title[:50]}...")
+                    
+                    # Enrichir l'item
+                    result = enrich_single_item(item_id, title, content)
+                    
+                    if result["status"] == "success":
+                        success_count += 1
+                    else:
+                        error_count += 1
+                
+                duration = time.time() - start_time
+                
+                # Afficher les résultats
+                progress_bar.progress(1.0)
+                progress_text.markdown(f"**✅ Enrichissement terminé !**")
+                status_text.empty()
+                
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("✅ Succès", success_count)
+                with col2:
+                    st.metric("❌ Erreurs", error_count)
+                with col3:
+                    st.metric("⏱️ Durée", f"{duration:.1f}s")
+                
+                st.success(f"🎉 Enrichissement terminé ! {success_count}/{total} items traités avec succès.")
+                
+                # Forcer le rechargement des stats
+                st.rerun()
 
 st.markdown("")
 
@@ -266,46 +266,46 @@ with st.container():
         
         if items:
             st.caption(f"📊 {len(items)} items · Cliquez pour voir le détail")
-        
-        # Afficher le tableau
-        import pandas as pd
-        
-        df = pd.DataFrame(items)
-        
-        # Créer un DataFrame pour l'affichage avec contenus tronqués
-        df_display = df.copy()
-        df_display["title_short"] = df_display["title"].str[:40] + "..."
-        df_display["content_short"] = df_display["content"].str[:60] + "..."
-        
-        # Sélectionner les colonnes à afficher
-        df_table = df_display[["title_short", "content_short", "tags", "labels", "entities", "zone", "country"]]
-        df_table.columns = ["Titre", "Contenu", "Tag", "Label", "Entités", "Zone", "Pays"]
-        
-        # Fonction de style pour colorer les tags avec gradient transparent
-        def color_tags(val):
-            if val == "ECO":
-                return "background: linear-gradient(135deg, rgba(74, 144, 226, 0.15) 0%, rgba(74, 144, 226, 0.25) 100%); color: #2c5aa0; font-weight: 600; border-radius: 6px; padding: 4px 12px;"
-            elif val == "BOURSE":
-                return "background: linear-gradient(135deg, rgba(155, 89, 182, 0.15) 0%, rgba(155, 89, 182, 0.25) 100%); color: #6c3483; font-weight: 600; border-radius: 6px; padding: 4px 12px;"
-            elif val == "ACTION":
-                return "background: linear-gradient(135deg, rgba(39, 174, 96, 0.15) 0%, rgba(39, 174, 96, 0.25) 100%); color: #1e7e34; font-weight: 600; border-radius: 6px; padding: 4px 12px;"
-            elif val == "CRYPTO":
-                return "background: linear-gradient(135deg, rgba(243, 156, 18, 0.15) 0%, rgba(243, 156, 18, 0.25) 100%); color: #c87f0a; font-weight: 600; border-radius: 6px; padding: 4px 12px;"
-            return ""
-        
-        # Appliquer le style sur la colonne Tag
-        styled_df = df_table.style.applymap(color_tags, subset=["Tag"])
-        
-        # Afficher le tableau avec sélection
-        event = st.dataframe(
-            styled_df,
-            use_container_width=True,
-            hide_index=True,
-            height=450,
-            on_select="rerun",
-            selection_mode="single-row"
-        )
-        
+            
+            # Afficher le tableau
+            import pandas as pd
+            
+            df = pd.DataFrame(items)
+            
+            # Créer un DataFrame pour l'affichage avec contenus tronqués
+            df_display = df.copy()
+            df_display["title_short"] = df_display["title"].str[:40] + "..."
+            df_display["content_short"] = df_display["content"].str[:60] + "..."
+            
+            # Sélectionner les colonnes à afficher
+            df_table = df_display[["title_short", "content_short", "tags", "labels", "entities", "zone", "country"]]
+            df_table.columns = ["Titre", "Contenu", "Tag", "Label", "Entités", "Zone", "Pays"]
+            
+            # Fonction de style pour colorer les tags avec gradient transparent
+            def color_tags(val):
+                if val == "ECO":
+                    return "background: linear-gradient(135deg, rgba(74, 144, 226, 0.15) 0%, rgba(74, 144, 226, 0.25) 100%); color: #2c5aa0; font-weight: 600; border-radius: 6px; padding: 4px 12px;"
+                elif val == "BOURSE":
+                    return "background: linear-gradient(135deg, rgba(155, 89, 182, 0.15) 0%, rgba(155, 89, 182, 0.25) 100%); color: #6c3483; font-weight: 600; border-radius: 6px; padding: 4px 12px;"
+                elif val == "ACTION":
+                    return "background: linear-gradient(135deg, rgba(39, 174, 96, 0.15) 0%, rgba(39, 174, 96, 0.25) 100%); color: #1e7e34; font-weight: 600; border-radius: 6px; padding: 4px 12px;"
+                elif val == "CRYPTO":
+                    return "background: linear-gradient(135deg, rgba(243, 156, 18, 0.15) 0%, rgba(243, 156, 18, 0.25) 100%); color: #c87f0a; font-weight: 600; border-radius: 6px; padding: 4px 12px;"
+                return ""
+            
+            # Appliquer le style sur la colonne Tag
+            styled_df = df_table.style.applymap(color_tags, subset=["Tag"])
+            
+            # Afficher le tableau avec sélection
+            event = st.dataframe(
+                styled_df,
+                use_container_width=True,
+                hide_index=True,
+                height=450,
+                on_select="rerun",
+                selection_mode="single-row"
+            )
+            
             # Si une ligne est sélectionnée, afficher le détail complet
             if event.selection and "rows" in event.selection and len(event.selection["rows"]) > 0:
                 selected_idx = event.selection["rows"][0]
