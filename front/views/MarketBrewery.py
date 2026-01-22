@@ -66,17 +66,27 @@ def create_performance_table(data, title):
     
     df = pd.DataFrame(data)
     
+    # Vérifier si la colonne 'name' existe (pour compatibilité avec cache)
+    has_name = 'name' in df.columns
+    
     # Renommer les colonnes
-    df = df.rename(columns={
+    rename_dict = {
         "symbol": "Symbol",
-        "name": "Name",
         "close": "Close",
         "pct_change": "% Change",
         "date": "Date"
-    })
+    }
+    
+    if has_name:
+        rename_dict["name"] = "Name"
+    
+    df = df.rename(columns=rename_dict)
     
     # Sélectionner uniquement les colonnes nécessaires
-    df = df[["Name", "Symbol", "% Change", "Close"]]
+    if has_name:
+        df = df[["Name", "Symbol", "% Change", "Close"]]
+    else:
+        df = df[["Symbol", "% Change", "Close"]]
     
     # Formater
     df["Close"] = df["Close"].apply(lambda x: f"${x:,.2f}")
