@@ -1,11 +1,11 @@
 """
 ===========================================
-🔄 REFRESH MARKET DAILY CLOSE
+🔄 REFRESH MARKET WEEKLY CLOSE
 ===========================================
-Ingestion des daily close depuis Yahoo Finance
-- Récupère les 8 derniers jours complets
+Ingestion des weekly close depuis Yahoo Finance
+- Récupère les 3 dernières semaines
 - UPSERT dans market_daily_close
-- Nettoie les données > J-10
+- Nettoie les données > 4 semaines
 """
 
 import yfinance as yf
@@ -52,28 +52,22 @@ def get_asset_id_mapping(supabase):
         return {}
 
 
-def fetch_yahoo_data(symbol, days=8):
+def fetch_yahoo_data(symbol, weeks=3):
     """
-    Récupère les N derniers daily close depuis Yahoo Finance
+    Récupère les N dernières weekly close depuis Yahoo Finance
     Retourne une liste de dict {date, open, high, low, close, volume}
     """
     try:
         ticker = yf.Ticker(symbol)
         
-        # Récupérer 12 jours pour être sûr d'avoir 8 jours complets
-        end_date = datetime.now()
-        start_date = end_date - timedelta(days=12)
-        
-        hist = ticker.history(start=start_date, end=end_date)
+        # Récupérer les données weekly directement
+        hist = ticker.history(period=f"{weeks}wk", interval="1wk")
         
         if hist.empty:
             return []
         
         # Filtrer seulement les lignes avec des données complètes
         hist = hist.dropna()
-        
-        # Prendre les 8 dernières lignes
-        hist = hist.tail(days)
         
         results = []
         for date, row in hist.iterrows():
@@ -119,12 +113,12 @@ def upsert_market_data(supabase, asset_id, data_points):
 
 def clean_old_data(supabase):
     """
-    Nettoie les données antérieures à J-10
+    Nettoie les données antérieures à 4 semaines
     """
     print("\n🧹 Nettoyage des données anciennes...")
     
     try:
-        cutoff_date = (datetime.now() - timedelta(days=10)).strftime("%Y-%m-%d")
+        cutoff_date = (datetime.now() - timedelta(weeks=4)).strftime("%Y-%m-%d")
         
         response = supabase.table("market_daily_close")\
             .delete()\
@@ -139,10 +133,10 @@ def clean_old_data(supabase):
 
 def refresh_market_daily_close():
     """
-    Pipeline principal d'ingestion
+    Pipeline principal d'ingestion (weekly data)
     """
     print("\n" + "="*60)
-    print("🔄 REFRESH MARKET DAILY CLOSE — START")
+    print("🔄 REFRESH MARKET WEEKLY CLOSE — START")
     print("="*60 + "\n")
     
     supabase = get_supabase()

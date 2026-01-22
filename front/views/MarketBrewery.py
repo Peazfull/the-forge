@@ -2,14 +2,13 @@
 ===========================================
 📈 MARKET BREWERY — MARKET SCREENER
 ===========================================
-Daily & Weekly market movements (close-based)
+Weekly market movements (close-based)
 """
 
 import streamlit as st
 import pandas as pd
 from services.marketbrewery.market_brewery_service import (
     refresh_data,
-    get_top_flop_daily,
     get_top_flop_weekly
 )
 
@@ -55,35 +54,9 @@ def create_performance_table(data, title):
 def render_zone_section(zone_code, zone_name, zone_flag):
     """
     Affiche une section complète pour une zone
-    (Top/Flop Daily + Top/Flop Weekly)
+    (Top/Flop Weekly uniquement)
     """
     st.markdown(f"## {zone_flag} {zone_name}")
-    
-    # ========== DAILY ==========
-    st.markdown("### 📅 Daily Performance")
-    
-    daily_data = get_top_flop_daily(zone_code, limit=10)
-    
-    col_top_daily, col_flop_daily = st.columns(2)
-    
-    with col_top_daily:
-        st.markdown("#### 🟢 Top 10 Daily")
-        if daily_data["status"] == "success" and daily_data["top"]:
-            df_top = create_performance_table(daily_data["top"], "Top Daily")
-            st.dataframe(df_top, use_container_width=True, hide_index=True)
-        else:
-            st.info("Aucune donnée disponible")
-    
-    with col_flop_daily:
-        st.markdown("#### 🔴 Flop 10 Daily")
-        if daily_data["status"] == "success" and daily_data["flop"]:
-            df_flop = create_performance_table(daily_data["flop"], "Flop Daily")
-            st.dataframe(df_flop, use_container_width=True, hide_index=True)
-        else:
-            st.info("Aucune donnée disponible")
-    
-    # ========== WEEKLY ==========
-    st.markdown("### 📊 Weekly Performance")
     
     weekly_data = get_top_flop_weekly(zone_code, limit=10)
     
@@ -113,7 +86,7 @@ def render_zone_section(zone_code, zone_name, zone_flag):
 # ======================================================
 
 st.title("📈 Market Brewery — Market Screener")
-st.markdown("*Daily & Weekly market movements (close-based)*")
+st.markdown("*Weekly market movements (close-based)*")
 
 st.divider()
 
@@ -151,4 +124,4 @@ render_zone_section("CRYPTO", "Crypto — Top 30", "🪙")
 # ========== FOOTER ==========
 
 st.divider()
-st.markdown("*Source : Yahoo Finance · Data refreshed daily*")
+st.markdown("*Source : Yahoo Finance · Data refreshed weekly*")
