@@ -170,56 +170,56 @@ with st.container():
     else:
         by_tags = stats.get("by_tags", {})
         
-        # Design minimaliste en une seule ligne
-        st.markdown(f"""
-        <div style="display: flex; gap: 12px; align-items: center; padding: 16px; 
-                    background: white; border-radius: 10px; 
-                    border: 1px solid #e5e7eb;">
-            
-            <!-- Total -->
-            <div style="flex: 1; text-align: center; padding: 12px;">
-                <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Total</div>
-                <div style="font-size: 24px; font-weight: 600; color: #111827;">{stats["total_items"]}</div>
-            </div>
-            
-            <!-- Divider -->
-            <div style="width: 1px; height: 40px; background: #e5e7eb;"></div>
-            
-            <!-- Enrichis -->
-            <div style="flex: 1; text-align: center; padding: 12px;">
-                <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Enrichis</div>
-                <div style="font-size: 24px; font-weight: 600; color: #10b981;">{stats["enriched_items"]}</div>
-            </div>
-            
-            <!-- Divider -->
-            <div style="width: 1px; height: 40px; background: #e5e7eb;"></div>
-            
-            <!-- ECO -->
-            <div style="flex: 1; text-align: center; padding: 12px;">
-                <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Eco</div>
-                <div style="font-size: 24px; font-weight: 600; color: #3b82f6;">{by_tags.get("ECO", 0)}</div>
-            </div>
-            
-            <!-- BOURSE -->
-            <div style="flex: 1; text-align: center; padding: 12px;">
-                <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Bourse</div>
-                <div style="font-size: 24px; font-weight: 600; color: #8b5cf6;">{by_tags.get("BOURSE", 0)}</div>
-            </div>
-            
-            <!-- ACTION -->
-            <div style="flex: 1; text-align: center; padding: 12px;">
-                <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Action</div>
-                <div style="font-size: 24px; font-weight: 600; color: #10b981;">{by_tags.get("ACTION", 0)}</div>
-            </div>
-            
-            <!-- CRYPTO -->
-            <div style="flex: 1; text-align: center; padding: 12px;">
-                <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Crypto</div>
-                <div style="font-size: 24px; font-weight: 600; color: #f59e0b;">{by_tags.get("CRYPTO", 0)}</div>
-            </div>
-            
-        </div>
-        """, unsafe_allow_html=True)
+        # Design minimaliste en une seule ligne avec colonnes
+        cols = st.columns(6)
+        
+        with cols[0]:
+            st.markdown("""
+                <div style='text-align: center; padding: 12px; background: #f9fafb; border-radius: 8px;'>
+                    <div style='font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;'>Total</div>
+                    <div style='font-size: 24px; font-weight: 600; color: #111827; margin-top: 4px;'>{}</div>
+                </div>
+            """.format(stats["total_items"]), unsafe_allow_html=True)
+        
+        with cols[1]:
+            st.markdown("""
+                <div style='text-align: center; padding: 12px; background: #f9fafb; border-radius: 8px;'>
+                    <div style='font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;'>Enrichis</div>
+                    <div style='font-size: 24px; font-weight: 600; color: #10b981; margin-top: 4px;'>{}</div>
+                </div>
+            """.format(stats["enriched_items"]), unsafe_allow_html=True)
+        
+        with cols[2]:
+            st.markdown("""
+                <div style='text-align: center; padding: 12px; background: #f9fafb; border-radius: 8px;'>
+                    <div style='font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;'>Eco</div>
+                    <div style='font-size: 24px; font-weight: 600; color: #3b82f6; margin-top: 4px;'>{}</div>
+                </div>
+            """.format(by_tags.get("ECO", 0)), unsafe_allow_html=True)
+        
+        with cols[3]:
+            st.markdown("""
+                <div style='text-align: center; padding: 12px; background: #f9fafb; border-radius: 8px;'>
+                    <div style='font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;'>Bourse</div>
+                    <div style='font-size: 24px; font-weight: 600; color: #8b5cf6; margin-top: 4px;'>{}</div>
+                </div>
+            """.format(by_tags.get("BOURSE", 0)), unsafe_allow_html=True)
+        
+        with cols[4]:
+            st.markdown("""
+                <div style='text-align: center; padding: 12px; background: #f9fafb; border-radius: 8px;'>
+                    <div style='font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;'>Action</div>
+                    <div style='font-size: 24px; font-weight: 600; color: #10b981; margin-top: 4px;'>{}</div>
+                </div>
+            """.format(by_tags.get("ACTION", 0)), unsafe_allow_html=True)
+        
+        with cols[5]:
+            st.markdown("""
+                <div style='text-align: center; padding: 12px; background: #f9fafb; border-radius: 8px;'>
+                    <div style='font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;'>Crypto</div>
+                    <div style='font-size: 24px; font-weight: 600; color: #f59e0b; margin-top: 4px;'>{}</div>
+                </div>
+            """.format(by_tags.get("CRYPTO", 0)), unsafe_allow_html=True)
 
 st.markdown("")
 
