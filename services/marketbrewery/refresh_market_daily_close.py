@@ -131,6 +131,112 @@ def clean_old_data(supabase):
         print(f"❌ Erreur nettoyage : {e}")
 
 
+def calculate_and_store_top_flop(supabase, asset_mapping):
+    """
+    Calcule les top/flop pour chaque zone et les stocke dans market_top_flop
+    """
+    print("\n📊 Calcul des top/flop par zone...")
+    
+    from services.marketbrewery.listes_market import (
+        US_TOP_200, FR_SBF_120, EU_TOP_200, CRYPTO_TOP_30
+    )
+    
+    zones = {
+        "US": US_TOP_200,
+        "FR": FR_SBF_120,
+        "EU": EU_TOP_200,
+        "CRYPTO": CRYPTO_TOP_30
+    }
+    
+    refresh_date = datetime.now().strftime("%Y-%m-%d")
+    
+    # Supprimer les anciens résultats
+    try:
+        supabase.table("market_top_flop").delete().eq("refresh_date", refresh_date).execute()
+    except:
+        pass
+    
+    for zone_name, symbols in zones.items():
+        print(f"\n📍 Zone : {zone_name}")
+        
+        performances = []
+        
+        for symbol in symbols:
+            if symbol not in asset_mapping:
+                continue
+            
+            asset_id = asset_mapping[symbol]
+            
+            try:
+                # Récupérer les 2 dernières semaines
+                data_response = supabase.table("market_daily_close")\
+                    .select("date, close")\
+                    .eq("asset_id", asset_id)\
+                    .order("date", desc=True)\
+                    .limit(2)\
+                    .execute()
+                
+                if len(data_response.data) < 2:
+                    continue
+                
+                close_current = data_response.data[0]["close"]
+                close_previous = data_response.data[1]["close"]
+                date_ref = data_response.data[0]["date"]
+                
+                pct_change = ((close_current - close_previous) / close_previous) * 100
+                
+                performances.append({
+                    "symbol": symbol,
+                    "pct_change": pct_change,
+                    "close": close_current,
+                    "date": date_ref
+                })
+                
+            except Exception as e:
+                continue
+        
+        # Trier par performance
+        performances.sort(key=lambda x: x["pct_change"], reverse=True)
+        
+        # Top 10
+        top_10 = performances[:10]
+        for rank, perf in enumerate(top_10, start=1):
+            try:
+                supabase.table("market_top_flop").insert({
+                    "zone": zone_name,
+                    "type": "top",
+                    "rank": rank,
+                    "symbol": perf["symbol"],
+                    "pct_change": perf["pct_change"],
+                    "close_value": perf["close"],
+                    "date_ref": perf["date"],
+                    "refresh_date": refresh_date
+                }).execute()
+            except Exception as e:
+                print(f"❌ Erreur insert top {zone_name} : {e}")
+        
+        # Flop 10
+        flop_10 = performances[-10:][::-1]
+        for rank, perf in enumerate(flop_10, start=1):
+            try:
+                supabase.table("market_top_flop").insert({
+                    "zone": zone_name,
+                    "type": "flop",
+                    "rank": rank,
+                    "symbol": perf["symbol"],
+                    "pct_change": perf["pct_change"],
+                    "close_value": perf["close"],
+                    "date_ref": perf["date"],
+                    "refresh_date": refresh_date
+                }).execute()
+            except Exception as e:
+                print(f"❌ Erreur insert flop {zone_name} : {e}")
+        
+        print(f"✅ Top/Flop {zone_name} stockés")
+    
+    print("\n✅ Tous les top/flop calculés et stockés")
+
+
 def refresh_market_daily_close():
     """
     Pipeline principal d'ingestion (weekly data)
@@ -182,7 +288,10 @@ def refresh_market_daily_close():
     # 4️⃣ Nettoyage
     clean_old_data(supabase)
     
-    # 5️⃣ Résumé
+    # 5️⃣ Calcul et stockage des top/flop
+    calculate_and_store_top_flop(supabase, asset_mapping)
+    
+    # 6️⃣ Résumé
     print("\n" + "="*60)
     print(f"✅ TERMINÉ : {total_success}/{total_processed} symboles ingérés")
     print("="*60 + "\n")
