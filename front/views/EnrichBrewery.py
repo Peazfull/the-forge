@@ -281,30 +281,30 @@ with st.container():
         df_table = df_display[["title_short", "content_short", "tags", "labels", "entities", "zone", "country"]]
         df_table.columns = ["Titre", "Contenu", "Tag", "Label", "Entités", "Zone", "Pays"]
         
-            # Fonction de style pour colorer les tags avec gradient transparent
-            def color_tags(val):
-                if val == "ECO":
-                    return "background: linear-gradient(135deg, rgba(74, 144, 226, 0.15) 0%, rgba(74, 144, 226, 0.25) 100%); color: #2c5aa0; font-weight: 600; border-radius: 6px; padding: 4px 12px;"
-                elif val == "BOURSE":
-                    return "background: linear-gradient(135deg, rgba(155, 89, 182, 0.15) 0%, rgba(155, 89, 182, 0.25) 100%); color: #6c3483; font-weight: 600; border-radius: 6px; padding: 4px 12px;"
-                elif val == "ACTION":
-                    return "background: linear-gradient(135deg, rgba(39, 174, 96, 0.15) 0%, rgba(39, 174, 96, 0.25) 100%); color: #1e7e34; font-weight: 600; border-radius: 6px; padding: 4px 12px;"
-                elif val == "CRYPTO":
-                    return "background: linear-gradient(135deg, rgba(243, 156, 18, 0.15) 0%, rgba(243, 156, 18, 0.25) 100%); color: #c87f0a; font-weight: 600; border-radius: 6px; padding: 4px 12px;"
-                return ""
+        # Fonction de style pour colorer les tags avec gradient transparent
+        def color_tags(val):
+            if val == "ECO":
+                return "background: linear-gradient(135deg, rgba(74, 144, 226, 0.15) 0%, rgba(74, 144, 226, 0.25) 100%); color: #2c5aa0; font-weight: 600; border-radius: 6px; padding: 4px 12px;"
+            elif val == "BOURSE":
+                return "background: linear-gradient(135deg, rgba(155, 89, 182, 0.15) 0%, rgba(155, 89, 182, 0.25) 100%); color: #6c3483; font-weight: 600; border-radius: 6px; padding: 4px 12px;"
+            elif val == "ACTION":
+                return "background: linear-gradient(135deg, rgba(39, 174, 96, 0.15) 0%, rgba(39, 174, 96, 0.25) 100%); color: #1e7e34; font-weight: 600; border-radius: 6px; padding: 4px 12px;"
+            elif val == "CRYPTO":
+                return "background: linear-gradient(135deg, rgba(243, 156, 18, 0.15) 0%, rgba(243, 156, 18, 0.25) 100%); color: #c87f0a; font-weight: 600; border-radius: 6px; padding: 4px 12px;"
+            return ""
         
         # Appliquer le style sur la colonne Tag
         styled_df = df_table.style.applymap(color_tags, subset=["Tag"])
         
-            # Afficher le tableau avec sélection
-            event = st.dataframe(
-                styled_df,
-                use_container_width=True,
-                hide_index=True,
-                height=450,
-                on_select="rerun",
-                selection_mode="single-row"
-            )
+        # Afficher le tableau avec sélection
+        event = st.dataframe(
+            styled_df,
+            use_container_width=True,
+            hide_index=True,
+            height=450,
+            on_select="rerun",
+            selection_mode="single-row"
+        )
         
             # Si une ligne est sélectionnée, afficher le détail complet
             if event.selection and "rows" in event.selection and len(event.selection["rows"]) > 0:
