@@ -168,89 +168,60 @@ with st.container():
     if stats.get("status") == "error":
         st.error(f"Erreur : {stats.get('message')}")
     else:
-        # ===== MÉTRIQUES GLOBALES =====
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            st.markdown(f"""
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                        border-radius: 12px; padding: 24px; text-align: center; color: white;">
-                <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">📦 Total</div>
-                <div style="font-size: 32px; font-weight: 700;">{stats["total_items"]}</div>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        with col2:
-            st.markdown(f"""
-            <div style="background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%); 
-                        border-radius: 12px; padding: 24px; text-align: center; color: white;">
-                <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">✅ Enrichis</div>
-                <div style="font-size: 32px; font-weight: 700;">{stats["enriched_items"]}</div>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        with col3:
-            st.markdown(f"""
-            <div style="background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); 
-                        border-radius: 12px; padding: 24px; text-align: center; color: white;">
-                <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">⏳ Restants</div>
-                <div style="font-size: 32px; font-weight: 700;">{stats["not_enriched"]}</div>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        st.markdown("<div style='margin: 32px 0;'></div>", unsafe_allow_html=True)
-        
-        # ===== RÉPARTITION PAR TAG =====
         by_tags = stats.get("by_tags", {})
         
-        if by_tags:
-            col_eco, col_bourse, col_action, col_crypto = st.columns(4)
+        # Design minimaliste en une seule ligne
+        st.markdown(f"""
+        <div style="display: flex; gap: 12px; align-items: center; padding: 16px; 
+                    background: white; border-radius: 10px; 
+                    border: 1px solid #e5e7eb;">
             
-            with col_eco:
-                st.markdown(f"""
-                <div style="background: linear-gradient(135deg, rgba(74, 144, 226, 0.1) 0%, rgba(74, 144, 226, 0.2) 100%);
-                            border: 2px solid rgba(74, 144, 226, 0.3);
-                            border-radius: 12px; padding: 20px; text-align: center;">
-                    <div style="font-size: 24px; margin-bottom: 4px;">🌍</div>
-                    <div style="font-size: 13px; color: #2c5aa0; font-weight: 600; margin-bottom: 8px;">ECO</div>
-                    <div style="font-size: 28px; font-weight: 700; color: #2c5aa0;">{by_tags.get("ECO", 0)}</div>
-                </div>
-                """, unsafe_allow_html=True)
+            <!-- Total -->
+            <div style="flex: 1; text-align: center; padding: 12px;">
+                <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Total</div>
+                <div style="font-size: 24px; font-weight: 600; color: #111827;">{stats["total_items"]}</div>
+            </div>
             
-            with col_bourse:
-                st.markdown(f"""
-                <div style="background: linear-gradient(135deg, rgba(155, 89, 182, 0.1) 0%, rgba(155, 89, 182, 0.2) 100%);
-                            border: 2px solid rgba(155, 89, 182, 0.3);
-                            border-radius: 12px; padding: 20px; text-align: center;">
-                    <div style="font-size: 24px; margin-bottom: 4px;">📈</div>
-                    <div style="font-size: 13px; color: #6c3483; font-weight: 600; margin-bottom: 8px;">BOURSE</div>
-                    <div style="font-size: 28px; font-weight: 700; color: #6c3483;">{by_tags.get("BOURSE", 0)}</div>
-                </div>
-                """, unsafe_allow_html=True)
+            <!-- Divider -->
+            <div style="width: 1px; height: 40px; background: #e5e7eb;"></div>
             
-            with col_action:
-                st.markdown(f"""
-                <div style="background: linear-gradient(135deg, rgba(39, 174, 96, 0.1) 0%, rgba(39, 174, 96, 0.2) 100%);
-                            border: 2px solid rgba(39, 174, 96, 0.3);
-                            border-radius: 12px; padding: 20px; text-align: center;">
-                    <div style="font-size: 24px; margin-bottom: 4px;">🏢</div>
-                    <div style="font-size: 13px; color: #1e7e34; font-weight: 600; margin-bottom: 8px;">ACTION</div>
-                    <div style="font-size: 28px; font-weight: 700; color: #1e7e34;">{by_tags.get("ACTION", 0)}</div>
-                </div>
-                """, unsafe_allow_html=True)
+            <!-- Enrichis -->
+            <div style="flex: 1; text-align: center; padding: 12px;">
+                <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Enrichis</div>
+                <div style="font-size: 24px; font-weight: 600; color: #10b981;">{stats["enriched_items"]}</div>
+            </div>
             
-            with col_crypto:
-                st.markdown(f"""
-                <div style="background: linear-gradient(135deg, rgba(243, 156, 18, 0.1) 0%, rgba(243, 156, 18, 0.2) 100%);
-                            border: 2px solid rgba(243, 156, 18, 0.3);
-                            border-radius: 12px; padding: 20px; text-align: center;">
-                    <div style="font-size: 24px; margin-bottom: 4px;">₿</div>
-                    <div style="font-size: 13px; color: #c87f0a; font-weight: 600; margin-bottom: 8px;">CRYPTO</div>
-                    <div style="font-size: 28px; font-weight: 700; color: #c87f0a;">{by_tags.get("CRYPTO", 0)}</div>
-                </div>
-                """, unsafe_allow_html=True)
+            <!-- Divider -->
+            <div style="width: 1px; height: 40px; background: #e5e7eb;"></div>
+            
+            <!-- ECO -->
+            <div style="flex: 1; text-align: center; padding: 12px;">
+                <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Eco</div>
+                <div style="font-size: 24px; font-weight: 600; color: #3b82f6;">{by_tags.get("ECO", 0)}</div>
+            </div>
+            
+            <!-- BOURSE -->
+            <div style="flex: 1; text-align: center; padding: 12px;">
+                <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Bourse</div>
+                <div style="font-size: 24px; font-weight: 600; color: #8b5cf6;">{by_tags.get("BOURSE", 0)}</div>
+            </div>
+            
+            <!-- ACTION -->
+            <div style="flex: 1; text-align: center; padding: 12px;">
+                <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Action</div>
+                <div style="font-size: 24px; font-weight: 600; color: #10b981;">{by_tags.get("ACTION", 0)}</div>
+            </div>
+            
+            <!-- CRYPTO -->
+            <div style="flex: 1; text-align: center; padding: 12px;">
+                <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Crypto</div>
+                <div style="font-size: 24px; font-weight: 600; color: #f59e0b;">{by_tags.get("CRYPTO", 0)}</div>
+            </div>
+            
+        </div>
+        """, unsafe_allow_html=True)
 
-st.markdown("<div style='margin: 32px 0;'></div>", unsafe_allow_html=True)
+st.markdown("")
 
 
 # ======================================================
