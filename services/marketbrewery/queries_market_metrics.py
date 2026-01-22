@@ -20,7 +20,7 @@ def get_top_weekly(zone, limit=10):
     
     try:
         response = supabase.table("market_top_flop")\
-            .select("symbol, pct_change, close_value, date_ref")\
+            .select("symbol, asset_name, pct_change, close_value, date_ref")\
             .eq("zone", zone)\
             .eq("type", "top")\
             .order("rank", desc=False)\
@@ -31,6 +31,7 @@ def get_top_weekly(zone, limit=10):
         for row in response.data:
             results.append({
                 "symbol": row["symbol"],
+                "name": row.get("asset_name", row["symbol"]),
                 "pct_change": float(row["pct_change"]),
                 "close": float(row["close_value"]),
                 "date": row["date_ref"],
@@ -53,7 +54,7 @@ def get_flop_weekly(zone, limit=10):
     
     try:
         response = supabase.table("market_top_flop")\
-            .select("symbol, pct_change, close_value, date_ref")\
+            .select("symbol, asset_name, pct_change, close_value, date_ref")\
             .eq("zone", zone)\
             .eq("type", "flop")\
             .order("rank", desc=False)\
@@ -64,6 +65,7 @@ def get_flop_weekly(zone, limit=10):
         for row in response.data:
             results.append({
                 "symbol": row["symbol"],
+                "name": row.get("asset_name", row["symbol"]),
                 "pct_change": float(row["pct_change"]),
                 "close": float(row["close_value"]),
                 "date": row["date_ref"],

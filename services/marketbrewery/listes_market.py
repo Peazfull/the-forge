@@ -1,4 +1,98 @@
 # =========================
+# 📖 MAPPING SYMBOL → NAME
+# =========================
+
+SYMBOL_TO_NAME = {
+    # 🇺🇸 US
+    "AAPL": "Apple", "MSFT": "Microsoft", "NVDA": "NVIDIA", "AMZN": "Amazon",
+    "GOOGL": "Alphabet (Class A)", "GOOG": "Alphabet (Class C)", "META": "Meta Platforms",
+    "BRK-B": "Berkshire Hathaway", "LLY": "Eli Lilly", "AVGO": "Broadcom", "TSLA": "Tesla",
+    "JPM": "JPMorgan Chase", "V": "Visa", "UNH": "UnitedHealth Group", "XOM": "Exxon Mobil",
+    "MA": "Mastercard", "HD": "Home Depot", "COST": "Costco", "MRK": "Merck & Co", "ABBV": "AbbVie",
+    "PEP": "PepsiCo", "KO": "Coca-Cola", "ADBE": "Adobe", "CRM": "Salesforce", "NFLX": "Netflix",
+    "AMD": "Advanced Micro Devices", "WMT": "Walmart", "BAC": "Bank of America", "INTC": "Intel",
+    "ORCL": "Oracle", "CSCO": "Cisco", "QCOM": "Qualcomm", "TXN": "Texas Instruments",
+    "ACN": "Accenture", "LIN": "Linde", "MCD": "McDonald's", "TMO": "Thermo Fisher Scientific",
+    "DHR": "Danaher", "AMAT": "Applied Materials", "NEE": "NextEra Energy",
+    "PM": "Philip Morris International", "IBM": "IBM", "GE": "General Electric",
+    "ISRG": "Intuitive Surgical", "CAT": "Caterpillar", "SPGI": "S&P Global",
+    "RTX": "RTX Corporation", "NOW": "ServiceNow", "GS": "Goldman Sachs", "BLK": "BlackRock",
+    "CVX": "Chevron", "UNP": "Union Pacific", "HON": "Honeywell", "LOW": "Lowe's",
+    "INTU": "Intuit", "DE": "Deere & Company", "MDT": "Medtronic", "ADI": "Analog Devices",
+    "LRCX": "Lam Research", "GILD": "Gilead Sciences", "BKNG": "Booking Holdings", "ZTS": "Zoetis",
+    "VRTX": "Vertex Pharmaceuticals", "CI": "Cigna", "ELV": "Elevance Health",
+    "AXP": "American Express", "PLD": "Prologis", "CB": "Chubb", "MO": "Altria",
+    "MMC": "Marsh McLennan", "DUK": "Duke Energy", "SO": "Southern Company", "USB": "U.S. Bancorp",
+    "TGT": "Target", "PNC": "PNC Financial", "SCHW": "Charles Schwab", "FDX": "FedEx",
+    "GM": "General Motors", "F": "Ford", "CL": "Colgate-Palmolive", "MET": "MetLife",
+    "AON": "Aon", "ICE": "Intercontinental Exchange", "PGR": "Progressive", "TRV": "Travelers",
+    "ALL": "Allstate", "MS": "Morgan Stanley", "C": "Citigroup", "COF": "Capital One",
+    "AIG": "American International Group", "SLB": "Schlumberger", "ETN": "Eaton",
+    "EMR": "Emerson Electric", "NSC": "Norfolk Southern", "ROP": "Roper Technologies",
+    "CTAS": "Cintas", "ECL": "Ecolab", "SRE": "Sempra Energy", "PSA": "Public Storage",
+    "KMI": "Kinder Morgan", "AEP": "American Electric Power", "OXY": "Occidental Petroleum",
+    "AFL": "Aflac", "MPC": "Marathon Petroleum", "VLO": "Valero Energy", "HUM": "Humana",
+    "DG": "Dollar General", "ROST": "Ross Stores", "MAR": "Marriott", "HLT": "Hilton",
+    "IDXX": "IDEXX Laboratories", "PAYX": "Paychex", "FAST": "Fastenal",
+    "ODFL": "Old Dominion Freight Line", "PCAR": "PACCAR", "MNST": "Monster Beverage",
+    "EXC": "Exelon", "XEL": "Xcel Energy", "WELL": "Welltower", "DLR": "Digital Realty",
+    "AMT": "American Tower", "CCI": "Crown Castle", "EQIX": "Equinix", "PLTR": "Palantir",
+    "SNOW": "Snowflake", "PANW": "Palo Alto Networks", "CRWD": "CrowdStrike", "FTNT": "Fortinet",
+    "DDOG": "Datadog", "ZS": "Zscaler", "MDB": "MongoDB", "NET": "Cloudflare",
+    "SHOP": "Shopify", "SQ": "Block", "PYPL": "PayPal", "UBER": "Uber", "ABNB": "Airbnb",
+    "LYFT": "Lyft", "RIVN": "Rivian", "LCID": "Lucid Motors",
+    
+    # 🇫🇷 France
+    "AI.PA": "Air Liquide", "AIR.PA": "Airbus", "ALO.PA": "Alstom", "BNP.PA": "BNP Paribas",
+    "CAP.PA": "Capgemini", "CS.PA": "AXA", "DG.PA": "Vinci", "DSY.PA": "Dassault Systèmes",
+    "EL.PA": "EssilorLuxottica", "ENGI.PA": "Engie", "GLE.PA": "Société Générale",
+    "HO.PA": "Thales", "KER.PA": "Kering", "MC.PA": "LVMH", "ML.PA": "Michelin",
+    "ORA.PA": "Orange", "OR.PA": "L'Oréal", "PUB.PA": "Publicis", "RI.PA": "Pernod Ricard",
+    "RMS.PA": "Hermès", "SAF.PA": "Safran", "SAN.PA": "Sanofi", "SGO.PA": "Saint-Gobain",
+    "STM.PA": "STMicroelectronics", "SU.PA": "Schneider Electric", "TTE.PA": "TotalEnergies",
+    "VIE.PA": "Veolia", "VIV.PA": "Vivendi", "WLN.PA": "Worldline", "ACA.PA": "Crédit Agricole",
+    "BN.PA": "Danone", "CA.PA": "Carrefour", "RNO.PA": "Renault", "EDF.PA": "EDF",
+    "STLA": "Stellantis", "FR.PA": "Valeo", "BIM.PA": "Bureau Veritas", "CO.PA": "Casino",
+    "EN.PA": "Bouygues", "GET.PA": "Getlink", "IPN.PA": "Ipsen", "UBI.PA": "Ubisoft",
+    "AMUN.PA": "Amundi", "CNP.PA": "CNP Assurances", "FNAC.PA": "Fnac Darty",
+    "NEOEN.PA": "Neoen", "OVH.PA": "OVHcloud", "SEB.PA": "Groupe SEB", "SPIE.PA": "SPIE",
+    
+    # 🇪🇺 Europe
+    "SAP.DE": "SAP", "SIE.DE": "Siemens", "DTE.DE": "Deutsche Telekom", "ALV.DE": "Allianz",
+    "BAS.DE": "BASF", "BAYN.DE": "Bayer", "BMW.DE": "BMW", "VOW.DE": "Volkswagen",
+    "MBG.DE": "Mercedes-Benz Group", "IFX.DE": "Infineon", "LIN.DE": "Linde",
+    "MUV2.DE": "Munich Re", "ADS.DE": "Adidas", "DB1.DE": "Deutsche Börse", "RWE.DE": "RWE",
+    "ASML.AS": "ASML", "INGA.AS": "ING Group", "PHIA.AS": "Philips", "ADYEN.AS": "Adyen",
+    "PRX.AS": "Prosus", "NN.AS": "NN Group", "DSM.AS": "DSM-Firmenich",
+    "NESN.SW": "Nestlé", "ROG.SW": "Roche", "NOVN.SW": "Novartis",
+    "ZURN.SW": "Zurich Insurance", "UBSG.SW": "UBS", "SHEL.L": "Shell",
+    "AZN.L": "AstraZeneca", "BP.L": "BP", "HSBA.L": "HSBC", "ULVR.L": "Unilever",
+    "RIO.L": "Rio Tinto", "GSK.L": "GSK", "NOVO-B.CO": "Novo Nordisk", "DSV.CO": "DSV",
+    "MAERSK-B.CO": "Maersk", "EQNR.OL": "Equinor", "VOLV-B.ST": "Volvo",
+    "ERIC-B.ST": "Ericsson", "ABI.BR": "AB InBev", "UCB.BR": "UCB", "KBC.BR": "KBC Group",
+    
+    # 🪙 Crypto
+    "BTC-USD": "Bitcoin", "ETH-USD": "Ethereum", "BNB-USD": "BNB", "SOL-USD": "Solana",
+    "XRP-USD": "XRP", "ADA-USD": "Cardano", "AVAX-USD": "Avalanche", "DOGE-USD": "Dogecoin",
+    "DOT-USD": "Polkadot", "MATIC-USD": "Polygon", "LINK-USD": "Chainlink",
+    "UNI-USD": "Uniswap", "ATOM-USD": "Cosmos", "LTC-USD": "Litecoin",
+    "BCH-USD": "Bitcoin Cash", "XLM-USD": "Stellar", "ALGO-USD": "Algorand",
+    "VET-USD": "VeChain", "ICP-USD": "Internet Computer", "FIL-USD": "Filecoin",
+    "HBAR-USD": "Hedera", "APT-USD": "Aptos", "NEAR-USD": "Near Protocol",
+    "ARB-USD": "Arbitrum", "OP-USD": "Optimism", "STX-USD": "Stacks",
+    "INJ-USD": "Injective", "TIA-USD": "Celestia", "SUI-USD": "Sui", "TAO-USD": "Bittensor",
+    
+    # 📊 Indices
+    "^GSPC": "S&P 500", "^DJI": "Dow Jones Industrial Average", "^IXIC": "NASDAQ Composite",
+    "^RUT": "Russell 2000", "^FCHI": "CAC 40", "^STOXX50E": "Euro STOXX 50",
+    "^GDAXI": "DAX 40", "^FTSE": "FTSE 100", "^N225": "Nikkei 225", "^HSI": "Hang Seng Index",
+    
+    # 🛢️ Commodities
+    "GC=F": "Gold", "SI=F": "Silver", "CL=F": "WTI Crude Oil", "BZ=F": "Brent Crude",
+    "NG=F": "Natural Gas", "HG=F": "Copper", "PL=F": "Platinum", "PA=F": "Palladium",
+}
+
+# =========================
 # 🇺🇸 US — TOP ~200 MARKET CAP
 # =========================
 

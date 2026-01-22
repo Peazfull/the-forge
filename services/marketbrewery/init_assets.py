@@ -13,7 +13,8 @@ from services.marketbrewery.listes_market import (
     EU_TOP_200,
     CRYPTO_TOP_30,
     INDICES,
-    COMMODITIES
+    COMMODITIES,
+    SYMBOL_TO_NAME
 )
 
 
@@ -87,10 +88,13 @@ def init_assets():
                 elif zone == "CRYPTO":
                     currency = "USD"
                 
+                # Récupérer le nom depuis le dictionnaire
+                asset_name = SYMBOL_TO_NAME.get(symbol, symbol)
+                
                 # Insérer
                 supabase.table("assets").insert({
                     "symbol": symbol,
-                    "name": symbol,  # Par défaut, name = symbol
+                    "name": asset_name,
                     "asset_type": asset_type,
                     "market": zone,
                     "currency": currency,

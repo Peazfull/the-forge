@@ -69,13 +69,14 @@ def create_performance_table(data, title):
     # Renommer les colonnes
     df = df.rename(columns={
         "symbol": "Symbol",
+        "name": "Name",
         "close": "Close",
         "pct_change": "% Change",
         "date": "Date"
     })
     
     # Sélectionner uniquement les colonnes nécessaires
-    df = df[["Symbol", "% Change", "Close", "Date"]]
+    df = df[["Name", "Symbol", "% Change", "Close"]]
     
     # Formater
     df["Close"] = df["Close"].apply(lambda x: f"${x:,.2f}")

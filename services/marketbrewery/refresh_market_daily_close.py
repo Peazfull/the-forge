@@ -138,7 +138,7 @@ def calculate_and_store_top_flop(supabase, asset_mapping):
     print("\n📊 Calcul des top/flop par zone...")
     
     from services.marketbrewery.listes_market import (
-        US_TOP_200, FR_SBF_120, EU_TOP_200, CRYPTO_TOP_30
+        US_TOP_200, FR_SBF_120, EU_TOP_200, CRYPTO_TOP_30, SYMBOL_TO_NAME
     )
     
     zones = {
@@ -185,8 +185,12 @@ def calculate_and_store_top_flop(supabase, asset_mapping):
                 
                 pct_change = ((close_current - close_previous) / close_previous) * 100
                 
+                # Récupérer le nom de l'asset
+                asset_name = SYMBOL_TO_NAME.get(symbol, symbol)
+                
                 performances.append({
                     "symbol": symbol,
+                    "name": asset_name,
                     "pct_change": pct_change,
                     "close": close_current,
                     "date": date_ref
@@ -207,6 +211,7 @@ def calculate_and_store_top_flop(supabase, asset_mapping):
                     "type": "top",
                     "rank": rank,
                     "symbol": perf["symbol"],
+                    "asset_name": perf["name"],
                     "pct_change": perf["pct_change"],
                     "close_value": perf["close"],
                     "date_ref": perf["date"],
@@ -224,6 +229,7 @@ def calculate_and_store_top_flop(supabase, asset_mapping):
                     "type": "flop",
                     "rank": rank,
                     "symbol": perf["symbol"],
+                    "asset_name": perf["name"],
                     "pct_change": perf["pct_change"],
                     "close_value": perf["close"],
                     "date_ref": perf["date"],
