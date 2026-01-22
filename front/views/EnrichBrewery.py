@@ -92,65 +92,65 @@ with col_button:
 
     if items_count > 0:
         if st.button("🚀 Lancer l'enrichissement", type="primary", use_container_width=True):
-        
-        # Progress bar container
-        progress_container = st.container()
-        status_container = st.container()
-        
-        with progress_container:
-            progress_bar = st.progress(0)
-            progress_text = st.empty()
-        
-        with status_container:
-            status_text = st.empty()
-        
-        # Lancer l'enrichissement
-        start_time = time.time()
-        
-        # Récupérer TOUS les items (force_all=True)
-        items = fetch_items_to_enrich(limit=limit_value, force_all=True)
-        total = len(items)
-        success_count = 0
-        error_count = 0
-        
-        from services.enrichment.enrichment_service import enrich_single_item
-        
-        for idx, item in enumerate(items, start=1):
-            item_id = item.get("id")
-            title = item.get("title", "")
-            content = item.get("content", "")
             
-            # Afficher la progression
-            progress = idx / total
-            progress_bar.progress(progress)
-            progress_text.markdown(f"**Traitement : {idx}/{total} items** ({int(progress*100)}%)")
-            status_text.text(f"Item en cours : {title[:50]}...")
+            # Progress bar container
+            progress_container = st.container()
+            status_container = st.container()
             
-            # Enrichir l'item
-            result = enrich_single_item(item_id, title, content)
+            with progress_container:
+                progress_bar = st.progress(0)
+                progress_text = st.empty()
             
-            if result["status"] == "success":
-                success_count += 1
-            else:
-                error_count += 1
-        
-        duration = time.time() - start_time
-        
-        # Afficher les résultats
-        progress_bar.progress(1.0)
-        progress_text.markdown(f"**✅ Enrichissement terminé !**")
-        status_text.empty()
-        
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.metric("✅ Succès", success_count)
-        with col2:
-            st.metric("❌ Erreurs", error_count)
-        with col3:
-            st.metric("⏱️ Durée", f"{duration:.1f}s")
-        
-        st.success(f"🎉 Enrichissement terminé ! {success_count}/{total} items traités avec succès.")
-        
+            with status_container:
+                status_text = st.empty()
+            
+            # Lancer l'enrichissement
+            start_time = time.time()
+            
+            # Récupérer TOUS les items (force_all=True)
+            items = fetch_items_to_enrich(limit=limit_value, force_all=True)
+            total = len(items)
+            success_count = 0
+            error_count = 0
+            
+            from services.enrichment.enrichment_service import enrich_single_item
+            
+            for idx, item in enumerate(items, start=1):
+                item_id = item.get("id")
+                title = item.get("title", "")
+                content = item.get("content", "")
+                
+                # Afficher la progression
+                progress = idx / total
+                progress_bar.progress(progress)
+                progress_text.markdown(f"**Traitement : {idx}/{total} items** ({int(progress*100)}%)")
+                status_text.text(f"Item en cours : {title[:50]}...")
+                
+                # Enrichir l'item
+                result = enrich_single_item(item_id, title, content)
+                
+                if result["status"] == "success":
+                    success_count += 1
+                else:
+                    error_count += 1
+            
+            duration = time.time() - start_time
+            
+            # Afficher les résultats
+            progress_bar.progress(1.0)
+            progress_text.markdown(f"**✅ Enrichissement terminé !**")
+            status_text.empty()
+            
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("✅ Succès", success_count)
+            with col2:
+                st.metric("❌ Erreurs", error_count)
+            with col3:
+                st.metric("⏱️ Durée", f"{duration:.1f}s")
+            
+            st.success(f"🎉 Enrichissement terminé ! {success_count}/{total} items traités avec succès.")
+            
             # Forcer le rechargement des stats
             st.rerun()
 
