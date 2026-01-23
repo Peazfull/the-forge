@@ -574,7 +574,8 @@ class NewsSourceRenderer:
                     if result.get("status") == "success":
                         st.success(f"{len(result.get('items', []))} items générés")
                         self.state.set("json_ready", True)
-                        self.state.set("show_json_state", False)
+                        self.state.set("show_json_state", True)  # Afficher automatiquement le JSON
+                        st.rerun()
                     else:
                         st.error(result.get("message", "Erreur JSON"))
             
