@@ -118,7 +118,8 @@ with st.container():
         limit_option = st.selectbox(
             "Limite",
             options=[10, 50, 100, 500, "Tous"],
-            index=0
+            index=4,
+            label_visibility="collapsed"
         )
         
         if limit_option == "Tous":
