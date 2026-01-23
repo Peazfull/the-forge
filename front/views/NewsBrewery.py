@@ -74,7 +74,7 @@ SOURCES = [
         supports_scroll=True,
         supports_headless=True,
         supports_captcha_pause=True,
-        supports_firecrawl=False,  # fetch_dom_items ne supporte pas use_firecrawl_fallback
+        supports_firecrawl=True,  # JobConfig attend use_firecrawl (même si fetch_dom_items ne le supporte pas)
     ),
     
     NewsSourceConfig(
@@ -87,6 +87,9 @@ SOURCES = [
         fetch_rss_items=fetch_rss_items,
         job_factory=get_beincrypto_job,
         job_config_class=BeInJobConfig,
+        supports_scroll=False,        # Pas de scroll
+        supports_headless=False,      # Pas de headless
+        supports_captcha_pause=False, # Pas de captcha pause
         supports_firecrawl=True,
     ),
     
@@ -100,7 +103,10 @@ SOURCES = [
         fetch_rss_items=fetch_rss_items,
         job_factory=get_boursedirect_job,
         job_config_class=BourseDirectJobConfig,
-        supports_firecrawl=False,  # fetch_boursedirect_dom_items ne supporte pas use_firecrawl_fallback
+        supports_scroll=False,
+        supports_headless=False,
+        supports_captcha_pause=False,
+        supports_firecrawl=True,
     ),
     
     NewsSourceConfig(
@@ -113,7 +119,10 @@ SOURCES = [
         fetch_rss_items=fetch_rss_items,
         job_factory=get_boursedirect_indices_job,
         job_config_class=BourseDirectIndicesJobConfig,
-        supports_firecrawl=False,  # fetch_boursedirect_dom_items ne supporte pas use_firecrawl_fallback
+        supports_scroll=False,
+        supports_headless=False,
+        supports_captcha_pause=False,
+        supports_firecrawl=True,
     ),
     
     NewsSourceConfig(
@@ -126,6 +135,9 @@ SOURCES = [
         fetch_rss_items=fetch_rss_items,
         job_factory=get_boursier_economie_job,
         job_config_class=BoursierEconomieJobConfig,
+        supports_scroll=False,
+        supports_headless=False,
+        supports_captcha_pause=False,
         supports_firecrawl=True,
     ),
     
@@ -139,6 +151,9 @@ SOURCES = [
         fetch_rss_items=fetch_rss_items,
         job_factory=get_boursier_macroeconomie_job,
         job_config_class=BoursierMacroeconomieJobConfig,
+        supports_scroll=False,
+        supports_headless=False,
+        supports_captcha_pause=False,
         supports_firecrawl=True,
     ),
     
@@ -152,6 +167,9 @@ SOURCES = [
         fetch_rss_items=fetch_rss_items,
         job_factory=get_boursier_france_job,
         job_config_class=BoursierFranceJobConfig,
+        supports_scroll=False,
+        supports_headless=False,
+        supports_captcha_pause=False,
         supports_firecrawl=True,
     ),
 ]

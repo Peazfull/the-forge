@@ -404,24 +404,27 @@ class NewsSourceRenderer:
                 "urls_override": selected_urls,
             }
             
-            # Paramètres conditionnels
+            # Paramètres conditionnels selon ce que le JobConfig attend
+            # Scroll (BFM Bourse uniquement)
             if self.config.supports_scroll:
                 config_params["scroll_min_px"] = int(settings.get("scroll_min", 400))
                 config_params["scroll_max_px"] = int(settings.get("scroll_max", 1200))
                 config_params["min_page_time"] = int(settings.get("page_min", 10))
                 config_params["max_page_time"] = int(settings.get("page_max", 45))
             
+            # Headless (BFM Bourse uniquement)
             if self.config.supports_headless:
                 config_params["headless"] = bool(settings.get("headless", True))
             
+            # Captcha pause (BFM Bourse uniquement)
             if self.config.supports_captcha_pause:
                 config_params["pause_on_captcha"] = bool(settings.get("pause_captcha", True))
             
-            if self.config.supports_firecrawl:
-                config_params["use_firecrawl"] = bool(settings.get("use_firecrawl", True))
+            # Firecrawl (toutes les sources l'ont)
+            config_params["use_firecrawl"] = bool(settings.get("use_firecrawl", True))
             
-            if self.config.supports_dom_fallback:
-                config_params["rss_use_dom_fallback"] = bool(settings.get("rss_dom_fallback", True))
+            # DOM fallback (toutes les sources l'ont)
+            config_params["rss_use_dom_fallback"] = bool(settings.get("rss_dom_fallback", True))
             
             # Créer et lancer le job
             job_config = self.config.job_config_class(**config_params)
