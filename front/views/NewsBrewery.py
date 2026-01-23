@@ -397,7 +397,7 @@ with st.expander("▸ Mega Job — Run all", expanded=False):
         
         st.caption(f"{len(mega_selected_urls)} article(s) sélectionné(s)")
     else:
-        st.caption("Clique sur "Charger toutes les URLs" pour générer la liste.")
+        st.caption("Clique sur \"Charger toutes les URLs\" pour générer la liste.")
 
     # Note : Le reste du mega job (lancement, monitoring) est conservé tel quel
     # pour ne pas casser la fonctionnalité existante
