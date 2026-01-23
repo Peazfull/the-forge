@@ -33,8 +33,6 @@ def render_sidebar():
         with st.expander("🏛️ The Ministry", expanded=False):
             if st.button("🏷️ Enrich", key="enrich_brewery", use_container_width=True):
                 st.session_state.current_page = "front/views/EnrichBrewery"
-            if st.button("🔍 Deduplicate", key="deduplicate_brewery", use_container_width=True):
-                st.session_state.current_page = "front/views/DeduplicateBrewery"
             if st.button("⭐ Score", key="score_brewery", use_container_width=True):
                 st.session_state.current_page = "front/views/ScoreBrewery"
             if st.button("👁️ Preview finale", key="preview_brewery", use_container_width=True):
