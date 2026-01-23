@@ -453,27 +453,29 @@ with st.container():
                     
                     # Section édition score
                     st.markdown("**✏️ Éditer le score**")
-                    st.caption("Score actuel : " + str(int(selected_item["score_global"])) + "/100")
                     
-                    new_score = st.number_input(
-                        "Nouveau score (0-100)",
-                        min_value=0,
-                        max_value=100,
-                        value=int(selected_item["score_global"]),
-                        step=5,
-                        key=f"edit_score_{selected_item['id']}",
-                        help="Modifiez le score et cliquez sur Sauvegarder"
-                    )
-                    
-                    if st.button("💾 Sauvegarder le score", type="primary", use_container_width=True, key=f"save_{selected_item['id']}"):
-                        result = update_item_score(selected_item["id"], new_score)
+                    # Form pour validation avec Enter
+                    with st.form(key=f"score_form_{selected_item['id']}"):
+                        new_score = st.number_input(
+                            "Score (0-100)",
+                            min_value=0,
+                            max_value=100,
+                            value=int(selected_item["score_global"]),
+                            step=5,
+                            help="Modifiez et appuyez sur Entrée ou cliquez sur Sauvegarder"
+                        )
                         
-                        if result["status"] == "success":
-                            st.success(f"✅ Score mis à jour : {new_score}/100")
-                            time.sleep(0.5)
-                            st.rerun()
-                        else:
-                            st.error(f"❌ Erreur : {result['message']}")
+                        submitted = st.form_submit_button("💾 Sauvegarder", type="primary", use_container_width=True)
+                        
+                        if submitted:
+                            result = update_item_score(selected_item["id"], new_score)
+                            
+                            if result["status"] == "success":
+                                st.success(f"✅ Score mis à jour : {new_score}/100")
+                                time.sleep(0.5)
+                                st.rerun()
+                            else:
+                                st.error(f"❌ Erreur : {result['message']}")
         else:
             st.info("Aucun item scoré trouvé avec ces filtres")
             
