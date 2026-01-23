@@ -311,7 +311,7 @@ st.markdown("""
 
 with st.container():
     # Filtres
-    col_tag, col_score_min, col_score_max, col_sort = st.columns(4)
+    col_tag, col_label, col_score_min, col_score_max, col_sort = st.columns(5)
 
     with col_tag:
         filter_tag = st.selectbox(
@@ -320,6 +320,15 @@ with st.container():
             index=0,
             label_visibility="collapsed",
             placeholder="Tag"
+        )
+    
+    with col_label:
+        filter_label = st.selectbox(
+            "Label",
+            options=["Tous", "Eco_GeoPol", "Marchés", "PEA", "Action_USA", "Action", "Crypto"],
+            index=0,
+            label_visibility="collapsed",
+            placeholder="Label"
         )
     
     with col_score_min:
@@ -365,6 +374,9 @@ with st.container():
         # Appliquer les filtres
         if filter_tag != "Tous":
             query = query.eq("tags", filter_tag)
+        
+        if filter_label != "Tous":
+            query = query.eq("labels", filter_label)
         
         if filter_score_min > 0:
             query = query.gte("score_global", filter_score_min)
@@ -438,23 +450,27 @@ with st.container():
                     st.metric("Label", selected_item["labels"])
                     
                     st.markdown("---")
-                    st.markdown("**✏️ Modifier le score**")
+                    
+                    # Section édition score
+                    st.markdown("**✏️ Éditer le score**")
+                    st.caption("Score actuel : " + str(int(selected_item["score_global"])) + "/100")
                     
                     new_score = st.number_input(
-                        "Nouveau score",
+                        "Nouveau score (0-100)",
                         min_value=0,
                         max_value=100,
                         value=int(selected_item["score_global"]),
                         step=5,
-                        key="edit_score"
+                        key=f"edit_score_{selected_item['id']}",
+                        help="Modifiez le score et cliquez sur Sauvegarder"
                     )
                     
-                    if st.button("💾 Sauvegarder", type="primary", use_container_width=True):
+                    if st.button("💾 Sauvegarder le score", type="primary", use_container_width=True, key=f"save_{selected_item['id']}"):
                         result = update_item_score(selected_item["id"], new_score)
                         
                         if result["status"] == "success":
                             st.success(f"✅ Score mis à jour : {new_score}/100")
-                            time.sleep(1)
+                            time.sleep(0.5)
                             st.rerun()
                         else:
                             st.error(f"❌ Erreur : {result['message']}")
