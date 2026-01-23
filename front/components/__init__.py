@@ -1,0 +1,3 @@
+"""
+Front components package
+"""
