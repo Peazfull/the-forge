@@ -360,6 +360,40 @@ with st.expander("▸ Mega Job — Run all", expanded=False):
         src.key for src in SOURCES if src.label in selected_sources
     ]
 
+    # Fenêtre temporelle Mega Job
+    st.divider()
+    st.markdown("**⏱️ Fenêtre temporelle (Mega Job)**")
+    
+    col_mode, col_hours = st.columns([2, 1])
+    with col_mode:
+        mega_mode = st.radio(
+            "Mode",
+            options=["Aujourd'hui", "Dernières X heures"],
+            horizontal=True,
+            index=1,
+            key="mega_time_mode"
+        )
+    with col_hours:
+        mega_hours = st.slider(
+            "Heures",
+            min_value=1,
+            max_value=24,
+            value=24,
+            step=1,
+            key="mega_time_hours"
+        )
+    
+    # Bouton de synchronisation
+    if st.button("🔄 Synchroniser avec tous les jobs", use_container_width=True, key="mega_sync_time"):
+        for src in SOURCES:
+            st.session_state[f"{src.key}_mode"] = mega_mode
+            st.session_state[f"{src.key}_hours_window"] = mega_hours
+        hours_text = f" ({mega_hours}h)" if mega_mode == "Dernières X heures" else ""
+        st.success(f"✅ Tous les jobs synchronisés : {mega_mode}{hours_text}")
+        st.rerun()
+    
+    st.divider()
+
     # Boutons
     col_load, col_check, col_uncheck = st.columns(3)
     with col_load:
