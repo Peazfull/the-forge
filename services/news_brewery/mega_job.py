@@ -9,7 +9,7 @@ import streamlit as st
 from openai import OpenAI
 
 from services.raw_storage.raw_news_service import enrich_raw_items, insert_raw_news
-from services.news_brewery.utils import fetch_url_text
+from services.hand_brewery.firecrawl_client import fetch_url_text
 from prompts.news_brewery.deduplicate import PROMPT_DEDUPLICATE
 from prompts.news_brewery.jsonfy import PROMPT_JSONFY
 from prompts.news_brewery.json_secure import PROMPT_JSON_SECURE
