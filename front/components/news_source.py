@@ -604,19 +604,47 @@ class NewsSourceRenderer:
                 key=f"{self.config.key}_json_editor"
             )
             
-            col1, col2 = st.columns(2)
+            col1, col2, col3 = st.columns(3)
             with col1:
+                if st.button("🔧 Valider JSON", use_container_width=True,
+                           key=f"{self.config.key}_validate_json"):
+                    # Valider et re-formater le JSON
+                    import json
+                    import re
+                    try:
+                        # Nettoyer les caractères de contrôle invalides
+                        cleaned_json = re.sub(r'[\x00-\x1F\x7F]', '', edited_json)
+                        # Parser et re-sérialiser proprement
+                        parsed_json = json.loads(cleaned_json)
+                        if "items" in parsed_json:
+                            # Re-formater proprement
+                            formatted_json = json.dumps(parsed_json, indent=2, ensure_ascii=False)
+                            self.job.json_items = parsed_json["items"]
+                            self.job.json_preview_text = formatted_json
+                            st.success(f"✅ JSON validé : {len(parsed_json['items'])} items")
+                            st.rerun()
+                        else:
+                            st.error("Le JSON doit contenir une clé 'items'")
+                    except json.JSONDecodeError as e:
+                        st.error(f"❌ JSON invalide : {e}")
+                    except Exception as e:
+                        st.error(f"❌ Erreur : {e}")
+            
+            with col2:
                 if st.button("✅ Envoyer en DB", use_container_width=True,
                            key=f"{self.config.key}_send_db"):
                     # Synchroniser les modifications JSON avant l'envoi
                     import json
+                    import re
                     try:
-                        parsed_json = json.loads(edited_json)
+                        # Nettoyer les caractères de contrôle invalides avant parsing
+                        cleaned_json = re.sub(r'[\x00-\x1F\x7F]', '', edited_json)
+                        parsed_json = json.loads(cleaned_json)
                         if "items" in parsed_json:
                             # Debug: afficher combien d'items avant/après
                             items_avant = len(self.job.json_items)
                             self.job.json_items = parsed_json["items"]
-                            self.job.json_preview_text = edited_json
+                            self.job.json_preview_text = json.dumps(parsed_json, indent=2, ensure_ascii=False)
                             items_apres = len(self.job.json_items)
                             st.info(f"🔄 JSON synchronisé : {items_avant} → {items_apres} items")
                         else:
@@ -624,6 +652,7 @@ class NewsSourceRenderer:
                             return
                     except json.JSONDecodeError as e:
                         st.error(f"❌ JSON invalide : {e}")
+                        st.warning("💡 Clique sur '🔧 Valider JSON' pour nettoyer les caractères invalides")
                         return
                     except Exception as e:
                         st.error(f"❌ Erreur parsing JSON : {e}")
@@ -636,7 +665,7 @@ class NewsSourceRenderer:
                     else:
                         st.error(result.get("message", "Erreur DB"))
             
-            with col2:
+            with col3:
                 if st.button("🧹 Clear JSON", use_container_width=True,
                            key=f"{self.config.key}_clear_json"):
                     self.job.json_preview_text = ""
