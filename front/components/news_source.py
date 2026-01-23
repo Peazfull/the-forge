@@ -608,9 +608,31 @@ class NewsSourceRenderer:
             with col1:
                 if st.button("✅ Envoyer en DB", use_container_width=True,
                            key=f"{self.config.key}_send_db"):
+                    # Synchroniser les modifications JSON avant l'envoi
+                    import json
+                    try:
+                        parsed_json = json.loads(edited_json)
+                        if "items" in parsed_json:
+                            # Debug: afficher combien d'items avant/après
+                            items_avant = len(self.job.json_items)
+                            self.job.json_items = parsed_json["items"]
+                            self.job.json_preview_text = edited_json
+                            items_apres = len(self.job.json_items)
+                            st.info(f"🔄 JSON synchronisé : {items_avant} → {items_apres} items")
+                        else:
+                            st.error("Le JSON doit contenir une clé 'items'")
+                            return
+                    except json.JSONDecodeError as e:
+                        st.error(f"❌ JSON invalide : {e}")
+                        return
+                    except Exception as e:
+                        st.error(f"❌ Erreur parsing JSON : {e}")
+                        return
+                    
+                    # Envoi en DB
                     result = self.job.send_to_db()
                     if result.get("status") == "success":
-                        st.success(f"{result.get('inserted', 0)} items insérés")
+                        st.success(f"✅ {result.get('inserted', 0)} items insérés en DB")
                     else:
                         st.error(result.get("message", "Erreur DB"))
             
