@@ -752,6 +752,64 @@ def fetch_boursier_france_dom_items(
     return items
 
 
+def fetch_binance_dom_items(
+    page_url: str,
+    max_items: int,
+    mode: str,
+    hours_window: int,
+    use_firecrawl_fallback: bool = False,
+) -> List[Dict[str, str]]:
+    # Scrape Binance news page (https://www.binance.com/fr/square/news/all).
+    try:
+        req = Request(page_url, headers={"User-Agent": "Mozilla/5.0"})
+        with urlopen(req, timeout=15) as response:
+            html_bytes = response.read()
+            encoding = response.headers.get_content_charset("utf-8")
+            html_text = html_bytes.decode(encoding, errors="replace")
+    except Exception:
+        if use_firecrawl_fallback and fetch_url_html:
+            try:
+                html_text = fetch_url_html(page_url)
+            except Exception:
+                return []
+        else:
+            return []
+
+    items: List[Dict[str, str]] = []
+    seen = set()
+
+    # Pattern to extract: <a href="/fr/square/post/..."><h3 ...>title</h3>
+    pattern = re.compile(
+        r'<a href="(/fr/square/post/[^"]+)"[^>]*>.*?'
+        r'<h3[^>]+class="[^"]*css-ip1s7b[^"]*"[^>]*>([^<]+)</h3>',
+        re.S,
+    )
+
+    for href, title_text in pattern.findall(html_text):
+        url = href.strip()
+        if not url:
+            continue
+        if url.startswith("/"):
+            url = f"https://www.binance.com{url}"
+        if url in seen:
+            continue
+        seen.add(url)
+
+        title = unescape(title_text).strip()
+        if not title:
+            continue
+
+        items.append({
+            "url": url,
+            "title": title,
+            "label_dt": "",
+        })
+        if len(items) >= max_items:
+            break
+
+    return items
+
+
 def merge_article_items(
     primary: List[Dict[str, str]],
     secondary: List[Dict[str, str]],

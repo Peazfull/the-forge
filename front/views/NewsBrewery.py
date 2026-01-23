@@ -14,6 +14,7 @@ from front.components.news_source import NewsSourceConfig, NewsSourceRenderer
 # Imports des services
 from services.news_brewery.bfm_bourse_job import JobConfig, get_bfm_job
 from services.news_brewery.beincrypto_job import JobConfig as BeInJobConfig, get_beincrypto_job
+from services.news_brewery.binance_job import JobConfig as BinanceJobConfig, get_binance_job
 from services.news_brewery.boursedirect_job import JobConfig as BourseDirectJobConfig, get_boursedirect_job
 from services.news_brewery.boursedirect_indices_job import (
     JobConfig as BourseDirectIndicesJobConfig,
@@ -34,6 +35,7 @@ from services.news_brewery.boursier_france_job import (
 from services.news_brewery.mega_job import MegaJobConfig, get_mega_job
 from services.news_brewery.rss_utils import (
     fetch_beincrypto_dom_items,
+    fetch_binance_dom_items,
     fetch_boursedirect_dom_items,
     fetch_boursier_dom_items,
     fetch_boursier_macroeconomie_dom_items,
@@ -90,6 +92,22 @@ SOURCES = [
         supports_scroll=False,        # Pas de scroll
         supports_headless=False,      # Pas de headless
         supports_captcha_pause=False, # Pas de captcha pause
+        supports_firecrawl=True,
+    ),
+    
+    NewsSourceConfig(
+        key="binance",
+        label="Binance",
+        icon="🟡",
+        entry_url="https://www.binance.com/fr/square/news/all",
+        rss_feed_url="",  # Pas de RSS pour Binance
+        fetch_dom_items=fetch_binance_dom_items,
+        fetch_rss_items=fetch_rss_items,
+        job_factory=get_binance_job,
+        job_config_class=BinanceJobConfig,
+        supports_scroll=False,
+        supports_headless=False,
+        supports_captcha_pause=False,
         supports_firecrawl=True,
     ),
     
