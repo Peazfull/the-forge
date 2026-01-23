@@ -451,31 +451,45 @@ with st.container():
                     
                     st.markdown("---")
                     
-                    # Section édition score
-                    st.markdown("**✏️ Éditer le score**")
+                    # Section édition score - TRÈS VISIBLE
+                    st.markdown("### ✏️ Modifier le score")
+                    st.markdown(f"**Score actuel : {int(selected_item['score_global'])}/100**")
+                    st.markdown("")
                     
-                    # Form pour validation avec Enter
-                    with st.form(key=f"score_form_{selected_item['id']}"):
-                        new_score = st.number_input(
-                            "Score (0-100)",
-                            min_value=0,
-                            max_value=100,
-                            value=int(selected_item["score_global"]),
-                            step=5,
-                            help="Modifiez et appuyez sur Entrée ou cliquez sur Sauvegarder"
-                        )
+                    # Initialiser la valeur dans session_state si pas encore définie
+                    if f"temp_score_{selected_item['id']}" not in st.session_state:
+                        st.session_state[f"temp_score_{selected_item['id']}"] = int(selected_item["score_global"])
+                    
+                    # Slider GROS et visible
+                    new_score_slider = st.slider(
+                        "👆 Glissez pour changer",
+                        min_value=0,
+                        max_value=100,
+                        value=st.session_state[f"temp_score_{selected_item['id']}"],
+                        step=5,
+                        key=f"slider_{selected_item['id']}"
+                    )
+                    
+                    # Mettre à jour session state
+                    st.session_state[f"temp_score_{selected_item['id']}"] = new_score_slider
+                    
+                    # Affichage du score sélectionné
+                    st.markdown(f"### Score sélectionné : **{new_score_slider}**")
+                    st.markdown("")
+                    
+                    # GROS BOUTON BIEN VISIBLE
+                    if st.button("💾 SAUVEGARDER CE SCORE", type="primary", use_container_width=True, key=f"save_btn_{selected_item['id']}"):
+                        result = update_item_score(selected_item["id"], new_score_slider)
                         
-                        submitted = st.form_submit_button("💾 Sauvegarder", type="primary", use_container_width=True)
-                        
-                        if submitted:
-                            result = update_item_score(selected_item["id"], new_score)
-                            
-                            if result["status"] == "success":
-                                st.success(f"✅ Score mis à jour : {new_score}/100")
-                                time.sleep(0.5)
-                                st.rerun()
-                            else:
-                                st.error(f"❌ Erreur : {result['message']}")
+                        if result["status"] == "success":
+                            st.success(f"✅ Score mis à jour : {new_score_slider}/100")
+                            # Nettoyer session state
+                            if f"temp_score_{selected_item['id']}" in st.session_state:
+                                del st.session_state[f"temp_score_{selected_item['id']}"]
+                            time.sleep(0.8)
+                            st.rerun()
+                        else:
+                            st.error(f"❌ Erreur : {result['message']}")
         else:
             st.info("Aucun item scoré trouvé avec ces filtres")
             
