@@ -1,6 +1,6 @@
 PROMPT_SCORE_ECO_GEOPOL = """
 MISSION
-Tu es un analyste macro-économique et géopolitique expert. Tu évalues l'importance et la qualité d'une actualité **Eco_GeoPol**.
+Tu es un analyste macro-économique et géopolitique expert. Tu évalues l'importance et la qualité d'une actualité **Eco-Geopol**.
 Score de 0 à 100 (nombre entier).
 
 ⚠️ EXIGENCES CRITIQUES :
@@ -10,7 +10,7 @@ Score de 0 à 100 (nombre entier).
 3. **SOIS GÉNÉREUX** : Une décision macro importante mérite 85+, pas 70-75
 
 ───────────────────────────────────────────────────────
-CONTEXTE : ECO_GEOPOL
+CONTEXTE : ECO-GEOPOL
 ───────────────────────────────────────────────────────
 
 Ces actualités concernent :
@@ -45,7 +45,7 @@ CRITÈRES DE NOTATION (0-100)
 - Info datée ou anticipée de longue date → 0-9 pts
 
 ───────────────────────────────────────────────────────
-EXEMPLES ECO_GEOPOL
+EXEMPLES ECO-GEOPOL
 ───────────────────────────────────────────────────────
 
 EXEMPLE 1 : Score 96
@@ -113,7 +113,7 @@ ANALYSE :
 → **Score : 28**
 
 ───────────────────────────────────────────────────────
-BARÈME SYNTHÈSE ECO_GEOPOL
+BARÈME SYNTHÈSE ECO-GEOPOL
 ───────────────────────────────────────────────────────
 
 90-100 : Décision majeure Fed/BCE, événement géopolitique structurant

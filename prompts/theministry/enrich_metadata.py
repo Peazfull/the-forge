@@ -15,19 +15,19 @@ CHAMP 1 : TAG (catégorie principale)
 
 Choisis EXACTEMENT 1 valeur parmi :
 
-• "ECO" → Actualités économiques générales, macro-économie, indicateurs, politiques économiques, décisions gouvernementales
-• "BOURSE" → Marchés financiers généraux, indices boursiers, performance globale des marchés
-• "ACTION" → Actualité concernant UNE entreprise en particulier (pour les investisseurs qui suivent cette action)
+• "ECO" → Actualités économiques générales, macro-économie, indicateurs, politiques économiques, décisions gouvernementales, géopolitique
+• "BOURSE" → Indices boursiers, entreprises cotées (toutes zones), matières premières (or, pétrole), marchés financiers
 • "CRYPTO" → Cryptomonnaies, blockchain, Web3, régulation crypto
 
 EXEMPLES :
 - "La Fed maintient ses taux à 5,5%" → ECO
-- "Le CAC 40 termine en hausse de 1,2%" → BOURSE
-- "Apple dépasse 3 trillions de capitalisation" → ACTION (entreprise spécifique)
-- "LVMH annonce une baisse de ses revenus" → ACTION (entreprise spécifique)
+- "Le CAC 40 termine en hausse de 1,2%" → BOURSE (indice)
+- "Apple dépasse 3 trillions de capitalisation" → BOURSE (entreprise cotée)
+- "LVMH annonce une baisse de ses revenus" → BOURSE (entreprise cotée)
+- "Le prix du pétrole bondit de 5%" → BOURSE (commodité)
 - "Bitcoin franchit les 100k$" → CRYPTO
 - "Le PIB français progresse de 0,8%" → ECO
-- "Les marchés européens en hausse" → BOURSE (marchés généraux)
+- "Trump annonce des droits de douane" → ECO (géopolitique)
 
 ───────────────────────────────────────────────────────
 CHAMP 2 : LABEL (catégorie précise)
@@ -35,56 +35,65 @@ CHAMP 2 : LABEL (catégorie précise)
 
 Choisis EXACTEMENT 1 valeur parmi :
 
-• "Eco_GeoPol" → 
+• "Eco-Geopol" → 
   - Grandes actualités économiques mondiales ou nationales
   - Politique internationale ou française impactant l'économie
-  - Déclarations de très grands patrons (PDG Fortune 500, GAFAM)
+  - Déclarations de chefs d'État, ministres, grands dirigeants (Powell, Lagarde)
   - Décisions économiques majeures (Fed, BCE, gouvernements)
   - Tensions commerciales, sanctions, accords internationaux
+  - Indicateurs macro (PIB, inflation, emploi)
   
-• "Marchés" → 
-  - Marchés financiers généraux, indices boursiers (CAC 40, S&P 500, etc.)
-  - Performance globale des marchés, tendances sectorielles
-  - Sentiments de marché, mouvements globaux
-  - ATTENTION : Si TAG "BOURSE" + valeurs EUROPÉENNES → choisir "PEA" (pas Marchés)
+• "Indices" → 
+  - Mouvements d'indices boursiers (CAC 40, S&P 500, Nasdaq, DAX, Nikkei)
+  - Performance globale des marchés
+  - Tendances sectorielles (tech, luxe, banques)
+  - Sentiments de marché
   
 • "PEA" → 
   - Actualités d'entreprises EUROPÉENNES ou FRANÇAISES cotées en bourse
   - Résultats financiers, fusions-acquisitions, stratégies d'entreprises EU/FR
-  - Exemples : LVMH, TotalEnergies, Airbus, SAP, ASML
-  - Priorisé si TAG "BOURSE" + entreprises européennes
-  
-• "Action_USA" → 
-  - Actualités d'entreprises AMÉRICAINES cotées en bourse
-  - Exemples : Apple, Microsoft, Tesla, NVIDIA, Amazon
+  - Exemples : LVMH, TotalEnergies, Airbus, SAP, ASML, Schneider, BNP Paribas
+  - **PRIORITAIRE** si entreprise européenne/française cotée
   
 • "Action" → 
-  - Actualités d'entreprises cotées HORS Europe/France/USA
-  - Exemples : entreprises chinoises, japonaises, brésiliennes, etc.
+  - Actualités d'entreprises cotées HORS Europe/France (USA, Asie, Amérique Latine, etc.)
+  - Exemples USA : Apple, Microsoft, Tesla, NVIDIA, Amazon, Meta
+  - Exemples Asie : Tencent, Alibaba, Samsung, Sony, Toyota
+  - Exemples autres : Vale, Petrobras
+  
+• "Commodités" → 
+  - Matières premières : pétrole, gaz, or, argent, cuivre, lithium
+  - Produits agricoles : blé, maïs, soja
+  - Métaux précieux et industriels
+  - Énergie : Brent, WTI
   
 • "Crypto" → 
-  - Actualités cryptomonnaies, blockchain, Web3
-  - TOUJOURS utilisé si TAG = "CRYPTO"
+  - Cryptomonnaies : Bitcoin, Ethereum, altcoins
+  - Blockchain, DeFi, NFT, Web3
+  - Régulation crypto (SEC, AMF, MiCA)
+  - **TOUJOURS** utilisé si TAG = "CRYPTO"
 
 HIÉRARCHIE DE DÉCISION :
 1. Si TAG = "CRYPTO" → LABEL = "Crypto"
-2. Si TAG = "BOURSE" + valeurs européennes → LABEL = "PEA"
-3. Si TAG = "BOURSE" + marchés généraux/indices → LABEL = "Marchés"
-4. Si déclaration politique/économique majeure → LABEL = "Eco_GeoPol"
-5. Sinon, si entreprise cotée → regarder la zone géographique
-6. Si plusieurs entreprises → choisir la plus importante
+2. Si TAG = "ECO" → LABEL = "Eco-Geopol"
+3. Si TAG = "BOURSE" + entreprise EU/FR → LABEL = "PEA"
+4. Si TAG = "BOURSE" + entreprise hors EU/FR → LABEL = "Action"
+5. Si TAG = "BOURSE" + indice boursier → LABEL = "Indices"
+6. Si TAG = "BOURSE" + matière première → LABEL = "Commodités"
 
 EXEMPLES :
-- "Trump menace l'Europe de droits de douane" → Eco_GeoPol
-- "Christine Lagarde évoque un effet inflationniste" → Eco_GeoPol
-- "Le CAC 40 termine en hausse de 1,5%" → Marchés
-- "Les indices européens progressent" → Marchés
-- "LVMH enregistre une baisse de son chiffre d'affaires" → PEA
-- "Apple lance un nouveau produit" → Action_USA
-- "Tencent investit dans l'IA" → Action
-- "Bitcoin franchit les 100k$" → Crypto
-- "Ethereum prépare sa mise à jour" → Crypto
-- "La Fed baisse ses taux, les marchés s'envolent" → Eco_GeoPol (décision majeure)
+- "La Fed baisse ses taux de 50 points" → TAG: ECO, LABEL: Eco-Geopol
+- "Trump menace l'Europe de droits de douane" → TAG: ECO, LABEL: Eco-Geopol
+- "Le CAC 40 termine en hausse de 1,5%" → TAG: BOURSE, LABEL: Indices
+- "Les marchés européens progressent" → TAG: BOURSE, LABEL: Indices
+- "LVMH annonce une baisse de ses revenus" → TAG: BOURSE, LABEL: PEA
+- "Airbus signe un contrat majeur" → TAG: BOURSE, LABEL: PEA
+- "Apple lance un nouveau iPhone" → TAG: BOURSE, LABEL: Action
+- "Tesla augmente ses prix" → TAG: BOURSE, LABEL: Action
+- "Tencent investit dans l'IA" → TAG: BOURSE, LABEL: Action
+- "Le prix du pétrole bondit de 5%" → TAG: BOURSE, LABEL: Commodités
+- "L'or atteint un record à 2.500$" → TAG: BOURSE, LABEL: Commodités
+- "Bitcoin franchit les 100k$" → TAG: CRYPTO, LABEL: Crypto
 
 ───────────────────────────────────────────────────────
 CHAMP 3 : ENTITIES (entités nommées)
@@ -167,8 +176,8 @@ FORMAT DE SORTIE JSON
 ───────────────────────────────────────────────────────
 
 {
-  "tags": "ECO" | "BOURSE" | "ACTION" | "CRYPTO",
-  "labels": "Eco_GeoPol" | "Marchés" | "PEA" | "Action_USA" | "Action" | "Crypto",
+  "tags": "ECO" | "BOURSE" | "CRYPTO",
+  "labels": "Eco-Geopol" | "Indices" | "PEA" | "Action" | "Commodités" | "Crypto",
   "entities": "Entité1, Entité2" ou "Entité1" (JAMAIS vide),
   "zone": "Europe" | "USA" | "ASIA" | "OCEANIA",
   "country": "Nom du pays" ou "Zone"
@@ -179,60 +188,112 @@ EXEMPLES COMPLETS
 ───────────────────────────────────────────────────────
 
 EXEMPLE 1 :
-Titre : "Trump menace l'Europe de droits de douane sur le Groenland"
-Content : "Les inquiétudes concernant les menaces de droits de douane de la Maison Blanche..."
+Titre : "La Fed baisse ses taux de 50 points de base"
+Content : "La Réserve fédérale américaine a abaissé ses taux directeurs de 50 points de base..."
 
 OUTPUT :
 {
   "tags": "ECO",
-  "labels": "Eco_GeoPol",
-  "entities": "Donald Trump",
+  "labels": "Eco-Geopol",
+  "entities": "Fed",
   "zone": "USA",
   "country": "USA"
 }
 
 EXEMPLE 2 :
-Titre : "LVMH enregistre une baisse de son chiffre d'affaires"
-Content : "Le géant français du luxe LVMH a annoncé une baisse de 3% de ses revenus..."
+Titre : "Trump menace l'Europe de droits de douane"
+Content : "Le président américain a déclaré vouloir imposer des droits de douane..."
 
 OUTPUT :
 {
-  "tags": "ACTION",
+  "tags": "ECO",
+  "labels": "Eco-Geopol",
+  "entities": "Donald Trump",
+  "zone": "USA",
+  "country": "USA"
+}
+
+EXEMPLE 3 :
+Titre : "Le CAC 40 termine en hausse de 1,5%"
+Content : "L'indice parisien a clôturé à 7.450 points en hausse de 1,5%..."
+
+OUTPUT :
+{
+  "tags": "BOURSE",
+  "labels": "Indices",
+  "entities": "CAC 40",
+  "zone": "Europe",
+  "country": "France"
+}
+
+EXEMPLE 4 :
+Titre : "LVMH annonce une baisse de ses revenus"
+Content : "Le géant français du luxe a publié un chiffre d'affaires en recul de 3%..."
+
+OUTPUT :
+{
+  "tags": "BOURSE",
   "labels": "PEA",
   "entities": "LVMH",
   "zone": "Europe",
   "country": "France"
 }
 
-EXEMPLE 3 :
-Titre : "Apple dépasse les 3 trillions de capitalisation boursière"
-Content : "Apple a franchi un cap historique en dépassant les 3 trillions de dollars..."
+EXEMPLE 5 :
+Titre : "Apple dépasse 3 trillions de capitalisation"
+Content : "Apple a franchi un cap historique en dépassant 3 trillions de dollars..."
 
 OUTPUT :
 {
-  "tags": "ACTION",
-  "labels": "Action_USA",
+  "tags": "BOURSE",
+  "labels": "Action",
   "entities": "Apple",
   "zone": "USA",
   "country": "USA"
 }
 
-EXEMPLE 4 :
-Titre : "La Fed maintient ses taux à 5,5%"
-Content : "La Réserve fédérale américaine a maintenu ses taux directeurs à 5,5%..."
+EXEMPLE 6 :
+Titre : "Tesla augmente ses prix de 2%"
+Content : "Le constructeur automobile a relevé les prix de ses modèles..."
 
 OUTPUT :
 {
-  "tags": "ECO",
-  "labels": "Eco_GeoPol",
-  "entities": "Fed",
+  "tags": "BOURSE",
+  "labels": "Action",
+  "entities": "Tesla",
   "zone": "USA",
   "country": "USA"
 }
 
-EXEMPLE 5 :
-Titre : "Bitcoin franchit les 100 000 dollars"
-Content : "Le Bitcoin a atteint un nouveau record historique en franchissant..."
+EXEMPLE 7 :
+Titre : "Le prix du pétrole bondit de 5% après des tensions au Moyen-Orient"
+Content : "Le Brent a atteint 85$ le baril en raison de tensions géopolitiques..."
+
+OUTPUT :
+{
+  "tags": "BOURSE",
+  "labels": "Commodités",
+  "entities": "Pétrole, Brent",
+  "zone": "ASIA",
+  "country": "Moyen-Orient"
+}
+
+EXEMPLE 8 :
+Titre : "L'or atteint un record à 2.500$ l'once"
+Content : "Le métal précieux a franchi un nouveau record historique..."
+
+OUTPUT :
+{
+  "tags": "BOURSE",
+  "labels": "Commodités",
+  "entities": "Or",
+  "zone": "USA",
+  "country": "USA"
+}
+
+EXEMPLE 9 :
+Titre : "Bitcoin franchit les 100.000 dollars"
+Content : "Le Bitcoin a atteint un nouveau record historique..."
 
 OUTPUT :
 {
@@ -241,32 +302,6 @@ OUTPUT :
   "entities": "Bitcoin",
   "zone": "USA",
   "country": "USA"
-}
-
-EXEMPLE 6 :
-Titre : "Les marchés européens terminent en hausse"
-Content : "Les indices boursiers européens ont clôturé en hausse de 1,5% grâce..."
-
-OUTPUT :
-{
-  "tags": "BOURSE",
-  "labels": "Marchés",
-  "entities": "Marchés européens",
-  "zone": "Europe",
-  "country": "Europe"
-}
-
-EXEMPLE 7 :
-Titre : "Airbus annonce des commandes records"
-Content : "Le constructeur aéronautique européen Airbus a annoncé un carnet de commandes..."
-
-OUTPUT :
-{
-  "tags": "ACTION",
-  "labels": "PEA",
-  "entities": "Airbus",
-  "zone": "Europe",
-  "country": "France"
 }
 
 ───────────────────────────────────────────────────────

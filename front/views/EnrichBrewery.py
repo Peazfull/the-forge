@@ -221,7 +221,7 @@ with st.container():
         by_tags = stats.get("by_tags", {})
         
         # Design minimaliste en une seule ligne avec colonnes
-        cols = st.columns(6)
+        cols = st.columns(5)
         
         with cols[0]:
             st.markdown("""
@@ -255,13 +255,6 @@ with st.container():
                 </div>
             """.format(by_tags.get("BOURSE", 0)), unsafe_allow_html=True)
         
-        with cols[4]:
-            st.markdown("""
-                <div style='text-align: center; padding: 8px; background: #f9fafb; border-radius: 6px;'>
-                    <div style='font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;'>Action</div>
-                    <div style='font-size: 20px; font-weight: 600; color: #10b981; margin-top: 2px;'>{}</div>
-                </div>
-            """.format(by_tags.get("ACTION", 0)), unsafe_allow_html=True)
         
         with cols[5]:
             st.markdown("""
@@ -291,7 +284,7 @@ with st.container():
     with col_tag:
         filter_tag = st.selectbox(
             "Tag",
-            options=["Tous", "ECO", "BOURSE", "ACTION", "CRYPTO"],
+            options=["Tous", "ECO", "BOURSE", "CRYPTO"],
             index=0,
             label_visibility="collapsed",
             placeholder="Tag"
@@ -300,7 +293,7 @@ with st.container():
     with col_label:
         filter_label = st.selectbox(
             "Label",
-            options=["Tous", "Eco_GeoPol", "Marchés", "PEA", "Action_USA", "Action", "Crypto"],
+            options=["Tous", "Eco-Geopol", "Indices", "PEA", "Action", "Commodités", "Crypto"],
             index=0,
             label_visibility="collapsed",
             placeholder="Label"
@@ -361,8 +354,6 @@ with st.container():
                     return "background: linear-gradient(135deg, rgba(74, 144, 226, 0.15) 0%, rgba(74, 144, 226, 0.25) 100%); color: #2c5aa0; font-weight: 600; border-radius: 6px; padding: 4px 12px;"
                 elif val == "BOURSE":
                     return "background: linear-gradient(135deg, rgba(155, 89, 182, 0.15) 0%, rgba(155, 89, 182, 0.25) 100%); color: #6c3483; font-weight: 600; border-radius: 6px; padding: 4px 12px;"
-                elif val == "ACTION":
-                    return "background: linear-gradient(135deg, rgba(39, 174, 96, 0.15) 0%, rgba(39, 174, 96, 0.25) 100%); color: #1e7e34; font-weight: 600; border-radius: 6px; padding: 4px 12px;"
                 elif val == "CRYPTO":
                     return "background: linear-gradient(135deg, rgba(243, 156, 18, 0.15) 0%, rgba(243, 156, 18, 0.25) 100%); color: #c87f0a; font-weight: 600; border-radius: 6px; padding: 4px 12px;"
                 return ""

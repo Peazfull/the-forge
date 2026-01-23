@@ -3,10 +3,10 @@ import streamlit as st
 from openai import OpenAI
 from typing import Dict
 from prompts.theministry.score.score_eco_geopol import PROMPT_SCORE_ECO_GEOPOL
-from prompts.theministry.score.score_marches import PROMPT_SCORE_MARCHES
+from prompts.theministry.score.score_indices import PROMPT_SCORE_INDICES
 from prompts.theministry.score.score_pea import PROMPT_SCORE_PEA
-from prompts.theministry.score.score_action_usa import PROMPT_SCORE_ACTION_USA
 from prompts.theministry.score.score_action import PROMPT_SCORE_ACTION
+from prompts.theministry.score.score_commodites import PROMPT_SCORE_COMMODITES
 from prompts.theministry.score.score_crypto import PROMPT_SCORE_CRYPTO
 
 
@@ -20,18 +20,18 @@ def get_prompt_by_label(labels: str) -> str:
     Retourne le prompt de scoring adapté selon le label.
     
     Args:
-        labels: Le label de l'item (Eco_GeoPol, Marchés, PEA, Action_USA, Action, Crypto)
+        labels: Le label de l'item (Eco-Geopol, Indices, PEA, Action, Commodités, Crypto)
     
     Returns:
         Le prompt approprié
     """
     
     prompts_map = {
-        "Eco_GeoPol": PROMPT_SCORE_ECO_GEOPOL,
-        "Marchés": PROMPT_SCORE_MARCHES,
+        "Eco-Geopol": PROMPT_SCORE_ECO_GEOPOL,
+        "Indices": PROMPT_SCORE_INDICES,
         "PEA": PROMPT_SCORE_PEA,
-        "Action_USA": PROMPT_SCORE_ACTION_USA,
         "Action": PROMPT_SCORE_ACTION,
+        "Commodités": PROMPT_SCORE_COMMODITES,
         "Crypto": PROMPT_SCORE_CRYPTO
     }
     
@@ -53,8 +53,8 @@ def analyze_score(
     Args:
         title: Titre de l'actualité
         content: Contenu de l'actualité
-        tags: Tag (ECO, BOURSE, ACTION, CRYPTO)
-        labels: Label (Eco_GeoPol, Marchés, PEA, etc.)
+        tags: Tag (ECO, BOURSE, CRYPTO)
+        labels: Label (Eco-Geopol, Indices, PEA, Action, Commodités, Crypto)
         entities: Entités nommées
         source_type: Type de source (newsletter, manual, rss, etc.)
     

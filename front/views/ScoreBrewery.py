@@ -316,7 +316,7 @@ with st.container():
     with col_tag:
         filter_tag = st.selectbox(
             "Tag",
-            options=["Tous", "ECO", "BOURSE", "ACTION", "CRYPTO"],
+            options=["Tous", "ECO", "BOURSE", "CRYPTO"],
             index=0,
             label_visibility="collapsed",
             placeholder="Tag"
@@ -325,7 +325,7 @@ with st.container():
     with col_label:
         filter_label = st.selectbox(
             "Label",
-            options=["Tous", "Eco_GeoPol", "Marchés", "PEA", "Action_USA", "Action", "Crypto"],
+            options=["Tous", "Eco-Geopol", "Indices", "PEA", "Action", "Commodités", "Crypto"],
             index=0,
             label_visibility="collapsed",
             placeholder="Label"

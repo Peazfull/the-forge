@@ -1,6 +1,6 @@
-PROMPT_SCORE_MARCHES = """
+PROMPT_SCORE_INDICES = """
 MISSION
-Tu es un analyste marchés financiers expert. Tu évalues l'importance et la qualité d'une actualité **Marchés**.
+Tu es un analyste indices boursiers expert. Tu évalues l'importance et la qualité d'une actualité **Indices**.
 Score de 0 à 100 (nombre entier).
 
 ⚠️ EXIGENCES CRITIQUES :
@@ -10,11 +10,11 @@ Score de 0 à 100 (nombre entier).
 3. **SOIS GÉNÉREUX** : Mouvements sur indices majeurs avec contexte clair méritent 80-95
 
 ───────────────────────────────────────────────────────
-CONTEXTE : MARCHÉS
+CONTEXTE : INDICES
 ───────────────────────────────────────────────────────
 
 Ces actualités concernent :
-- Mouvements d'indices boursiers (CAC 40, S&P 500, Nasdaq, DAX)
+- Mouvements d'indices boursiers (CAC 40, S&P 500, Nasdaq, DAX, Nikkei)
 - Performance globale des marchés
 - Sentiments de marché (risk-on, risk-off)
 - Tendances sectorielles (tech, luxe, énergie)
@@ -44,7 +44,7 @@ CRITÈRES DE NOTATION (0-100)
 - Info anecdotique sans tendance → 0-11 pts
 
 ───────────────────────────────────────────────────────
-EXEMPLES MARCHÉS
+EXEMPLES INDICES
 ───────────────────────────────────────────────────────
 
 EXEMPLE 1 : Score 94
@@ -112,7 +112,7 @@ ANALYSE :
 → **Score : 22**
 
 ───────────────────────────────────────────────────────
-BARÈME SYNTHÈSE MARCHÉS
+BARÈME SYNTHÈSE INDICES
 ───────────────────────────────────────────────────────
 
 85-100 : Mouvement > 3%, record, ou krach
