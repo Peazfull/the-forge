@@ -233,8 +233,12 @@ def _get_state(key: str, default):
     return st.session_state.get(key, default)
 
 
-def _collect_mega_urls(source_keys: list[str] | None = None) -> tuple[list[dict], list[dict]]:
-    """Collecte les URLs de toutes les sources sélectionnées"""
+def _collect_mega_urls(
+    source_keys: list[str] | None = None,
+    mega_mode: str = "Dernières X heures",
+    mega_hours: int = 24
+) -> tuple[list[dict], list[dict]]:
+    """Collecte les URLs de toutes les sources sélectionnées avec fenêtre temporelle du Mega Job"""
     results: list[dict] = []
     seen = set()
     source_keys = source_keys or []
@@ -268,6 +272,10 @@ def _collect_mega_urls(source_keys: list[str] | None = None) -> tuple[list[dict]
                 "label_dt": item.get("label_dt", ""),
             })
 
+    # Convertir le mode du Mega Job
+    mode = _mode_from_label(mega_mode)
+    hours = mega_hours
+
     # Collecter pour chaque source
     for source in SOURCES:
         if not _should_run(source.key):
@@ -279,8 +287,6 @@ def _collect_mega_urls(source_keys: list[str] | None = None) -> tuple[list[dict]
             continue
         
         try:
-            mode = _mode_from_label(_get_state(f"{source.key}_mode", "Dernières X heures"))
-            hours = int(_get_state(f"{source.key}_hours_window", 24))
             max_items = int(_get_state(f"{source.key}_max_total", 400))
             rss_feed = _get_state(f"{source.key}_rss_feed", source.rss_feed_url)
             rss_ignore = bool(_get_state(f"{source.key}_rss_ignore_time", False))
@@ -362,7 +368,7 @@ with st.expander("▸ Mega Job — Run all", expanded=False):
 
     # Fenêtre temporelle Mega Job
     st.divider()
-    st.markdown("**⏱️ Fenêtre temporelle (Mega Job)**")
+    st.markdown("**⏱️ Fenêtre temporelle**")
     
     col_mode, col_hours = st.columns([2, 1])
     with col_mode:
@@ -383,15 +389,6 @@ with st.expander("▸ Mega Job — Run all", expanded=False):
             key="mega_time_hours"
         )
     
-    # Bouton de synchronisation
-    if st.button("🔄 Synchroniser avec tous les jobs", use_container_width=True, key="mega_sync_time"):
-        for src in SOURCES:
-            st.session_state[f"{src.key}_mode"] = mega_mode
-            st.session_state[f"{src.key}_hours_window"] = mega_hours
-        hours_text = f" ({mega_hours}h)" if mega_mode == "Dernières X heures" else ""
-        st.success(f"✅ Tous les jobs synchronisés : {mega_mode}{hours_text}")
-        st.rerun()
-    
     st.divider()
 
     # Boutons
@@ -399,7 +396,11 @@ with st.expander("▸ Mega Job — Run all", expanded=False):
     with col_load:
         if st.button("🔎 Charger toutes les URLs", use_container_width=True, key="mega_run_load"):
             _clear_mega_state()
-            results, statuses = _collect_mega_urls(source_keys=selected_source_keys)
+            results, statuses = _collect_mega_urls(
+                source_keys=selected_source_keys,
+                mega_mode=mega_mode,
+                mega_hours=mega_hours
+            )
             st.session_state.mega_run_candidates = results
             st.session_state.mega_run_status = statuses
             st.rerun()
