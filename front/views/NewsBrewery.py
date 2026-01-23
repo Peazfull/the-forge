@@ -459,12 +459,78 @@ with st.expander("▸ Mega Job — Run all", expanded=False):
                 mega_selected_urls.append(item)
         
         st.caption(f"{len(mega_selected_urls)} article(s) sélectionné(s)")
+        
+        # Bouton de lancement Mega Job
+        if len(mega_selected_urls) > 0:
+            st.divider()
+            col_launch, col_stop = st.columns([3, 1])
+            
+            mega_job = get_mega_job()
+            status = mega_job.get_status()
+            
+            with col_launch:
+                if status["state"] != "running":
+                    if st.button("🚀 Lancer Mega Job (Pipeline complet automatique)", use_container_width=True, key="mega_launch"):
+                        # Configuration
+                        config = MegaJobConfig(
+                            source_name="Mega Job Multi-Sources",
+                            source_link="",
+                            remove_buffer_after_success=False,
+                            dry_run=False
+                        )
+                        mega_job.set_config(config)
+                        mega_job.start_auto_scraping(mega_selected_urls)
+                        st.rerun()
+            
+            with col_stop:
+                if status["state"] == "running":
+                    if st.button("⏹️ Stop", use_container_width=True, key="mega_stop"):
+                        mega_job.stop()
+                        st.rerun()
+            
+            # Progress bar et statut
+            if status["state"] == "running":
+                st.divider()
+                progress = status["current_index"] / max(status["total"], 1)
+                st.progress(progress)
+                st.caption(f"📊 Progression : {status['current_index']}/{status['total']} URLs")
+                st.caption(f"✅ Traités : {status['processed']} · ⏭️ Ignorés : {status['skipped']}")
+                
+                # Dernier log
+                if status["last_log"]:
+                    st.info(status["last_log"])
+                
+                # Erreurs
+                if status["errors"]:
+                    with st.expander(f"⚠️ Erreurs ({len(status['errors'])})", expanded=False):
+                        for err in status["errors"][-10:]:  # Dernières 10 erreurs
+                            st.warning(err)
+                
+                # Auto-refresh
+                time.sleep(1)
+                st.rerun()
+            
+            # État final
+            elif status["state"] == "completed":
+                st.success(f"✅ Mega Job terminé ! {status['processed']} articles traités")
+                if status["errors"]:
+                    st.warning(f"⚠️ {len(status['errors'])} erreurs rencontrées")
+                    with st.expander("Voir les erreurs", expanded=False):
+                        for err in status["errors"]:
+                            st.caption(err)
+            
+            elif status["state"] == "failed":
+                st.error("❌ Mega Job échoué")
+                if status["errors"]:
+                    with st.expander("Voir les erreurs", expanded=True):
+                        for err in status["errors"]:
+                            st.caption(err)
+            
+            elif status["state"] == "stopped":
+                st.warning("⏹️ Mega Job arrêté")
+        
     else:
         st.caption("Clique sur \"Charger toutes les URLs\" pour générer la liste.")
-
-    # Note : Le reste du mega job (lancement, monitoring) est conservé tel quel
-    # pour ne pas casser la fonctionnalité existante
-    st.info("ℹ️ Fonctionnalité de lancement mega job conservée (non affichée ici pour simplicité)")
 
 
 # ============================================================================

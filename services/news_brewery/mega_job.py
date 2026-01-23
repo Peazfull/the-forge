@@ -1,14 +1,22 @@
 import json
+import time
+import threading
 from dataclasses import dataclass
 from typing import Dict, List, Optional
+from datetime import datetime
 
 import streamlit as st
 from openai import OpenAI
 
 from services.raw_storage.raw_news_service import enrich_raw_items, insert_raw_news
+from services.news_brewery.utils import fetch_url_text
 from prompts.news_brewery.deduplicate import PROMPT_DEDUPLICATE
 from prompts.news_brewery.jsonfy import PROMPT_JSONFY
 from prompts.news_brewery.json_secure import PROMPT_JSON_SECURE
+from prompts.news_brewery.clean_dom_v1 import PROMPT_CLEAN_DOM_V1
+from prompts.news_brewery.clean_dom_v2 import PROMPT_CLEAN_DOM_V2
+from prompts.news_brewery.rewrite import PROMPT_REWRITE
+from prompts.news_brewery.structure import PROMPT_STRUCTURE
 
 
 REQUEST_TIMEOUT = 60
@@ -25,17 +33,81 @@ class MegaJobConfig:
 
 class MegaJob:
     def __init__(self) -> None:
+        self.state = "idle"  # idle, running, completed, failed
         self.buffer_text: str = ""
         self.json_preview_text: str = ""
         self.json_items: List[Dict[str, object]] = []
         self._config: Optional[MegaJobConfig] = None
+        
+        # Progress tracking
+        self.total = 0
+        self.current_index = 0
+        self.processed = 0
+        self.skipped = 0
+        self.errors: List[str] = []
+        self.status_log: List[str] = []
+        self.last_log: str = ""
+        self.started_at: Optional[float] = None
+        
+        # Threading
+        self._stop_event = threading.Event()
+        self._thread: Optional[threading.Thread] = None
+        self._urls_to_scrape: List[Dict[str, str]] = []
 
     def set_config(self, config: MegaJobConfig) -> None:
         self._config = config
 
     def set_buffer_text(self, text: str) -> None:
         self.buffer_text = text or ""
+    
+    def start_auto_scraping(self, urls: List[Dict[str, str]]) -> None:
+        """Lance le scraping automatisé de toutes les URLs avec pipeline complet"""
+        if self.state == "running":
+            return
+        
+        self._urls_to_scrape = urls
+        self.total = len(urls)
+        self.current_index = 0
+        self.processed = 0
+        self.skipped = 0
+        self.errors = []
+        self.status_log = []
+        self.last_log = ""
+        self.buffer_text = ""
+        self.json_items = []
+        self.json_preview_text = ""
+        self.state = "running"
+        self.started_at = time.time()
+        self._stop_event.clear()
+        
+        self._thread = threading.Thread(target=self._run_auto_scraping, daemon=True)
+        self._thread.start()
+    
+    def stop(self) -> None:
+        self._stop_event.set()
+        if self.state == "running":
+            self.state = "stopped"
+            self._log("⏹️ Job stoppé")
+    
+    def get_status(self) -> Dict[str, object]:
+        return {
+            "state": self.state,
+            "total": self.total,
+            "current_index": self.current_index,
+            "processed": self.processed,
+            "skipped": self.skipped,
+            "errors": self.errors,
+            "status_log": self.status_log,
+            "last_log": self.last_log,
+            "buffer_text": self.buffer_text,
+            "json_preview_text": self.json_preview_text,
+            "json_items": self.json_items,
+        }
 
+    def _log(self, message: str) -> None:
+        self.last_log = message
+        self.status_log.append(message)
+    
     def _run_text_prompt(self, prompt: str, content: str, temperature: float = 0.2) -> str:
         response = client.chat.completions.create(
             model="gpt-4o-mini",
@@ -47,6 +119,96 @@ class MegaJob:
             timeout=REQUEST_TIMEOUT,
         )
         return response.choices[0].message.content or ""
+    
+    def _run_auto_scraping(self) -> None:
+        """Boucle principale de scraping automatisé"""
+        self._log(f"🚀 Démarrage Mega Job - {self.total} URLs à traiter")
+        
+        for idx, url_item in enumerate(self._urls_to_scrape, start=1):
+            if self._stop_event.is_set():
+                break
+            
+            self.current_index = idx
+            url = url_item.get("url", "")
+            source_label = url_item.get("source_label", "Unknown")
+            
+            self._log(f"📄 [{idx}/{self.total}] {source_label}: {url[:60]}...")
+            
+            try:
+                # Étape 1: Firecrawl
+                self._log(f"  🔥 [{idx}/{self.total}] Firecrawl...")
+                raw_text = fetch_url_text(url)
+                
+                # Étape 2: Clean DOM
+                self._log(f"  🧹 [{idx}/{self.total}] Clean DOM...")
+                cleaned = self._run_text_prompt(PROMPT_CLEAN_DOM_V1, raw_text, temperature=0)
+                if not cleaned.strip():
+                    cleaned = self._run_text_prompt(PROMPT_CLEAN_DOM_V2, raw_text, temperature=0)
+                
+                if not cleaned.strip():
+                    self.errors.append(f"[{idx}] Clean DOM vide: {url[:60]}")
+                    self.skipped += 1
+                    continue
+                
+                # Étape 3: Rewrite
+                self._log(f"  ✍️ [{idx}/{self.total}] Rewrite...")
+                rewritten = self._run_text_prompt(PROMPT_REWRITE, cleaned, temperature=0.2)
+                if not rewritten.strip():
+                    self.errors.append(f"[{idx}] Rewrite vide: {url[:60]}")
+                    self.skipped += 1
+                    continue
+                
+                # Étape 4: Structure
+                self._log(f"  📋 [{idx}/{self.total}] Structure...")
+                structured = self._run_text_prompt(PROMPT_STRUCTURE, rewritten, temperature=0.2)
+                if not structured.strip():
+                    self.errors.append(f"[{idx}] Structure vide: {url[:60]}")
+                    self.skipped += 1
+                    continue
+                
+                # Étape 5: Ajout au buffer
+                self.buffer_text += structured + "\n\n"
+                self.processed += 1
+                self._log(f"  ✅ [{idx}/{self.total}] OK - Ajouté au buffer")
+                
+            except Exception as exc:
+                self.errors.append(f"[{idx}] Erreur: {str(exc)[:100]}")
+                self.skipped += 1
+                self._log(f"  ❌ [{idx}/{self.total}] Erreur: {str(exc)[:60]}")
+        
+        # Finalisation automatique
+        if self._stop_event.is_set():
+            self.state = "stopped"
+            self._log("⏹️ Arrêté par l'utilisateur")
+            return
+        
+        if self.processed == 0:
+            self.state = "failed"
+            self._log("❌ Aucun article traité avec succès")
+            return
+        
+        # JSON automatique
+        self._log(f"🔄 Génération JSON de {self.processed} articles...")
+        json_result = self.finalize_buffer()
+        if json_result.get("status") != "success":
+            self.state = "failed"
+            self._log(f"❌ Erreur JSON: {json_result.get('message')}")
+            return
+        
+        # DB automatique
+        if not self._config or not self._config.dry_run:
+            self._log("💾 Envoi en DB...")
+            db_result = self.send_to_db()
+            if db_result.get("status") == "success":
+                inserted = db_result.get("inserted", 0)
+                self.state = "completed"
+                self._log(f"✅ Mega Job terminé ! {inserted} items insérés en DB")
+            else:
+                self.state = "failed"
+                self._log(f"❌ Erreur DB: {db_result.get('message')}")
+        else:
+            self.state = "completed"
+            self._log("✅ Mega Job terminé (DRY RUN)")
 
     def _deduplicate_blocks(self, text: str) -> str:
         if not text.strip():
