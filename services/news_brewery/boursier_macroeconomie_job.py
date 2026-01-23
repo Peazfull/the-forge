@@ -143,9 +143,8 @@ class BoursierMacroeconomieJob:
         if not self.buffer_text.strip():
             return {"status": "error", "message": "Buffer vide"}
         structured_text = self._extract_structured_text(self.buffer_text)
-        deduped = self._deduplicate_blocks(structured_text)
-        deduped = self._limit_blocks(deduped, self._config.max_articles_per_bulletin if self._config else 0)
-        json_result = self._jsonfy(deduped)
+        limited_text = self._limit_blocks(structured_text, self._config.max_articles_per_bulletin if self._config else 0)
+        json_result = self._jsonfy(limited_text)
         if json_result.get("status") != "success":
             return {"status": "error", "message": json_result.get("message", "Erreur JSON")}
         self.json_items = json_result.get("items", [])

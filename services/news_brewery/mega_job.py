@@ -87,8 +87,7 @@ class MegaJob:
     def finalize_buffer(self) -> Dict[str, object]:
         if not self.buffer_text.strip():
             return {"status": "error", "message": "Buffer vide"}
-        deduped = self._deduplicate_blocks(self.buffer_text)
-        json_result = self._jsonfy(deduped)
+        json_result = self._jsonfy(self.buffer_text)
         if json_result.get("status") != "success":
             return {"status": "error", "message": json_result.get("message", "Erreur JSON")}
         self.json_items = json_result.get("items", [])

@@ -567,7 +567,7 @@ class NewsSourceRenderer:
             
             col1, col2 = st.columns(2)
             with col1:
-                if st.button("✅ Dédoublonner + JSON", use_container_width=True,
+                if st.button("✅ Générer JSON", use_container_width=True,
                            key=f"{self.config.key}_finalize"):
                     self.job.set_buffer_text(edited_buffer)
                     result = self.job.finalize_buffer()
