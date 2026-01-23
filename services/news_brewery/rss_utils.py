@@ -760,20 +760,29 @@ def fetch_binance_dom_items(
     use_firecrawl_fallback: bool = False,
 ) -> List[Dict[str, str]]:
     # Scrape Binance news page (https://www.binance.com/fr/square/news/all).
-    try:
-        req = Request(page_url, headers={"User-Agent": "Mozilla/5.0"})
-        with urlopen(req, timeout=15) as response:
-            html_bytes = response.read()
-            encoding = response.headers.get_content_charset("utf-8")
-            html_text = html_bytes.decode(encoding, errors="replace")
-    except Exception:
-        if use_firecrawl_fallback and fetch_url_html:
-            try:
-                html_text = fetch_url_html(page_url)
-            except Exception:
-                return []
-        else:
-            return []
+    # Binance a des protections anti-bot, on utilise Firecrawl en priorité.
+    html_text = ""
+    
+    # Essayer Firecrawl en PREMIER (Binance bloque les requêtes classiques)
+    if use_firecrawl_fallback and fetch_url_html:
+        try:
+            html_text = fetch_url_html(page_url)
+        except Exception:
+            pass
+    
+    # Fallback sur requête classique si Firecrawl a échoué ou n'est pas activé
+    if not html_text:
+        try:
+            req = Request(page_url, headers={"User-Agent": "Mozilla/5.0"})
+            with urlopen(req, timeout=10) as response:
+                html_bytes = response.read()
+                encoding = response.headers.get_content_charset("utf-8")
+                html_text = html_bytes.decode(encoding, errors="replace")
+        except Exception:
+            return []  # Échec complet
+
+    if not html_text:
+        return []
 
     items: List[Dict[str, str]] = []
     seen = set()
