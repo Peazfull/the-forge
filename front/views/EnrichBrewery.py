@@ -256,7 +256,7 @@ with st.container():
             """.format(by_tags.get("BOURSE", 0)), unsafe_allow_html=True)
         
         
-        with cols[5]:
+        with cols[4]:
             st.markdown("""
                 <div style='text-align: center; padding: 8px; background: #f9fafb; border-radius: 6px;'>
                     <div style='font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;'>Crypto</div>
