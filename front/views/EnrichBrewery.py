@@ -14,37 +14,76 @@ import time
 
 st.markdown("""
 <style>
-    /* Cards modernes */
-    .card {
-        background: white;
-        border-radius: 12px;
-        padding: 24px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-        margin-bottom: 16px;
+    /* Variables */
+    :root {
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-600: #4b5563;
+        --gray-900: #111827;
     }
     
-    /* Stats cards */
-    .stat-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 12px;
-        padding: 20px;
-        color: white;
-        text-align: center;
+    /* Réduire l'espace en haut */
+    .block-container {
+        padding-top: 2rem !important;
     }
     
-    /* Header épuré */
-    h1 {
+    /* Header principal */
+    .page-header {
+        background: transparent;
+        color: var(--gray-900);
+        padding: 24px 0;
+        margin-bottom: 24px;
+        border-bottom: 2px solid var(--gray-200);
+    }
+    
+    .page-header h1 {
+        margin: 0 !important;
+        font-size: 28px !important;
+        font-weight: 700 !important;
+    }
+    
+    .page-header p {
+        margin: 4px 0 0 0 !important;
+        color: var(--gray-600);
+        font-size: 14px !important;
+    }
+    
+    /* Section headers */
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px 0 12px 0;
+        border-bottom: 1px solid var(--gray-200);
+        margin: 24px 0 16px 0;
+    }
+    
+    .section-header h2 {
+        margin: 0 !important;
+        font-size: 18px !important;
         font-weight: 600 !important;
-        font-size: 2rem !important;
-        margin-bottom: 8px !important;
+        color: var(--gray-900);
     }
     
-    /* Suppression dividers par défaut */
-    hr {
-        margin: 2rem 0 !important;
-        border: none !important;
-        height: 1px !important;
-        background: linear-gradient(90deg, transparent, #e0e0e0, transparent) !important;
+    .section-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--gray-900);
+        margin: 0 0 8px 0;
+    }
+    
+    /* Boutons */
+    .stButton button {
+        border-radius: 8px !important;
+        font-weight: 500 !important;
+        font-size: 14px !important;
+        transition: all 0.2s ease !important;
+    }
+    
+    .stButton button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -54,18 +93,25 @@ st.markdown("""
 # HEADER
 # ======================================================
 
-st.markdown("# 🏛️ Enrich")
-st.markdown("Enrichissement automatique des métadonnées")
-st.markdown("")
+st.markdown("""
+<div class="page-header">
+    <h1>🏛️ Enrich</h1>
+    <p>Enrichissement automatique des métadonnées · AI-Powered</p>
+</div>
+""", unsafe_allow_html=True)
 
 
 # ======================================================
 # SECTION 1 : LANCER L'ENRICHISSEMENT
 # ======================================================
 
+st.markdown("""
+<div class="section-header">
+    <h2>⚡ Enrichissement</h2>
+</div>
+""", unsafe_allow_html=True)
+
 with st.container():
-    st.markdown("### ⚡ Enrichissement")
-    
     col_button, col_limit = st.columns([3, 1])
     
     with col_limit:
@@ -89,7 +135,7 @@ with st.container():
             st.info("📭 Aucun item dans la base de données")
     
         if items_count > 0:
-            if st.button("🚀 Lancer l'enrichissement", type="primary", use_container_width=True):
+            if st.button("🚀 Lancer l'enrichissement", use_container_width=True, type="primary"):
                 
                 # Progress bar container
                 progress_container = st.container()
@@ -159,10 +205,13 @@ st.markdown("")
 # SECTION 2 : STATISTIQUES
 # ======================================================
 
+st.markdown("""
+<div class="section-header">
+    <h2>📊 Statistiques</h2>
+</div>
+""", unsafe_allow_html=True)
+
 with st.container():
-    st.markdown("### 📊 Statistiques")
-    st.markdown("")
-    
     stats = get_enrichment_stats()
     
     if stats.get("status") == "error":
@@ -175,49 +224,49 @@ with st.container():
         
         with cols[0]:
             st.markdown("""
-                <div style='text-align: center; padding: 12px; background: #f9fafb; border-radius: 8px;'>
-                    <div style='font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;'>Total</div>
-                    <div style='font-size: 24px; font-weight: 600; color: #111827; margin-top: 4px;'>{}</div>
+                <div style='text-align: center; padding: 8px; background: #f9fafb; border-radius: 6px;'>
+                    <div style='font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;'>Total</div>
+                    <div style='font-size: 20px; font-weight: 600; color: #111827; margin-top: 2px;'>{}</div>
                 </div>
             """.format(stats["total_items"]), unsafe_allow_html=True)
         
         with cols[1]:
             st.markdown("""
-                <div style='text-align: center; padding: 12px; background: #f9fafb; border-radius: 8px;'>
-                    <div style='font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;'>Enrichis</div>
-                    <div style='font-size: 24px; font-weight: 600; color: #10b981; margin-top: 4px;'>{}</div>
+                <div style='text-align: center; padding: 8px; background: #f9fafb; border-radius: 6px;'>
+                    <div style='font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;'>Enrichis</div>
+                    <div style='font-size: 20px; font-weight: 600; color: #10b981; margin-top: 2px;'>{}</div>
                 </div>
             """.format(stats["enriched_items"]), unsafe_allow_html=True)
         
         with cols[2]:
             st.markdown("""
-                <div style='text-align: center; padding: 12px; background: #f9fafb; border-radius: 8px;'>
-                    <div style='font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;'>Eco</div>
-                    <div style='font-size: 24px; font-weight: 600; color: #3b82f6; margin-top: 4px;'>{}</div>
+                <div style='text-align: center; padding: 8px; background: #f9fafb; border-radius: 6px;'>
+                    <div style='font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;'>Eco</div>
+                    <div style='font-size: 20px; font-weight: 600; color: #3b82f6; margin-top: 2px;'>{}</div>
                 </div>
             """.format(by_tags.get("ECO", 0)), unsafe_allow_html=True)
         
         with cols[3]:
             st.markdown("""
-                <div style='text-align: center; padding: 12px; background: #f9fafb; border-radius: 8px;'>
-                    <div style='font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;'>Bourse</div>
-                    <div style='font-size: 24px; font-weight: 600; color: #8b5cf6; margin-top: 4px;'>{}</div>
+                <div style='text-align: center; padding: 8px; background: #f9fafb; border-radius: 6px;'>
+                    <div style='font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;'>Bourse</div>
+                    <div style='font-size: 20px; font-weight: 600; color: #8b5cf6; margin-top: 2px;'>{}</div>
                 </div>
             """.format(by_tags.get("BOURSE", 0)), unsafe_allow_html=True)
         
         with cols[4]:
             st.markdown("""
-                <div style='text-align: center; padding: 12px; background: #f9fafb; border-radius: 8px;'>
-                    <div style='font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;'>Action</div>
-                    <div style='font-size: 24px; font-weight: 600; color: #10b981; margin-top: 4px;'>{}</div>
+                <div style='text-align: center; padding: 8px; background: #f9fafb; border-radius: 6px;'>
+                    <div style='font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;'>Action</div>
+                    <div style='font-size: 20px; font-weight: 600; color: #10b981; margin-top: 2px;'>{}</div>
                 </div>
             """.format(by_tags.get("ACTION", 0)), unsafe_allow_html=True)
         
         with cols[5]:
             st.markdown("""
-                <div style='text-align: center; padding: 12px; background: #f9fafb; border-radius: 8px;'>
-                    <div style='font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;'>Crypto</div>
-                    <div style='font-size: 24px; font-weight: 600; color: #f59e0b; margin-top: 4px;'>{}</div>
+                <div style='text-align: center; padding: 8px; background: #f9fafb; border-radius: 6px;'>
+                    <div style='font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;'>Crypto</div>
+                    <div style='font-size: 20px; font-weight: 600; color: #f59e0b; margin-top: 2px;'>{}</div>
                 </div>
             """.format(by_tags.get("CRYPTO", 0)), unsafe_allow_html=True)
 
@@ -228,10 +277,13 @@ st.markdown("")
 # SECTION 3 : PREVIEW DB
 # ======================================================
 
+st.markdown("""
+<div class="section-header">
+    <h2>👁️ Base de données</h2>
+</div>
+""", unsafe_allow_html=True)
+
 with st.container():
-    st.markdown("### 👁️ Base de données")
-    st.markdown("")
-    
     # Filtres
     col_tag, col_label, col_zone = st.columns(3)
 
