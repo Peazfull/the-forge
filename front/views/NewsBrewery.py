@@ -74,6 +74,7 @@ SOURCES = [
         supports_scroll=True,
         supports_headless=True,
         supports_captcha_pause=True,
+        supports_firecrawl=False,  # fetch_dom_items ne supporte pas use_firecrawl_fallback
     ),
     
     NewsSourceConfig(
@@ -99,7 +100,7 @@ SOURCES = [
         fetch_rss_items=fetch_rss_items,
         job_factory=get_boursedirect_job,
         job_config_class=BourseDirectJobConfig,
-        supports_firecrawl=True,
+        supports_firecrawl=False,  # fetch_boursedirect_dom_items ne supporte pas use_firecrawl_fallback
     ),
     
     NewsSourceConfig(
@@ -112,7 +113,7 @@ SOURCES = [
         fetch_rss_items=fetch_rss_items,
         job_factory=get_boursedirect_indices_job,
         job_config_class=BourseDirectIndicesJobConfig,
-        supports_firecrawl=True,
+        supports_firecrawl=False,  # fetch_boursedirect_dom_items ne supporte pas use_firecrawl_fallback
     ),
     
     NewsSourceConfig(
@@ -285,10 +286,18 @@ def _collect_mega_urls(source_keys: list[str] | None = None) -> tuple[list[dict]
                     "mode": mode,
                     "hours_window": hours,
                 }
+                # Ajouter use_firecrawl_fallback seulement si supporté par la fonction
                 if source.supports_firecrawl:
-                    dom_kwargs["use_firecrawl_fallback"] = use_firecrawl
+                    try:
+                        dom_kwargs["use_firecrawl_fallback"] = use_firecrawl
+                        dom_items = source.fetch_dom_items(**dom_kwargs)
+                    except TypeError:
+                        # Si la fonction ne supporte pas le paramètre, essayer sans
+                        dom_kwargs.pop("use_firecrawl_fallback", None)
+                        dom_items = source.fetch_dom_items(**dom_kwargs)
+                else:
+                    dom_items = source.fetch_dom_items(**dom_kwargs)
                 
-                dom_items = source.fetch_dom_items(**dom_kwargs)
                 items = merge_article_items(dom_items, rss_items, max_items)
             else:
                 items = rss_items

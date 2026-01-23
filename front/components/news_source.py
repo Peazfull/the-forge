@@ -471,10 +471,20 @@ class NewsSourceRenderer:
                 "mode": mode_str,
                 "hours_window": hours,
             }
+            # Ajouter use_firecrawl_fallback seulement si supporté
+            # Note: Certaines fonctions (fetch_dom_items, fetch_boursedirect_dom_items) ne le supportent pas
             if self.config.supports_firecrawl:
-                dom_kwargs["use_firecrawl_fallback"] = use_firecrawl
+                try:
+                    # Essayer avec le paramètre
+                    dom_kwargs["use_firecrawl_fallback"] = use_firecrawl
+                    dom_items = self.config.fetch_dom_items(**dom_kwargs)
+                except TypeError:
+                    # Si erreur, essayer sans le paramètre
+                    dom_kwargs.pop("use_firecrawl_fallback", None)
+                    dom_items = self.config.fetch_dom_items(**dom_kwargs)
+            else:
+                dom_items = self.config.fetch_dom_items(**dom_kwargs)
             
-            dom_items = self.config.fetch_dom_items(**dom_kwargs)
             candidates = merge_article_items(dom_items, rss_items, max_total)
         else:
             candidates = rss_items
