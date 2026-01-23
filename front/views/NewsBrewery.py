@@ -351,23 +351,7 @@ if st.button("🧹 Clear all jobs", use_container_width=True, key="news_clear_al
 with st.expander("▸ Mega Job — Run all", expanded=False):
     st.caption("Le Mega Job utilise les paramètres de chaque job.")
 
-    # Sélection des sources
-    source_labels = [src.label for src in SOURCES]
-    if not st.session_state.mega_run_sources:
-        st.session_state.mega_run_sources = source_labels
-    
-    selected_sources = st.multiselect(
-        "Sources",
-        options=source_labels,
-        key="mega_run_sources",
-    )
-    
-    selected_source_keys = [
-        src.key for src in SOURCES if src.label in selected_sources
-    ]
-
     # Fenêtre temporelle Mega Job
-    st.divider()
     st.markdown("**⏱️ Fenêtre temporelle**")
     
     col_mode, col_hours = st.columns([2, 1])
@@ -388,6 +372,23 @@ with st.expander("▸ Mega Job — Run all", expanded=False):
             step=1,
             key="mega_time_hours"
         )
+    
+    st.divider()
+
+    # Sélection des sources
+    source_labels = [src.label for src in SOURCES]
+    if not st.session_state.mega_run_sources:
+        st.session_state.mega_run_sources = source_labels
+    
+    selected_sources = st.multiselect(
+        "Sources",
+        options=source_labels,
+        key="mega_run_sources",
+    )
+    
+    selected_source_keys = [
+        src.key for src in SOURCES if src.label in selected_sources
+    ]
     
     st.divider()
 
