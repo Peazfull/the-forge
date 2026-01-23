@@ -121,94 +121,131 @@ class MegaJob:
         return response.choices[0].message.content or ""
     
     def _run_auto_scraping(self) -> None:
-        """Boucle principale de scraping automatisé"""
-        self._log(f"🚀 Démarrage Mega Job - {self.total} URLs à traiter")
+        """Boucle principale de scraping automatisé avec batches de 5 URLs"""
+        BATCH_SIZE = 5
+        total_batches = (self.total + BATCH_SIZE - 1) // BATCH_SIZE
+        total_inserted = 0
         
-        for idx, url_item in enumerate(self._urls_to_scrape, start=1):
+        self._log(f"🚀 Démarrage Mega Job - {self.total} URLs en {total_batches} batch(s) de {BATCH_SIZE}")
+        
+        # Diviser en batches
+        for batch_num in range(total_batches):
             if self._stop_event.is_set():
                 break
             
-            self.current_index = idx
-            url = url_item.get("url", "")
-            source_label = url_item.get("source_label", "Unknown")
+            start_idx = batch_num * BATCH_SIZE
+            end_idx = min(start_idx + BATCH_SIZE, self.total)
+            batch_urls = self._urls_to_scrape[start_idx:end_idx]
+            batch_size = len(batch_urls)
             
-            self._log(f"📄 [{idx}/{self.total}] {source_label}: {url[:60]}...")
+            self._log(f"📦 Batch {batch_num + 1}/{total_batches} - {batch_size} URLs")
             
-            try:
-                # Étape 1: Firecrawl
-                self._log(f"  🔥 [{idx}/{self.total}] Firecrawl...")
-                raw_text = fetch_url_text(url)
+            # Buffer pour ce batch
+            batch_buffer = ""
+            batch_processed = 0
+            
+            # Traiter chaque URL du batch
+            for batch_idx, url_item in enumerate(batch_urls, start=1):
+                if self._stop_event.is_set():
+                    break
                 
-                # Étape 2: Clean DOM
-                self._log(f"  🧹 [{idx}/{self.total}] Clean DOM...")
-                cleaned = self._run_text_prompt(PROMPT_CLEAN_DOM_V1, raw_text, temperature=0)
-                if not cleaned.strip():
-                    cleaned = self._run_text_prompt(PROMPT_CLEAN_DOM_V2, raw_text, temperature=0)
+                global_idx = start_idx + batch_idx
+                self.current_index = global_idx
+                url = url_item.get("url", "")
+                source_label = url_item.get("source_label", "Unknown")
                 
-                if not cleaned.strip():
-                    self.errors.append(f"[{idx}] Clean DOM vide: {url[:60]}")
+                self._log(f"  📄 [{global_idx}/{self.total}] (Batch {batch_num + 1} - {batch_idx}/{batch_size}) {source_label}")
+                
+                try:
+                    # Étape 1: Firecrawl
+                    self._log(f"    🔥 [{global_idx}/{self.total}] Firecrawl...")
+                    raw_text = fetch_url_text(url)
+                    
+                    # Étape 2: Clean DOM
+                    self._log(f"    🧹 [{global_idx}/{self.total}] Clean DOM...")
+                    cleaned = self._run_text_prompt(PROMPT_CLEAN_DOM_V1, raw_text, temperature=0)
+                    if not cleaned.strip():
+                        cleaned = self._run_text_prompt(PROMPT_CLEAN_DOM_V2, raw_text, temperature=0)
+                    
+                    if not cleaned.strip():
+                        self.errors.append(f"[{global_idx}] Clean DOM vide: {url[:60]}")
+                        self.skipped += 1
+                        continue
+                    
+                    # Étape 3: Rewrite
+                    self._log(f"    ✍️ [{global_idx}/{self.total}] Rewrite...")
+                    rewritten = self._run_text_prompt(PROMPT_REWRITE, cleaned, temperature=0.2)
+                    if not rewritten.strip():
+                        self.errors.append(f"[{global_idx}] Rewrite vide: {url[:60]}")
+                        self.skipped += 1
+                        continue
+                    
+                    # Étape 4: Structure
+                    self._log(f"    📋 [{global_idx}/{self.total}] Structure...")
+                    structured = self._run_text_prompt(PROMPT_STRUCTURE, rewritten, temperature=0.2)
+                    if not structured.strip():
+                        self.errors.append(f"[{global_idx}] Structure vide: {url[:60]}")
+                        self.skipped += 1
+                        continue
+                    
+                    # Étape 5: Ajout au buffer du batch
+                    batch_buffer += structured + "\n\n"
+                    batch_processed += 1
+                    self.processed += 1
+                    self._log(f"    ✅ [{global_idx}/{self.total}] OK - Ajouté au buffer batch")
+                    
+                except Exception as exc:
+                    self.errors.append(f"[{global_idx}] Erreur: {str(exc)[:100]}")
                     self.skipped += 1
-                    continue
-                
-                # Étape 3: Rewrite
-                self._log(f"  ✍️ [{idx}/{self.total}] Rewrite...")
-                rewritten = self._run_text_prompt(PROMPT_REWRITE, cleaned, temperature=0.2)
-                if not rewritten.strip():
-                    self.errors.append(f"[{idx}] Rewrite vide: {url[:60]}")
-                    self.skipped += 1
-                    continue
-                
-                # Étape 4: Structure
-                self._log(f"  📋 [{idx}/{self.total}] Structure...")
-                structured = self._run_text_prompt(PROMPT_STRUCTURE, rewritten, temperature=0.2)
-                if not structured.strip():
-                    self.errors.append(f"[{idx}] Structure vide: {url[:60]}")
-                    self.skipped += 1
-                    continue
-                
-                # Étape 5: Ajout au buffer
-                self.buffer_text += structured + "\n\n"
-                self.processed += 1
-                self._log(f"  ✅ [{idx}/{self.total}] OK - Ajouté au buffer")
-                
-            except Exception as exc:
-                self.errors.append(f"[{idx}] Erreur: {str(exc)[:100]}")
-                self.skipped += 1
-                self._log(f"  ❌ [{idx}/{self.total}] Erreur: {str(exc)[:60]}")
+                    self._log(f"    ❌ [{global_idx}/{self.total}] Erreur: {str(exc)[:60]}")
+            
+            # Finalisation du batch
+            if self._stop_event.is_set():
+                self.state = "stopped"
+                self._log("⏹️ Arrêté par l'utilisateur")
+                return
+            
+            if batch_processed == 0:
+                self._log(f"⚠️ Batch {batch_num + 1}/{total_batches} - Aucun article traité")
+                continue
+            
+            # JSON du batch
+            self._log(f"🔄 Batch {batch_num + 1}/{total_batches} - Génération JSON ({batch_processed} articles)...")
+            self.buffer_text = batch_buffer  # Utiliser le buffer du batch
+            json_result = self.finalize_buffer()
+            if json_result.get("status") != "success":
+                self.errors.append(f"Batch {batch_num + 1} - Erreur JSON: {json_result.get('message')}")
+                self._log(f"❌ Batch {batch_num + 1} - Erreur JSON")
+                continue
+            
+            # DB du batch
+            if not self._config or not self._config.dry_run:
+                self._log(f"💾 Batch {batch_num + 1}/{total_batches} - Envoi en DB...")
+                db_result = self.send_to_db()
+                if db_result.get("status") == "success":
+                    inserted = db_result.get("inserted", 0)
+                    total_inserted += inserted
+                    self._log(f"✅ Batch {batch_num + 1}/{total_batches} - {inserted} items insérés en DB")
+                else:
+                    self.errors.append(f"Batch {batch_num + 1} - Erreur DB: {db_result.get('message')}")
+                    self._log(f"❌ Batch {batch_num + 1} - Erreur DB")
+            else:
+                self._log(f"✅ Batch {batch_num + 1}/{total_batches} - OK (DRY RUN)")
+            
+            # Reset buffer pour le prochain batch
+            self.buffer_text = ""
+            self.json_items = []
+            self.json_preview_text = ""
         
-        # Finalisation automatique
-        if self._stop_event.is_set():
-            self.state = "stopped"
-            self._log("⏹️ Arrêté par l'utilisateur")
-            return
-        
+        # Finalisation globale
         if self.processed == 0:
             self.state = "failed"
             self._log("❌ Aucun article traité avec succès")
-            return
-        
-        # JSON automatique
-        self._log(f"🔄 Génération JSON de {self.processed} articles...")
-        json_result = self.finalize_buffer()
-        if json_result.get("status") != "success":
-            self.state = "failed"
-            self._log(f"❌ Erreur JSON: {json_result.get('message')}")
-            return
-        
-        # DB automatique
-        if not self._config or not self._config.dry_run:
-            self._log("💾 Envoi en DB...")
-            db_result = self.send_to_db()
-            if db_result.get("status") == "success":
-                inserted = db_result.get("inserted", 0)
-                self.state = "completed"
-                self._log(f"✅ Mega Job terminé ! {inserted} items insérés en DB")
-            else:
-                self.state = "failed"
-                self._log(f"❌ Erreur DB: {db_result.get('message')}")
         else:
             self.state = "completed"
-            self._log("✅ Mega Job terminé (DRY RUN)")
+            self._log(f"✅ Mega Job terminé ! {self.processed} articles traités, {total_inserted} items insérés en DB")
+            if self.skipped > 0:
+                self._log(f"⚠️ {self.skipped} articles ignorés (erreurs)")
 
     def _deduplicate_blocks(self, text: str) -> str:
         if not text.strip():
