@@ -2,12 +2,41 @@ import json
 import streamlit as st
 from openai import OpenAI
 from typing import Dict
-from prompts.theministry.score_item import PROMPT_SCORE_ITEM
+from prompts.theministry.score.score_eco_geopol import PROMPT_SCORE_ECO_GEOPOL
+from prompts.theministry.score.score_marches import PROMPT_SCORE_MARCHES
+from prompts.theministry.score.score_pea import PROMPT_SCORE_PEA
+from prompts.theministry.score.score_action_usa import PROMPT_SCORE_ACTION_USA
+from prompts.theministry.score.score_action import PROMPT_SCORE_ACTION
+from prompts.theministry.score.score_crypto import PROMPT_SCORE_CRYPTO
 
 
 REQUEST_TIMEOUT = 60
 MAX_RETRIES = 2
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+
+
+def get_prompt_by_label(labels: str) -> str:
+    """
+    Retourne le prompt de scoring adapté selon le label.
+    
+    Args:
+        labels: Le label de l'item (Eco_GeoPol, Marchés, PEA, Action_USA, Action, Crypto)
+    
+    Returns:
+        Le prompt approprié
+    """
+    
+    prompts_map = {
+        "Eco_GeoPol": PROMPT_SCORE_ECO_GEOPOL,
+        "Marchés": PROMPT_SCORE_MARCHES,
+        "PEA": PROMPT_SCORE_PEA,
+        "Action_USA": PROMPT_SCORE_ACTION_USA,
+        "Action": PROMPT_SCORE_ACTION,
+        "Crypto": PROMPT_SCORE_CRYPTO
+    }
+    
+    # Retourner le prompt correspondant ou Eco_GeoPol par défaut
+    return prompts_map.get(labels, PROMPT_SCORE_ECO_GEOPOL)
 
 
 def analyze_score(
@@ -44,6 +73,9 @@ def analyze_score(
             "score": None
         }
     
+    # Sélectionner le bon prompt selon le label
+    prompt = get_prompt_by_label(labels)
+    
     # Construire l'input pour l'IA avec contexte
     user_input = f"""TITRE: {title}
 
@@ -62,7 +94,7 @@ SOURCE: {source_type or "Non renseigné"}
                 response = client.chat.completions.create(
                     model="gpt-4o-mini",
                     messages=[
-                        {"role": "system", "content": PROMPT_SCORE_ITEM},
+                        {"role": "system", "content": prompt},
                         {"role": "user", "content": user_input}
                     ],
                     temperature=0,
