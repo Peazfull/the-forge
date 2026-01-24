@@ -13,7 +13,6 @@ from services.hand_brewery.firecrawl_client import fetch_url_text
 from prompts.news_brewery.deduplicate import PROMPT_DEDUPLICATE
 from prompts.news_brewery.jsonfy import PROMPT_JSONFY
 from prompts.news_brewery.json_secure import PROMPT_JSON_SECURE
-from prompts.news_brewery.rewrite import PROMPT_REWRITE
 from prompts.news_brewery.structure import PROMPT_STRUCTURE
 
 
@@ -155,7 +154,7 @@ class MegaJob:
                 self._log(f"  📄 [{global_idx}/{self.total}] (Batch {batch_num + 1} - {batch_idx}/{batch_size}) {source_label}")
                 
                 try:
-                    # Étape 1: Firecrawl (déjà nettoyé par Firecrawl)
+                    # Étape 1: Firecrawl (retourne déjà du markdown propre)
                     self._log(f"    🔥 [{global_idx}/{self.total}] Firecrawl...")
                     raw_text = fetch_url_text(url)
                     
@@ -164,23 +163,15 @@ class MegaJob:
                         self.skipped += 1
                         continue
                     
-                    # Étape 2: Rewrite (Clean DOM supprimé - Firecrawl suffit)
-                    self._log(f"    ✍️ [{global_idx}/{self.total}] Rewrite...")
-                    rewritten = self._run_text_prompt(PROMPT_REWRITE, raw_text, temperature=0.2)
-                    if not rewritten.strip():
-                        self.errors.append(f"[{global_idx}] Rewrite vide: {url[:60]}")
-                        self.skipped += 1
-                        continue
-                    
-                    # Étape 3: Structure
+                    # Étape 2: Structure (fait reformulation anti-plagiat + structuration)
                     self._log(f"    📋 [{global_idx}/{self.total}] Structure...")
-                    structured = self._run_text_prompt(PROMPT_STRUCTURE, rewritten, temperature=0.2)
+                    structured = self._run_text_prompt(PROMPT_STRUCTURE, raw_text, temperature=0.2)
                     if not structured.strip():
                         self.errors.append(f"[{global_idx}] Structure vide: {url[:60]}")
                         self.skipped += 1
                         continue
                     
-                    # Étape 4: Ajout au buffer du batch
+                    # Étape 3: Ajout au buffer du batch
                     batch_buffer += structured + "\n\n"
                     batch_processed += 1
                     self.processed += 1

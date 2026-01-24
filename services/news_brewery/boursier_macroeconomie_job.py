@@ -16,7 +16,6 @@ from services.news_brewery.rss_utils import (
     fetch_rss_items,
     merge_article_items,
 )
-from prompts.news_brewery.rewrite import PROMPT_REWRITE
 from prompts.news_brewery.structure import PROMPT_STRUCTURE
 from prompts.news_brewery.deduplicate import PROMPT_DEDUPLICATE
 from prompts.news_brewery.jsonfy import PROMPT_JSONFY
@@ -357,14 +356,8 @@ class BoursierMacroeconomieJob:
                     self.skipped += 1
                     continue
 
-                # AI pipeline: rewrite -> structure (Clean DOM supprimé - Firecrawl suffit).
-                rewritten = self._run_text_prompt(PROMPT_REWRITE, raw_text, temperature=0.2)
-                if not rewritten.strip():
-                    self.errors.append("Rewrite vide")
-                    self.skipped += 1
-                    continue
-
-                structured = self._run_text_prompt(PROMPT_STRUCTURE, rewritten, temperature=0.2)
+                # AI pipeline: structure (fait reformulation anti-plagiat + structuration).
+                structured = self._run_text_prompt(PROMPT_STRUCTURE, raw_text, temperature=0.2)
                 if not structured.strip():
                     self.errors.append("Structure vide")
                     self.skipped += 1
