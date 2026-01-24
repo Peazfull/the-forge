@@ -12,7 +12,6 @@ from prompts.theministry.score.score_crypto import PROMPT_SCORE_CRYPTO
 
 REQUEST_TIMEOUT = 60
 MAX_RETRIES = 2
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 
 def get_prompt_by_label(labels: str) -> str:
@@ -70,6 +69,16 @@ def analyze_score(
         return {
             "status": "error",
             "message": "Titre ou contenu manquant",
+            "score": None
+        }
+    
+    # Créer le client OpenAI (évite les problèmes de cache)
+    try:
+        client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Erreur init OpenAI: {str(e)}",
             "score": None
         }
     
