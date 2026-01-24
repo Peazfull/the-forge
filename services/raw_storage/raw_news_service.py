@@ -106,7 +106,7 @@ def fetch_raw_news(limit: int = 50) -> list:
     response = (
         supabase
         .table("brew_items")
-        .select("processed_at, title, content, source_type")
+        .select("processed_at, title, content, source_type, source_link, source_name")
         .order("processed_at", desc=True)
         .limit(limit)
         .execute()

@@ -557,8 +557,19 @@ with st.expander("🗄️ Derniers contenus en base", expanded=False):
     else:
         for item in raw_items:
             st.markdown("---")
-            st.caption(f"🕒 {item['processed_at']} · Source : {item['source_type']}")
-            st.markdown(f"**{item['title']}**")
+            
+            # Afficher source avec lien si disponible
+            source_info = f"🕒 {item['processed_at']} · Source : {item['source_type']}"
+            if item.get('source_name'):
+                source_info += f" · {item['source_name']}"
+            st.caption(source_info)
+            
+            # Titre avec lien vers l'article source si disponible
+            if item.get('source_link'):
+                st.markdown(f"**[{item['title']}]({item['source_link']})**")
+            else:
+                st.markdown(f"**{item['title']}**")
+            
             st.write(item['content'])
 
 
