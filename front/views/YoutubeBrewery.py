@@ -422,7 +422,6 @@ with st.expander("🧩 Preview IA (concaténé)", expanded=True):
                 st.session_state.yt_temp_text = ""
                 st.session_state.yt_status_log = []
                 st.session_state.yt_ai_preview_text = ""
-                st.session_state.yt_temp_editor = ""
                 st.rerun()
 
     if st.session_state.yt_ai_preview_text:
@@ -475,7 +474,6 @@ with st.expander("🧩 Preview IA (concaténé)", expanded=True):
             if st.button("🧹 Clear sélection", use_container_width=True, key="yt_clear_selection"):
                 st.session_state.yt_selected = {}
                 st.session_state.yt_ai_preview_text = ""
-                st.session_state.yt_ai_preview_editor = ""
                 st.rerun()
     else:
         st.caption("Aucune preview générée pour le moment")
