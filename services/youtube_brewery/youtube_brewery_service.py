@@ -4,9 +4,7 @@ import time
 from services.youtube_brewery.transcript_utils import fetch_video_transcript
 from services.youtube_brewery.process_transcript import (
     clean_raw_text,
-    merge_topics_text,
-    journalist_text,
-    copywriter_text,
+    structure_text,
     jsonfy_text,
 )
 
@@ -88,33 +86,15 @@ def build_temp_transcripts(videos: List[Dict[str, str]]) -> Dict[str, object]:
         status_log.append(f"VID {idx}/{total} · clean OK ({step_duration:.1f}s)")
 
         step_start = time.time()
-        merged = merge_topics_text(cleaned.get("text", ""))
+        structured = structure_text(cleaned.get("text", ""))
         step_duration = time.time() - step_start
-        if merged.get("status") != "success":
-            errors.append(merged.get("message", "Erreur merge"))
-            status_log.append(f"VID {idx}/{total} · merge NOK ({step_duration:.1f}s)")
+        if structured.get("status") != "success":
+            errors.append(structured.get("message", "Erreur structure"))
+            status_log.append(f"VID {idx}/{total} · structure NOK ({step_duration:.1f}s)")
             continue
-        status_log.append(f"VID {idx}/{total} · merge OK ({step_duration:.1f}s)")
+        status_log.append(f"VID {idx}/{total} · structure OK ({step_duration:.1f}s)")
 
-        step_start = time.time()
-        journalist = journalist_text(merged.get("text", ""))
-        step_duration = time.time() - step_start
-        if journalist.get("status") != "success":
-            errors.append(journalist.get("message", "Erreur journalist"))
-            status_log.append(f"VID {idx}/{total} · journalist NOK ({step_duration:.1f}s)")
-            continue
-        status_log.append(f"VID {idx}/{total} · journalist OK ({step_duration:.1f}s)")
-
-        step_start = time.time()
-        copywritten = copywriter_text(journalist.get("text", ""))
-        step_duration = time.time() - step_start
-        if copywritten.get("status") != "success":
-            errors.append(copywritten.get("message", "Erreur copywriter"))
-            status_log.append(f"VID {idx}/{total} · copywriter NOK ({step_duration:.1f}s)")
-            continue
-        status_log.append(f"VID {idx}/{total} · copywriter OK ({step_duration:.1f}s)")
-
-        blocks.append(_format_temp_block(video, copywritten.get("text", "")))
+        blocks.append(_format_temp_block(video, structured.get("text", "")))
         status_log.append(f"VID {idx}/{total} · ajouté")
 
     temp_text = "\n\n".join(blocks).strip()

@@ -4,9 +4,7 @@ from openai import OpenAI
 from typing import Dict
 
 from prompts.youtube_brewery.clean_raw import PROMPT_CLEAN_RAW
-from prompts.youtube_brewery.merge_topics import PROMPT_MERGE_TOPICS
-from prompts.youtube_brewery.journalist import PROMPT_JOURNALIST
-from prompts.youtube_brewery.copywriter import PROMPT_COPYWRITER
+from prompts.youtube_brewery.structure import PROMPT_STRUCTURE
 from prompts.youtube_brewery.jsonfy import PROMPT_JSONFY
 from prompts.youtube_brewery.json_secure import PROMPT_JSON_SECURE
 
@@ -38,45 +36,29 @@ def clean_raw_text(raw_text: str) -> Dict[str, object]:
         return {"status": "error", "message": str(exc), "text": ""}
 
 
-def merge_topics_text(cleaned_text: str) -> Dict[str, object]:
+def structure_text(cleaned_text: str) -> Dict[str, object]:
+    """
+    Reformule (anti-plagiat) + Structure en sujets distincts.
+    Remplace merge_topics + journalist + copywriter.
+    """
     if not cleaned_text or not cleaned_text.strip():
         return {"status": "error", "message": "Texte nettoyé vide", "text": ""}
     try:
-        merged = _run_text_prompt(PROMPT_MERGE_TOPICS, cleaned_text, temperature=0.2)
-        return {"status": "success", "text": merged.strip()}
+        structured = _run_text_prompt(PROMPT_STRUCTURE, cleaned_text, temperature=0.2)
+        return {"status": "success", "text": structured.strip()}
     except Exception as exc:
         return {"status": "error", "message": str(exc), "text": ""}
 
 
-def journalist_text(merged_text: str) -> Dict[str, object]:
-    if not merged_text or not merged_text.strip():
-        return {"status": "error", "message": "Texte traité vide", "text": ""}
-    try:
-        journalist = _run_text_prompt(PROMPT_JOURNALIST, merged_text, temperature=0.2)
-        return {"status": "success", "text": journalist.strip()}
-    except Exception as exc:
-        return {"status": "error", "message": str(exc), "text": ""}
-
-
-def copywriter_text(journalist_output: str) -> Dict[str, object]:
-    if not journalist_output or not journalist_output.strip():
-        return {"status": "error", "message": "Texte journalist vide", "text": ""}
-    try:
-        copywritten = _run_text_prompt(PROMPT_COPYWRITER, journalist_output, temperature=0.2)
-        return {"status": "success", "text": copywritten.strip()}
-    except Exception as exc:
-        return {"status": "error", "message": str(exc), "text": ""}
-
-
-def jsonfy_text(journalist_output: str) -> Dict[str, object]:
-    if not journalist_output or not journalist_output.strip():
+def jsonfy_text(structured_output: str) -> Dict[str, object]:
+    if not structured_output or not structured_output.strip():
         return {"status": "error", "message": "Texte vide", "items": []}
     try:
         response_jsonfy = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": PROMPT_JSONFY},
-                {"role": "user", "content": journalist_output}
+                {"role": "user", "content": structured_output}
             ],
             temperature=0,
             response_format={"type": "json_object"},
@@ -113,19 +95,11 @@ def process_transcript(text: str) -> dict:
         if cleaned.get("status") != "success":
             return {"status": "error", "message": cleaned.get("message", "Erreur"), "items": []}
 
-        merged = merge_topics_text(cleaned.get("text", ""))
-        if merged.get("status") != "success":
-            return {"status": "error", "message": merged.get("message", "Erreur"), "items": []}
+        structured = structure_text(cleaned.get("text", ""))
+        if structured.get("status") != "success":
+            return {"status": "error", "message": structured.get("message", "Erreur"), "items": []}
 
-        journalist = journalist_text(merged.get("text", ""))
-        if journalist.get("status") != "success":
-            return {"status": "error", "message": journalist.get("message", "Erreur"), "items": []}
-
-        copywritten = copywriter_text(journalist.get("text", ""))
-        if copywritten.get("status") != "success":
-            return {"status": "error", "message": copywritten.get("message", "Erreur"), "items": []}
-
-        json_result = jsonfy_text(copywritten.get("text", ""))
+        json_result = jsonfy_text(structured.get("text", ""))
         if json_result.get("status") != "success":
             return {"status": "error", "message": json_result.get("message", "Erreur"), "items": []}
 
