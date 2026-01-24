@@ -68,13 +68,17 @@ def build_temp_transcripts(videos: List[Dict[str, str]]) -> Dict[str, object]:
 
         try:
             step_start = time.time()
-            transcript = fetch_video_transcript(url)
+            transcript = fetch_video_transcript(url, max_retries=3)
             step_duration = time.time() - step_start
             status_log.append(f"VID {idx}/{total} · transcript OK ({step_duration:.1f}s)")
         except Exception as exc:
             errors.append(f"Transcript indisponible pour {title}: {exc}")
             status_log.append(f"VID {idx}/{total} · transcript NOK")
             continue
+        
+        # Délai entre vidéos pour éviter le rate limiting YouTube
+        if idx < total:
+            time.sleep(2)
 
         step_start = time.time()
         cleaned = clean_raw_text(transcript)

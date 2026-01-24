@@ -1,4 +1,5 @@
 import json
+import time
 from typing import Dict, List, Optional, Tuple
 
 import requests
@@ -78,9 +79,49 @@ def _parse_json3(payload: str) -> str:
     return " ".join(texts).strip()
 
 
-def fetch_video_transcript(video_url: str) -> str:
+def fetch_video_transcript(video_url: str, max_retries: int = 3) -> str:
     """
-    Récupère le transcript d'une vidéo YouTube via yt-dlp.
+    Récupère le transcript d'une vidéo YouTube via yt-dlp avec retry automatique.
+    
+    Args:
+        video_url: URL de la vidéo YouTube
+        max_retries: Nombre maximum de tentatives (défaut: 3)
+    
+    Returns:
+        Le transcript en texte brut
+        
+    Raises:
+        RuntimeError: Si toutes les tentatives échouent
+    """
+    last_error = None
+    
+    for attempt in range(max_retries):
+        try:
+            return _fetch_video_transcript_single(video_url)
+        except Exception as e:
+            last_error = e
+            error_str = str(e)
+            
+            # Si rate limit (429) et pas la dernière tentative, on réessaye
+            if "429" in error_str and attempt < max_retries - 1:
+                wait_time = 2 ** (attempt + 1)  # 2s, 4s, 8s
+                time.sleep(wait_time)
+                continue
+            
+            # Si autre erreur et pas la dernière tentative, on attend moins longtemps
+            if attempt < max_retries - 1:
+                time.sleep(1)
+                continue
+            
+            # Dernière tentative échouée, on raise
+            raise
+    
+    raise RuntimeError(f"Échec après {max_retries} tentatives: {last_error}")
+
+
+def _fetch_video_transcript_single(video_url: str) -> str:
+    """
+    Tente de récupérer le transcript une seule fois (sans retry).
     """
     ydl_opts = {
         "quiet": True,
