@@ -164,15 +164,18 @@ with st.container():
                     progress = idx / total
                     progress_bar.progress(progress)
                     progress_text.markdown(f"**Traitement : {idx}/{total} items** ({int(progress*100)}%)")
-                    status_text.text(f"Item en cours : {title[:50]}...")
+                    status_text.text(f"Item: {title[:40]}... | Tag: {tags} | Label: {labels}")
                     
                     # Scorer l'item
                     result = score_single_item(item_id, title, content, tags, labels, entities, source_type)
                     
+                    # DEBUG visible
                     if result["status"] == "success":
                         success_count += 1
+                        status_text.text(f"✅ Score: {result.get('score')} | {title[:40]}...")
                     else:
                         error_count += 1
+                        status_text.text(f"❌ Erreur: {result.get('message', 'Inconnue')[:50]}")
                 
                 duration = time.time() - start_time
                 
@@ -189,7 +192,13 @@ with st.container():
                 with col3:
                     st.metric("⏱️ Durée", f"{duration:.1f}s")
                 
-                st.success(f"🎉 Scoring terminé ! {success_count}/{total} items traités avec succès.")
+                # Afficher message de debug si échec total
+                if success_count == 0 and error_count > 0:
+                    st.error("🚨 AUCUN item scoré avec succès ! Vérifier les erreurs ci-dessus.")
+                elif success_count == 0 and error_count == 0:
+                    st.warning("⚠️ Process terminé mais aucun résultat (succès=0, erreur=0). Problème de logic ?")
+                else:
+                    st.success(f"🎉 Scoring terminé ! {success_count}/{total} items traités avec succès.")
                 
                 # Forcer le rechargement des stats
                 st.rerun()
