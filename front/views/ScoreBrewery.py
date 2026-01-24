@@ -150,32 +150,41 @@ with st.container():
                 total = len(items)
                 success_count = 0
                 error_count = 0
+                last_error_msg = ""
                 
                 for idx, item in enumerate(items, start=1):
-                    item_id = item.get("id")
-                    title = item.get("title", "")
-                    content = item.get("content", "")
-                    tags = item.get("tags")
-                    labels = item.get("labels")
-                    entities = item.get("entities")
-                    source_type = item.get("source_type")
+                    try:
+                        item_id = item.get("id")
+                        title = item.get("title", "")
+                        content = item.get("content", "")
+                        tags = item.get("tags")
+                        labels = item.get("labels")
+                        entities = item.get("entities")
+                        source_type = item.get("source_type")
+                        
+                        # Afficher la progression
+                        progress = idx / total
+                        progress_bar.progress(progress)
+                        progress_text.markdown(f"**Traitement : {idx}/{total} items** ({int(progress*100)}%)")
+                        status_text.text(f"Item: {title[:40]}... | Tag: {tags} | Label: {labels}")
+                        
+                        # Scorer l'item
+                        result = score_single_item(item_id, title, content, tags, labels, entities, source_type)
+                        
+                        # DEBUG visible
+                        if result["status"] == "success":
+                            success_count += 1
+                            status_text.text(f"✅ Score: {result.get('score')} | {title[:40]}...")
+                        else:
+                            error_count += 1
+                            error_msg = result.get('message', 'Inconnue')
+                            last_error_msg = error_msg
+                            status_text.text(f"❌ Erreur: {error_msg[:80]}")
                     
-                    # Afficher la progression
-                    progress = idx / total
-                    progress_bar.progress(progress)
-                    progress_text.markdown(f"**Traitement : {idx}/{total} items** ({int(progress*100)}%)")
-                    status_text.text(f"Item: {title[:40]}... | Tag: {tags} | Label: {labels}")
-                    
-                    # Scorer l'item
-                    result = score_single_item(item_id, title, content, tags, labels, entities, source_type)
-                    
-                    # DEBUG visible
-                    if result["status"] == "success":
-                        success_count += 1
-                        status_text.text(f"✅ Score: {result.get('score')} | {title[:40]}...")
-                    else:
+                    except Exception as e:
                         error_count += 1
-                        status_text.text(f"❌ Erreur: {result.get('message', 'Inconnue')[:50]}")
+                        last_error_msg = str(e)
+                        status_text.text(f"❌ Exception: {str(e)[:80]}")
                 
                 duration = time.time() - start_time
                 
@@ -194,9 +203,9 @@ with st.container():
                 
                 # Afficher message de debug si échec total
                 if success_count == 0 and error_count > 0:
-                    st.error("🚨 AUCUN item scoré avec succès ! Vérifier les erreurs ci-dessus.")
+                    st.error(f"🚨 AUCUN item scoré avec succès ! Dernière erreur: {last_error_msg}")
                 elif success_count == 0 and error_count == 0:
-                    st.warning("⚠️ Process terminé mais aucun résultat (succès=0, erreur=0). Problème de logic ?")
+                    st.warning("⚠️ Process terminé mais aucun résultat (succès=0, erreur=0). Problème de logique ?")
                 else:
                     st.success(f"🎉 Scoring terminé ! {success_count}/{total} items traités avec succès.")
                 
