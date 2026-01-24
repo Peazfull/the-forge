@@ -26,17 +26,22 @@ def load_channels() -> List[Dict[str, object]]:
 def save_channels(channels: List[Dict[str, object]]) -> None:
     try:
         supabase = get_supabase()
-        # Nettoyage complet puis ré-insertion
-        supabase.table(TABLE_NAME).delete().neq("url", "").execute()
+        # Suppression complète de toutes les chaînes existantes
+        supabase.table(TABLE_NAME).delete().gte("id", 0).execute()
+        
+        # Filtrer et réinsérer uniquement les chaînes avec URL non vide
         rows = []
         for item in channels:
             if not isinstance(item, dict):
                 continue
-            rows.append({
-                "url": item.get("url", "") or "",
-                "name": item.get("name", "") or "",
-                "enabled": bool(item.get("enabled", True)),
-            })
+            url = (item.get("url") or "").strip()
+            # Ne sauvegarder que si l'URL n'est pas vide
+            if url:
+                rows.append({
+                    "url": url,
+                    "name": item.get("name", "") or "",
+                    "enabled": bool(item.get("enabled", True)),
+                })
         if rows:
             supabase.table(TABLE_NAME).insert(rows).execute()
     except Exception:

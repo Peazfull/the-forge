@@ -37,7 +37,9 @@ def format_duration(duration_value):
 if "yt_channels" not in st.session_state:
     # Chaque item: {"url": "", "name": "", "enabled": True}
     loaded_channels = load_channels()
-    st.session_state.yt_channels = loaded_channels or [{"url": "", "name": "", "enabled": True}]
+    # Filtrer les chaînes vides qui pourraient venir de la DB
+    valid_channels = [ch for ch in loaded_channels if (ch.get("url") or "").strip()]
+    st.session_state.yt_channels = valid_channels or [{"url": "", "name": "", "enabled": True}]
     st.session_state.yt_channels_snapshot = json.dumps(st.session_state.yt_channels, sort_keys=True)
 
 if "yt_previews" not in st.session_state:
