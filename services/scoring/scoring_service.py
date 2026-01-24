@@ -63,16 +63,24 @@ def score_single_item(
         }
     """
     
+    print(f"[DEBUG score_single_item] ID: {item_id}, Tags: {tags}, Labels: {labels}")
+    
     # Analyser avec l'IA
     result = analyze_score(title, content, tags, labels, entities, source_type)
+    
+    print(f"[DEBUG score_single_item] Résultat analyze_score: {result}")
     
     if result["status"] == "error":
         return result
     
     score = result["score"]
     
+    print(f"[DEBUG score_single_item] Score à enregistrer: {score}")
+    
     # Mettre à jour la DB
     update_result = update_item_score(item_id, score)
+    
+    print(f"[DEBUG score_single_item] Résultat update DB: {update_result}")
     
     if update_result["status"] == "error":
         return {

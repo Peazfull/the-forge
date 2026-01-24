@@ -76,6 +76,10 @@ def analyze_score(
     # Sélectionner le bon prompt selon le label
     prompt = get_prompt_by_label(labels)
     
+    # DEBUG
+    print(f"[DEBUG analyze_score] Label reçu: {labels}")
+    print(f"[DEBUG analyze_score] Prompt sélectionné: {prompt[:100]}...")
+    
     # Construire l'input pour l'IA avec contexte
     user_input = f"""TITRE: {title}
 
@@ -86,6 +90,8 @@ LABEL: {labels or "Non renseigné"}
 ENTITIES: {entities or "Non renseigné"}
 SOURCE: {source_type or "Non renseigné"}
 """
+    
+    print(f"[DEBUG analyze_score] Appel OpenAI pour: {title[:50]}...")
     
     try:
         # Retry logic pour gérer les timeouts
@@ -104,6 +110,8 @@ SOURCE: {source_type or "Non renseigné"}
                 
                 raw_json = response.choices[0].message.content or ""
                 data = json.loads(raw_json)
+                
+                print(f"[DEBUG analyze_score] Score reçu de l'IA: {data.get('score')}")
                 
                 # Si succès, sortir de la boucle
                 break
