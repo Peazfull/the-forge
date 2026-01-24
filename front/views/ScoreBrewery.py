@@ -112,7 +112,7 @@ with st.container():
         limit_option = st.selectbox(
             "Limite",
             options=[10, 50, 100, 500, "Tous"],
-            index=0,
+            index=4,  # Par défaut "Tous"
             label_visibility="collapsed"
         )
         
@@ -123,8 +123,12 @@ with st.container():
     
     with col_button:
         # Compter les items à scorer
-        items_to_score = fetch_items_to_score(limit=limit_value, force_all=True)
-        items_count = len(items_to_score)
+        try:
+            items_to_score = fetch_items_to_score(limit=limit_value, force_all=True)
+            items_count = len(items_to_score)
+        except Exception as e:
+            st.error(f"Erreur lors du comptage des items: {str(e)}")
+            items_count = 0
         
         if items_count == 0:
             st.info("📭 Aucun item enrichi dans la base de données")
