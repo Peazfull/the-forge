@@ -16,8 +16,6 @@ from playwright.sync_api import sync_playwright
 from services.raw_storage.raw_news_service import enrich_raw_items, insert_raw_news
 from services.hand_brewery.firecrawl_client import fetch_url_text
 from services.news_brewery.rss_utils import fetch_dom_items, fetch_rss_items, merge_article_items
-from prompts.news_brewery.clean_dom_v1 import PROMPT_CLEAN_DOM_V1
-from prompts.news_brewery.clean_dom_v2 import PROMPT_CLEAN_DOM_V2
 from prompts.news_brewery.rewrite import PROMPT_REWRITE
 from prompts.news_brewery.structure import PROMPT_STRUCTURE
 from prompts.news_brewery.deduplicate import PROMPT_DEDUPLICATE
@@ -541,24 +539,15 @@ class BfmBourseJob:
                         continue
 
                     try:
-                        # Fetch article text with Firecrawl.
+                        # Fetch article text with Firecrawl (retourne déjà du markdown propre).
                         raw_text = fetch_url_text(url)
                     except Exception as exc:
                         self.errors.append(f"Firecrawl error: {exc}")
                         self.skipped += 1
                         continue
 
-                    # AI pipeline: clean -> rewrite -> structure.
-                    cleaned = self._run_text_prompt(PROMPT_CLEAN_DOM_V1, raw_text, temperature=0)
-                    if not cleaned.strip():
-                        cleaned = self._run_text_prompt(PROMPT_CLEAN_DOM_V2, raw_text, temperature=0)
-
-                    if not cleaned.strip():
-                        self.errors.append("Clean DOM vide")
-                        self.skipped += 1
-                        continue
-
-                    rewritten = self._run_text_prompt(PROMPT_REWRITE, cleaned, temperature=0.2)
+                    # AI pipeline: rewrite -> structure (Clean DOM supprimé - Firecrawl suffit).
+                    rewritten = self._run_text_prompt(PROMPT_REWRITE, raw_text, temperature=0.2)
                     if not rewritten.strip():
                         self.errors.append("Rewrite vide")
                         self.skipped += 1
