@@ -6,7 +6,7 @@ import requests
 from yt_dlp import YoutubeDL
 
 
-LANG_PREFERENCES = ["fr", "fr-FR", "fr-CA", "en", "en-US", "en-GB"]
+LANG_PREFERENCES = ["en", "en-US", "en-GB", "fr", "fr-FR", "fr-CA"]
 EXT_PREFERENCES = ["vtt", "json3", "srv3", "ttml"]
 
 
@@ -27,9 +27,14 @@ def _select_caption_entry(entries: List[Dict]) -> Optional[Dict]:
 
 
 def _find_caption(info: Dict) -> Optional[Dict]:
+    """
+    Cherche un transcript disponible. Priorité: anglais (langue la plus commune),
+    puis français, puis n'importe quelle langue disponible.
+    """
     subtitles = info.get("subtitles") or {}
     auto_captions = info.get("automatic_captions") or {}
 
+    # 1. Chercher dans les langues préférées (anglais en priorité)
     for lang in LANG_PREFERENCES:
         entry = _select_caption_entry(subtitles.get(lang, []))
         if entry:
@@ -38,6 +43,7 @@ def _find_caption(info: Dict) -> Optional[Dict]:
         if entry:
             return entry
 
+    # 2. Si rien trouvé, prendre n'importe quelle langue disponible
     for source in (subtitles, auto_captions):
         for entries in source.values():
             entry = _select_caption_entry(entries)

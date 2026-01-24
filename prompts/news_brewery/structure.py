@@ -48,8 +48,8 @@ RÈGLES STRICTES
 - Sortie en texte brut uniquement, sans JSON, sans markdown, sans numérotation
 - Un sujet = un titre + un paragraphe complet
 
-LANGUE
-FR
+LANGUE DE SORTIE
+🇫🇷 FRANÇAIS UNIQUEMENT — Tu dois produire du contenu en français.
 
 FORMAT DE SORTIE (EXACT)
 Titre du sujet 1
