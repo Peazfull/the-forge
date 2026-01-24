@@ -129,5 +129,5 @@ RAPPELS
 - Favorise les records et corrections majeures
 - Pénalise les prédictions et analyses techniques
 - Pénalité -5 à -10 pts si source = newsletter
-- Retourne UNIQUEMENT : {"score": X}
+- Retourne UNIQUEMENT un objet JSON : {"score": X}
 """

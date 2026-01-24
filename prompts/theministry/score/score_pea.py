@@ -135,5 +135,5 @@ RAPPELS
 - Valorise les M&A et contrats majeurs
 - Pénalise les annonces produit sans impact valorisation
 - Pénalité -5 à -10 pts si source = newsletter
-- Retourne UNIQUEMENT : {"score": X}
+- Retourne UNIQUEMENT un objet JSON : {"score": X}
 """
