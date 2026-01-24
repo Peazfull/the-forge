@@ -356,9 +356,11 @@ with st.expander("🧩 Preview IA (concaténé)", expanded=True):
             if not st.session_state.yt_selected:
                 st.error("Aucune vidéo sélectionnée.")
             else:
+                # Clear les previews précédentes avant de générer
                 st.session_state.yt_ai_preview_text = ""
                 st.session_state.yt_temp_text = ""
                 st.session_state.yt_status_log = []
+                
                 selected_videos = list(st.session_state.yt_selected.values())
 
                 with st.spinner("Traitement des vidéos…"):
@@ -377,10 +379,14 @@ with st.expander("🧩 Preview IA (concaténé)", expanded=True):
                     st.caption("Erreurs détectées :")
                     for err in errors[:5]:
                         st.write(f"⚠️ {err}")
+                
+                # Force le refresh pour afficher le nouveau contenu
+                st.rerun()
 
     with col_clear_preview:
         if st.button("🧹 Clear preview", use_container_width=True, key="yt_clear_preview"):
             st.session_state.yt_ai_preview_text = ""
+            st.rerun()
 
     if st.session_state.yt_status_log:
         st.markdown("**Statut :**")
