@@ -3,7 +3,6 @@ import uuid
 import streamlit as st
 
 from services.hand_brewery.article_pipeline import (
-    run_rewrite,
     run_extract_news,
     run_jsonify,
 )
@@ -23,7 +22,6 @@ def _new_article(raw_text: str = "") -> dict:
     return {
         "id": str(uuid.uuid4()),
         "raw_text": raw_text,
-        "rewrite_text": "",
         "extract_text": "",
         "final_items": [],
         "status": "idle",
@@ -42,7 +40,6 @@ def _get_article_index(article_id: str) -> int:
 
 def _reset_article(article: dict) -> None:
     article["raw_text"] = ""
-    article["rewrite_text"] = ""
     article["extract_text"] = ""
     article["final_items"] = []
     article["status"] = "idle"
@@ -62,22 +59,21 @@ def _set_questions(article: dict, questions: list) -> None:
     article["questions"] = questions or []
 
 
-def _run_rewrite(article: dict) -> bool:
+def _run_extract(article: dict) -> bool:
+    """
+    Appelle run_extract_news qui fait structure (anti-plagiat + extraction).
+    """
     article["status"] = "processing"
     article["error"] = None
     article["needs_clarification"] = False
     article["questions"] = []
 
-    result = run_rewrite(article["raw_text"])
+    result = run_extract_news(article["raw_text"])
     if result["status"] != "success":
         _set_error(article, result.get("message", "Erreur inconnue"))
         return False
-
-    article["rewrite_text"] = result.get("rewrite_text", "")
-    if result.get("needs_clarification"):
-        _set_questions(article, result.get("questions", []))
-        return False
-
+    
+    article["extract_text"] = result.get("extracted_text", "")
     article["status"] = "ready"
     return True
 
@@ -100,19 +96,6 @@ def _run_jsonify(article: dict) -> bool:
     return True
 
 
-def _run_extract(article: dict) -> bool:
-    article["status"] = "processing"
-    article["error"] = None
-    article["needs_clarification"] = False
-    article["questions"] = []
-
-    result = run_extract_news(article["rewrite_text"])
-    if result["status"] != "success":
-        _set_error(article, result.get("message", "Erreur inconnue"))
-        return False
-    article["extract_text"] = result.get("extracted_text", "")
-    article["status"] = "ready"
-    return True
 
 
 # ======================================================
@@ -186,21 +169,19 @@ else:
         article_id = article["id"]
         with st.expander(f"📝 Article {idx}", expanded=True):
             raw_key = f"raw_{article_id}"
-            rewrite_key = f"rewrite_{article_id}"
             extract_key = f"extract_{article_id}"
 
             col_actions_1, col_actions_2, col_actions_3 = st.columns(3)
 
             with col_actions_1:
-                if st.button("▶ Générer preview", use_container_width=True, key=f"run_{article_id}"):
-                    _run_rewrite(article)
+                if st.button("🧠 Structurer & Extraire", use_container_width=True, key=f"run_{article_id}"):
+                    _run_extract(article)
                     st.rerun()
 
             with col_actions_2:
                 if st.button("🧹 Clear article", use_container_width=True, key=f"clear_{article_id}"):
                     _reset_article(article)
                     st.session_state[raw_key] = ""
-                    st.session_state[rewrite_key] = ""
                     st.session_state[extract_key] = ""
                     st.rerun()
 
@@ -229,23 +210,6 @@ else:
                 key=raw_key,
             )
             article["raw_text"] = st.session_state[raw_key]
-
-            st.divider()
-            st.markdown("**Preview rewrite (buffer éditable)**")
-            if rewrite_key not in st.session_state:
-                st.session_state[rewrite_key] = article.get("rewrite_text", "")
-            st.text_area(
-                label="",
-                height=220,
-                key=rewrite_key,
-            )
-            article["rewrite_text"] = st.session_state[rewrite_key]
-
-            col_extract, _ = st.columns(2)
-            with col_extract:
-                if st.button("🧠 Extraire news", use_container_width=True, key=f"extract_run_{article_id}"):
-                    _run_extract(article)
-                    st.rerun()
 
             if article.get("extract_text"):
                 st.markdown("**Preview news extraites (buffer éditable)**")
