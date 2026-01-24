@@ -331,15 +331,21 @@ with st.expander("🎬 Dernières vidéos", expanded=True):
 
             with col_select:
                 video_id = video.get("video_id", "")
+                # Callback pour mettre à jour immédiatement la sélection
+                def on_checkbox_change(vid_id, vid_data):
+                    def callback():
+                        if st.session_state[f"yt_select_{vid_id}"]:
+                            st.session_state.yt_selected[vid_id] = vid_data
+                        else:
+                            st.session_state.yt_selected.pop(vid_id, None)
+                    return callback
+                
                 checked = st.checkbox(
                     "Sélectionner",
                     value=video_id in st.session_state.yt_selected,
-                    key=f"yt_select_{video_id}"
+                    key=f"yt_select_{video_id}",
+                    on_change=on_checkbox_change(video_id, video)
                 )
-                if checked and video_id:
-                    st.session_state.yt_selected[video_id] = video
-                elif video_id and video_id in st.session_state.yt_selected:
-                    st.session_state.yt_selected.pop(video_id, None)
 
             st.markdown("---")
 
