@@ -208,13 +208,15 @@ with st.container():
                 # Afficher message de debug si échec total
                 if success_count == 0 and error_count > 0:
                     st.error(f"🚨 AUCUN item scoré avec succès ! Dernière erreur: {last_error_msg}")
+                    st.warning("⚠️ Ne pas relancer tout de suite, lire l'erreur ci-dessus !")
+                    # Ne pas rerun immédiatement pour laisser voir l'erreur
                 elif success_count == 0 and error_count == 0:
                     st.warning("⚠️ Process terminé mais aucun résultat (succès=0, erreur=0). Problème de logique ?")
                 else:
                     st.success(f"🎉 Scoring terminé ! {success_count}/{total} items traités avec succès.")
-                
-                # Forcer le rechargement des stats
-                st.rerun()
+                    # Forcer le rechargement des stats seulement si succès
+                    time.sleep(1)
+                    st.rerun()
 
 st.markdown("")
 

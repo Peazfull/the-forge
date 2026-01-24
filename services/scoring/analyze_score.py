@@ -164,10 +164,17 @@ SOURCE: {source_type or "Non renseigné"}
         }
     except Exception as e:
         error_msg = str(e)
+        # Capturer le détail complet de l'erreur OpenAI
+        if hasattr(e, 'response'):
+            try:
+                error_detail = e.response.json() if hasattr(e.response, 'json') else str(e.response)
+                error_msg = f"OpenAI Error: {error_msg} | Detail: {error_detail}"
+            except:
+                pass
         if "timeout" in error_msg.lower():
             error_msg = f"Timeout ({REQUEST_TIMEOUT}s dépassé)"
         return {
             "status": "error",
-            "message": f"Erreur: {error_msg}",
+            "message": error_msg,
             "score": None
         }
