@@ -4,7 +4,7 @@ import base64
 from db.supabase_client import get_supabase
 from services.carousel.carousel_eco_service import insert_items_to_carousel_eco, get_carousel_eco_items
 from services.carousel.generate_carousel_texts_service import generate_all_carousel_texts, update_carousel_text
-from services.carousel.vertex_ai_image_service import generate_carousel_image_vertex
+from services.carousel.image_generation_service import generate_carousel_image
 
 # ======================================================
 # CUSTOM CSS
@@ -604,7 +604,7 @@ if st.session_state.eco_modal_item:
 # ======================================================
 
 with st.expander("🎨 Test Image", expanded=False):
-    st.caption("Génération d'image avec Nano Banana Pro · Google Gen AI SDK (nouveau SDK unifié 2026)")
+    st.caption("Génération d'image avec Nano Banana Pro (Gemini 3 Pro Image) · Retry automatique si overload")
     st.markdown("")
     
     # Zone de prompt
@@ -625,9 +625,9 @@ with st.expander("🎨 Test Image", expanded=False):
                 progress_placeholder = st.empty()
                 
                 with progress_placeholder.container():
-                    st.info("🎨 Génération HD (Nano Banana Pro via Vertex AI)...")
+                    st.info("🎨 Génération HD (Nano Banana Pro - Gemini API)...")
                 
-                result = generate_carousel_image_vertex(image_prompt)
+                result = generate_carousel_image(image_prompt)
                 
                 if result["status"] == "success":
                     progress_placeholder.empty()
@@ -656,10 +656,13 @@ with st.expander("🎨 Test Image", expanded=False):
                 try:
                     image_bytes = base64.b64decode(result["image_data"])
                     # Afficher le modèle et la résolution utilisés
-                    model_used = result.get("model_used", "Nano-Banana-Pro")
-                    resolution = result.get("resolution", "1024x1024")
+                    model_used = result.get("model_used", "")
+                    resolution = result.get("resolution", "2K")
                     
-                    caption = f"✨ Nano Banana Pro (Google Gen AI SDK · Vertex AI)"
+                    if "flash" in model_used.lower():
+                        caption = f"⚡ Gemini 2.5 Flash (fallback) · {resolution}"
+                    else:
+                        caption = f"✨ Nano Banana Pro (Gemini 3 Pro Image) · {resolution}"
                     
                     st.image(image_bytes, caption=caption, use_container_width=True)
                 except Exception as e:
