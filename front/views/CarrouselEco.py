@@ -1,10 +1,6 @@
 import streamlit as st
 from db.supabase_client import get_supabase
-from services.carousel.carousel_eco_service import (
-    insert_items_to_carousel_eco,
-    get_carousel_eco_items,
-    clear_carousel_eco
-)
+from services.carousel.carousel_eco_service import insert_items_to_carousel_eco
 
 # ======================================================
 # PAGE CONFIG
@@ -239,60 +235,6 @@ if st.session_state.eco_selected_items:
                 use_container_width=True,
                 help="Sélectionnez exactement 8 items"
             )
-
-
-# ======================================================
-# PREVIEW CAROUSEL ECO (contenu actuel de la table)
-# ======================================================
-
-with st.expander("🎨 Preview Carousel Eco (table actuelle)", expanded=False):
-    
-    carousel_data = get_carousel_eco_items()
-    
-    if carousel_data["status"] == "error":
-        st.error(f"❌ Erreur : {carousel_data.get('message', 'Erreur inconnue')}")
-    elif carousel_data["count"] == 0:
-        st.info("📭 Aucun item dans le carousel pour le moment")
-    else:
-        st.success(f"✅ {carousel_data['count']} items dans le carousel")
-        
-        # Afficher les items
-        for item in carousel_data["items"]:
-            position = item.get("position")
-            title = item.get("title", "Sans titre")
-            score = item.get("score_global", 0)
-            tags = item.get("tags", "")
-            labels = item.get("labels", "")
-            
-            col_pos, col_title, col_score, col_meta = st.columns([0.5, 3, 1, 1.5])
-            
-            with col_pos:
-                st.markdown(f"**#{position}**")
-            
-            with col_title:
-                st.markdown(title)
-            
-            with col_score:
-                if score >= 85:
-                    st.markdown(f"🟢 **{score}**")
-                elif score >= 70:
-                    st.markdown(f"🟡 **{score}**")
-                else:
-                    st.markdown(f"⚪ **{score}**")
-            
-            with col_meta:
-                st.caption(f"`{tags}` · `{labels}`")
-            
-            st.divider()
-        
-        # Bouton pour vider le carousel
-        if st.button("🗑️ Vider le carousel", type="secondary", use_container_width=True):
-            clear_result = clear_carousel_eco()
-            if clear_result["status"] == "success":
-                st.success(f"✅ {clear_result['deleted']} items supprimés")
-                st.rerun()
-            else:
-                st.error(f"❌ {clear_result['message']}")
 
 
 # ======================================================
