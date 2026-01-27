@@ -1,6 +1,7 @@
 """
 Service de génération d'images pour les carousels
-Utilise l'API Google Gemini Imagen
+Utilise l'API Google Gemini Nano Banana Pro
+Documentation: https://ai.google.dev/gemini-api/docs/image-generation
 """
 
 import streamlit as st
@@ -11,7 +12,7 @@ from typing import Dict
 
 def generate_carousel_image(prompt: str) -> Dict[str, object]:
     """
-    Génère une image 1:1 2K via l'API Google Generative AI (Imagen)
+    Génère une image 1:1 2K via Nano Banana Pro (gemini-3-pro-image-preview)
     
     Args:
         prompt: Le prompt de génération d'image
@@ -27,23 +28,21 @@ def generate_carousel_image(prompt: str) -> Dict[str, object]:
     try:
         api_key = st.secrets["GEMINI_API_KEY"]
         
-        # Essayer avec l'API Gemini 2.0 qui supporte les images
-        # Documentation: https://ai.google.dev/gemini-api/docs/imagen
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key={api_key}"
+        # Endpoint pour Nano Banana Pro
+        # Documentation: https://ai.google.dev/gemini-api/docs/image-generation
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent?key={api_key}"
         
         payload = {
-            "instances": [
-                {
-                    "prompt": prompt
+            "contents": [{
+                "parts": [
+                    {"text": prompt}
+                ]
+            }],
+            "generationConfig": {
+                "imageConfig": {
+                    "aspectRatio": "1:1",  # Format carré
+                    "imageSize": "2K"      # Résolution 2048x2048
                 }
-            ],
-            "parameters": {
-                "sampleCount": 1,
-                "aspectRatio": "1:1",
-                "negativePrompt": "",
-                "safetySetting": "block_some",
-                "personGeneration": "allow_adult",
-                "sampleImageSize": "2048"  # 2K
             }
         }
         
@@ -51,48 +50,36 @@ def generate_carousel_image(prompt: str) -> Dict[str, object]:
             "Content-Type": "application/json"
         }
         
-        response = requests.post(url, json=payload, headers=headers, timeout=90)
+        response = requests.post(url, json=payload, headers=headers, timeout=120)
         
         if response.status_code == 200:
             data = response.json()
             
-            # Débugger la réponse complète pour voir le format
-            print(f"DEBUG - Response data keys: {data.keys()}")
+            # Format de réponse Gemini API standard
+            # Structure: {"candidates": [{"content": {"parts": [{"text": "..."}, {"inlineData": {"data": "base64..."}}]}}]}
             
-            # Essayer différents formats de réponse possibles
-            image_data = None
+            if "candidates" in data and len(data["candidates"]) > 0:
+                candidate = data["candidates"][0]
+                
+                if "content" in candidate and "parts" in candidate["content"]:
+                    parts = candidate["content"]["parts"]
+                    
+                    # Parcourir les parts pour trouver l'image
+                    for part in parts:
+                        if "inlineData" in part and "data" in part["inlineData"]:
+                            image_data = part["inlineData"]["data"]
+                            
+                            return {
+                                "status": "success",
+                                "image_data": image_data,
+                                "image_url": None
+                            }
             
-            # Format 1: generatedImages avec base64
-            if "generatedImages" in data and len(data["generatedImages"]) > 0:
-                image_obj = data["generatedImages"][0]
-                if "imageBytes" in image_obj:
-                    image_data = image_obj["imageBytes"]
-                elif "image" in image_obj:
-                    image_data = image_obj["image"]
-            
-            # Format 2: predictions (Vertex AI style)
-            elif "predictions" in data and len(data["predictions"]) > 0:
-                prediction = data["predictions"][0]
-                if "bytesBase64Encoded" in prediction:
-                    image_data = prediction["bytesBase64Encoded"]
-                elif "image" in prediction:
-                    image_data = prediction["image"]
-            
-            # Format 3: image directement dans la réponse
-            elif "image" in data:
-                image_data = data["image"]
-            
-            if image_data:
-                return {
-                    "status": "success",
-                    "image_data": image_data,
-                    "image_url": None
-                }
-            else:
-                return {
-                    "status": "error",
-                    "message": f"Format de réponse inattendu. Keys disponibles: {list(data.keys())}"
-                }
+            # Si on arrive ici, le format n'est pas celui attendu
+            return {
+                "status": "error",
+                "message": f"Format de réponse inattendu. Keys: {list(data.keys())}. Contenu: {str(data)[:500]}"
+            }
         else:
             error_detail = f"Status: {response.status_code}\nURL: {url}\nRéponse: {response.text[:500]}"
             return {
