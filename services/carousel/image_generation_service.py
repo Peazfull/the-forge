@@ -7,6 +7,7 @@ Documentation: https://ai.google.dev/gemini-api/docs/image-generation
 import streamlit as st
 import requests
 import base64
+import time
 from typing import Dict
 
 
@@ -50,7 +51,26 @@ def generate_carousel_image(prompt: str) -> Dict[str, object]:
             "Content-Type": "application/json"
         }
         
-        response = requests.post(url, json=payload, headers=headers, timeout=180)
+        # Retry automatique en cas de surcharge (503)
+        max_retries = 3
+        retry_delays = [5, 10, 20]  # Délais progressifs en secondes
+        
+        for attempt in range(max_retries):
+            response = requests.post(url, json=payload, headers=headers, timeout=180)
+            
+            # Si succès, on sort de la boucle
+            if response.status_code == 200:
+                break
+            
+            # Si 503 (overloaded) et qu'il reste des tentatives
+            if response.status_code == 503 and attempt < max_retries - 1:
+                wait_time = retry_delays[attempt]
+                print(f"Modèle surchargé, retry dans {wait_time}s (tentative {attempt + 1}/{max_retries})")
+                time.sleep(wait_time)
+                continue
+            
+            # Pour les autres erreurs ou dernière tentative, on sort
+            break
         
         if response.status_code == 200:
             data = response.json()
@@ -82,9 +102,16 @@ def generate_carousel_image(prompt: str) -> Dict[str, object]:
             }
         else:
             error_detail = f"Status: {response.status_code}\nURL: {url}\nRéponse: {response.text[:500]}"
+            
+            # Message spécifique pour 503
+            if response.status_code == 503:
+                error_msg = f"Le modèle est surchargé (après {max_retries} tentatives). Réessayez dans quelques minutes."
+            else:
+                error_msg = f"Erreur API ({response.status_code}): {response.text}"
+            
             return {
                 "status": "error",
-                "message": f"Erreur API ({response.status_code}): {response.text}",
+                "message": error_msg,
                 "debug": error_detail
             }
             
