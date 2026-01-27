@@ -604,7 +604,7 @@ if st.session_state.eco_modal_item:
 # ======================================================
 
 with st.expander("🎨 Test Image", expanded=False):
-    st.caption("Test de génération d'image avec Google Gemini Imagen")
+    st.caption("Génération d'image avec Gemini 3 Pro Image via Vertex AI (meilleur rendu + stabilité)")
     st.markdown("")
     
     # Zone de prompt
@@ -625,7 +625,7 @@ with st.expander("🎨 Test Image", expanded=False):
                 progress_placeholder = st.empty()
                 
                 with progress_placeholder.container():
-                    st.info("🎨 Génération HD (1K → 2K avec upscaling)...")
+                    st.info("🎨 Génération HD (Gemini 3 Pro via Vertex AI)...")
                 
                 result = generate_carousel_image_vertex(image_prompt)
                 
@@ -662,12 +662,12 @@ with st.expander("🎨 Test Image", expanded=False):
                     image_bytes = base64.b64decode(result["image_data"])
                     # Afficher le modèle et la résolution utilisés
                     model_used = result.get("model_used", "")
-                    resolution = result.get("resolution", "1K")
+                    resolution = result.get("resolution", "1024x1024")
                     
-                    if "Fast" in model_used:
-                        caption = f"⚡ Vertex AI Imagen 3.0 Fast · {resolution}"
+                    if "flash" in model_used.lower():
+                        caption = f"⚡ Gemini 2.5 Flash (via Vertex AI)"
                     else:
-                        caption = f"✨ Vertex AI Imagen 3.0 · {resolution}"
+                        caption = f"✨ Gemini 3 Pro Image Preview (via Vertex AI)"
                     
                     st.image(image_bytes, caption=caption, use_container_width=True)
                 except Exception as e:

@@ -1,5 +1,6 @@
 """
 Service de génération d'images via Google Cloud Vertex AI
+Utilise Gemini 3 Pro Image Preview (meilleur rendu) via l'infrastructure Vertex AI
 Plus stable et fiable que l'API Gemini directe
 Documentation: https://cloud.google.com/vertex-ai/docs/generative-ai/image/generate-images
 """
@@ -10,23 +11,23 @@ import base64
 from typing import Dict
 from google.cloud import aiplatform
 from vertexai.preview.vision_models import ImageGenerationModel
-import time
 
 
 def generate_image_vertex_ai(prompt: str, quality: str = "standard") -> Dict[str, object]:
     """
-    Génère une image via Vertex AI Imagen
+    Génère une image via Vertex AI - Gemini 3 Pro Image Preview (meilleur rendu)
     
     Args:
-        prompt: Le prompt de génération
-        quality: "standard" (1024x1024, rapide) ou "hd" (2048x2048, qualité)
+        prompt: Le prompt de génération (contrôle total utilisateur)
+        quality: "hd" (gemini-3-pro-image-preview, meilleur rendu) 
+                 ou "standard" (gemini-2.5-flash-image, rapide)
         
     Returns:
         {
             "status": "success" | "error",
             "image_data": "base64...",
-            "model_used": "vertex-ai-imagen",
-            "resolution": "1K" | "2K",
+            "model_used": "vertex-ai-gemini-3-pro-image",
+            "resolution": "1024x1024" (natif),
             "message": "..." (si erreur)
         }
     """
@@ -60,26 +61,28 @@ def generate_image_vertex_ai(prompt: str, quality: str = "standard") -> Dict[str
         # Initialiser Vertex AI
         aiplatform.init(project=project_id, location=location)
         
-        # Charger le modèle Imagen 3.0 (nouveau modèle 2026)
+        # Charger Gemini 3 Pro Image Preview via Vertex AI (meilleur rendu)
         if quality == "hd":
-            # Imagen 3.0 (haute qualité)
-            model = ImageGenerationModel.from_pretrained("imagen-3.0-generate-001")
+            # Gemini 3 Pro Image Preview (meilleur qualité)
+            model = ImageGenerationModel.from_pretrained("gemini-3-pro-image-preview")
         else:
-            # Imagen 3.0 Fast (rapide)
-            model = ImageGenerationModel.from_pretrained("imagen-3.0-fast-generate-001")
+            # Gemini 2.5 Flash Image (rapide)
+            model = ImageGenerationModel.from_pretrained("gemini-2.5-flash-image")
         
-        # Générer l'image avec Imagen 3.0
-        # Ajouter des paramètres de qualité
+        # Générer l'image avec Gemini 3 Pro Image - PARAMÈTRES OPTIMAUX
+        # Pas d'upscaling artificiel, on veut le meilleur output natif direct
         generation_params = {
             "prompt": prompt,
             "number_of_images": 1,
             "aspect_ratio": "1:1",
+            "safety_filter_level": "block_few",  # Moins de restrictions
+            "person_generation": "allow_adult",  # Autoriser les personnes
+            "add_watermark": False,  # Pas de watermark
         }
         
-        # Si HD, ajouter des paramètres de qualité supérieure
-        if quality == "hd":
-            generation_params["safety_filter_level"] = "block_few"
-            generation_params["person_generation"] = "allow_adult"
+        # Mode HD : utilise gemini-3-pro-image-preview (meilleur rendu photoréaliste)
+        # Mode Standard : utilise gemini-2.5-flash-image (rapide)
+        # Pas de modification du prompt pour laisser l'utilisateur avoir le contrôle total
         
         response = model.generate_images(**generation_params)
         
@@ -87,38 +90,17 @@ def generate_image_vertex_ai(prompt: str, quality: str = "standard") -> Dict[str
         if response.images and len(response.images) > 0:
             image = response.images[0]
             
-            # SI HD : Upscaler l'image à 2048x2048 (2K)
-            if quality == "hd":
-                try:
-                    print("🔄 Upscaling de l'image à 2K...")
-                    upscaled_images = model.upscale_image(
-                        image=image,
-                        upscale_factor="x2"  # 1024 → 2048
-                    )
-                    
-                    if upscaled_images and len(upscaled_images) > 0:
-                        image = upscaled_images[0]  # Utiliser l'image upscalée
-                        resolution = "2K"
-                        print("✅ Upscaling réussi : 2048x2048")
-                    else:
-                        # Fallback : garder l'image 1K si upscaling échoue
-                        resolution = "1K (upscaling échoué)"
-                        print("⚠️ Upscaling échoué, utilisation de l'image 1K")
-                        
-                except Exception as upscale_error:
-                    # Si upscaling échoue, garder l'image 1K
-                    resolution = "1K (upscaling échoué)"
-                    print(f"⚠️ Erreur upscaling : {upscale_error}")
-            else:
-                # Standard : pas d'upscaling
-                resolution = "1K"
+            # PAS D'UPSCALING ARTIFICIEL
+            # On veut le meilleur output natif direct d'Imagen 3.0
+            # Résolution native : 1024x1024
             
             # Convertir en base64
-            # Imagen 3.0 retourne l'image via _image_bytes
             image_bytes = image._image_bytes
             image_base64 = base64.b64encode(image_bytes).decode('utf-8')
             
-            model_name = "Imagen 3.0" if quality == "hd" else "Imagen 3.0 Fast"
+            # Gemini génère en 1024x1024 natif
+            resolution = "1024x1024"
+            model_name = "Gemini-3-Pro-Image" if quality == "hd" else "Gemini-2.5-Flash-Image"
             
             return {
                 "status": "success",
@@ -142,23 +124,32 @@ def generate_image_vertex_ai(prompt: str, quality: str = "standard") -> Dict[str
 
 def generate_carousel_image_vertex(prompt: str) -> Dict[str, object]:
     """
-    Génère une image pour carousel avec fallback automatique Imagen 3.0 → Fast
+    Génère une image pour carousel avec GEMINI 3 PRO IMAGE (meilleur rendu) via Vertex AI
     
     Stratégie:
-    1. Essayer Imagen 3.0 (haute qualité, plus lent)
-    2. Si échec → Fallback Imagen 3.0 Fast (rapide)
+    1. Essayer Gemini 3 Pro Image Preview (meilleur rendu natif)
+    2. Si échec → Fallback Gemini 2.5 Flash Image (rapide)
     
-    Note: Les deux génèrent en 1024x1024 (1K), mais Imagen 3.0 a une meilleure qualité
+    Avantages Vertex AI:
+    - Infrastructure stable et dédiée (pas d'overload comme l'API directe)
+    - Meilleur rendu avec gemini-3-pro-image-preview
+    - PAS d'upscaling artificiel
+    
+    Qualité HD:
+    - Génération 1024x1024 native avec paramètres optimaux
+    - Modèle gemini-3-pro-image-preview (meilleur qualité photoréaliste)
+    - Contrôle total du prompt par l'utilisateur
+    - Filtres minimaux pour plus de détails
     
     Args:
-        prompt: Le prompt de génération d'image
+        prompt: Le prompt de génération d'image (utilisé tel quel)
         
     Returns:
         {
             "status": "success" | "error",
             "image_data": "...",
             "model_used": "...",
-            "resolution": "1K",
+            "resolution": "1024x1024",
             "message": "..." (si erreur)
         }
     """
@@ -183,5 +174,5 @@ def generate_carousel_image_vertex(prompt: str) -> Dict[str, object]:
     
     return {
         "status": "error",
-        "message": f"❌ ÉCHEC COMPLET (Imagen 3.0 + Fast)\n\n🔴 Imagen 3.0:\n{hd_msg}\n\n🟡 Imagen 3.0 Fast:\n{std_msg}"
+        "message": f"❌ ÉCHEC COMPLET (Gemini Pro + Flash)\n\n🔴 Gemini 3 Pro Image:\n{hd_msg}\n\n🟡 Gemini 2.5 Flash:\n{std_msg}"
     }

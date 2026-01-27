@@ -1,6 +1,6 @@
 """
 Service de génération d'images pour les carousels
-Utilise l'API Google Gemini Nano Banana Pro
+Utilise l'API Google Gemini 3 Pro Image Preview (meilleur rendu)
 Documentation: https://ai.google.dev/gemini-api/docs/image-generation
 """
 
