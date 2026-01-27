@@ -114,19 +114,28 @@ def _generate_with_gpt_image(prompt: str) -> Dict[str, object]:
             prompt=prompt,
             size="1024x1024",  # Format 1:1
             quality="high",  # Qualité haute (low/medium/high)
-            response_format="b64_json",  # Direct en base64
         )
         
-        # Récupérer l'image en base64
-        image_base64 = response.data[0].b64_json
+        # Récupérer l'URL de l'image et la télécharger en base64
+        image_url = response.data[0].url
         
-        return {
-            "status": "success",
-            "image_data": image_base64,
-            "image_url": None,
-            "model_used": "gpt-image-1.5",
-            "resolution": "1024x1024"
-        }
+        # Télécharger l'image
+        img_response = requests.get(image_url, timeout=30)
+        if img_response.status_code == 200:
+            image_base64 = base64.b64encode(img_response.content).decode('utf-8')
+            
+            return {
+                "status": "success",
+                "image_data": image_base64,
+                "image_url": image_url,
+                "model_used": "gpt-image-1.5",
+                "resolution": "1024x1024"
+            }
+        else:
+            return {
+                "status": "error",
+                "message": f"❌ Erreur téléchargement image GPT Image 1.5 : {img_response.status_code}"
+            }
             
     except Exception as e:
         return {
