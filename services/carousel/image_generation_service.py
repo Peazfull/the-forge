@@ -106,7 +106,7 @@ def generate_carousel_image(prompt: str) -> Dict[str, object]:
     Génère une image 1:1 avec fallback automatique Pro → Flash
     
     Stratégie:
-    1. Essayer Nano Banana Pro (2K) - 3 min, 3 retries
+    1. Essayer Nano Banana Pro (2K) - 2 min, 3 retries
     2. Si échec → Fallback Nano Banana Flash (1K) - 2 min, 2 retries
     
     Args:
@@ -130,7 +130,7 @@ def generate_carousel_image(prompt: str) -> Dict[str, object]:
             image_size="2K",
             max_retries=3,
             retry_delays=[5, 10, 20],
-            timeout=180  # 3 minutes
+            timeout=120  # 2 minutes
         )
         
         if result_pro["status"] == "success":
