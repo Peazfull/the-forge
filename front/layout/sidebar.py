@@ -37,3 +37,20 @@ def render_sidebar():
                 st.session_state.current_page = "front/views/ScoreBrewery"
             if st.button("👁️ Preview finale", key="preview_brewery", use_container_width=True):
                 st.session_state.current_page = "front/views/PreviewBrewery"
+
+        # ===== MENU 3 =====
+        with st.expander("🎨 The Artist", expanded=False):
+            if st.button("🌍 Carrousel Eco", key="carrousel_eco", use_container_width=True):
+                st.session_state.current_page = "front/views/CarrouselEco"
+            if st.button("📊 Carrousel Bourse", key="carrousel_bourse", use_container_width=True):
+                st.session_state.current_page = "front/views/CarrouselBourse"
+            if st.button("🇫🇷 Carrousel PEA", key="carrousel_pea", use_container_width=True):
+                st.session_state.current_page = "front/views/CarrouselPEA"
+            if st.button("₿ Carrousel Crypto", key="carrousel_crypto", use_container_width=True):
+                st.session_state.current_page = "front/views/CarrouselCrypto"
+            if st.button("⚡ Breaking", key="breaking", use_container_width=True):
+                st.session_state.current_page = "front/views/Breaking"
+            if st.button("📖 Story", key="story", use_container_width=True):
+                st.session_state.current_page = "front/views/Story"
+            if st.button("📁 Carrousel Doss'", key="carrousel_doss", use_container_width=True):
+                st.session_state.current_page = "front/views/CarrouselDoss"
