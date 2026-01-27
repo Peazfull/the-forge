@@ -122,6 +122,7 @@ def generate_carousel_image(prompt: str) -> Dict[str, object]:
         }
     """
     # TENTATIVE 1 : Nano Banana Pro (haute qualité)
+    result_pro = None
     try:
         result_pro = _try_generate_image(
             model="gemini-3-pro-image-preview",
@@ -132,7 +133,8 @@ def generate_carousel_image(prompt: str) -> Dict[str, object]:
             timeout=120  # 2 minutes
         )
         
-        if result_pro["status"] == "success":
+        if result_pro and result_pro["status"] == "success":
+            result_pro["tried_fallback"] = False
             return result_pro
     except Exception as e:
         result_pro = {
@@ -140,7 +142,8 @@ def generate_carousel_image(prompt: str) -> Dict[str, object]:
             "message": f"Exception Pro: {str(e)}"
         }
     
-    # FALLBACK : Nano Banana Flash (rapide)
+    # Si on arrive ici, Pro a échoué → FALLBACK automatique
+    result_flash = None
     try:
         result_flash = _try_generate_image(
             model="gemini-2.5-flash-image",
@@ -151,7 +154,9 @@ def generate_carousel_image(prompt: str) -> Dict[str, object]:
             timeout=120  # 2 minutes
         )
         
-        if result_flash["status"] == "success":
+        if result_flash and result_flash["status"] == "success":
+            result_flash["tried_fallback"] = True
+            result_flash["pro_error"] = result_pro.get('message') if result_pro else "Erreur Pro"
             return result_flash
     except Exception as e:
         result_flash = {
@@ -159,10 +164,13 @@ def generate_carousel_image(prompt: str) -> Dict[str, object]:
             "message": f"Exception Flash: {str(e)}"
         }
     
-    # Les deux ont échoué
+    # Les deux ont échoué - Message détaillé
+    pro_msg = result_pro.get('message', 'Erreur inconnue') if result_pro else "Pro non exécuté"
+    flash_msg = result_flash.get('message', 'Erreur inconnue') if result_flash else "Flash non exécuté"
+    
     return {
         "status": "error",
-        "message": f"❌ Échec Pro ET Flash.\n• Pro: {result_pro.get('message', 'Erreur')}\n• Flash: {result_flash.get('message', 'Erreur')}"
+        "message": f"❌ ÉCHEC COMPLET (Pro + Flash)\n\n🔴 Nano Banana Pro (2K):\n{pro_msg}\n\n🟡 Nano Banana Flash (1K):\n{flash_msg}\n\n💡 Les deux modèles sont indisponibles. Réessayez dans quelques minutes."
     }
 
 
