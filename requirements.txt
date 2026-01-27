@@ -7,3 +7,4 @@ playwright
 feedparser
 yfinance
 pandas
+google-cloud-aiplatform

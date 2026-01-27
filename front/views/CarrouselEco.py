@@ -4,7 +4,7 @@ import base64
 from db.supabase_client import get_supabase
 from services.carousel.carousel_eco_service import insert_items_to_carousel_eco, get_carousel_eco_items
 from services.carousel.generate_carousel_texts_service import generate_all_carousel_texts, update_carousel_text
-from services.carousel.image_generation_service import generate_carousel_image
+from services.carousel.vertex_ai_image_service import generate_carousel_image_vertex
 
 # ======================================================
 # CUSTOM CSS
@@ -625,18 +625,19 @@ with st.expander("🎨 Test Image", expanded=False):
                 progress_placeholder = st.empty()
                 
                 with progress_placeholder.container():
-                    st.info("🎨 Tentative 1/2 · Nano Banana Pro (2K)...")
+                    st.info("🎨 Génération via Vertex AI (Google Cloud)...")
                 
-                result = generate_carousel_image(image_prompt)
+                result = generate_carousel_image_vertex(image_prompt)
                 
                 if result["status"] == "success":
                     progress_placeholder.empty()
                     st.session_state.test_image_result = result
                     # Afficher le modèle utilisé
-                    if "pro" in result.get("model_used", ""):
-                        st.success("✅ Image générée · Nano Banana Pro (2K)")
+                    resolution = result.get("resolution", "")
+                    if result.get("tried_fallback"):
+                        st.success(f"✅ Image générée · Vertex AI ({resolution}) · Fallback utilisé")
                     else:
-                        st.success("✅ Image générée · Nano Banana Flash (1K) · Fallback utilisé")
+                        st.success(f"✅ Image générée · Vertex AI ({resolution})")
                     st.rerun()
                 else:
                     progress_placeholder.empty()
@@ -660,12 +661,11 @@ with st.expander("🎨 Test Image", expanded=False):
                 try:
                     image_bytes = base64.b64decode(result["image_data"])
                     # Afficher la résolution basée sur le modèle utilisé
-                    model_used = result.get("model_used", "")
                     resolution = result.get("resolution", "")
-                    if "pro" in model_used:
-                        caption = f"✨ Nano Banana Pro · {resolution} (2048x2048)"
+                    if resolution == "2K":
+                        caption = f"✨ Vertex AI Imagen · HD (2048x2048)"
                     else:
-                        caption = f"⚡ Nano Banana Flash · {resolution} (1024x1024)"
+                        caption = f"⚡ Vertex AI Imagen · Standard (1024x1024)"
                     
                     st.image(image_bytes, caption=caption, use_container_width=True)
                 except Exception as e:
