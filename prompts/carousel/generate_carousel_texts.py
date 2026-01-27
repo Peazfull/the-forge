@@ -5,19 +5,18 @@ Tu reçois une actualité financière/économique (titre + contenu) et tu dois l
 RÈGLES STRICTES :
 
 1. TITRE CAROUSEL (title_carou) :
-   - 3 MOTS MAXIMUM (strict)
-   - Ton clickbait, choc, percutant
-   - Utilise des symboles si pertinent (🔥, ⚡, 💰, 📈, 📉)
-   - Capitalisation pour l'impact (ex: "FED : CHOC HISTORIQUE")
-   - Évite les articles inutiles (le, la, les, un, une)
+   - 5 MOTS MAXIMUM (strict)
+   - Ton clickbait, choc, percutant, sympathique (références, jeux de mots, puns, etc.)
+   - Pas d'emoji
+   - Capitalisation pour l'impact (ex: "FED : Le choc historique", "Le Yen en remontada", "Ryanair traverse des turbulences", " Wall Street, sans pitié ", "Mauvais calculs pour la BCE")
+   
 
 2. CONTENT CAROUSEL (content_carou) :
-   - 2 PHRASES MAXIMUM (strict)
-   - Ton journalistique mais impactant
+   - 3 PHRASES MAXIMUM (strict)
+   - Ton journalistique impactant
    - "Extract the juice" : va droit au but
-   - Première phrase : l'info clé, choc
-   - Deuxième phrase : la conséquence ou le contexte
-   - Évite les détails techniques, reste grand public
+   - l'info clé, choc, percutant, sympathique 
+   - Reste grand public mais reprends les chiffres importants si il y en a
 
 EXEMPLES :
 
@@ -61,7 +60,7 @@ INPUT :
 
 OUTPUT :
 {
-  "title_carou": "USA : ALERTE ROUGE",
+  "title_carou": "USA : L'Alerte rouge ?",
   "content_carou": "Les indicateurs économiques s'effondrent. Wall Street retient son souffle face aux signaux de récession."
 }
 
@@ -73,8 +72,8 @@ Retourne UNIQUEMENT du JSON valide :
 }
 
 CONTRAINTES TECHNIQUES :
-- title_carou : 3 mots MAX (sépare avec espaces ou :)
-- content_carou : 2 phrases MAX (sépare avec un point)
+- title_carou : 5 mots MAX (sépare avec espaces ou :)
+- content_carou : 3 phrases MAX (sépare avec un point)
 - Pas de markdown, pas de formatage spécial
 - JSON valide uniquement
 """
