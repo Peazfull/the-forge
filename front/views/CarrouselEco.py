@@ -625,18 +625,24 @@ with st.expander("🎨 Test Image", expanded=False):
         
         result = st.session_state.test_image_result
         
-        if result.get("image_data"):
-            # Décoder et afficher l'image base64
-            try:
-                image_bytes = base64.b64decode(result["image_data"])
-                st.image(image_bytes, caption="Image générée", use_container_width=True)
-            except Exception as e:
-                st.error(f"Erreur d'affichage : {str(e)}")
-        elif result.get("image_url"):
-            # Afficher l'image depuis l'URL
-            st.image(result["image_url"], caption="Image générée", use_container_width=True)
+        # Créer des colonnes pour limiter la taille de l'image (format vignette)
+        col_left, col_image, col_right = st.columns([1, 2, 1])
+        
+        with col_image:
+            if result.get("image_data"):
+                # Décoder et afficher l'image base64
+                try:
+                    image_bytes = base64.b64decode(result["image_data"])
+                    st.image(image_bytes, caption="Image 2048x2048", use_container_width=True)
+                except Exception as e:
+                    st.error(f"Erreur d'affichage : {str(e)}")
+            elif result.get("image_url"):
+                # Afficher l'image depuis l'URL
+                st.image(result["image_url"], caption="Image générée", use_container_width=True)
         
         # Bouton pour réinitialiser
-        if st.button("🗑️ Effacer", key="clear_test_image"):
-            del st.session_state.test_image_result
-            st.rerun()
+        col_clear_left, col_clear_btn, col_clear_right = st.columns([1, 2, 1])
+        with col_clear_btn:
+            if st.button("🗑️ Effacer", key="clear_test_image", use_container_width=True):
+                del st.session_state.test_image_result
+                st.rerun()
