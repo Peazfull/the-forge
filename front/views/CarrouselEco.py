@@ -12,7 +12,9 @@ st.divider()
 # SESSION STATE INIT
 # ======================================================
 
-if "eco_selected_items" not in st.session_state:
+# Flag pour savoir si on doit initialiser avec les 8 premiers
+if "eco_initialized" not in st.session_state:
+    st.session_state.eco_initialized = False
     st.session_state.eco_selected_items = []
 
 if "eco_modal_item" not in st.session_state:
@@ -64,6 +66,23 @@ def send_to_carousel():
     st.info("💡 Table carousel_eco à créer côté Supabase")
     # Reset sélection
     st.session_state.eco_selected_items = []
+    st.session_state.eco_initialized = False
+
+
+def move_up(item_id):
+    """Déplace un item vers le haut dans l'ordre de sélection"""
+    idx = st.session_state.eco_selected_items.index(item_id)
+    if idx > 0:
+        st.session_state.eco_selected_items[idx], st.session_state.eco_selected_items[idx - 1] = \
+            st.session_state.eco_selected_items[idx - 1], st.session_state.eco_selected_items[idx]
+
+
+def move_down(item_id):
+    """Déplace un item vers le bas dans l'ordre de sélection"""
+    idx = st.session_state.eco_selected_items.index(item_id)
+    if idx < len(st.session_state.eco_selected_items) - 1:
+        st.session_state.eco_selected_items[idx], st.session_state.eco_selected_items[idx + 1] = \
+            st.session_state.eco_selected_items[idx + 1], st.session_state.eco_selected_items[idx]
 
 
 # ======================================================
@@ -78,6 +97,10 @@ with st.expander("📰 Bulletin Eco", expanded=True):
     if not items:
         st.warning("Aucun item ECO trouvé en DB")
     else:
+        # Initialisation : cocher les 8 premiers par défaut (une seule fois)
+        if not st.session_state.eco_initialized and len(items) >= 8:
+            st.session_state.eco_selected_items = [item["id"] for item in items[:8]]
+            st.session_state.eco_initialized = True
         # Header
         selected_count = len(st.session_state.eco_selected_items)
         st.caption(f"📊 Top 14 actualités ECO · **{selected_count} / 8** sélectionnées")
@@ -103,18 +126,16 @@ with st.expander("📰 Bulletin Eco", expanded=True):
                 is_selected = item_id in st.session_state.eco_selected_items
                 is_disabled = (not is_selected) and (selected_count >= 8)
                 
-                if st.checkbox(
+                # Utiliser un callback pour éviter le rerun qui ouvre la modale
+                st.checkbox(
                     label="",
                     value=is_selected,
                     key=f"check_eco_{item_id}",
                     disabled=is_disabled,
-                    label_visibility="collapsed"
-                ):
-                    if not is_selected:
-                        toggle_selection(item_id)
-                else:
-                    if is_selected:
-                        toggle_selection(item_id)
+                    label_visibility="collapsed",
+                    on_change=toggle_selection,
+                    args=(item_id,)
+                )
             
             with col_title:
                 st.markdown(f"**{idx}.** {title_short}")
@@ -143,11 +164,63 @@ with st.expander("📰 Bulletin Eco", expanded=True):
             
             st.divider()
         
-        # Action button
         st.markdown("")
+
+
+# ======================================================
+# ORDRE DE SÉLECTION
+# ======================================================
+
+if st.session_state.eco_selected_items:
+    with st.expander("🔢 Ordre du carrousel (drag to reorder)", expanded=True):
+        st.caption("👇 Utilisez les flèches pour réordonner les 8 items sélectionnés")
+        
+        # Récupérer les items complets depuis la DB
+        selected_count = len(st.session_state.eco_selected_items)
+        
+        if selected_count > 0:
+            all_items = fetch_top_eco_items(limit=14)
+            items_dict = {item["id"]: item for item in all_items}
+            
+            for position, item_id in enumerate(st.session_state.eco_selected_items, start=1):
+                item = items_dict.get(item_id)
+                if not item:
+                    continue
+                
+                col_pos, col_arrows, col_title, col_score = st.columns([0.5, 1, 4, 1])
+                
+                with col_pos:
+                    st.markdown(f"**#{position}**")
+                
+                with col_arrows:
+                    col_up, col_down = st.columns(2)
+                    with col_up:
+                        if position > 1:
+                            if st.button("⬆️", key=f"up_{item_id}", help="Monter"):
+                                move_up(item_id)
+                                st.rerun()
+                    with col_down:
+                        if position < selected_count:
+                            if st.button("⬇️", key=f"down_{item_id}", help="Descendre"):
+                                move_down(item_id)
+                                st.rerun()
+                
+                with col_title:
+                    title = item.get("title", "Sans titre")
+                    title_short = title[:60] + "..." if len(title) > 60 else title
+                    st.markdown(title_short)
+                
+                with col_score:
+                    score = item.get("score_global", 0)
+                    st.markdown(f"⭐ **{score}**")
+        
+        st.divider()
+        
+        # Action button
         if selected_count == 8:
             if st.button("🚀 Envoyer vers Carousel Eco", type="primary", use_container_width=True):
                 send_to_carousel()
+                st.rerun()
         else:
             st.button(
                 f"🚀 Envoyer vers Carousel Eco ({selected_count}/8)",
