@@ -633,11 +633,11 @@ with st.expander("🎨 Test Image", expanded=False):
                     progress_placeholder.empty()
                     st.session_state.test_image_result = result
                     # Afficher le modèle utilisé
-                    resolution = result.get("resolution", "")
+                    model_used = result.get("model_used", "")
                     if result.get("tried_fallback"):
-                        st.success(f"✅ Image générée · Vertex AI ({resolution}) · Fallback utilisé")
+                        st.success(f"✅ Image générée · {model_used} · Fallback utilisé")
                     else:
-                        st.success(f"✅ Image générée · Vertex AI ({resolution})")
+                        st.success(f"✅ Image générée · {model_used}")
                     st.rerun()
                 else:
                     progress_placeholder.empty()
@@ -660,12 +660,12 @@ with st.expander("🎨 Test Image", expanded=False):
                 # Décoder et afficher l'image base64
                 try:
                     image_bytes = base64.b64decode(result["image_data"])
-                    # Afficher la résolution basée sur le modèle utilisé
-                    resolution = result.get("resolution", "")
-                    if resolution == "2K":
-                        caption = f"✨ Vertex AI Imagen · HD (2048x2048)"
+                    # Afficher le modèle utilisé
+                    model_used = result.get("model_used", "")
+                    if "Fast" in model_used:
+                        caption = f"⚡ Vertex AI Imagen 3.0 Fast (1024x1024)"
                     else:
-                        caption = f"⚡ Vertex AI Imagen · Standard (1024x1024)"
+                        caption = f"✨ Vertex AI Imagen 3.0 (1024x1024)"
                     
                     st.image(image_bytes, caption=caption, use_container_width=True)
                 except Exception as e:

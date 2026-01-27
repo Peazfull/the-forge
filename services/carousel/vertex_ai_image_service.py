@@ -59,25 +59,20 @@ def generate_image_vertex_ai(prompt: str, quality: str = "standard") -> Dict[str
         # Initialiser Vertex AI
         aiplatform.init(project=project_id, location=location)
         
-        # Charger le modèle Imagen (version stable)
-        # Essayer avec imagegeneration@002 (version stable qui remplace @006)
-        model = ImageGenerationModel.from_pretrained("imagegeneration@002")
-        
-        # Paramètres selon la qualité
+        # Charger le modèle Imagen 3.0 (nouveau modèle 2026)
         if quality == "hd":
-            # HD : Plus haute qualité
-            number_of_images = 1
-            aspect_ratio = "1:1"
+            # Imagen 3.0 (haute qualité)
+            model = ImageGenerationModel.from_pretrained("imagen-3.0-generate-001")
         else:
-            # Standard : qualité normale
-            number_of_images = 1
-            aspect_ratio = "1:1"
+            # Imagen 3.0 Fast (rapide)
+            model = ImageGenerationModel.from_pretrained("imagen-3.0-fast-generate-001")
         
-        # Générer l'image
+        # Générer l'image avec Imagen 3.0
+        # Imagen 3.0 utilise une API simplifiée
         response = model.generate_images(
             prompt=prompt,
-            number_of_images=number_of_images,
-            aspect_ratio=aspect_ratio,
+            number_of_images=1,
+            aspect_ratio="1:1",
         )
         
         # Récupérer la première image
@@ -85,16 +80,21 @@ def generate_image_vertex_ai(prompt: str, quality: str = "standard") -> Dict[str
             image = response.images[0]
             
             # Convertir en base64
+            # Imagen 3.0 retourne l'image via _image_bytes
             image_bytes = image._image_bytes
             image_base64 = base64.b64encode(image_bytes).decode('utf-8')
             
-            resolution = "2K" if quality == "hd" else "1K"
+            # Imagen 3.0 génère en 1024x1024 par défaut
+            # HD utilise imagen-3.0-generate-001 (meilleure qualité)
+            # Standard utilise imagen-3.0-fast-generate-001 (plus rapide)
+            resolution = "1K"  # Les deux génèrent en 1024x1024
+            model_name = "Imagen 3.0" if quality == "hd" else "Imagen 3.0 Fast"
             
             return {
                 "status": "success",
                 "image_data": image_base64,
                 "image_url": None,
-                "model_used": "vertex-ai-imagen",
+                "model_used": f"vertex-ai-{model_name}",
                 "resolution": resolution
             }
         else:
@@ -112,11 +112,13 @@ def generate_image_vertex_ai(prompt: str, quality: str = "standard") -> Dict[str
 
 def generate_carousel_image_vertex(prompt: str) -> Dict[str, object]:
     """
-    Génère une image pour carousel avec fallback automatique HD → Standard
+    Génère une image pour carousel avec fallback automatique Imagen 3.0 → Fast
     
     Stratégie:
-    1. Essayer HD (2K) - haute qualité
-    2. Si échec → Fallback Standard (1K)
+    1. Essayer Imagen 3.0 (haute qualité, plus lent)
+    2. Si échec → Fallback Imagen 3.0 Fast (rapide)
+    
+    Note: Les deux génèrent en 1024x1024 (1K), mais Imagen 3.0 a une meilleure qualité
     
     Args:
         prompt: Le prompt de génération d'image
@@ -126,23 +128,23 @@ def generate_carousel_image_vertex(prompt: str) -> Dict[str, object]:
             "status": "success" | "error",
             "image_data": "...",
             "model_used": "...",
-            "resolution": "2K" | "1K",
+            "resolution": "1K",
             "message": "..." (si erreur)
         }
     """
-    # TENTATIVE 1 : HD (2K)
+    # TENTATIVE 1 : Imagen 3.0 (haute qualité)
     result_hd = generate_image_vertex_ai(prompt, quality="hd")
     
     if result_hd.get("status") == "success":
         result_hd["tried_fallback"] = False
         return result_hd
     
-    # FALLBACK : Standard (1K)
+    # FALLBACK : Imagen 3.0 Fast (rapide)
     result_standard = generate_image_vertex_ai(prompt, quality="standard")
     
     if result_standard.get("status") == "success":
         result_standard["tried_fallback"] = True
-        result_standard["hd_error"] = result_hd.get('message', 'Erreur HD')
+        result_standard["hd_error"] = result_hd.get('message', 'Erreur Imagen 3.0')
         return result_standard
     
     # Les deux ont échoué
@@ -151,5 +153,5 @@ def generate_carousel_image_vertex(prompt: str) -> Dict[str, object]:
     
     return {
         "status": "error",
-        "message": f"❌ ÉCHEC COMPLET (HD + Standard)\n\n🔴 HD (2K):\n{hd_msg}\n\n🟡 Standard (1K):\n{std_msg}"
+        "message": f"❌ ÉCHEC COMPLET (Imagen 3.0 + Fast)\n\n🔴 Imagen 3.0:\n{hd_msg}\n\n🟡 Imagen 3.0 Fast:\n{std_msg}"
     }
