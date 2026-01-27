@@ -1,6 +1,7 @@
 import streamlit as st
 from db.supabase_client import get_supabase
-from services.carousel.carousel_eco_service import insert_items_to_carousel_eco
+from services.carousel.carousel_eco_service import insert_items_to_carousel_eco, get_carousel_eco_items
+from services.carousel.generate_carousel_texts_service import generate_all_carousel_texts, update_carousel_text
 
 # ======================================================
 # PAGE CONFIG
@@ -83,6 +84,19 @@ def send_to_carousel():
 def toggle_preview_mode():
     """Bascule entre tri par score et tri par position"""
     st.session_state.eco_preview_mode = not st.session_state.eco_preview_mode
+
+
+def generate_texts():
+    """Lance la génération IA des textes carousel"""
+    with st.spinner("🎨 Génération des textes en cours..."):
+        result = generate_all_carousel_texts()
+    
+    if result["status"] == "success":
+        st.success(f"✅ {result['success']}/{result['total']} textes générés avec succès !")
+    elif result["status"] == "partial":
+        st.warning(f"⚠️ {result['success']}/{result['total']} textes générés · {result['errors']} erreurs")
+    else:
+        st.error(f"❌ Erreur : {result.get('message', 'Erreur inconnue')}")
 
 
 def get_item_position(item_id):
@@ -251,22 +265,122 @@ with st.expander("📰 Bulletin Eco", expanded=False):
         
         st.markdown("")
         
-        # Bouton d'envoi
-        if selected_count > 0:
-            if st.button(
-                f"🚀 Envoyer vers Carousel Eco ({selected_count} item{'s' if selected_count > 1 else ''})",
-                type="primary",
-                use_container_width=True
-            ):
-                send_to_carousel()
-                st.rerun()
-        else:
-            st.button(
-                "🚀 Envoyer vers Carousel Eco (0 item)",
-                disabled=True,
-                use_container_width=True,
-                help="Sélectionnez au moins 1 item"
-            )
+        # Boutons d'action
+        col_send, col_generate = st.columns(2)
+        
+        with col_send:
+            if selected_count > 0:
+                if st.button(
+                    f"🚀 Envoyer vers Carousel Eco ({selected_count} item{'s' if selected_count > 1 else ''})",
+                    type="primary",
+                    use_container_width=True
+                ):
+                    send_to_carousel()
+                    st.rerun()
+            else:
+                st.button(
+                    "🚀 Envoyer vers Carousel Eco (0 item)",
+                    disabled=True,
+                    use_container_width=True,
+                    help="Sélectionnez au moins 1 item"
+                )
+        
+        with col_generate:
+            # Vérifier si des items existent dans carousel_eco
+            carousel_data = get_carousel_eco_items()
+            has_items_in_db = carousel_data.get("count", 0) > 0
+            
+            if has_items_in_db:
+                if st.button(
+                    "🎨 Générer les textes carousel",
+                    type="secondary",
+                    use_container_width=True
+                ):
+                    generate_texts()
+                    st.rerun()
+            else:
+                st.button(
+                    "🎨 Générer les textes carousel",
+                    disabled=True,
+                    use_container_width=True,
+                    help="Envoyez d'abord des items vers Carousel Eco"
+                )
+
+
+# ======================================================
+# TEXTES CAROUSEL (MODIFICATION)
+# ======================================================
+
+with st.expander("🎨 Textes Carousel", expanded=False):
+    
+    carousel_data = get_carousel_eco_items()
+    
+    if carousel_data["status"] == "error":
+        st.error(f"❌ Erreur : {carousel_data.get('message', 'Erreur inconnue')}")
+    elif carousel_data["count"] == 0:
+        st.info("📭 Aucun item dans carousel_eco · Envoyez d'abord des items depuis 'Bulletin Eco'")
+    else:
+        st.caption(f"✏️ Modifiez les textes générés pour chaque position du carrousel ({carousel_data['count']} items)")
+        st.markdown("")
+        
+        for item in carousel_data["items"]:
+            item_id = item["id"]
+            position = item["position"]
+            title_original = item["title"]
+            title_carou = item.get("title_carou") or ""
+            content_carou = item.get("content_carou") or ""
+            
+            # Header de l'item
+            st.markdown(f"### #{position} · {title_original[:60]}...")
+            st.divider()
+            
+            # Titre carousel
+            st.markdown("**Titre carousel** (3 mots max)")
+            col_title_input, col_title_save = st.columns([4, 1])
+            
+            with col_title_input:
+                new_title_carou = st.text_input(
+                    label="Titre carousel",
+                    value=title_carou,
+                    key=f"title_carou_{item_id}",
+                    placeholder="Ex: FED : CHOC HISTORIQUE",
+                    label_visibility="collapsed"
+                )
+            
+            with col_title_save:
+                if st.button("💾", key=f"save_title_{item_id}", help="Sauvegarder le titre"):
+                    result = update_carousel_text(item_id, "title_carou", new_title_carou)
+                    if result["status"] == "success":
+                        st.success("✅ Sauvegardé !")
+                        st.rerun()
+                    else:
+                        st.error(f"❌ {result['message']}")
+            
+            # Content carousel
+            st.markdown("**Content carousel** (2 phrases max)")
+            col_content_input, col_content_save = st.columns([4, 1])
+            
+            with col_content_input:
+                new_content_carou = st.text_area(
+                    label="Content carousel",
+                    value=content_carou,
+                    key=f"content_carou_{item_id}",
+                    placeholder="Ex: La banque centrale américaine frappe fort. Les marchés explosent.",
+                    height=80,
+                    label_visibility="collapsed"
+                )
+            
+            with col_content_save:
+                if st.button("💾", key=f"save_content_{item_id}", help="Sauvegarder le contenu"):
+                    result = update_carousel_text(item_id, "content_carou", new_content_carou)
+                    if result["status"] == "success":
+                        st.success("✅ Sauvegardé !")
+                        st.rerun()
+                    else:
+                        st.error(f"❌ {result['message']}")
+            
+            st.markdown("")
+            st.markdown("---")
 
 
 # ======================================================
