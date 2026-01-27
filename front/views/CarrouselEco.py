@@ -621,19 +621,25 @@ with st.expander("🎨 Test Image", expanded=False):
     with col_gen:
         if st.button("🎨 Générer", type="primary", use_container_width=True):
             if image_prompt.strip():
-                # Utiliser st.status pour montrer la progression
-                status_container = st.status("🎨 Génération avec Nano Banana Pro (2K)...", expanded=True)
+                # Afficher la progression avec les deux tentatives possibles
+                progress_placeholder = st.empty()
+                
+                with progress_placeholder.container():
+                    st.info("🎨 Tentative 1/2 · Nano Banana Pro (2K)...")
                 
                 result = generate_carousel_image(image_prompt)
                 
                 if result["status"] == "success":
+                    progress_placeholder.empty()
                     st.session_state.test_image_result = result
                     # Afficher le modèle utilisé
-                    model_name = "Pro (2K)" if "pro" in result.get("model_used", "") else "Flash (1K)"
-                    status_container.update(label=f"✅ Image générée · {model_name}", state="complete")
+                    if "pro" in result.get("model_used", ""):
+                        st.success("✅ Image générée · Nano Banana Pro (2K)")
+                    else:
+                        st.success("✅ Image générée · Nano Banana Flash (1K) · Fallback utilisé")
                     st.rerun()
                 else:
-                    status_container.update(label="❌ Échec de génération", state="error")
+                    progress_placeholder.empty()
                     st.error(result.get('message', 'Erreur inconnue'))
             else:
                 st.warning("Entrez un prompt")

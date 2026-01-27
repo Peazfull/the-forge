@@ -122,7 +122,8 @@ def generate_carousel_image(prompt: str) -> Dict[str, object]:
         }
     """
     # TENTATIVE 1 : Nano Banana Pro (haute qualité)
-    result_pro = None
+    result_pro = {"status": "error", "message": "Pro non exécuté"}
+    
     try:
         result_pro = _try_generate_image(
             model="gemini-3-pro-image-preview",
@@ -133,17 +134,20 @@ def generate_carousel_image(prompt: str) -> Dict[str, object]:
             timeout=120  # 2 minutes
         )
         
-        if result_pro and result_pro["status"] == "success":
+        # Si Pro réussit, on retourne directement
+        if result_pro.get("status") == "success":
             result_pro["tried_fallback"] = False
             return result_pro
+            
     except Exception as e:
         result_pro = {
             "status": "error",
             "message": f"Exception Pro: {str(e)}"
         }
     
-    # Si on arrive ici, Pro a échoué → FALLBACK automatique
-    result_flash = None
+    # ⚠️ SI ON ARRIVE ICI, PRO A ÉCHOUÉ → FALLBACK OBLIGATOIRE VERS FLASH
+    result_flash = {"status": "error", "message": "Flash non exécuté"}
+    
     try:
         result_flash = _try_generate_image(
             model="gemini-2.5-flash-image",
@@ -154,10 +158,12 @@ def generate_carousel_image(prompt: str) -> Dict[str, object]:
             timeout=120  # 2 minutes
         )
         
-        if result_flash and result_flash["status"] == "success":
+        # Si Flash réussit, on retourne avec indication du fallback
+        if result_flash.get("status") == "success":
             result_flash["tried_fallback"] = True
-            result_flash["pro_error"] = result_pro.get('message') if result_pro else "Erreur Pro"
+            result_flash["pro_error"] = result_pro.get('message', 'Erreur Pro')
             return result_flash
+            
     except Exception as e:
         result_flash = {
             "status": "error",
