@@ -144,19 +144,19 @@ with st.expander("📰 Bulletin Eco", expanded=False):
         
         # Réorganiser les items selon le mode
         if st.session_state.eco_preview_mode and selected_count > 0:
-            # Mode preview : trier selon les positions assignées
-            # Créer un dict pour mapper item_id → position
-            position_map = {item_id: pos for pos, item_id in enumerate(st.session_state.eco_selected_items, start=1)}
+            # Mode preview : afficher dans l'ordre de eco_selected_items
+            # Créer un dict pour accès rapide aux items par ID
+            items_dict = {item["id"]: item for item in items}
             
-            # Séparer items sélectionnés et non-sélectionnés
-            selected_items = [item for item in items if item["id"] in st.session_state.eco_selected_items]
+            # Reconstruire la liste dans l'ordre de eco_selected_items
+            display_items = []
+            for item_id in st.session_state.eco_selected_items:
+                if item_id in items_dict:
+                    display_items.append(items_dict[item_id])
+            
+            # Ajouter les items non-sélectionnés à la fin
             unselected_items = [item for item in items if item["id"] not in st.session_state.eco_selected_items]
-            
-            # Trier les sélectionnés par position
-            selected_items.sort(key=lambda x: position_map.get(x["id"], 999))
-            
-            # Afficher d'abord les sélectionnés (dans l'ordre du carousel), puis les non-sélectionnés
-            display_items = selected_items + unselected_items
+            display_items.extend(unselected_items)
             
             # Info preview
             st.info(f"👁️ Mode preview : affichage dans l'ordre final du carrousel (positions 1-{selected_count})")
@@ -200,20 +200,25 @@ with st.expander("📰 Bulletin Eco", expanded=False):
                 current_position = get_item_position(item_id)
                 
                 if is_selected:
-                    new_position = st.number_input(
-                        label="Pos",
-                        min_value=1,
-                        max_value=selected_count,
-                        value=current_position if current_position else 1,
-                        step=1,
-                        key=f"pos_eco_{item_id}",
-                        label_visibility="collapsed"
-                    )
-                    
-                    # Si changement de position
-                    if new_position != current_position:
-                        set_item_position(item_id, new_position)
-                        st.rerun()
+                    # En mode preview, afficher la position en lecture seule
+                    if st.session_state.eco_preview_mode:
+                        st.markdown(f"**#{current_position}**")
+                    else:
+                        # Mode normal : input modifiable
+                        new_position = st.number_input(
+                            label="Pos",
+                            min_value=1,
+                            max_value=selected_count,
+                            value=current_position if current_position else 1,
+                            step=1,
+                            key=f"pos_eco_{item_id}",
+                            label_visibility="collapsed"
+                        )
+                        
+                        # Si changement de position
+                        if new_position != current_position:
+                            set_item_position(item_id, new_position)
+                            st.rerun()
                 else:
                     st.markdown("—")
             
