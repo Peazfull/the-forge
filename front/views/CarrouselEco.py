@@ -611,7 +611,10 @@ with st.expander("🎨 Test Image", expanded=False):
                     st.success("✓ Image générée")
                     st.rerun()
                 else:
-                    st.error(f"Erreur : {result.get('message', 'Erreur inconnue')}")
+                    st.error(f"❌ {result.get('message', 'Erreur inconnue')}")
+                    # Afficher les détails complets pour debug
+                    with st.expander("Détails de l'erreur"):
+                        st.code(result.get('message', 'Erreur inconnue'))
             else:
                 st.warning("Entrez un prompt")
     

@@ -27,16 +27,23 @@ def generate_carousel_image(prompt: str) -> Dict[str, object]:
     try:
         api_key = st.secrets["GEMINI_API_KEY"]
         
-        # Endpoint pour Imagen via Generative AI API
-        # Format: https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:generateImage
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:generateImage?key={api_key}"
+        # Essayer avec l'API Gemini 2.0 qui supporte les images
+        # Documentation: https://ai.google.dev/gemini-api/docs/imagen
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key={api_key}"
         
         payload = {
-            "prompt": prompt,
-            "config": {
+            "instances": [
+                {
+                    "prompt": prompt
+                }
+            ],
+            "parameters": {
                 "sampleCount": 1,
-                "aspectRatio": "1:1",  # Format carré
-                "safetySettings": "block_some"
+                "aspectRatio": "1:1",
+                "negativePrompt": "",
+                "safetySetting": "block_some",
+                "personGeneration": "allow_adult",
+                "sampleImageSize": "2048"  # 2K
             }
         }
         
@@ -87,9 +94,11 @@ def generate_carousel_image(prompt: str) -> Dict[str, object]:
                     "message": f"Format de réponse inattendu. Keys disponibles: {list(data.keys())}"
                 }
         else:
+            error_detail = f"Status: {response.status_code}\nURL: {url}\nRéponse: {response.text[:500]}"
             return {
                 "status": "error",
-                "message": f"Erreur API ({response.status_code}): {response.text}"
+                "message": f"Erreur API ({response.status_code}): {response.text}",
+                "debug": error_detail
             }
             
     except requests.exceptions.Timeout:
