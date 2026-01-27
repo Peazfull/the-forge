@@ -461,6 +461,9 @@ with st.expander("🎨 Textes Carousel", expanded=False):
             title_carou = item.get("title_carou") or ""
             content_carou = item.get("content_carou") or ""
             
+            # Debug: afficher les valeurs brutes
+            st.write(f"DEBUG - title_carou: '{title_carou}', content_carou: '{content_carou}'")
+            
             # Header de l'item (plus compact)
             st.markdown(f"**#{position}** · {title_original[:50]}...")
             
