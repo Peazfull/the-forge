@@ -604,7 +604,7 @@ if st.session_state.eco_modal_item:
 # ======================================================
 
 with st.expander("🎨 Test Image", expanded=False):
-    st.caption("Génération d'image avec Gemini 3 Pro Image via Vertex AI (meilleur rendu + stabilité)")
+    st.caption("Génération d'image avec Nano Banana Pro (Gemini 3 Pro Image) via Vertex AI - Meilleur rendu photoréaliste")
     st.markdown("")
     
     # Zone de prompt
@@ -625,7 +625,7 @@ with st.expander("🎨 Test Image", expanded=False):
                 progress_placeholder = st.empty()
                 
                 with progress_placeholder.container():
-                    st.info("🎨 Génération HD (Gemini 3 Pro via Vertex AI)...")
+                    st.info("🎨 Génération HD (Nano Banana Pro via Vertex AI)...")
                 
                 result = generate_carousel_image_vertex(image_prompt)
                 
@@ -664,10 +664,10 @@ with st.expander("🎨 Test Image", expanded=False):
                     model_used = result.get("model_used", "")
                     resolution = result.get("resolution", "1024x1024")
                     
-                    if "flash" in model_used.lower():
-                        caption = f"⚡ Gemini 2.5 Flash (via Vertex AI)"
+                    if "Imagen" in model_used:
+                        caption = f"⚡ Imagen 3.0 Fast (fallback, via Vertex AI)"
                     else:
-                        caption = f"✨ Gemini 3 Pro Image Preview (via Vertex AI)"
+                        caption = f"✨ Gemini 3 Pro Image (Nano Banana Pro, via Vertex AI)"
                     
                     st.image(image_bytes, caption=caption, use_container_width=True)
                 except Exception as e:
