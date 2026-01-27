@@ -143,6 +143,9 @@ st.markdown("""
 # Flag pour savoir si on doit initialiser avec les 8 premiers
 if "eco_initialized" not in st.session_state:
     st.session_state.eco_initialized = False
+
+# Toujours initialiser eco_selected_items si absent (indépendant de eco_initialized)
+if "eco_selected_items" not in st.session_state:
     st.session_state.eco_selected_items = []
 
 if "eco_modal_item" not in st.session_state:
@@ -173,6 +176,10 @@ def fetch_top_eco_items(limit=14):
 
 def toggle_selection(item_id):
     """Ajoute/retire un item de la sélection"""
+    # Sécurité : initialiser si absent
+    if "eco_selected_items" not in st.session_state:
+        st.session_state.eco_selected_items = []
+    
     if item_id in st.session_state.eco_selected_items:
         st.session_state.eco_selected_items.remove(item_id)
     else:
@@ -192,6 +199,9 @@ def close_modal():
 
 def send_to_carousel():
     """Envoie les items sélectionnés vers la table carousel_eco"""
+    # Sécurité : initialiser si absent
+    if "eco_selected_items" not in st.session_state:
+        st.session_state.eco_selected_items = []
     
     # Appel du service d'insertion
     result = insert_items_to_carousel_eco(st.session_state.eco_selected_items)
@@ -240,6 +250,10 @@ def generate_texts():
 
 def get_item_position(item_id):
     """Retourne la position d'un item (1-8) ou None si non sélectionné"""
+    # Sécurité : initialiser si absent
+    if "eco_selected_items" not in st.session_state:
+        st.session_state.eco_selected_items = []
+    
     if item_id in st.session_state.eco_selected_items:
         return st.session_state.eco_selected_items.index(item_id) + 1
     return None
@@ -247,6 +261,10 @@ def get_item_position(item_id):
 
 def set_item_position(item_id, target_position):
     """Modifie la position d'un item sélectionné"""
+    # Sécurité : initialiser si absent
+    if "eco_selected_items" not in st.session_state:
+        st.session_state.eco_selected_items = []
+    
     if item_id not in st.session_state.eco_selected_items:
         return
     
