@@ -34,18 +34,29 @@ def generate_image_vertex_ai(prompt: str, quality: str = "standard") -> Dict[str
         project_id = st.secrets["GCP_PROJECT_ID"]
         location = st.secrets["VERTEX_AI_LOCATION"]
         
-        # Chemin vers la clé JSON
+        # En production (Streamlit Cloud) : utiliser les secrets
+        # En local : utiliser le fichier JSON
         key_path = os.path.join(os.path.dirname(__file__), "..", "..", "vertex-ai-key.json")
         
-        # Vérifier que la clé existe
-        if not os.path.exists(key_path):
-            return {
-                "status": "error",
-                "message": f"❌ Clé Vertex AI introuvable : {key_path}"
-            }
+        if os.path.exists(key_path):
+            # Local : utiliser le fichier JSON
+            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = key_path
+        else:
+            # Streamlit Cloud : utiliser les secrets
+            import json
+            import tempfile
+            
+            # Récupérer les credentials depuis les secrets
+            gcp_creds = st.secrets["gcp_service_account"]
+            
+            # Créer un fichier temporaire avec les credentials
+            with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as f:
+                json.dump(dict(gcp_creds), f)
+                temp_key_path = f.name
+            
+            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = temp_key_path
         
         # Initialiser Vertex AI
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = key_path
         aiplatform.init(project=project_id, location=location)
         
         # Charger le modèle Imagen
