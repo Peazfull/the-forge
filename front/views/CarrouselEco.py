@@ -21,6 +21,9 @@ if "eco_initialized" not in st.session_state:
 if "eco_modal_item" not in st.session_state:
     st.session_state.eco_modal_item = None
 
+if "eco_preview_mode" not in st.session_state:
+    st.session_state.eco_preview_mode = False
+
 # ======================================================
 # FONCTIONS
 # ======================================================
@@ -61,7 +64,7 @@ def close_modal():
 
 
 def send_to_carousel():
-    """Envoie les 8 items sélectionnés vers la table carousel_eco"""
+    """Envoie les items sélectionnés vers la table carousel_eco"""
     
     # Appel du service d'insertion
     result = insert_items_to_carousel_eco(st.session_state.eco_selected_items)
@@ -72,8 +75,14 @@ def send_to_carousel():
         # Reset sélection
         st.session_state.eco_selected_items = []
         st.session_state.eco_initialized = False
+        st.session_state.eco_preview_mode = False
     else:
         st.error(f"❌ Erreur : {result['message']}")
+
+
+def toggle_preview_mode():
+    """Bascule entre tri par score et tri par position"""
+    st.session_state.eco_preview_mode = not st.session_state.eco_preview_mode
 
 
 def get_item_position(item_id):
@@ -115,10 +124,48 @@ with st.expander("📰 Bulletin Eco", expanded=False):
         
         # Header
         selected_count = len(st.session_state.eco_selected_items)
-        st.caption(f"📊 Top 14 actualités ECO · **{selected_count}** sélectionnée{'s' if selected_count > 1 else ''} · Cochez et assignez les positions")
+        
+        col_header, col_preview_btn = st.columns([3, 1])
+        with col_header:
+            st.caption(f"📊 Top 14 actualités ECO · **{selected_count}** sélectionnée{'s' if selected_count > 1 else ''} · Cochez et assignez les positions")
+        
+        with col_preview_btn:
+            if selected_count > 0:
+                if st.session_state.eco_preview_mode:
+                    if st.button("📊 Tri par score", key="toggle_preview", use_container_width=True):
+                        toggle_preview_mode()
+                        st.rerun()
+                else:
+                    if st.button("👁️ Preview ordre", key="toggle_preview", use_container_width=True):
+                        toggle_preview_mode()
+                        st.rerun()
+        
+        st.markdown("")
+        
+        # Réorganiser les items selon le mode
+        if st.session_state.eco_preview_mode and selected_count > 0:
+            # Mode preview : trier selon les positions assignées
+            # Créer un dict pour mapper item_id → position
+            position_map = {item_id: pos for pos, item_id in enumerate(st.session_state.eco_selected_items, start=1)}
+            
+            # Séparer items sélectionnés et non-sélectionnés
+            selected_items = [item for item in items if item["id"] in st.session_state.eco_selected_items]
+            unselected_items = [item for item in items if item["id"] not in st.session_state.eco_selected_items]
+            
+            # Trier les sélectionnés par position
+            selected_items.sort(key=lambda x: position_map.get(x["id"], 999))
+            
+            # Afficher d'abord les sélectionnés (dans l'ordre du carousel), puis les non-sélectionnés
+            display_items = selected_items + unselected_items
+            
+            # Info preview
+            st.info(f"👁️ Mode preview : affichage dans l'ordre final du carrousel (positions 1-{selected_count})")
+        else:
+            # Mode normal : tri par score (défaut)
+            display_items = items
         
         # Tableau
-        for idx, item in enumerate(items, start=1):
+        for idx, item in enumerate(display_items, start=1):
             item_id = item["id"]
             title = item.get("title", "Sans titre")
             content = item.get("content", "")
