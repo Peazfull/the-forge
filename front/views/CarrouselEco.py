@@ -626,7 +626,9 @@ with st.expander("🎨 Test Image", expanded=False):
                 
                 if result["status"] == "success":
                     st.session_state.test_image_result = result
-                    st.success("✓ Image générée")
+                    # Afficher le modèle utilisé
+                    model_name = "Pro (2K)" if "pro" in result.get("model_used", "") else "Flash (1K)"
+                    st.success(f"✓ Image générée · {model_name}")
                     st.rerun()
                 else:
                     st.error(f"❌ {result.get('message', 'Erreur inconnue')}")
@@ -651,7 +653,15 @@ with st.expander("🎨 Test Image", expanded=False):
                 # Décoder et afficher l'image base64
                 try:
                     image_bytes = base64.b64decode(result["image_data"])
-                    st.image(image_bytes, caption="Image 2048x2048", use_container_width=True)
+                    # Afficher la résolution basée sur le modèle utilisé
+                    model_used = result.get("model_used", "")
+                    resolution = result.get("resolution", "")
+                    if "pro" in model_used:
+                        caption = f"✨ Nano Banana Pro · {resolution} (2048x2048)"
+                    else:
+                        caption = f"⚡ Nano Banana Flash · {resolution} (1024x1024)"
+                    
+                    st.image(image_bytes, caption=caption, use_container_width=True)
                 except Exception as e:
                     st.error(f"Erreur d'affichage : {str(e)}")
             elif result.get("image_url"):
