@@ -217,6 +217,11 @@ def generate_texts():
     for key in keys_to_delete:
         del st.session_state[key]
     
+    # Incrémenter un compteur pour forcer le rechargement des inputs
+    if "carousel_generation_count" not in st.session_state:
+        st.session_state.carousel_generation_count = 0
+    st.session_state.carousel_generation_count += 1
+    
     if result["status"] == "success":
         st.success(f"{result['success']}/{result['total']} textes générés")
     elif result["status"] == "partial":
@@ -443,6 +448,10 @@ with st.expander("📰 Bulletin Eco", expanded=False):
 
 with st.expander("🎨 Textes Carousel", expanded=False):
     
+    # Initialiser le compteur de génération si nécessaire
+    if "carousel_generation_count" not in st.session_state:
+        st.session_state.carousel_generation_count = 0
+    
     carousel_data = get_carousel_eco_items()
     
     if carousel_data["status"] == "error":
@@ -462,7 +471,7 @@ with st.expander("🎨 Textes Carousel", expanded=False):
             content_carou = item.get("content_carou") or ""
             
             # Debug: afficher les valeurs brutes
-            st.write(f"DEBUG - title_carou: '{title_carou}', content_carou: '{content_carou}'")
+            # st.write(f"DEBUG - title_carou: '{title_carou}', content_carou: '{content_carou}'")
             
             # Header de l'item (plus compact)
             st.markdown(f"**#{position}** · {title_original[:50]}...")
@@ -471,8 +480,8 @@ with st.expander("🎨 Textes Carousel", expanded=False):
             col_title_input, col_title_save = st.columns([5, 0.6])
             
             with col_title_input:
-                # Utiliser une clé unique qui force le rechargement après génération
-                input_key = f"title_carou_{item_id}"
+                # Utiliser une clé unique avec compteur pour forcer le rechargement après génération
+                input_key = f"title_carou_{item_id}_v{st.session_state.carousel_generation_count}"
                 new_title_carou = st.text_input(
                     label="Titre (3 mots max)",
                     value=title_carou,
@@ -503,8 +512,8 @@ with st.expander("🎨 Textes Carousel", expanded=False):
             col_content_input, col_content_save = st.columns([5, 0.6])
             
             with col_content_input:
-                # Utiliser une clé unique qui force le rechargement après génération
-                content_key = f"content_carou_{item_id}"
+                # Utiliser une clé unique avec compteur pour forcer le rechargement après génération
+                content_key = f"content_carou_{item_id}_v{st.session_state.carousel_generation_count}"
                 new_content_carou = st.text_area(
                     label="Content (2 phrases max)",
                     value=content_carou,
