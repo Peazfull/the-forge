@@ -604,7 +604,7 @@ if st.session_state.eco_modal_item:
 # ======================================================
 
 with st.expander("🎨 Test Image", expanded=False):
-    st.caption("Génération d'image avec Nano Banana Pro (Gemini 3 Pro Image) · 5 retries automatiques si overload")
+    st.caption("Génération d'image : Nano Banana Pro (2 retries) → Fallback GPT Image 1.5 (OpenAI state-of-the-art)")
     st.markdown("")
     
     # Zone de prompt
@@ -625,14 +625,20 @@ with st.expander("🎨 Test Image", expanded=False):
                 progress_placeholder = st.empty()
                 
                 with progress_placeholder.container():
-                    st.info("🎨 Génération HD (Nano Banana Pro - Gemini API)...")
+                    st.info("🎨 Génération en cours (Nano Banana Pro)...")
                 
                 result = generate_carousel_image(image_prompt)
                 
                 if result["status"] == "success":
                     progress_placeholder.empty()
                     st.session_state.test_image_result = result
-                    st.success("✅ Image générée avec Nano Banana Pro")
+                    
+                    # Afficher le modèle utilisé
+                    model_used = result.get("model_used", "")
+                    if result.get("tried_fallback"):
+                        st.warning(f"✅ Image générée avec GPT Image 1.5 (fallback)")
+                    else:
+                        st.success(f"✅ Image générée avec Nano Banana Pro")
                     st.rerun()
                 else:
                     progress_placeholder.empty()
@@ -656,8 +662,13 @@ with st.expander("🎨 Test Image", expanded=False):
                 try:
                     image_bytes = base64.b64decode(result["image_data"])
                     # Afficher le modèle et la résolution utilisés
-                    resolution = result.get("resolution", "2K")
-                    caption = f"✨ Nano Banana Pro (Gemini 3 Pro Image) · {resolution}"
+                    model_used = result.get("model_used", "")
+                    resolution = result.get("resolution", "1024x1024")
+                    
+                    if "gpt-image" in model_used.lower():
+                        caption = f"🎨 GPT Image 1.5 (OpenAI state-of-the-art) · {resolution}"
+                    else:
+                        caption = f"✨ Nano Banana Pro (Gemini 3 Pro) · {resolution}"
                     
                     st.image(image_bytes, caption=caption, use_container_width=True)
                 except Exception as e:
