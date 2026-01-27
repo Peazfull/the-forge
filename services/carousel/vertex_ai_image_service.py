@@ -59,28 +59,25 @@ def generate_image_vertex_ai(prompt: str, quality: str = "standard") -> Dict[str
         # Initialiser Vertex AI
         aiplatform.init(project=project_id, location=location)
         
-        # Charger le modèle Imagen
-        model = ImageGenerationModel.from_pretrained("imagegeneration@006")
+        # Charger le modèle Imagen (version stable)
+        # Essayer avec imagegeneration@002 (version stable qui remplace @006)
+        model = ImageGenerationModel.from_pretrained("imagegeneration@002")
         
         # Paramètres selon la qualité
         if quality == "hd":
-            # HD : 2048x2048
+            # HD : Plus haute qualité
             number_of_images = 1
             aspect_ratio = "1:1"
-            guidance_scale = 15  # Plus de fidélité au prompt
         else:
-            # Standard : 1024x1024
+            # Standard : qualité normale
             number_of_images = 1
             aspect_ratio = "1:1"
-            guidance_scale = 10
         
         # Générer l'image
         response = model.generate_images(
             prompt=prompt,
             number_of_images=number_of_images,
             aspect_ratio=aspect_ratio,
-            guidance_scale=guidance_scale,
-            add_watermark=False,  # Pas de watermark
         )
         
         # Récupérer la première image
