@@ -211,6 +211,11 @@ def generate_texts():
     with st.spinner("Génération en cours..."):
         result = generate_all_carousel_texts()
     
+    # Nettoyer le session_state pour forcer le rechargement des valeurs de la DB
+    keys_to_delete = [key for key in st.session_state.keys() if key.startswith("title_carou_") or key.startswith("content_carou_")]
+    for key in keys_to_delete:
+        del st.session_state[key]
+    
     if result["status"] == "success":
         st.success(f"{result['success']}/{result['total']} textes générés")
     elif result["status"] == "partial":
@@ -447,6 +452,7 @@ with st.expander("🎨 Textes Carousel", expanded=False):
             item_id = item["id"]
             position = item["position"]
             title_original = item["title"]
+            # Récupération avec gestion des valeurs None
             title_carou = item.get("title_carou") or ""
             content_carou = item.get("content_carou") or ""
             
@@ -457,10 +463,12 @@ with st.expander("🎨 Textes Carousel", expanded=False):
             col_title_input, col_title_save = st.columns([5, 0.6])
             
             with col_title_input:
+                # Utiliser une clé unique qui force le rechargement après génération
+                input_key = f"title_carou_{item_id}"
                 new_title_carou = st.text_input(
                     label="Titre (3 mots max)",
                     value=title_carou,
-                    key=f"title_carou_{item_id}",
+                    key=input_key,
                     placeholder="Ex: FED : CHOC HISTORIQUE"
                 )
                 
@@ -487,10 +495,12 @@ with st.expander("🎨 Textes Carousel", expanded=False):
             col_content_input, col_content_save = st.columns([5, 0.6])
             
             with col_content_input:
+                # Utiliser une clé unique qui force le rechargement après génération
+                content_key = f"content_carou_{item_id}"
                 new_content_carou = st.text_area(
                     label="Content (2 phrases max)",
                     value=content_carou,
-                    key=f"content_carou_{item_id}",
+                    key=content_key,
                     placeholder="Ex: La banque centrale frappe fort. Les marchés explosent.",
                     height=70
                 )
