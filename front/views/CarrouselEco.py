@@ -604,7 +604,7 @@ if st.session_state.eco_modal_item:
 # ======================================================
 
 with st.expander("🎨 Test Image", expanded=False):
-    st.caption("Génération d'image avec Nano Banana Pro (Gemini 3 Pro Image) via Vertex AI - Packages mis à jour")
+    st.caption("Génération d'image avec Nano Banana Pro · Google Gen AI SDK (nouveau SDK unifié 2026)")
     st.markdown("")
     
     # Zone de prompt
@@ -632,12 +632,7 @@ with st.expander("🎨 Test Image", expanded=False):
                 if result["status"] == "success":
                     progress_placeholder.empty()
                     st.session_state.test_image_result = result
-                    # Afficher le modèle utilisé
-                    model_used = result.get("model_used", "")
-                    if result.get("tried_fallback"):
-                        st.success(f"✅ Image générée · {model_used} · Fallback utilisé")
-                    else:
-                        st.success(f"✅ Image générée · {model_used}")
+                    st.success("✅ Image générée avec Nano Banana Pro")
                     st.rerun()
                 else:
                     progress_placeholder.empty()
@@ -661,13 +656,10 @@ with st.expander("🎨 Test Image", expanded=False):
                 try:
                     image_bytes = base64.b64decode(result["image_data"])
                     # Afficher le modèle et la résolution utilisés
-                    model_used = result.get("model_used", "")
+                    model_used = result.get("model_used", "Nano-Banana-Pro")
                     resolution = result.get("resolution", "1024x1024")
                     
-                    if "Imagen" in model_used:
-                        caption = f"⚡ Imagen 3.0 Fast (fallback via Vertex AI)"
-                    else:
-                        caption = f"✨ Nano Banana Pro (Gemini 3 Pro Image via Vertex AI)"
+                    caption = f"✨ Nano Banana Pro (Google Gen AI SDK · Vertex AI)"
                     
                     st.image(image_bytes, caption=caption, use_container_width=True)
                 except Exception as e:

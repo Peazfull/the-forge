@@ -7,5 +7,4 @@ playwright
 feedparser
 yfinance
 pandas
-google-cloud-aiplatform>=1.40.0
-vertexai
+google-genai
