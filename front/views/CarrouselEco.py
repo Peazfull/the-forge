@@ -604,7 +604,7 @@ if st.session_state.eco_modal_item:
 # ======================================================
 
 with st.expander("🎨 Test Image", expanded=False):
-    st.caption("Génération d'image avec Nano Banana Pro (Gemini 3 Pro Image) · Retry automatique si overload")
+    st.caption("Génération d'image avec Nano Banana Pro (Gemini 3 Pro Image) · 5 retries automatiques si overload")
     st.markdown("")
     
     # Zone de prompt
@@ -656,13 +656,8 @@ with st.expander("🎨 Test Image", expanded=False):
                 try:
                     image_bytes = base64.b64decode(result["image_data"])
                     # Afficher le modèle et la résolution utilisés
-                    model_used = result.get("model_used", "")
                     resolution = result.get("resolution", "2K")
-                    
-                    if "flash" in model_used.lower():
-                        caption = f"⚡ Gemini 2.5 Flash (fallback) · {resolution}"
-                    else:
-                        caption = f"✨ Nano Banana Pro (Gemini 3 Pro Image) · {resolution}"
+                    caption = f"✨ Nano Banana Pro (Gemini 3 Pro Image) · {resolution}"
                     
                     st.image(image_bytes, caption=caption, use_container_width=True)
                 except Exception as e:
