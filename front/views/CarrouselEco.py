@@ -75,9 +75,10 @@ def inject_custom_css():
     
     /* Save buttons (petite taille) */
     .save-btn button {
-        padding: 4px 8px !important;
-        min-width: 40px !important;
-        font-size: 18px !important;
+        padding: 6px 8px !important;
+        min-width: 36px !important;
+        font-size: 14px !important;
+        line-height: 1 !important;
     }
     
     /* Inputs */
@@ -477,7 +478,7 @@ with st.expander("🎨 Textes Carousel", expanded=False):
             st.markdown(f"**#{position}** · {title_original[:50]}...")
             
             # Titre carousel
-            col_title_input, col_title_save = st.columns([5, 0.6])
+            col_title_input, col_title_save = st.columns([5, 0.4])
             
             with col_title_input:
                 # Utiliser une clé unique avec compteur pour forcer le rechargement après génération
@@ -509,7 +510,7 @@ with st.expander("🎨 Textes Carousel", expanded=False):
                         st.error("✗")
             
             # Content carousel
-            col_content_input, col_content_save = st.columns([5, 0.6])
+            col_content_input, col_content_save = st.columns([5, 0.4])
             
             with col_content_input:
                 # Utiliser une clé unique avec compteur pour forcer le rechargement après génération
