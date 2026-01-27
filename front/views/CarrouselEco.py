@@ -1,8 +1,10 @@
 import streamlit as st
 import time
+import base64
 from db.supabase_client import get_supabase
 from services.carousel.carousel_eco_service import insert_items_to_carousel_eco, get_carousel_eco_items
 from services.carousel.generate_carousel_texts_service import generate_all_carousel_texts, update_carousel_text
+from services.carousel.image_generation_service import generate_carousel_image
 
 # ======================================================
 # CUSTOM CSS
@@ -577,3 +579,61 @@ if st.session_state.eco_modal_item:
             st.rerun()
     
     show_detail()
+
+
+# ======================================================
+# TEST GÉNÉRATION D'IMAGE
+# ======================================================
+
+with st.expander("🎨 Test Image", expanded=False):
+    st.caption("Test de génération d'image avec Google Gemini Imagen")
+    st.markdown("")
+    
+    # Zone de prompt
+    image_prompt = st.text_area(
+        label="Prompt de génération",
+        placeholder="Ex: A minimalist financial graph showing market trends, blue and white colors, modern design",
+        height=100,
+        key="test_image_prompt"
+    )
+    
+    # Bouton générer
+    col_gen, col_spacer = st.columns([1, 3])
+    
+    with col_gen:
+        if st.button("🎨 Générer", type="primary", use_container_width=True):
+            if image_prompt.strip():
+                with st.spinner("Génération en cours..."):
+                    result = generate_carousel_image(image_prompt)
+                
+                if result["status"] == "success":
+                    st.session_state.test_image_result = result
+                    st.success("✓ Image générée")
+                    st.rerun()
+                else:
+                    st.error(f"Erreur : {result.get('message', 'Erreur inconnue')}")
+            else:
+                st.warning("Entrez un prompt")
+    
+    # Affichage de l'image générée
+    if "test_image_result" in st.session_state and st.session_state.test_image_result:
+        st.markdown("---")
+        st.markdown("#### Image générée")
+        
+        result = st.session_state.test_image_result
+        
+        if result.get("image_data"):
+            # Décoder et afficher l'image base64
+            try:
+                image_bytes = base64.b64decode(result["image_data"])
+                st.image(image_bytes, caption="Image générée", use_container_width=True)
+            except Exception as e:
+                st.error(f"Erreur d'affichage : {str(e)}")
+        elif result.get("image_url"):
+            # Afficher l'image depuis l'URL
+            st.image(result["image_url"], caption="Image générée", use_container_width=True)
+        
+        # Bouton pour réinitialiser
+        if st.button("🗑️ Effacer", key="clear_test_image"):
+            del st.session_state.test_image_result
+            st.rerun()
