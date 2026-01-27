@@ -121,9 +121,8 @@ def generate_carousel_image(prompt: str) -> Dict[str, object]:
             "message": "..." (si erreur)
         }
     """
+    # TENTATIVE 1 : Nano Banana Pro (haute qualité)
     try:
-        # TENTATIVE 1 : Nano Banana Pro (haute qualité)
-        print("🎨 Tentative avec Nano Banana Pro (2K)...")
         result_pro = _try_generate_image(
             model="gemini-3-pro-image-preview",
             prompt=prompt,
@@ -134,13 +133,15 @@ def generate_carousel_image(prompt: str) -> Dict[str, object]:
         )
         
         if result_pro["status"] == "success":
-            print("✅ Succès avec Nano Banana Pro")
             return result_pro
-        
-        # FALLBACK : Nano Banana Flash (rapide)
-        print(f"⚠️ Échec Pro: {result_pro.get('message')}")
-        print("🔄 Fallback vers Nano Banana Flash (1K)...")
-        
+    except Exception as e:
+        result_pro = {
+            "status": "error",
+            "message": f"Exception Pro: {str(e)}"
+        }
+    
+    # FALLBACK : Nano Banana Flash (rapide)
+    try:
         result_flash = _try_generate_image(
             model="gemini-2.5-flash-image",
             prompt=prompt,
@@ -151,22 +152,18 @@ def generate_carousel_image(prompt: str) -> Dict[str, object]:
         )
         
         if result_flash["status"] == "success":
-            print("✅ Succès avec Nano Banana Flash (qualité réduite)")
             return result_flash
-        
-        # Les deux ont échoué
-        print("❌ Échec des deux modèles")
-        return {
-            "status": "error",
-            "message": f"Échec Pro ET Flash. Pro: {result_pro.get('message')}. Flash: {result_flash.get('message')}"
-        }
-
-        
     except Exception as e:
-        return {
+        result_flash = {
             "status": "error",
-            "message": f"Erreur inattendue : {str(e)}"
+            "message": f"Exception Flash: {str(e)}"
         }
+    
+    # Les deux ont échoué
+    return {
+        "status": "error",
+        "message": f"❌ Échec Pro ET Flash.\n• Pro: {result_pro.get('message', 'Erreur')}\n• Flash: {result_flash.get('message', 'Erreur')}"
+    }
 
 
 def save_image_to_carousel(item_id: str, image_url: str) -> Dict[str, object]:
