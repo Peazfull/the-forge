@@ -56,7 +56,7 @@ def generate_carousel_image(prompt: str) -> Dict[str, object]:
         retry_delays = [5, 10, 20]  # Délais progressifs en secondes
         
         for attempt in range(max_retries):
-            response = requests.post(url, json=payload, headers=headers, timeout=180)
+            response = requests.post(url, json=payload, headers=headers, timeout=600)  # 10 minutes
             
             # Si succès, on sort de la boucle
             if response.status_code == 200:
