@@ -10,6 +10,7 @@ import base64
 from typing import Dict
 from google.cloud import aiplatform
 from vertexai.preview.vision_models import ImageGenerationModel
+import time
 
 
 def generate_image_vertex_ai(prompt: str, quality: str = "standard") -> Dict[str, object]:
@@ -68,26 +69,55 @@ def generate_image_vertex_ai(prompt: str, quality: str = "standard") -> Dict[str
             model = ImageGenerationModel.from_pretrained("imagen-3.0-fast-generate-001")
         
         # Générer l'image avec Imagen 3.0
-        # Imagen 3.0 utilise une API simplifiée
-        response = model.generate_images(
-            prompt=prompt,
-            number_of_images=1,
-            aspect_ratio="1:1",
-        )
+        # Ajouter des paramètres de qualité
+        generation_params = {
+            "prompt": prompt,
+            "number_of_images": 1,
+            "aspect_ratio": "1:1",
+        }
+        
+        # Si HD, ajouter des paramètres de qualité supérieure
+        if quality == "hd":
+            generation_params["safety_filter_level"] = "block_few"
+            generation_params["person_generation"] = "allow_adult"
+        
+        response = model.generate_images(**generation_params)
         
         # Récupérer la première image
         if response.images and len(response.images) > 0:
             image = response.images[0]
+            
+            # SI HD : Upscaler l'image à 2048x2048 (2K)
+            if quality == "hd":
+                try:
+                    print("🔄 Upscaling de l'image à 2K...")
+                    upscaled_images = model.upscale_image(
+                        image=image,
+                        upscale_factor="x2"  # 1024 → 2048
+                    )
+                    
+                    if upscaled_images and len(upscaled_images) > 0:
+                        image = upscaled_images[0]  # Utiliser l'image upscalée
+                        resolution = "2K"
+                        print("✅ Upscaling réussi : 2048x2048")
+                    else:
+                        # Fallback : garder l'image 1K si upscaling échoue
+                        resolution = "1K (upscaling échoué)"
+                        print("⚠️ Upscaling échoué, utilisation de l'image 1K")
+                        
+                except Exception as upscale_error:
+                    # Si upscaling échoue, garder l'image 1K
+                    resolution = "1K (upscaling échoué)"
+                    print(f"⚠️ Erreur upscaling : {upscale_error}")
+            else:
+                # Standard : pas d'upscaling
+                resolution = "1K"
             
             # Convertir en base64
             # Imagen 3.0 retourne l'image via _image_bytes
             image_bytes = image._image_bytes
             image_base64 = base64.b64encode(image_bytes).decode('utf-8')
             
-            # Imagen 3.0 génère en 1024x1024 par défaut
-            # HD utilise imagen-3.0-generate-001 (meilleure qualité)
-            # Standard utilise imagen-3.0-fast-generate-001 (plus rapide)
-            resolution = "1K"  # Les deux génèrent en 1024x1024
             model_name = "Imagen 3.0" if quality == "hd" else "Imagen 3.0 Fast"
             
             return {

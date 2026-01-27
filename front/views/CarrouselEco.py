@@ -625,7 +625,7 @@ with st.expander("🎨 Test Image", expanded=False):
                 progress_placeholder = st.empty()
                 
                 with progress_placeholder.container():
-                    st.info("🎨 Génération via Vertex AI (Google Cloud)...")
+                    st.info("🎨 Génération HD (1K → 2K avec upscaling)...")
                 
                 result = generate_carousel_image_vertex(image_prompt)
                 
@@ -660,12 +660,14 @@ with st.expander("🎨 Test Image", expanded=False):
                 # Décoder et afficher l'image base64
                 try:
                     image_bytes = base64.b64decode(result["image_data"])
-                    # Afficher le modèle utilisé
+                    # Afficher le modèle et la résolution utilisés
                     model_used = result.get("model_used", "")
+                    resolution = result.get("resolution", "1K")
+                    
                     if "Fast" in model_used:
-                        caption = f"⚡ Vertex AI Imagen 3.0 Fast (1024x1024)"
+                        caption = f"⚡ Vertex AI Imagen 3.0 Fast · {resolution}"
                     else:
-                        caption = f"✨ Vertex AI Imagen 3.0 (1024x1024)"
+                        caption = f"✨ Vertex AI Imagen 3.0 · {resolution}"
                     
                     st.image(image_bytes, caption=caption, use_container_width=True)
                 except Exception as e:
