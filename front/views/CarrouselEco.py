@@ -1,4 +1,5 @@
 import streamlit as st
+import time
 from db.supabase_client import get_supabase
 from services.carousel.carousel_eco_service import insert_items_to_carousel_eco, get_carousel_eco_items
 from services.carousel.generate_carousel_texts_service import generate_all_carousel_texts, update_carousel_text
@@ -222,6 +223,10 @@ def generate_texts():
         st.warning(f"{result['success']}/{result['total']} textes générés · {result['errors']} erreurs")
     else:
         st.error(f"Erreur : {result.get('message', 'Erreur inconnue')}")
+    
+    # Attendre 1.5s pour que l'utilisateur puisse voir le message, puis refresh
+    time.sleep(1.5)
+    st.rerun()
 
 
 def get_item_position(item_id):
