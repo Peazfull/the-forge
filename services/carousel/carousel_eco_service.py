@@ -31,20 +31,20 @@ def clear_carousel_eco() -> Dict[str, object]:
 def insert_items_to_carousel_eco(item_ids: List[str]) -> Dict[str, object]:
     """
     Insère les items sélectionnés dans carousel_eco.
-    L'ordre dans la liste item_ids détermine la position (1 à 8).
+    L'ordre dans la liste item_ids détermine la position (1 à N).
     
     Args:
-        item_ids: Liste de 8 UUIDs d'items (dans l'ordre du carousel)
+        item_ids: Liste de 1 à 8 UUIDs d'items (dans l'ordre du carousel)
     
     Returns:
         {"status": "success" | "error", "inserted": int, "message": str}
     """
     
-    if len(item_ids) != 8:
+    if len(item_ids) < 1 or len(item_ids) > 8:
         return {
             "status": "error",
             "inserted": 0,
-            "message": f"Exactement 8 items requis (reçu {len(item_ids)})"
+            "message": f"Entre 1 et 8 items requis (reçu {len(item_ids)})"
         }
     
     try:
@@ -62,11 +62,11 @@ def insert_items_to_carousel_eco(item_ids: List[str]) -> Dict[str, object]:
         
         items_data = response.data or []
         
-        if len(items_data) != 8:
+        if len(items_data) != len(item_ids):
             return {
                 "status": "error",
                 "inserted": 0,
-                "message": f"Erreur : {len(items_data)} items trouvés sur 8"
+                "message": f"Erreur : {len(items_data)} items trouvés sur {len(item_ids)}"
             }
         
         # 3. Créer un dict pour retrouver les items par ID

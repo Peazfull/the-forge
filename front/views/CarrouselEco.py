@@ -115,7 +115,7 @@ with st.expander("📰 Bulletin Eco", expanded=False):
         
         # Header
         selected_count = len(st.session_state.eco_selected_items)
-        st.caption(f"📊 Top 14 actualités ECO · **{selected_count} / 8** sélectionnées · Cochez et assignez les positions (1-8)")
+        st.caption(f"📊 Top 14 actualités ECO · **{selected_count}** sélectionnée{'s' if selected_count > 1 else ''} · Cochez et assignez les positions")
         
         # Tableau
         for idx, item in enumerate(items, start=1):
@@ -200,16 +200,20 @@ with st.expander("📰 Bulletin Eco", expanded=False):
         st.markdown("")
         
         # Bouton d'envoi
-        if selected_count == 8:
-            if st.button("🚀 Envoyer vers Carousel Eco", type="primary", use_container_width=True):
+        if selected_count > 0:
+            if st.button(
+                f"🚀 Envoyer vers Carousel Eco ({selected_count} item{'s' if selected_count > 1 else ''})",
+                type="primary",
+                use_container_width=True
+            ):
                 send_to_carousel()
                 st.rerun()
         else:
             st.button(
-                f"🚀 Envoyer vers Carousel Eco ({selected_count}/8)",
+                "🚀 Envoyer vers Carousel Eco (0 item)",
                 disabled=True,
                 use_container_width=True,
-                help="Sélectionnez exactement 8 items"
+                help="Sélectionnez au moins 1 item"
             )
 
 
