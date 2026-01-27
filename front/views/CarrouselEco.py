@@ -72,6 +72,13 @@ def inject_custom_css():
         box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
     }
     
+    /* Save buttons (petite taille) */
+    .save-btn button {
+        padding: 4px 8px !important;
+        min-width: 40px !important;
+        font-size: 18px !important;
+    }
+    
     /* Inputs */
     input, textarea {
         font-size: 14px !important;
@@ -89,6 +96,24 @@ def inject_custom_css():
     hr {
         margin: 12px 0 !important;
         border-color: var(--gray-200) !important;
+    }
+    
+    /* Compteur de caractères */
+    .char-counter {
+        font-size: 11px;
+        color: var(--gray-600);
+        margin-top: -8px;
+        margin-bottom: 8px;
+    }
+    
+    .char-counter.warning {
+        color: #f59e0b;
+        font-weight: 500;
+    }
+    
+    .char-counter.error {
+        color: #ef4444;
+        font-weight: 500;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -429,7 +454,7 @@ with st.expander("🎨 Textes Carousel", expanded=False):
             st.markdown(f"**#{position}** · {title_original[:50]}...")
             
             # Titre carousel
-            col_title_input, col_title_save = st.columns([5, 1])
+            col_title_input, col_title_save = st.columns([5, 0.6])
             
             with col_title_input:
                 new_title_carou = st.text_input(
@@ -438,9 +463,19 @@ with st.expander("🎨 Textes Carousel", expanded=False):
                     key=f"title_carou_{item_id}",
                     placeholder="Ex: FED : CHOC HISTORIQUE"
                 )
+                
+                # Compteur de caractères pour titre
+                title_len = len(new_title_carou)
+                # Limites indicatives (à ajuster selon Pillow)
+                if title_len > 50:  # Limite haute (rouge)
+                    st.markdown(f'<p class="char-counter error">{title_len} caractères (trop long)</p>', unsafe_allow_html=True)
+                elif title_len > 35:  # Limite moyenne (orange)
+                    st.markdown(f'<p class="char-counter warning">{title_len} caractères (limite proche)</p>', unsafe_allow_html=True)
+                else:
+                    st.markdown(f'<p class="char-counter">{title_len} caractères</p>', unsafe_allow_html=True)
             
             with col_title_save:
-                if st.button("Sauver", key=f"save_title_{item_id}", use_container_width=True):
+                if st.button("💾", key=f"save_title_{item_id}", use_container_width=True, type="primary"):
                     result = update_carousel_text(item_id, "title_carou", new_title_carou)
                     if result["status"] == "success":
                         st.success("✓")
@@ -449,7 +484,7 @@ with st.expander("🎨 Textes Carousel", expanded=False):
                         st.error("✗")
             
             # Content carousel
-            col_content_input, col_content_save = st.columns([5, 1])
+            col_content_input, col_content_save = st.columns([5, 0.6])
             
             with col_content_input:
                 new_content_carou = st.text_area(
@@ -459,9 +494,19 @@ with st.expander("🎨 Textes Carousel", expanded=False):
                     placeholder="Ex: La banque centrale frappe fort. Les marchés explosent.",
                     height=70
                 )
+                
+                # Compteur de caractères pour content
+                content_len = len(new_content_carou)
+                # Limites indicatives (à ajuster selon Pillow)
+                if content_len > 200:  # Limite haute (rouge)
+                    st.markdown(f'<p class="char-counter error">{content_len} caractères (trop long)</p>', unsafe_allow_html=True)
+                elif content_len > 150:  # Limite moyenne (orange)
+                    st.markdown(f'<p class="char-counter warning">{content_len} caractères (limite proche)</p>', unsafe_allow_html=True)
+                else:
+                    st.markdown(f'<p class="char-counter">{content_len} caractères</p>', unsafe_allow_html=True)
             
             with col_content_save:
-                if st.button("Sauver", key=f"save_content_{item_id}", use_container_width=True):
+                if st.button("💾", key=f"save_content_{item_id}", use_container_width=True, type="secondary"):
                     result = update_carousel_text(item_id, "content_carou", new_content_carou)
                     if result["status"] == "success":
                         st.success("✓")
