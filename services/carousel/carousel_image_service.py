@@ -41,7 +41,7 @@ def get_image_path(position: int) -> str:
 
 def save_image_base64(image_base64: str, position: int) -> Dict[str, object]:
     """
-    Sauvegarde une image base64 sur disque
+    Sauvegarde une image base64 sur disque ET en session_state
     
     Args:
         image_base64: Image encodée en base64
@@ -54,14 +54,22 @@ def save_image_base64(image_base64: str, position: int) -> Dict[str, object]:
         # Décoder le base64
         image_bytes = base64.b64decode(image_base64)
         
-        # Sauvegarder
-        image_path = get_image_path(position)
-        with open(image_path, 'wb') as f:
-            f.write(image_bytes)
+        # Sauvegarder en session_state (pour affichage immédiat)
+        if "carousel_images" not in st.session_state:
+            st.session_state.carousel_images = {}
+        st.session_state.carousel_images[position] = image_bytes
+        
+        # Essayer aussi sur disque (mais peut échouer en prod)
+        try:
+            image_path = get_image_path(position)
+            with open(image_path, 'wb') as f:
+                f.write(image_bytes)
+        except:
+            pass  # Échec silencieux si pas de droits d'écriture
         
         return {
             "status": "success",
-            "path": image_path,
+            "path": f"session_state[{position}]",
             "message": f"Image sauvegardée : imgcaroueco{position}.png"
         }
         
@@ -237,7 +245,7 @@ def save_prompt_image_3_to_db(item_id: str, prompt_image_3: str) -> Dict[str, ob
 
 def read_carousel_image(position: int) -> Optional[bytes]:
     """
-    Lit une image de carousel depuis le disque
+    Lit une image de carousel depuis session_state ou disque
     
     Args:
         position: Position dans le carousel (1-8)
@@ -246,13 +254,24 @@ def read_carousel_image(position: int) -> Optional[bytes]:
         Bytes de l'image ou None si inexistante
     """
     try:
+        # D'abord chercher en session_state (priorité)
+        if "carousel_images" in st.session_state:
+            if position in st.session_state.carousel_images:
+                return st.session_state.carousel_images[position]
+        
+        # Sinon lire depuis le disque
         image_path = get_image_path(position)
         
         if not os.path.exists(image_path):
             return None
         
         with open(image_path, 'rb') as f:
-            return f.read()
+            image_bytes = f.read()
+            # Mettre en cache dans session_state
+            if "carousel_images" not in st.session_state:
+                st.session_state.carousel_images = {}
+            st.session_state.carousel_images[position] = image_bytes
+            return image_bytes
             
     except Exception as e:
         print(f"Erreur lecture image position {position}: {str(e)}")

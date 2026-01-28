@@ -206,6 +206,12 @@ def close_modal():
 
 def send_to_carousel():
     """Envoie les items et génère tout en une seule passe (boucle simple)"""
+    # SÉCURITÉ : éviter double exécution
+    if st.session_state.get("generation_in_progress", False):
+        return  # Déjà en cours, ne pas relancer
+    
+    st.session_state.generation_in_progress = True
+    
     # Sécurité : initialiser si absent
     if "eco_selected_items" not in st.session_state:
         st.session_state.eco_selected_items = []
@@ -220,6 +226,7 @@ def send_to_carousel():
         
         if result["status"] != "success":
             st.error(f"❌ Erreur insertion : {result['message']}")
+            st.session_state.generation_in_progress = False
             return
         
         st.success(f"✅ {result['inserted']} items envoyés")
@@ -230,6 +237,7 @@ def send_to_carousel():
         
         if carousel_data["status"] != "success" or carousel_data["count"] == 0:
             st.error("❌ Erreur récupération items")
+            st.session_state.generation_in_progress = False
             return
         
         items = carousel_data["items"]
@@ -297,11 +305,15 @@ def send_to_carousel():
         st.session_state.eco_selected_items = []
         st.session_state.eco_initialized = False
         st.session_state.eco_preview_mode = False
+        # Ne PAS supprimer carousel_images pour garder les images en cache
         
         # Incrémenter compteur pour refresh des inputs
         if "carousel_generation_count" not in st.session_state:
             st.session_state.carousel_generation_count = 0
         st.session_state.carousel_generation_count += 1
+        
+        # IMPORTANT : Libérer le verrou
+        st.session_state.generation_in_progress = False
         
         # PAS DE RERUN ICI - c'est le bouton qui s'en charge
 
@@ -789,10 +801,10 @@ with st.expander("🎨 Textes Carousel", expanded=False):
                     save_result = save_image_base64(image_base64, position)
                     if save_result["status"] == "success":
                         st.success("✅ Image chargée")
-                        time.sleep(1)
+                        time.sleep(0.5)
                         st.rerun()
                     else:
-                        st.error(save_result["message"])
+                        st.error(f"❌ {save_result['message']}")
             
             # Plus besoin de logique async avec flags - tout est fait directement dans les boutons
             
