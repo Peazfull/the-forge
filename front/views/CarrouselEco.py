@@ -557,9 +557,10 @@ with st.expander("📰 Bulletin Eco", expanded=False):
                 if st.button(
                     f"Envoyer ({selected_count})",
                     type="primary",
-                    use_container_width=True
+                    use_container_width=True,
+                    key="send_button"
                 ):
-                    send_to_carousel()
+                    st.session_state.start_generation = True
                     st.rerun()
             else:
                 st.button(
@@ -568,6 +569,13 @@ with st.expander("📰 Bulletin Eco", expanded=False):
                     use_container_width=True,
                     help="Sélectionnez au moins 1 item"
                 )
+        
+        # Zone de statuts de génération (juste en dessous du bouton)
+        if st.session_state.get("start_generation", False):
+            st.markdown("---")
+            send_to_carousel()
+            st.session_state.start_generation = False
+            st.rerun()
         
         with col_generate:
             # Vérifier si des items existent dans carousel_eco
