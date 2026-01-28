@@ -573,8 +573,14 @@ with st.expander("📰 Bulletin Eco", expanded=False):
         # Zone de statuts de génération (juste en dessous du bouton)
         if st.session_state.get("start_generation", False):
             st.markdown("---")
-            send_to_carousel()
+            
+            # IMPORTANT : Supprimer le flag AVANT send_to_carousel pour éviter reboucle
             st.session_state.start_generation = False
+            
+            # Générer tout
+            send_to_carousel()
+            
+            # 1 seul rerun pour afficher les résultats
             st.rerun()
         
         with col_generate:
