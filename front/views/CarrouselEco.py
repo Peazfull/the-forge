@@ -1,6 +1,7 @@
 import streamlit as st
 import time
 import base64
+import os
 from db.supabase_client import get_supabase
 from services.carousel.carousel_eco_service import insert_items_to_carousel_eco, get_carousel_eco_items
 from services.carousel.generate_carousel_texts_service import generate_all_carousel_texts, update_carousel_text
@@ -804,17 +805,29 @@ with st.expander("🎨 Textes Carousel", expanded=False):
                     
                     if file_id != last_file_id:
                         # Nouveau fichier, traiter
+                        # IMPORTANT : Sauvegarder directement les bytes dans session_state
+                        # (pas de base64 inutile pour l'affichage)
                         image_bytes = uploaded_file.read()
-                        image_base64 = base64.b64encode(image_bytes).decode('utf-8')
                         
-                        save_result = save_image_base64(image_base64, position)
-                        if save_result["status"] == "success":
-                            st.session_state[last_upload_key] = file_id
-                            st.success("✅ Image chargée")
-                            time.sleep(0.5)
-                            st.rerun()
-                        else:
-                            st.error(f"❌ {save_result['message']}")
+                        # Stocker en session_state
+                        if "carousel_images" not in st.session_state:
+                            st.session_state.carousel_images = {}
+                        st.session_state.carousel_images[position] = image_bytes
+                        
+                        # Aussi essayer sur disque (optionnel)
+                        try:
+                            from services.carousel.carousel_image_service import get_image_path
+                            image_path = get_image_path(position)
+                            os.makedirs(os.path.dirname(image_path), exist_ok=True)
+                            with open(image_path, 'wb') as f:
+                                f.write(image_bytes)
+                        except:
+                            pass  # Échec silencieux
+                        
+                        st.session_state[last_upload_key] = file_id
+                        st.success("✅ Image chargée")
+                        time.sleep(0.5)
+                        st.rerun()
             
             # Plus besoin de logique async avec flags - tout est fait directement dans les boutons
             
