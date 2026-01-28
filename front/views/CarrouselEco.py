@@ -240,6 +240,13 @@ def send_to_carousel():
         items = carousel_data["items"]
         current_idx = st.session_state.generation_current_idx
         
+        # Sécurité : forcer l'arrêt si index invalide
+        if current_idx is None or current_idx < 0:
+            del st.session_state.generation_step
+            if "generation_current_idx" in st.session_state:
+                del st.session_state.generation_current_idx
+            return
+        
         # Vérifier si on a fini
         if current_idx >= len(items):
             st.success("🎉 Génération terminée")
@@ -976,4 +983,17 @@ with st.expander("🎨 Test Image", expanded=False):
 # Si une génération est en cours, continuer le process
 # Cette vérification est placée à la FIN pour permettre l'affichage des expanders
 if "generation_step" in st.session_state:
-    send_to_carousel()
+    # Sécurité : compteur pour éviter boucle infinie
+    if "generation_loop_count" not in st.session_state:
+        st.session_state.generation_loop_count = 0
+    
+    st.session_state.generation_loop_count += 1
+    
+    # Si plus de 50 iterations, forcer l'arrêt
+    if st.session_state.generation_loop_count > 50:
+        st.error("⛔ Arrêt forcé : trop d'itérations")
+        del st.session_state.generation_step
+        del st.session_state.generation_current_idx
+        st.session_state.generation_loop_count = 0
+    else:
+        send_to_carousel()
