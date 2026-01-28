@@ -708,17 +708,11 @@ with st.expander("🎨 Textes Carousel", expanded=False):
             # Vérifier si une image existe déjà
             existing_image = read_carousel_image(position)
             
-            # Initialiser le state pour cette image si nécessaire
-            if f"image_generating_{item_id}" not in st.session_state:
-                st.session_state[f"image_generating_{item_id}"] = False
-            
             # Preview de l'image
             col_preview_left, col_preview_center, col_preview_right = st.columns([1, 2, 1])
             
             with col_preview_center:
-                if st.session_state.get(f"image_generating_{item_id}", False):
-                    st.info("🎨 Génération en cours...")
-                elif existing_image:
+                if existing_image:
                     st.image(existing_image, caption=f"Image #{position}", use_container_width=True)
                 else:
                     st.caption("Aucune image générée")
@@ -732,15 +726,18 @@ with st.expander("🎨 Textes Carousel", expanded=False):
             with col_regen:
                 if st.button("🔄 Régénérer", key=f"regen_{item_id}", use_container_width=True, type="secondary", disabled=not prompt_image_2):
                     if prompt_image_2:
-                        st.session_state[f"image_generating_{item_id}"] = True
-                        st.rerun()
+                        with st.spinner("🎨 Génération..."):
+                            result = generate_and_save_carousel_image(prompt_image_2, position)
+                        
+                        if result["status"] == "success":
+                            st.success("✅ Image régénérée")
+                            time.sleep(0.5)
+                            st.rerun()
+                        else:
+                            st.error(f"❌ {result.get('message', 'Erreur')[:100]}")
             
             # Bouton 2 : Input manuel + génération
             with col_manual:
-                manual_input_key = f"manual_input_{item_id}"
-                if manual_input_key not in st.session_state:
-                    st.session_state[manual_input_key] = ""
-                
                 # Afficher l'input dans un expander compact
                 with st.expander("✨ Prompter", expanded=False):
                     manual_instructions = st.text_area(
@@ -752,9 +749,26 @@ with st.expander("🎨 Textes Carousel", expanded=False):
                     
                     if st.button("Générer", key=f"gen_manual_{item_id}", use_container_width=True, type="primary"):
                         if manual_instructions.strip():
-                            st.session_state[f"manual_instructions_{item_id}"] = manual_instructions
-                            st.session_state[f"image_generating_manual_{item_id}"] = True
-                            st.rerun()
+                            with st.spinner("🎨 Génération du prompt..."):
+                                # Générer prompt_image_3
+                                prompt_result = generate_prompt_image_3(title_original, item.get("content", ""), manual_instructions)
+                            
+                            if prompt_result["status"] == "success":
+                                # Sauvegarder en DB
+                                save_prompt_image_3_to_db(item_id, prompt_result["image_prompt"])
+                                
+                                # Générer l'image
+                                with st.spinner("🎨 Génération de l'image..."):
+                                    result = generate_and_save_carousel_image(prompt_result["image_prompt"], position)
+                                
+                                if result["status"] == "success":
+                                    st.success("✅ Image générée")
+                                    time.sleep(0.5)
+                                    st.rerun()
+                                else:
+                                    st.error(f"❌ {result.get('message', 'Erreur')[:100]}")
+                            else:
+                                st.error(f"❌ Erreur prompt : {prompt_result.get('message', '')[:100]}")
                         else:
                             st.warning("Entrez des instructions")
             
@@ -780,53 +794,7 @@ with st.expander("🎨 Textes Carousel", expanded=False):
                     else:
                         st.error(save_result["message"])
             
-            # Logique de génération (traitement async)
-            if st.session_state.get(f"image_generating_{item_id}", False):
-                with st.spinner("Génération (Nano Banana Pro)..."):
-                    result = generate_and_save_carousel_image(prompt_image_2, position)
-                
-                st.session_state[f"image_generating_{item_id}"] = False
-                
-                if result["status"] == "success":
-                    if result.get("tried_fallback"):
-                        st.success("✅ Image générée (GPT Image 1.5)")
-                    else:
-                        st.success("✅ Image générée (Nano Banana Pro)")
-                    time.sleep(1)
-                    st.rerun()
-                else:
-                    st.error(result.get("message", "Erreur"))
-            
-            # Logique de génération manuelle
-            if st.session_state.get(f"image_generating_manual_{item_id}", False):
-                manual_instructions = st.session_state.get(f"manual_instructions_{item_id}", "")
-                
-                with st.spinner("Génération du prompt personnalisé..."):
-                    # Générer prompt_image_3
-                    prompt_result = generate_prompt_image_3(title_original, item.get("content", ""), manual_instructions)
-                
-                if prompt_result["status"] == "success":
-                    # Sauvegarder prompt_image_3 en DB
-                    save_prompt_image_3_to_db(item_id, prompt_result["image_prompt"])
-                    
-                    # Générer l'image
-                    with st.spinner("Génération de l'image (Nano Banana Pro)..."):
-                        result = generate_and_save_carousel_image(prompt_result["image_prompt"], position)
-                    
-                    st.session_state[f"image_generating_manual_{item_id}"] = False
-                    
-                    if result["status"] == "success":
-                        if result.get("tried_fallback"):
-                            st.success("✅ Image générée (GPT Image 1.5)")
-                        else:
-                            st.success("✅ Image générée (Nano Banana Pro)")
-                        time.sleep(1)
-                        st.rerun()
-                    else:
-                        st.error(result.get("message", "Erreur"))
-                else:
-                    st.session_state[f"image_generating_manual_{item_id}"] = False
-                    st.error(prompt_result.get("message", "Erreur génération prompt"))
+            # Plus besoin de logique async avec flags - tout est fait directement dans les boutons
             
             st.divider()
 
