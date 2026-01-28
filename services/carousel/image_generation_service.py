@@ -119,6 +119,13 @@ def _generate_with_gpt_image(prompt: str) -> Dict[str, object]:
         # Récupérer l'URL de l'image et la télécharger en base64
         image_url = response.data[0].url
         
+        # Vérifier que l'URL existe
+        if not image_url:
+            return {
+                "status": "error",
+                "message": "❌ GPT Image 1.5 n'a pas retourné d'URL"
+            }
+        
         # Télécharger l'image
         img_response = requests.get(image_url, timeout=30)
         if img_response.status_code == 200:
@@ -138,9 +145,17 @@ def _generate_with_gpt_image(prompt: str) -> Dict[str, object]:
             }
             
     except Exception as e:
+        # Capturer plus de détails sur l'erreur
+        error_msg = str(e)
+        if hasattr(e, 'response'):
+            try:
+                error_msg = f"{error_msg} | Response: {e.response.text[:200]}"
+            except:
+                pass
+        
         return {
             "status": "error",
-            "message": f"❌ Erreur GPT Image 1.5 : {str(e)}"
+            "message": f"❌ Erreur GPT Image 1.5 : {error_msg}"
         }
 
 
