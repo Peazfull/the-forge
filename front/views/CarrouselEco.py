@@ -613,14 +613,6 @@ with st.expander("📰 Bulletin Eco", expanded=False):
 
 
 # ======================================================
-# GÉNÉRATION AUTOMATIQUE (STATE MACHINE)
-# ======================================================
-
-# Si une génération est en cours, continuer le process
-if "generation_step" in st.session_state:
-    send_to_carousel()
-
-# ======================================================
 # TEXTES CAROUSEL (MODIFICATION)
 # ======================================================
 
@@ -974,3 +966,13 @@ with st.expander("🎨 Test Image", expanded=False):
             if st.button("🗑️ Effacer", key="clear_test_image", use_container_width=True):
                 del st.session_state.test_image_result
                 st.rerun()
+
+
+# ======================================================
+# GÉNÉRATION AUTOMATIQUE (STATE MACHINE)
+# ======================================================
+
+# Si une génération est en cours, continuer le process
+# Cette vérification est placée à la FIN pour permettre l'affichage des expanders
+if "generation_step" in st.session_state:
+    send_to_carousel()
