@@ -205,132 +205,105 @@ def close_modal():
 
 
 def send_to_carousel():
-    """Envoie les items sélectionnés et lance la génération automatique ligne par ligne"""
+    """Envoie les items et génère tout en une seule passe (boucle simple)"""
     # Sécurité : initialiser si absent
     if "eco_selected_items" not in st.session_state:
         st.session_state.eco_selected_items = []
     
-    # Étape 1 : Insertion des items
-    if st.session_state.generation_step == "insert":
+    # Container pour les messages
+    status_container = st.container()
+    
+    with status_container:
+        # Étape 1 : Insertion
         st.info("📤 Envoi des items...")
         result = insert_items_to_carousel_eco(st.session_state.eco_selected_items)
         
         if result["status"] != "success":
             st.error(f"❌ Erreur insertion : {result['message']}")
-            # Reset
-            del st.session_state.generation_step
             return
         
         st.success(f"✅ {result['inserted']} items envoyés")
-        st.session_state.generation_step = "generate_item"
-        st.session_state.generation_current_idx = 0
-        time.sleep(1)
-        st.rerun()
-    
-    # Étape 2 : Générer item par item
-    elif st.session_state.generation_step == "generate_item":
-        # Récupérer les items
+        time.sleep(0.5)
+        
+        # Étape 2 : Récupérer les items insérés
         carousel_data = get_carousel_eco_items()
         
         if carousel_data["status"] != "success" or carousel_data["count"] == 0:
             st.error("❌ Erreur récupération items")
-            del st.session_state.generation_step
             return
         
         items = carousel_data["items"]
-        current_idx = st.session_state.generation_current_idx
+        total_items = len(items)
         
-        # Sécurité : forcer l'arrêt si index invalide
-        if current_idx is None or current_idx < 0:
-            del st.session_state.generation_step
-            if "generation_current_idx" in st.session_state:
-                del st.session_state.generation_current_idx
-            return
+        # Progress tracking
+        progress_bar = st.progress(0)
         
-        # Vérifier si on a fini
-        if current_idx >= len(items):
-            st.success("🎉 Génération terminée")
-            
-            # Reset
-            st.session_state.eco_selected_items = []
-            st.session_state.eco_initialized = False
-            st.session_state.eco_preview_mode = False
-            
-            # Incrémenter compteur pour refresh inputs
-            if "carousel_generation_count" not in st.session_state:
-                st.session_state.carousel_generation_count = 0
-            st.session_state.carousel_generation_count += 1
-            
-            # IMPORTANT : Supprimer generation_step EN DERNIER pour éviter un rerun supplémentaire
-            del st.session_state.generation_step
-            del st.session_state.generation_current_idx
-            
-            # Ne PAS faire de rerun ici, laisser la page s'afficher normalement
-            return
+        # Import des fonctions
+        from services.carousel.generate_carousel_texts_service import generate_carousel_text_for_item, generate_image_prompt_for_item
+        supabase = get_supabase()
         
-        # Item actuel
-        item = items[current_idx]
-        item_id = item["id"]
-        position = item["position"]
-        title = item.get("title", "")
-        content = item.get("content", "")
-        
-        # Progress
-        st.info(f"⏳ Item #{position}/{len(items)} : {title[:40]}...")
-        progress = (current_idx + 1) / len(items)
-        st.progress(progress)
-        
-        # Sous-étapes avec spinner
-        with st.spinner(f"✍️ Génération titre & contenu #{position}..."):
-            # Import de la fonction individuelle
-            from services.carousel.generate_carousel_texts_service import generate_carousel_text_for_item, generate_image_prompt_for_item
+        # Étape 3 : Boucle sur chaque item (simple for)
+        for idx, item in enumerate(items, start=1):
+            item_id = item["id"]
+            position = item["position"]
+            title = item.get("title", "")
+            content = item.get("content", "")
             
-            # Générer titre et contenu
-            text_result = generate_carousel_text_for_item(title, content)
+            # Update progress
+            st.info(f"⏳ Item #{position}/{total_items} : {title[:40]}...")
+            progress_bar.progress(idx / total_items)
             
-            if text_result["status"] != "success":
-                st.error(f"❌ Erreur texte #{position} : {text_result.get('message')}")
-                st.session_state.generation_current_idx += 1
-                time.sleep(1)
-                st.rerun()
-                return
-            
-            # Générer prompts d'images
-            prompt_1_result = generate_image_prompt_for_item(title, content, prompt_type="sunset")
-            prompt_2_result = generate_image_prompt_for_item(title, content, prompt_type="studio")
-            
-            # Sauvegarder en DB
-            supabase = get_supabase()
-            supabase.table("carousel_eco").update({
-                "title_carou": text_result["title_carou"],
-                "content_carou": text_result["content_carou"],
-                "prompt_image_1": prompt_1_result.get("image_prompt"),
-                "prompt_image_2": prompt_2_result.get("image_prompt")
-            }).eq("id", item_id).execute()
-        
-        st.success(f"✅ Textes générés #{position}")
-        
-        # Générer l'image
-        with st.spinner(f"🎨 Génération image #{position}..."):
-            if prompt_1_result.get("status") == "success":
-                img_result = generate_and_save_carousel_image(prompt_1_result["image_prompt"], position)
+            try:
+                # Générer textes
+                text_result = generate_carousel_text_for_item(title, content)
                 
-                if img_result["status"] == "success":
-                    st.success(f"✅ Image générée #{position}")
+                if text_result["status"] == "success":
+                    # Générer prompts images
+                    prompt_1_result = generate_image_prompt_for_item(title, content, prompt_type="sunset")
+                    prompt_2_result = generate_image_prompt_for_item(title, content, prompt_type="studio")
+                    
+                    # Sauvegarder en DB
+                    supabase.table("carousel_eco").update({
+                        "title_carou": text_result["title_carou"],
+                        "content_carou": text_result["content_carou"],
+                        "prompt_image_1": prompt_1_result.get("image_prompt"),
+                        "prompt_image_2": prompt_2_result.get("image_prompt")
+                    }).eq("id", item_id).execute()
+                    
+                    st.success(f"✅ Textes #{position}")
+                    
+                    # Générer image
+                    if prompt_1_result.get("status") == "success":
+                        img_result = generate_and_save_carousel_image(prompt_1_result["image_prompt"], position)
+                        
+                        if img_result["status"] == "success":
+                            st.success(f"✅ Image #{position}")
+                        else:
+                            st.warning(f"⚠️ Image #{position} : {img_result.get('message')[:50]}")
+                    else:
+                        st.warning(f"⚠️ Pas de prompt image #{position}")
                 else:
-                    st.error(f"❌ Image #{position} : {img_result.get('message')}")
-            else:
-                st.error(f"❌ Pas de prompt pour image #{position}")
+                    st.warning(f"⚠️ Erreur texte #{position}, passage au suivant")
+                    
+            except Exception as e:
+                st.warning(f"⚠️ Erreur item #{position} : {str(e)[:50]}, passage au suivant")
+                continue
         
-        # Incrémenter le compteur pour forcer le refresh des inputs
+        # Nettoyage
+        progress_bar.empty()
+        st.success("🎉 Génération terminée")
+        
+        # Reset
+        st.session_state.eco_selected_items = []
+        st.session_state.eco_initialized = False
+        st.session_state.eco_preview_mode = False
+        
+        # Incrémenter compteur pour refresh
         if "carousel_generation_count" not in st.session_state:
             st.session_state.carousel_generation_count = 0
         st.session_state.carousel_generation_count += 1
         
-        # Passer à l'item suivant
-        st.session_state.generation_current_idx += 1
-        time.sleep(0.5)
-        st.rerun()
+        time.sleep(1)
 
 
 def toggle_preview_mode():
@@ -586,9 +559,7 @@ with st.expander("📰 Bulletin Eco", expanded=False):
                     type="primary",
                     use_container_width=True
                 ):
-                    # Initialiser la génération
-                    st.session_state.generation_step = "insert"
-                    st.session_state.generation_current_idx = 0
+                    send_to_carousel()
                     st.rerun()
             else:
                 st.button(
@@ -976,24 +947,4 @@ with st.expander("🎨 Test Image", expanded=False):
                 st.rerun()
 
 
-# ======================================================
-# GÉNÉRATION AUTOMATIQUE (STATE MACHINE)
-# ======================================================
-
-# Si une génération est en cours, continuer le process
-# Cette vérification est placée à la FIN pour permettre l'affichage des expanders
-if "generation_step" in st.session_state:
-    # Sécurité : compteur pour éviter boucle infinie
-    if "generation_loop_count" not in st.session_state:
-        st.session_state.generation_loop_count = 0
-    
-    st.session_state.generation_loop_count += 1
-    
-    # Si plus de 50 iterations, forcer l'arrêt
-    if st.session_state.generation_loop_count > 50:
-        st.error("⛔ Arrêt forcé : trop d'itérations")
-        del st.session_state.generation_step
-        del st.session_state.generation_current_idx
-        st.session_state.generation_loop_count = 0
-    else:
-        send_to_carousel()
+# Plus besoin de state machine, la génération se fait en une seule passe
