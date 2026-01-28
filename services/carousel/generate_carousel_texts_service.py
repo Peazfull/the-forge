@@ -4,10 +4,102 @@ from openai import OpenAI
 from typing import Dict, List
 from db.supabase_client import get_supabase
 from prompts.carousel.generate_carousel_texts import PROMPT_GENERATE_CAROUSEL_TEXTS
+from prompts.carousel.generate_image_prompts import PROMPT_GENERATE_IMAGE_PROMPT
+from prompts.carousel.generate_image_prompts_variant import PROMPT_GENERATE_IMAGE_PROMPT_VARIANT
 
 
 REQUEST_TIMEOUT = 60
 MAX_RETRIES = 2
+
+
+def generate_image_prompt_for_item(title: str, content: str, prompt_type: str = "sunset") -> Dict[str, object]:
+    """
+    Génère un prompt d'image pour un item via OpenAI.
+    
+    Args:
+        title: Titre original
+        content: Contenu original
+        prompt_type: Type de prompt ("sunset" pour DA violet/orange ou "studio" pour DA sombre)
+    
+    Returns:
+        {
+            "status": "success" | "error",
+            "image_prompt": str,
+            "message": str (si erreur)
+        }
+    """
+    
+    if not title or not content:
+        return {
+            "status": "error",
+            "message": "Titre ou contenu manquant",
+            "image_prompt": None
+        }
+    
+    try:
+        client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+        
+        # Construire l'input
+        user_input = f"TITRE: {title}\n\nCONTENT: {content}"
+        
+        # Sélectionner le prompt système selon le type
+        if prompt_type == "studio":
+            system_prompt = PROMPT_GENERATE_IMAGE_PROMPT_VARIANT
+            temperature = 0.65
+        else:  # "sunset" par défaut
+            system_prompt = PROMPT_GENERATE_IMAGE_PROMPT
+            temperature = 0.6
+        
+        # Retry logic
+        for attempt in range(MAX_RETRIES):
+            try:
+                response = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_input}
+                    ],
+                    temperature=temperature,
+                    response_format={"type": "json_object"},
+                    timeout=REQUEST_TIMEOUT
+                )
+                
+                raw_json = response.choices[0].message.content or ""
+                data = json.loads(raw_json)
+                
+                break
+                
+            except Exception as e:
+                if attempt < MAX_RETRIES - 1:
+                    continue
+                else:
+                    raise e
+        
+        # Validation
+        if "image_prompt" not in data:
+            return {
+                "status": "error",
+                "message": "Champ image_prompt manquant dans la réponse IA",
+                "image_prompt": None
+            }
+        
+        return {
+            "status": "success",
+            "image_prompt": data["image_prompt"]
+        }
+        
+    except json.JSONDecodeError as e:
+        return {
+            "status": "error",
+            "message": f"Erreur JSON: {str(e)}",
+            "image_prompt": None
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Erreur: {str(e)}",
+            "image_prompt": None
+        }
 
 
 def generate_carousel_text_for_item(title: str, content: str) -> Dict[str, object]:
@@ -143,14 +235,27 @@ def generate_all_carousel_texts() -> Dict[str, object]:
             title = item["title"]
             content = item["content"]
             
-            # Génération IA
-            result = generate_carousel_text_for_item(title, content)
+            # Génération IA - Textes carousel
+            result_text = generate_carousel_text_for_item(title, content)
             
-            if result["status"] == "success":
+            # Génération IA - Prompts d'images (2 variations)
+            result_img_1 = generate_image_prompt_for_item(title, content, prompt_type="sunset")
+            result_img_2 = generate_image_prompt_for_item(title, content, prompt_type="studio")
+            
+            # Vérifier si toutes les générations ont réussi
+            all_success = (
+                result_text["status"] == "success" and 
+                result_img_1["status"] == "success" and 
+                result_img_2["status"] == "success"
+            )
+            
+            if all_success:
                 # Mise à jour en DB
                 update_response = supabase.table("carousel_eco").update({
-                    "title_carou": result["title_carou"],
-                    "content_carou": result["content_carou"]
+                    "title_carou": result_text["title_carou"],
+                    "content_carou": result_text["content_carou"],
+                    "prompt_image_1": result_img_1["image_prompt"],
+                    "prompt_image_2": result_img_2["image_prompt"]
                 }).eq("id", item_id).execute()
                 
                 if update_response.data:
@@ -158,7 +263,7 @@ def generate_all_carousel_texts() -> Dict[str, object]:
                     details.append({
                         "position": position,
                         "status": "success",
-                        "title_carou": result["title_carou"]
+                        "title_carou": result_text["title_carou"]
                     })
                 else:
                     error_count += 1
@@ -168,11 +273,20 @@ def generate_all_carousel_texts() -> Dict[str, object]:
                         "message": "Erreur UPDATE DB"
                     })
             else:
+                # Compiler les erreurs
+                errors = []
+                if result_text["status"] != "success":
+                    errors.append(f"Texte: {result_text['message']}")
+                if result_img_1["status"] != "success":
+                    errors.append(f"Image 1: {result_img_1['message']}")
+                if result_img_2["status"] != "success":
+                    errors.append(f"Image 2: {result_img_2['message']}")
+                
                 error_count += 1
                 details.append({
                     "position": position,
                     "status": "error",
-                    "message": result["message"]
+                    "message": " | ".join(errors)
                 })
         
         return {
@@ -200,14 +314,14 @@ def update_carousel_text(item_id: str, field: str, value: str) -> Dict[str, obje
     
     Args:
         item_id: UUID de l'item
-        field: "title_carou" ou "content_carou"
+        field: "title_carou", "content_carou", "prompt_image_2" ou "prompt_image_3"
         value: Nouvelle valeur
     
     Returns:
         {"status": "success" | "error", "message": str}
     """
     
-    if field not in ["title_carou", "content_carou"]:
+    if field not in ["title_carou", "content_carou", "prompt_image_2", "prompt_image_3"]:
         return {
             "status": "error",
             "message": f"Champ invalide: {field}"
