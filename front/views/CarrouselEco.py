@@ -210,11 +210,6 @@ def send_to_carousel():
     if "eco_selected_items" not in st.session_state:
         st.session_state.eco_selected_items = []
     
-    # Initialiser le tracker de génération
-    if "generation_step" not in st.session_state:
-        st.session_state.generation_step = "insert"
-        st.session_state.generation_current_idx = 0
-    
     # Étape 1 : Insertion des items
     if st.session_state.generation_step == "insert":
         st.info("📤 Envoi des items...")
@@ -318,6 +313,11 @@ def send_to_carousel():
                     st.error(f"❌ Image #{position} : {img_result.get('message')}")
             else:
                 st.error(f"❌ Pas de prompt pour image #{position}")
+        
+        # Incrémenter le compteur pour forcer le refresh des inputs
+        if "carousel_generation_count" not in st.session_state:
+            st.session_state.carousel_generation_count = 0
+        st.session_state.carousel_generation_count += 1
         
         # Passer à l'item suivant
         st.session_state.generation_current_idx += 1
@@ -578,7 +578,9 @@ with st.expander("📰 Bulletin Eco", expanded=False):
                     type="primary",
                     use_container_width=True
                 ):
-                    send_to_carousel()
+                    # Initialiser la génération
+                    st.session_state.generation_step = "insert"
+                    st.session_state.generation_current_idx = 0
                     st.rerun()
             else:
                 st.button(
@@ -609,6 +611,14 @@ with st.expander("📰 Bulletin Eco", expanded=False):
                     help="Envoyez d'abord des items"
                 )
 
+
+# ======================================================
+# GÉNÉRATION AUTOMATIQUE (STATE MACHINE)
+# ======================================================
+
+# Si une génération est en cours, continuer le process
+if "generation_step" in st.session_state:
+    send_to_carousel()
 
 # ======================================================
 # TEXTES CAROUSEL (MODIFICATION)

@@ -90,7 +90,9 @@ def insert_items_to_carousel_eco(item_ids: List[str]) -> Dict[str, object]:
                 # Les champs IA restent NULL pour l'instant
                 "title_carou": None,
                 "content_carou": None,
-                "prompt_image": None,
+                "prompt_image_1": None,
+                "prompt_image_2": None,
+                "prompt_image_3": None,
                 "image_url": None
             })
         
@@ -122,7 +124,9 @@ def get_carousel_eco_items() -> Dict[str, object]:
         supabase = get_supabase()
         
         response = supabase.table("carousel_eco").select(
-            "*"
+            "id, item_id, position, title, content, score_global, tags, labels, "
+            "title_carou, content_carou, prompt_image_1, prompt_image_2, prompt_image_3, "
+            "image_url, created_at, updated_at"
         ).order("position", desc=False).execute()
         
         items = response.data or []
