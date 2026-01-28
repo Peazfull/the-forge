@@ -298,12 +298,12 @@ def send_to_carousel():
         st.session_state.eco_initialized = False
         st.session_state.eco_preview_mode = False
         
-        # Incrémenter compteur pour refresh
+        # Incrémenter compteur pour refresh des inputs
         if "carousel_generation_count" not in st.session_state:
             st.session_state.carousel_generation_count = 0
         st.session_state.carousel_generation_count += 1
         
-        time.sleep(1)
+        # PAS DE RERUN ICI - c'est le bouton qui s'en charge
 
 
 def toggle_preview_mode():
@@ -560,7 +560,9 @@ with st.expander("📰 Bulletin Eco", expanded=False):
                     use_container_width=True,
                     key="send_button"
                 ):
-                    st.session_state.start_generation = True
+                    st.markdown("---")
+                    # Appel direct sans flag
+                    send_to_carousel()
                     st.rerun()
             else:
                 st.button(
@@ -569,19 +571,6 @@ with st.expander("📰 Bulletin Eco", expanded=False):
                     use_container_width=True,
                     help="Sélectionnez au moins 1 item"
                 )
-        
-        # Zone de statuts de génération (juste en dessous du bouton)
-        if st.session_state.get("start_generation", False):
-            st.markdown("---")
-            
-            # IMPORTANT : Supprimer le flag AVANT send_to_carousel pour éviter reboucle
-            st.session_state.start_generation = False
-            
-            # Générer tout
-            send_to_carousel()
-            
-            # 1 seul rerun pour afficher les résultats
-            st.rerun()
         
         with col_generate:
             # Vérifier si des items existent dans carousel_eco
