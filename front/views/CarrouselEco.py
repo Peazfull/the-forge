@@ -248,16 +248,17 @@ def send_to_carousel():
             st.session_state.eco_selected_items = []
             st.session_state.eco_initialized = False
             st.session_state.eco_preview_mode = False
-            del st.session_state.generation_step
-            del st.session_state.generation_current_idx
             
             # Incrémenter compteur pour refresh inputs
             if "carousel_generation_count" not in st.session_state:
                 st.session_state.carousel_generation_count = 0
             st.session_state.carousel_generation_count += 1
             
-            time.sleep(1.5)
-            st.rerun()
+            # IMPORTANT : Supprimer generation_step EN DERNIER pour éviter un rerun supplémentaire
+            del st.session_state.generation_step
+            del st.session_state.generation_current_idx
+            
+            # Ne PAS faire de rerun ici, laisser la page s'afficher normalement
             return
         
         # Item actuel
