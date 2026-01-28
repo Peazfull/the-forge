@@ -786,25 +786,35 @@ with st.expander("🎨 Textes Carousel", expanded=False):
             
             # Bouton 3 : Upload manuel
             with col_upload:
+                # Tracking pour éviter retraitement multiple
+                upload_key = f"upload_{item_id}"
+                last_upload_key = f"last_upload_{item_id}"
+                
                 uploaded_file = st.file_uploader(
                     label="📁 Charger",
                     type=["png", "jpg", "jpeg"],
-                    key=f"upload_{item_id}",
+                    key=upload_key,
                     label_visibility="collapsed"
                 )
                 
                 if uploaded_file is not None:
-                    # Sauvegarder l'image uploadée
-                    image_bytes = uploaded_file.read()
-                    image_base64 = base64.b64encode(image_bytes).decode('utf-8')
+                    # Vérifier si c'est un nouveau fichier (pas déjà traité)
+                    file_id = f"{uploaded_file.name}_{uploaded_file.size}"
+                    last_file_id = st.session_state.get(last_upload_key)
                     
-                    save_result = save_image_base64(image_base64, position)
-                    if save_result["status"] == "success":
-                        st.success("✅ Image chargée")
-                        time.sleep(0.5)
-                        st.rerun()
-                    else:
-                        st.error(f"❌ {save_result['message']}")
+                    if file_id != last_file_id:
+                        # Nouveau fichier, traiter
+                        image_bytes = uploaded_file.read()
+                        image_base64 = base64.b64encode(image_bytes).decode('utf-8')
+                        
+                        save_result = save_image_base64(image_base64, position)
+                        if save_result["status"] == "success":
+                            st.session_state[last_upload_key] = file_id
+                            st.success("✅ Image chargée")
+                            time.sleep(0.5)
+                            st.rerun()
+                        else:
+                            st.error(f"❌ {save_result['message']}")
             
             # Plus besoin de logique async avec flags - tout est fait directement dans les boutons
             
