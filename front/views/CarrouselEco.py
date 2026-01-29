@@ -2,6 +2,7 @@ import streamlit as st
 import time
 import base64
 import os
+from urllib.parse import urlparse, parse_qs
 from db.supabase_client import get_supabase
 from services.carousel.carousel_eco_service import insert_items_to_carousel_eco, get_carousel_eco_items
 from services.carousel.generate_carousel_texts_service import generate_all_carousel_texts, update_carousel_text
@@ -221,6 +222,17 @@ def open_modal(item):
 def close_modal():
     """Ferme le modal"""
     st.session_state.eco_modal_item = None
+
+
+def get_model_from_image_url(image_url: str) -> str:
+    """Extrait le modèle depuis l'URL (?model=...)."""
+    if not image_url:
+        return ""
+    try:
+        query = parse_qs(urlparse(image_url).query)
+        return query.get("model", [""])[0]
+    except Exception:
+        return ""
 
 
 def send_to_carousel():
@@ -921,28 +933,34 @@ with st.expander("🎨 Textes Carousel", expanded=False):
                     st.image(existing_image_url, caption=f"Image #{position}", use_container_width=True)
                 elif existing_image:
                     st.image(existing_image, caption=f"Image #{position}", use_container_width=True)
-                    
-                    # Afficher le modèle utilisé (si disponible)
-                    if "carousel_image_models" in st.session_state:
-                        model_info = st.session_state.carousel_image_models.get(position)
-                        if model_info:
-                            model_name = model_info["model"]
-                            tried_fallback = model_info["tried_fallback"]
-                            
-                            # Afficher avec émoji et couleur selon le modèle
-                            if model_name == "upload-manuel":
-                                st.caption("📁 Upload manuel")
-                            elif "gemini" in model_name.lower() or "nano" in model_name.lower():
-                                st.caption("🟢 Nano Banana Pro (Gemini)")
-                            elif "gpt-image" in model_name.lower():
-                                if tried_fallback:
-                                    st.caption("🟡 GPT Image 1.5 (fallback)")
-                                else:
-                                    st.caption("🔵 GPT Image 1.5")
-                            else:
-                                st.caption(f"⚪ {model_name}")
                 else:
                     st.caption("Aucune image générée")
+                
+                # Afficher le modèle utilisé (session_state ou URL)
+                model_name = ""
+                tried_fallback = False
+                if "carousel_image_models" in st.session_state:
+                    model_info = st.session_state.carousel_image_models.get(position)
+                    if model_info:
+                        model_name = model_info.get("model", "")
+                        tried_fallback = model_info.get("tried_fallback", False)
+                
+                if not model_name and existing_image_url:
+                    model_name = get_model_from_image_url(existing_image_url)
+                
+                if model_name:
+                    # Afficher avec émoji et couleur selon le modèle
+                    if model_name == "upload-manuel":
+                        st.caption("📁 Upload manuel")
+                    elif "gemini" in model_name.lower() or "nano" in model_name.lower():
+                        st.caption("🟢 Nano Banana Pro (Gemini)")
+                    elif "gpt-image" in model_name.lower():
+                        if tried_fallback:
+                            st.caption("🟡 GPT Image 1.5 (fallback)")
+                        else:
+                            st.caption("🔵 GPT Image 1.5")
+                    else:
+                        st.caption(f"⚪ {model_name}")
             
             # COLONNE DROITE : Contrôles empilés verticalement
             with col_controls:
@@ -1064,7 +1082,8 @@ with st.expander("🎨 Textes Carousel", expanded=False):
                             upload_result = upload_image_bytes(image_bytes, position)
                             if upload_result.get("public_url"):
                                 from services.carousel.image_generation_service import save_image_to_carousel
-                                save_image_to_carousel(item_id, upload_result["public_url"])
+                                image_url = f"{upload_result['public_url']}?model=upload-manuel"
+                                save_image_to_carousel(item_id, image_url)
                         except:
                             pass
                         

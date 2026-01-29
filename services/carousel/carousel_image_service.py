@@ -7,6 +7,7 @@ import streamlit as st
 import os
 import base64
 from typing import Dict, Optional
+from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 from openai import OpenAI
 from db.supabase_client import get_supabase
 from services.carousel.image_generation_service import generate_carousel_image, save_image_to_carousel
@@ -25,6 +26,17 @@ CAROUSEL_IMAGE_DIR = os.path.join(
 )
 
 STORAGE_BUCKET = "carousel-eco"
+
+
+def _append_model_to_url(public_url: str, model_tag: str) -> str:
+    """Ajoute ?model=... à une URL (ou l'upsert si déjà présent)."""
+    if not public_url or not model_tag:
+        return public_url
+    parts = urlparse(public_url)
+    query = parse_qs(parts.query)
+    query["model"] = [model_tag]
+    new_query = urlencode(query, doseq=True)
+    return urlunparse(parts._replace(query=new_query))
 
 
 def get_image_path(position: int) -> str:
@@ -149,14 +161,24 @@ def generate_and_save_carousel_image(prompt: str, position: int, item_id: Option
     
     # Succès complet
     # Enregistrer l'URL en DB si possible
-    if item_id and save_result.get("public_url"):
-        save_image_to_carousel(item_id, save_result["public_url"])
+    image_url = save_result.get("public_url")
+    if item_id and image_url:
+        model_used = result.get("model_used", "").lower()
+        if "gemini" in model_used or "nano" in model_used:
+            model_tag = "gemini"
+        elif "gpt-image" in model_used:
+            model_tag = "gpt-image-1.5"
+        else:
+            model_tag = "unknown"
+        
+        image_url = _append_model_to_url(image_url, model_tag)
+        save_image_to_carousel(item_id, image_url)
     
     return {
         "status": "success",
         "image_data": result["image_data"],
         "image_path": save_result["path"],
-        "image_url": save_result.get("public_url"),
+        "image_url": image_url,
         "model_used": result.get("model_used", "unknown"),
         "tried_fallback": result.get("tried_fallback", False),
         "gemini_settings": result.get("gemini_settings"),
