@@ -8,8 +8,8 @@ from prompts.carousel.generate_image_prompts import PROMPT_GENERATE_IMAGE_PROMPT
 from prompts.carousel.generate_image_prompts_variant import PROMPT_GENERATE_IMAGE_PROMPT_VARIANT
 
 
-REQUEST_TIMEOUT = 60
-MAX_RETRIES = 2
+REQUEST_TIMEOUT = 30  # Réduit à 30s pour éviter freeze long
+MAX_RETRIES = 1  # 1 seul retry pour aller plus vite
 
 
 def generate_image_prompt_for_item(title: str, content: str, prompt_type: str = "sunset") -> Dict[str, object]:

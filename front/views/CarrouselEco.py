@@ -283,12 +283,17 @@ def send_to_carousel():
             
             try:
                 # Générer textes
-                st.session_state.debug_logs.append(f"  ⏳ Génération textes...")
-                text_result = generate_carousel_text_for_item(title, content)
+                st.session_state.debug_logs.append(f"  ⏳ Génération textes (timeout 60s)...")
                 
-                st.session_state.debug_logs.append(f"  ✅ Textes générés")
+                try:
+                    text_result = generate_carousel_text_for_item(title, content)
+                    st.session_state.debug_logs.append(f"  ✅ Textes générés")
+                except Exception as text_err:
+                    st.session_state.debug_logs.append(f"  ❌ CRASH génération textes : {type(text_err).__name__} - {str(text_err)[:100]}")
+                    st.session_state.debug_logs.append(f"  ⏭️ SKIP item #{position}")
+                    continue  # Passe au suivant
                 
-                if text_result["status"] == "success":
+                if text_result.get("status") == "success":
                     # Générer prompts images
                     st.session_state.debug_logs.append(f"  ⏳ Génération prompts images...")
                     prompt_1_result = generate_image_prompt_for_item(title, content, prompt_type="sunset")
@@ -308,7 +313,13 @@ def send_to_carousel():
                     # Générer image
                     if prompt_1_result.get("status") == "success":
                         st.session_state.debug_logs.append(f"  🎨 Génération image (timeout 63s max)...")
-                        img_result = generate_and_save_carousel_image(prompt_1_result["image_prompt"], position)
+                        
+                        try:
+                            img_result = generate_and_save_carousel_image(prompt_1_result["image_prompt"], position)
+                        except Exception as img_err:
+                            st.session_state.debug_logs.append(f"  ⚠️ CRASH génération image : {type(img_err).__name__} - {str(img_err)[:100]}")
+                            st.session_state.debug_logs.append(f"  ⏭️ Image skippée, on continue")
+                            img_result = {"status": "error"}  # Continue sans image
                         
                         if img_result["status"] == "success":
                             model_used = img_result.get("model_used", "inconnu")
