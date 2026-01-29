@@ -291,7 +291,14 @@ def send_to_carousel():
                             img_result = generate_and_save_carousel_image(prompt_1_result["image_prompt"], position)
                             
                             if img_result["status"] == "success":
-                                st.success(f"✅ Image #{position}")
+                                # Stocker le modèle utilisé pour affichage
+                                if "carousel_image_models" not in st.session_state:
+                                    st.session_state.carousel_image_models = {}
+                                st.session_state.carousel_image_models[position] = {
+                                    "model": img_result.get("model_used", "inconnu"),
+                                    "tried_fallback": img_result.get("tried_fallback", False)
+                                }
+                                st.success(f"✅ Image #{position} ({img_result.get('model_used', '?')})")
                             else:
                                 st.warning(f"⚠️ Image #{position} : {img_result.get('message')[:50]}")
                         else:
@@ -324,7 +331,8 @@ def send_to_carousel():
             st.session_state.carousel_generation_count = 0
         st.session_state.carousel_generation_count += 1
         
-            # PAS DE RERUN ICI - c'est le bouton qui s'en charge
+        # Faire le rerun seulement maintenant que TOUT est fini
+        st.session_state.should_rerun_after_generation = True
     
     finally:
         # IMPORTANT : Toujours libérer le verrou (même en cas d'erreur/timeout)
@@ -586,9 +594,8 @@ with st.expander("📰 Bulletin Eco", expanded=False):
                     use_container_width=True,
                     key="send_button"
                 ):
-                    st.markdown("---")
-                    # Appel direct sans flag
-                    send_to_carousel()
+                    # Activer le flag pour déclencher la génération
+                    st.session_state.trigger_generation = True
                     st.rerun()
             else:
                 st.button(
@@ -597,6 +604,17 @@ with st.expander("📰 Bulletin Eco", expanded=False):
                     use_container_width=True,
                     help="Sélectionnez au moins 1 item"
                 )
+        
+        # Gérer la génération déclenchée par le bouton
+        if st.session_state.get("trigger_generation", False):
+            st.session_state.trigger_generation = False  # Reset le flag
+            st.markdown("---")
+            send_to_carousel()
+            
+            # Si send_to_carousel() a demandé un rerun, on le fait maintenant
+            if st.session_state.get("should_rerun_after_generation", False):
+                st.session_state.should_rerun_after_generation = False
+                st.rerun()
         
         with col_generate:
             # Vérifier si des items existent dans carousel_eco
@@ -723,6 +741,26 @@ with st.expander("🎨 Textes Carousel", expanded=False):
             with col_image:
                 if existing_image:
                     st.image(existing_image, caption=f"Image #{position}", use_container_width=True)
+                    
+                    # Afficher le modèle utilisé (si disponible)
+                    if "carousel_image_models" in st.session_state:
+                        model_info = st.session_state.carousel_image_models.get(position)
+                        if model_info:
+                            model_name = model_info["model"]
+                            tried_fallback = model_info["tried_fallback"]
+                            
+                            # Afficher avec émoji et couleur selon le modèle
+                            if model_name == "upload-manuel":
+                                st.caption("📁 Upload manuel")
+                            elif "gemini" in model_name.lower() or "nano" in model_name.lower():
+                                st.caption("🟢 Nano Banana Pro (Gemini)")
+                            elif "gpt-image" in model_name.lower():
+                                if tried_fallback:
+                                    st.caption("🟡 GPT Image 1.5 (fallback)")
+                                else:
+                                    st.caption("🔵 GPT Image 1.5")
+                            else:
+                                st.caption(f"⚪ {model_name}")
                 else:
                     st.caption("Aucune image générée")
             
@@ -736,7 +774,14 @@ with st.expander("🎨 Textes Carousel", expanded=False):
                             result = generate_and_save_carousel_image(prompt_image_2, position)
                         
                         if result["status"] == "success":
-                            st.success("✅ Image régénérée")
+                            # Stocker le modèle utilisé
+                            if "carousel_image_models" not in st.session_state:
+                                st.session_state.carousel_image_models = {}
+                            st.session_state.carousel_image_models[position] = {
+                                "model": result.get("model_used", "inconnu"),
+                                "tried_fallback": result.get("tried_fallback", False)
+                            }
+                            st.success(f"✅ Image régénérée ({result.get('model_used', '?')})")
                             time.sleep(0.5)
                             st.rerun()
                         else:
@@ -766,7 +811,14 @@ with st.expander("🎨 Textes Carousel", expanded=False):
                                     result = generate_and_save_carousel_image(prompt_result["image_prompt"], position)
                                 
                                 if result["status"] == "success":
-                                    st.success("✅ Image générée")
+                                    # Stocker le modèle utilisé
+                                    if "carousel_image_models" not in st.session_state:
+                                        st.session_state.carousel_image_models = {}
+                                    st.session_state.carousel_image_models[position] = {
+                                        "model": result.get("model_used", "inconnu"),
+                                        "tried_fallback": result.get("tried_fallback", False)
+                                    }
+                                    st.success(f"✅ Image générée ({result.get('model_used', '?')})")
                                     time.sleep(0.5)
                                     st.rerun()
                                 else:
@@ -817,6 +869,15 @@ with st.expander("🎨 Textes Carousel", expanded=False):
                             pass  # Échec silencieux
                         
                         st.session_state[last_upload_key] = file_id
+                        
+                        # Marquer comme upload manuel
+                        if "carousel_image_models" not in st.session_state:
+                            st.session_state.carousel_image_models = {}
+                        st.session_state.carousel_image_models[position] = {
+                            "model": "upload-manuel",
+                            "tried_fallback": False
+                        }
+                        
                         st.success("✅ Image chargée")
                         time.sleep(0.5)
                         st.rerun()
