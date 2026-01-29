@@ -524,6 +524,36 @@ def set_item_position(item_id, target_position):
     st.session_state.eco_selected_items.insert(target_idx, item)
 
 
+def move_item_up(item_id):
+    """Monte un item d'une position"""
+    if "eco_selected_items" not in st.session_state:
+        st.session_state.eco_selected_items = []
+    if item_id not in st.session_state.eco_selected_items:
+        return
+    idx = st.session_state.eco_selected_items.index(item_id)
+    if idx == 0:
+        return
+    st.session_state.eco_selected_items[idx], st.session_state.eco_selected_items[idx - 1] = (
+        st.session_state.eco_selected_items[idx - 1],
+        st.session_state.eco_selected_items[idx],
+    )
+
+
+def move_item_down(item_id):
+    """Descend un item d'une position"""
+    if "eco_selected_items" not in st.session_state:
+        st.session_state.eco_selected_items = []
+    if item_id not in st.session_state.eco_selected_items:
+        return
+    idx = st.session_state.eco_selected_items.index(item_id)
+    if idx >= len(st.session_state.eco_selected_items) - 1:
+        return
+    st.session_state.eco_selected_items[idx], st.session_state.eco_selected_items[idx + 1] = (
+        st.session_state.eco_selected_items[idx + 1],
+        st.session_state.eco_selected_items[idx],
+    )
+
+
 # ======================================================
 # GESTION GÉNÉRATION (AVANT TOUT AFFICHAGE)
 # ======================================================
@@ -588,6 +618,38 @@ with st.expander("📰 Bulletin Eco", expanded=False):
                         toggle_preview_mode()
                         st.rerun()
         
+        # Zone UX d'ordre (instantané)
+        if selected_count > 0:
+            st.markdown("#### Ordre sélectionné")
+            st.caption("Réorganisez avec ↑ / ↓ (pas de doublons, instantané).")
+            items_dict = {item["id"]: item for item in items}
+            
+            for idx, item_id in enumerate(st.session_state.eco_selected_items, start=1):
+                item = items_dict.get(item_id, {})
+                title = item.get("title", "Sans titre")
+                title_short = title[:55] + "..." if len(title) > 55 else title
+                
+                col_pos, col_title, col_up, col_down, col_remove = st.columns([0.6, 4, 0.6, 0.6, 0.6])
+                
+                with col_pos:
+                    st.markdown(f"**#{idx}**")
+                with col_title:
+                    st.caption(title_short)
+                with col_up:
+                    if st.button("↑", key=f"move_up_{item_id}", disabled=idx == 1):
+                        move_item_up(item_id)
+                        st.rerun()
+                with col_down:
+                    if st.button("↓", key=f"move_down_{item_id}", disabled=idx == selected_count):
+                        move_item_down(item_id)
+                        st.rerun()
+                with col_remove:
+                    if st.button("✖", key=f"remove_{item_id}"):
+                        toggle_selection(item_id)
+                        st.rerun()
+            
+            st.markdown("---")
+        
         st.markdown("")
         
         # Réorganiser les items selon le mode
@@ -644,30 +706,10 @@ with st.expander("📰 Bulletin Eco", expanded=False):
                 )
             
             with col_pos:
-                # Input position (actif uniquement si coché)
+                # Affichage simple de la position (ordre géré dans la zone dédiée)
                 current_position = get_item_position(item_id)
-                
                 if is_selected:
-                    # En mode preview, afficher la position en lecture seule
-                    if st.session_state.eco_preview_mode:
-                        st.markdown(f"**#{current_position}**")
-                    else:
-                        # Mode normal : selectbox (évite doublons)
-                        positions = list(range(1, selected_count + 1))
-                        current_position = current_position or 1
-                        new_position = st.selectbox(
-                            label="Pos",
-                            options=positions,
-                            index=positions.index(current_position),
-                            key=f"pos_eco_{item_id}",
-                            label_visibility="collapsed",
-                            help="Changer la position échange automatiquement avec l'item concerné"
-                        )
-                        
-                        # Si changement de position
-                        if new_position != current_position:
-                            set_item_position(item_id, new_position)
-                            st.rerun()
+                    st.markdown(f"**#{current_position}**")
                 else:
                     st.markdown("—")
             
