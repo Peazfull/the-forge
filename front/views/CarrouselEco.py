@@ -368,6 +368,10 @@ def process_generation_queue():
                 model_used = img_result.get("model_used", "inconnu")
                 st.session_state.debug_logs.append(f"  ✅ Image générée ({model_used})")
                 if img_result.get("tried_fallback"):
+                    st.session_state.debug_logs.append("  📌 Source modèle: GPT Image 1.5 (fallback)")
+                else:
+                    st.session_state.debug_logs.append("  📌 Source modèle: Nano Banana Pro (Gemini)")
+                if img_result.get("tried_fallback"):
                     gemini_settings = img_result.get("gemini_settings") or {}
                     timeout = gemini_settings.get("timeout", "n/a")
                     retries = gemini_settings.get("max_retries", "n/a")
