@@ -168,14 +168,14 @@ def generate_carousel_image(prompt: str) -> Dict[str, object]:
             "message": "..." (si erreur)
         }
     """
-    # TENTATIVE 1 : Nano Banana Pro (2 retries)
+    # TENTATIVE 1 : Nano Banana Pro (1 retry, timeout court)
     result_gemini = _try_generate_image(
         model="gemini-3-pro-image-preview",
         prompt=prompt,
         image_size="2K",
-        max_retries=2,
-        retry_delays=[5, 10],
-        timeout=120  # 2 minutes
+        max_retries=1,  # 1 seul retry (2 tentatives au total)
+        retry_delays=[3],  # 3s entre les tentatives
+        timeout=30  # 30 secondes par tentative
     )
     
     if result_gemini.get("status") == "success":

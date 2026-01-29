@@ -209,98 +209,109 @@ def send_to_carousel():
     """Envoie les items et génère tout en une seule passe (boucle simple)"""
     # SÉCURITÉ : éviter double exécution
     if st.session_state.get("generation_in_progress", False):
+        st.warning("⚠️ Génération déjà en cours, patientez...")
         return  # Déjà en cours, ne pas relancer
     
     st.session_state.generation_in_progress = True
     
-    # Sécurité : initialiser si absent
-    if "eco_selected_items" not in st.session_state:
-        st.session_state.eco_selected_items = []
-    
-    # Container pour les messages
-    status_container = st.container()
-    
-    with status_container:
-        # Étape 1 : Insertion
-        st.info("📤 Envoi des items...")
-        result = insert_items_to_carousel_eco(st.session_state.eco_selected_items)
+    try:
+        # Sécurité : initialiser si absent
+        if "eco_selected_items" not in st.session_state:
+            st.session_state.eco_selected_items = []
         
-        if result["status"] != "success":
-            st.error(f"❌ Erreur insertion : {result['message']}")
-            st.session_state.generation_in_progress = False
-            return
+        # Container pour les messages
+        status_container = st.container()
         
-        st.success(f"✅ {result['inserted']} items envoyés")
-        time.sleep(0.5)
-        
-        # Étape 2 : Récupérer les items insérés
-        carousel_data = get_carousel_eco_items()
-        
-        if carousel_data["status"] != "success" or carousel_data["count"] == 0:
-            st.error("❌ Erreur récupération items")
-            st.session_state.generation_in_progress = False
-            return
-        
-        items = carousel_data["items"]
-        total_items = len(items)
-        
-        # Progress tracking
-        progress_bar = st.progress(0)
-        
-        # Import des fonctions
-        from services.carousel.generate_carousel_texts_service import generate_carousel_text_for_item, generate_image_prompt_for_item
-        supabase = get_supabase()
-        
-        # Étape 3 : Boucle sur chaque item (simple for)
-        for idx, item in enumerate(items, start=1):
-            item_id = item["id"]
-            position = item["position"]
-            title = item.get("title", "")
-            content = item.get("content", "")
+        with status_container:
+            # Étape 1 : Insertion
+            st.info("📤 Envoi des items...")
+            result = insert_items_to_carousel_eco(st.session_state.eco_selected_items)
             
-            # Update progress
-            st.info(f"⏳ Item #{position}/{total_items} : {title[:40]}...")
-            progress_bar.progress(idx / total_items)
+            if result["status"] != "success":
+                st.error(f"❌ Erreur insertion : {result['message']}")
+                return
             
-            try:
-                # Générer textes
-                text_result = generate_carousel_text_for_item(title, content)
+            st.success(f"✅ {result['inserted']} items envoyés")
+            time.sleep(0.5)
+            
+            # Étape 2 : Récupérer les items insérés
+            carousel_data = get_carousel_eco_items()
+            
+            if carousel_data["status"] != "success" or carousel_data["count"] == 0:
+                st.error("❌ Erreur récupération items")
+                return
+            
+            items = carousel_data["items"]
+            total_items = len(items)
+            
+            # DEBUG : Afficher le nombre d'items
+            st.info(f"🔍 DEBUG : {total_items} items à traiter")
+            
+            # Progress tracking
+            progress_bar = st.progress(0)
+            
+            # Import des fonctions
+            from services.carousel.generate_carousel_texts_service import generate_carousel_text_for_item, generate_image_prompt_for_item
+            supabase = get_supabase()
+            
+            # Étape 3 : Boucle sur chaque item (simple for)
+            st.info(f"🔁 Début de la boucle sur {total_items} items")
+            
+            for idx, item in enumerate(items, start=1):
+                item_id = item["id"]
+                position = item["position"]
+                title = item.get("title", "")
+                content = item.get("content", "")
                 
-                if text_result["status"] == "success":
-                    # Générer prompts images
-                    prompt_1_result = generate_image_prompt_for_item(title, content, prompt_type="sunset")
-                    prompt_2_result = generate_image_prompt_for_item(title, content, prompt_type="studio")
-                    
-                    # Sauvegarder en DB
-                    supabase.table("carousel_eco").update({
-                        "title_carou": text_result["title_carou"],
-                        "content_carou": text_result["content_carou"],
-                        "prompt_image_1": prompt_1_result.get("image_prompt"),
-                        "prompt_image_2": prompt_2_result.get("image_prompt")
-                    }).eq("id", item_id).execute()
-                    
-                    st.success(f"✅ Textes #{position}")
-                    
-                    # Générer image
-                    if prompt_1_result.get("status") == "success":
-                        img_result = generate_and_save_carousel_image(prompt_1_result["image_prompt"], position)
+                # Update progress
+                st.info(f"⏳ Item #{position}/{total_items} : {title[:40]}...")
+                progress_bar.progress(idx / total_items)
+                
+                try:
+                    # Générer textes
+                    text_result = generate_carousel_text_for_item(title, content)
+                
+                    if text_result["status"] == "success":
+                        # Générer prompts images
+                        prompt_1_result = generate_image_prompt_for_item(title, content, prompt_type="sunset")
+                        prompt_2_result = generate_image_prompt_for_item(title, content, prompt_type="studio")
                         
-                        if img_result["status"] == "success":
-                            st.success(f"✅ Image #{position}")
+                        # Sauvegarder en DB
+                        supabase.table("carousel_eco").update({
+                            "title_carou": text_result["title_carou"],
+                            "content_carou": text_result["content_carou"],
+                            "prompt_image_1": prompt_1_result.get("image_prompt"),
+                            "prompt_image_2": prompt_2_result.get("image_prompt")
+                        }).eq("id", item_id).execute()
+                        
+                        st.success(f"✅ Textes #{position}")
+                        
+                        # Générer image
+                        if prompt_1_result.get("status") == "success":
+                            img_result = generate_and_save_carousel_image(prompt_1_result["image_prompt"], position)
+                            
+                            if img_result["status"] == "success":
+                                st.success(f"✅ Image #{position}")
+                            else:
+                                st.warning(f"⚠️ Image #{position} : {img_result.get('message')[:50]}")
                         else:
-                            st.warning(f"⚠️ Image #{position} : {img_result.get('message')[:50]}")
+                            st.warning(f"⚠️ Pas de prompt image #{position}")
                     else:
-                        st.warning(f"⚠️ Pas de prompt image #{position}")
-                else:
-                    st.warning(f"⚠️ Erreur texte #{position}, passage au suivant")
+                        st.warning(f"⚠️ Erreur texte #{position}, passage au suivant")
                     
-            except Exception as e:
-                st.warning(f"⚠️ Erreur item #{position} : {str(e)[:50]}, passage au suivant")
-                continue
+                    # DEBUG : Fin de traitement de cet item
+                    st.success(f"✔️ Item #{position} terminé, passage au suivant...")
+                        
+                except Exception as e:
+                    st.error(f"⚠️ Erreur item #{position} : {str(e)[:100]}")
+                    continue
         
-        # Nettoyage
-        progress_bar.empty()
-        st.success("🎉 Génération terminée")
+            # DEBUG : Boucle terminée
+            st.success("✅ Boucle terminée : tous les items ont été traités")
+            
+            # Nettoyage
+            progress_bar.empty()
+            st.success("🎉 Génération terminée")
         
         # Reset
         st.session_state.eco_selected_items = []
@@ -313,10 +324,12 @@ def send_to_carousel():
             st.session_state.carousel_generation_count = 0
         st.session_state.carousel_generation_count += 1
         
-        # IMPORTANT : Libérer le verrou
+            # PAS DE RERUN ICI - c'est le bouton qui s'en charge
+    
+    finally:
+        # IMPORTANT : Toujours libérer le verrou (même en cas d'erreur/timeout)
         st.session_state.generation_in_progress = False
-        
-        # PAS DE RERUN ICI - c'est le bouton qui s'en charge
+        st.info("🔓 Verrou libéré")
 
 
 def toggle_preview_mode():
