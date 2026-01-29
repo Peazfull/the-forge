@@ -647,22 +647,13 @@ with st.expander("🎨 Textes Carousel", expanded=False):
             with col_title_input:
                 # Utiliser une clé unique avec compteur pour forcer le rechargement après génération
                 input_key = f"title_carou_{item_id}_v{st.session_state.carousel_generation_count}"
+                title_len = len(title_carou)
                 new_title_carou = st.text_input(
-                    label="Titre (3 mots max)",
+                    label=f"Titre (3 mots max) · {len(title_carou)}/50 caractères",
                     value=title_carou,
                     key=input_key,
                     placeholder="Ex: FED : CHOC HISTORIQUE"
                 )
-                
-                # Compteur de caractères pour titre
-                title_len = len(new_title_carou)
-                # Limites indicatives (à ajuster selon Pillow)
-                if title_len > 50:  # Limite haute (rouge)
-                    st.markdown(f'<p class="char-counter error">{title_len} caractères (trop long)</p>', unsafe_allow_html=True)
-                elif title_len > 35:  # Limite moyenne (orange)
-                    st.markdown(f'<p class="char-counter warning">{title_len} caractères (limite proche)</p>', unsafe_allow_html=True)
-                else:
-                    st.markdown(f'<p class="char-counter">{title_len} caractères</p>', unsafe_allow_html=True)
             
             with col_title_save:
                 if st.button("💾", key=f"save_title_{item_id}", use_container_width=True, type="primary"):
@@ -679,23 +670,14 @@ with st.expander("🎨 Textes Carousel", expanded=False):
             with col_content_input:
                 # Utiliser une clé unique avec compteur pour forcer le rechargement après génération
                 content_key = f"content_carou_{item_id}_v{st.session_state.carousel_generation_count}"
+                content_len = len(content_carou)
                 new_content_carou = st.text_area(
-                    label="Content (2 phrases max)",
+                    label=f"Content (2 phrases max) · {len(content_carou)}/200 caractères",
                     value=content_carou,
                     key=content_key,
                     placeholder="Ex: La banque centrale frappe fort. Les marchés explosent.",
                     height=70
                 )
-                
-                # Compteur de caractères pour content
-                content_len = len(new_content_carou)
-                # Limites indicatives (à ajuster selon Pillow)
-                if content_len > 200:  # Limite haute (rouge)
-                    st.markdown(f'<p class="char-counter error">{content_len} caractères (trop long)</p>', unsafe_allow_html=True)
-                elif content_len > 150:  # Limite moyenne (orange)
-                    st.markdown(f'<p class="char-counter warning">{content_len} caractères (limite proche)</p>', unsafe_allow_html=True)
-                else:
-                    st.markdown(f'<p class="char-counter">{content_len} caractères</p>', unsafe_allow_html=True)
             
             with col_content_save:
                 if st.button("💾", key=f"save_content_{item_id}", use_container_width=True, type="secondary"):
@@ -721,22 +703,20 @@ with st.expander("🎨 Textes Carousel", expanded=False):
             # Vérifier si une image existe déjà
             existing_image = read_carousel_image(position)
             
-            # Preview de l'image
-            col_preview_left, col_preview_center, col_preview_right = st.columns([1, 2, 1])
+            # Layout : Image à gauche (petite), Contrôles à droite (empilés)
+            col_image, col_controls = st.columns([1, 2])
             
-            with col_preview_center:
+            # COLONNE GAUCHE : Preview de l'image (petite)
+            with col_image:
                 if existing_image:
                     st.image(existing_image, caption=f"Image #{position}", use_container_width=True)
                 else:
                     st.caption("Aucune image générée")
             
-            st.markdown("")
+            # COLONNE DROITE : Contrôles empilés verticalement
+            with col_controls:
             
-            # Contrôles (3 colonnes)
-            col_regen, col_manual, col_upload = st.columns(3)
-            
-            # Bouton 1 : Régénérer avec prompt_image_2 (studio sombre)
-            with col_regen:
+                # Bouton 1 : Régénérer avec prompt_image_2 (studio sombre)
                 if st.button("🔄 Régénérer", key=f"regen_{item_id}", use_container_width=True, type="secondary", disabled=not prompt_image_2):
                     if prompt_image_2:
                         with st.spinner("🎨 Génération..."):
@@ -748,10 +728,8 @@ with st.expander("🎨 Textes Carousel", expanded=False):
                             st.rerun()
                         else:
                             st.error(f"❌ {result.get('message', 'Erreur')[:100]}")
-            
-            # Bouton 2 : Input manuel + génération
-            with col_manual:
-                # Afficher l'input dans un expander compact
+                
+                # Bouton 2 : Input manuel + génération
                 with st.expander("✨ Prompter", expanded=False):
                     manual_instructions = st.text_area(
                         label="Instructions manuelles",
@@ -784,15 +762,16 @@ with st.expander("🎨 Textes Carousel", expanded=False):
                                 st.error(f"❌ Erreur prompt : {prompt_result.get('message', '')[:100]}")
                         else:
                             st.warning("Entrez des instructions")
-            
-            # Bouton 3 : Upload manuel
-            with col_upload:
+                
+                # Bouton 3 : Upload manuel
+                st.markdown("**📁 Charger une image**")
+                
                 # Tracking pour éviter retraitement multiple
                 upload_key = f"upload_{item_id}"
                 last_upload_key = f"last_upload_{item_id}"
                 
                 uploaded_file = st.file_uploader(
-                    label="📁 Charger",
+                    label="Upload image",
                     type=["png", "jpg", "jpeg"],
                     key=upload_key,
                     label_visibility="collapsed"
