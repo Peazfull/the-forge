@@ -598,6 +598,14 @@ with st.expander("📰 Bulletin Eco", expanded=False):
             st.session_state.eco_selected_items = [item["id"] for item in items[:8]]
             st.session_state.eco_initialized = True
         
+        # Nettoyer la sélection si des items ne sont plus dans le top courant
+        allowed_ids = {item["id"] for item in items}
+        if "eco_selected_items" in st.session_state:
+            st.session_state.eco_selected_items = [
+                item_id for item_id in st.session_state.eco_selected_items
+                if item_id in allowed_ids
+            ]
+        
         # Header
         selected_count = len(st.session_state.eco_selected_items)
         
