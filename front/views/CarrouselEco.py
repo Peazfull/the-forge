@@ -5,7 +5,7 @@ import os
 import hashlib
 from urllib.parse import urlparse, parse_qs
 from db.supabase_client import get_supabase
-from services.carousel.carousel_eco_service import insert_items_to_carousel_eco, get_carousel_eco_items
+from services.carousel.carousel_eco_service import insert_items_to_carousel_eco, get_carousel_eco_items, upsert_carousel_eco_cover
 from services.carousel.generate_carousel_texts_service import generate_all_carousel_texts, update_carousel_text
 from services.carousel.image_generation_service import generate_carousel_image
 from services.carousel.carousel_image_service import (
@@ -262,7 +262,12 @@ def generate_all_slide_previews():
         st.session_state.slide_previews = {}
     
     errors = 0
-    for item in carousel_data["items"]:
+    items_sorted = sorted(
+        carousel_data["items"],
+        key=lambda i: (0 if i.get("position") == 0 else 1, i.get("position", 999))
+    )
+    
+    for item in items_sorted:
         item_id = item["id"]
         position = item["position"]
         title_carou = item.get("title_carou") or ""
@@ -341,8 +346,12 @@ def send_to_carousel():
     # Initialiser la file d'attente
     st.session_state.generation_in_progress = True
     st.session_state.generation_active = True
-    st.session_state.generation_queue = items
-    st.session_state.generation_total = total_items
+    # Ajouter une pseudo-tâche cover à la fin (basée sur l'item #1)
+    cover_task = {"is_cover": True, "source_item": items[0]} if items else None
+    queue = items + ([cover_task] if cover_task else [])
+    
+    st.session_state.generation_queue = queue
+    st.session_state.generation_total = len(queue)
     st.session_state.generation_done = 0
     st.session_state.generation_errors = []
     st.session_state.debug_logs.append("🔒 Verrou activé + file d'attente initialisée")
@@ -392,6 +401,46 @@ def process_generation_queue():
     # Import des fonctions
     from services.carousel.generate_carousel_texts_service import generate_carousel_text_for_item, generate_image_prompt_for_item
     supabase = get_supabase()
+    
+    # Traitement cover (position 0)
+    if item.get("is_cover"):
+        source = item.get("source_item") or {}
+        source_title = source.get("title", "")
+        source_content = source.get("content", "")
+        
+        st.session_state.debug_logs.append("━━━ SLIDE DE COUVERTURE (position 0) ━━━")
+        st.session_state.debug_logs.append(f"  Source: {source_title[:40]}...")
+        
+        try:
+            cover_upsert = upsert_carousel_eco_cover(source)
+            if cover_upsert.get("status") != "success":
+                raise Exception(cover_upsert.get("message", "Erreur cover DB"))
+            cover_id = cover_upsert.get("id")
+            
+            prompt_result = generate_image_prompt_for_item(source_title, source_content, prompt_type="sunset")
+            if prompt_result.get("status") != "success":
+                raise Exception(prompt_result.get("message", "Prompt cover KO"))
+            
+            supabase.table("carousel_eco").update({
+                "prompt_image_1": prompt_result.get("image_prompt")
+            }).eq("id", cover_id).execute()
+            
+            img_result = generate_and_save_carousel_image(prompt_result["image_prompt"], position=0, item_id=cover_id)
+            if img_result["status"] == "success":
+                model_used = img_result.get("model_used", "inconnu")
+                st.session_state.debug_logs.append(f"  ✅ Cover générée ({model_used})")
+            else:
+                st.session_state.debug_logs.append(f"  ⚠️ Cover échec : {img_result.get('message', '')[:50]}")
+        except Exception as e:
+            st.session_state.debug_logs.append(f"  ❌ ERREUR cover : {str(e)[:120]}")
+            st.session_state.generation_errors.append({
+                "id": "cover",
+                "position": 0,
+                "error": str(e)[:200]
+            })
+        
+        st.session_state.generation_done = st.session_state.get("generation_done", 0) + 1
+        return
     
     item_id = item["id"]
     position = item["position"]
@@ -1213,7 +1262,12 @@ with st.expander("🖼️ Preview Slides", expanded=False):
         if "slide_previews" not in st.session_state:
             st.session_state.slide_previews = {}
         
-        for item in carousel_data["items"]:
+        items_sorted = sorted(
+            carousel_data["items"],
+            key=lambda i: (0 if i.get("position") == 0 else 1, i.get("position", 999))
+        )
+        
+        for item in items_sorted:
             item_id = item["id"]
             position = item["position"]
             title_carou = item.get("title_carou") or ""
@@ -1221,7 +1275,10 @@ with st.expander("🖼️ Preview Slides", expanded=False):
             image_url = item.get("image_url")
             image_bytes = None if image_url else read_carousel_image(position)
             
-            st.markdown(f"**Slide #{position}**")
+            if position == 0:
+                st.markdown("**Slide de couverture (0)**")
+            else:
+                st.markdown(f"**Slide #{position}**")
             col_preview, col_actions = st.columns([4, 1])
             
             with col_actions:

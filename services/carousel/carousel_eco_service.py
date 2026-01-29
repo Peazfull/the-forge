@@ -144,3 +144,43 @@ def get_carousel_eco_items() -> Dict[str, object]:
             "count": 0,
             "message": f"Erreur DB : {str(e)}"
         }
+
+
+def upsert_carousel_eco_cover(source_item: Dict[str, object]) -> Dict[str, object]:
+    """
+    Crée ou met à jour la ligne cover (position = 0) dans carousel_eco.
+    """
+    try:
+        supabase = get_supabase()
+        
+        existing = supabase.table("carousel_eco").select("id").eq("position", 0).limit(1).execute()
+        payload = {
+            "item_id": source_item.get("item_id"),
+            "position": 0,
+            "title": source_item.get("title"),
+            "content": source_item.get("content"),
+            "score_global": source_item.get("score_global"),
+            "tags": source_item.get("tags"),
+            "labels": source_item.get("labels"),
+        }
+        
+        if existing.data:
+            cover_id = existing.data[0]["id"]
+            supabase.table("carousel_eco").update(payload).eq("id", cover_id).execute()
+            return {"status": "success", "id": cover_id}
+        
+        insert_payload = {
+            **payload,
+            "title_carou": None,
+            "content_carou": None,
+            "prompt_image_1": None,
+            "prompt_image_2": None,
+            "prompt_image_3": None,
+            "image_url": None
+        }
+        inserted = supabase.table("carousel_eco").insert(insert_payload).execute()
+        cover_id = inserted.data[0]["id"] if inserted.data else None
+        
+        return {"status": "success", "id": cover_id}
+    except Exception as e:
+        return {"status": "error", "message": f"Erreur DB : {str(e)}"}
