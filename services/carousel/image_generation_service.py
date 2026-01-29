@@ -1,6 +1,6 @@
 """
 Service de génération d'images pour les carousels
-Stratégie: Nano Banana Pro (Gemini) → Fallback DALL-E 3 (OpenAI)
+Stratégie: Nano Banana Pro (Gemini) → Fallback GPT Image 1.5 (OpenAI)
 """
 
 import streamlit as st
@@ -116,33 +116,22 @@ def _generate_with_gpt_image(prompt: str) -> Dict[str, object]:
             quality="high",  # Qualité haute (low/medium/high)
         )
         
-        # Récupérer l'URL de l'image et la télécharger en base64
-        image_url = response.data[0].url
+        # GPT Image 1.5 retourne directement le base64 dans b64_json (pas d'URL !)
+        image_base64 = response.data[0].b64_json
         
-        # Vérifier que l'URL existe
-        if not image_url:
+        # Vérifier que le base64 existe
+        if not image_base64:
             return {
                 "status": "error",
-                "message": "❌ GPT Image 1.5 n'a pas retourné d'URL"
+                "message": "❌ GPT Image 1.5 n'a pas retourné d'image"
             }
         
-        # Télécharger l'image
-        img_response = requests.get(image_url, timeout=30)
-        if img_response.status_code == 200:
-            image_base64 = base64.b64encode(img_response.content).decode('utf-8')
-            
-            return {
-                "status": "success",
-                "image_data": image_base64,
-                "image_url": image_url,
-                "model_used": "gpt-image-1.5",
-                "resolution": "1024x1024"
-            }
-        else:
-            return {
-                "status": "error",
-                "message": f"❌ Erreur téléchargement image GPT Image 1.5 : {img_response.status_code}"
-            }
+        return {
+            "status": "success",
+            "image_data": image_base64,
+            "model_used": "gpt-image-1.5",
+            "resolution": "1024x1024"
+        }
             
     except Exception as e:
         # Capturer plus de détails sur l'erreur
