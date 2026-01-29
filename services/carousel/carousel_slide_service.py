@@ -30,7 +30,6 @@ CONTENT_TOP_GAP = 20
 CONTENT_BOTTOM_MARGIN = 20
 DATE_FONT_SIZE = 38
 COVER_LOGO_WIDTH = 760
-COVER_LOGO_MID_Y = 520
 DATE_TOP_GAP = 12
 
 # Polices (fallback sur PIL par défaut si fichier absent)
@@ -253,7 +252,7 @@ def generate_cover_slide(
         logo_x = (CANVAS_SIZE[0] - LOGO_SIZE[0]) // 2
         canvas.alpha_composite(logo, (logo_x, LOGO_TOP))
     
-    # Logo slide 0 (centre milieu)
+    # Logo slide 0 (plein centre)
     cover_logo_path = os.path.join(ASSETS_DIR, "Logo_slide_0_eco.png")
     if os.path.exists(cover_logo_path):
         cover_logo = Image.open(cover_logo_path).convert("RGBA")
@@ -262,8 +261,6 @@ def generate_cover_slide(
             (int(cover_logo.size[0] * scale), int(cover_logo.size[1] * scale)),
             Image.LANCZOS
         )
-        cover_x = (CANVAS_SIZE[0] - cover_logo.size[0]) // 2
-        canvas.alpha_composite(cover_logo, (cover_x, COVER_LOGO_MID_Y))
         cover_logo_height = cover_logo.size[1]
     else:
         cover_logo_height = 0
@@ -272,8 +269,18 @@ def generate_cover_slide(
     date_str = _format_french_date()
     date_font = _load_font(FONT_CONTENT_PATH, DATE_FONT_SIZE)
     date_w = draw.textlength(date_str, font=date_font)
+    date_h = int(DATE_FONT_SIZE * 1.2)
+    
+    # Centre verticalement le bloc logo + date
+    total_h = cover_logo_height + DATE_TOP_GAP + date_h
+    start_y = (CANVAS_SIZE[1] - total_h) // 2
+    cover_x = (CANVAS_SIZE[0] - cover_logo.size[0]) // 2 if cover_logo_height else 0
+    
+    if cover_logo_height:
+        canvas.alpha_composite(cover_logo, (cover_x, start_y))
+    
     date_x = (CANVAS_SIZE[0] - int(date_w)) // 2
-    date_y = COVER_LOGO_MID_Y + cover_logo_height + DATE_TOP_GAP
+    date_y = start_y + cover_logo_height + DATE_TOP_GAP
     draw.text((date_x, date_y), date_str, font=date_font, fill="white")
     
     # Swipe
