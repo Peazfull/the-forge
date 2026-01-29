@@ -14,6 +14,7 @@ from services.carousel.carousel_image_service import (
     read_carousel_image,
     save_image_base64
 )
+from services.carousel.image_generation_service import save_image_to_carousel
 
 # ======================================================
 # CUSTOM CSS
@@ -233,6 +234,20 @@ def get_model_from_image_url(image_url: str) -> str:
         return query.get("model", [""])[0]
     except Exception:
         return ""
+
+
+def model_to_tag(model_name: str) -> str:
+    """Convertit un nom modèle en tag standard pour l'URL."""
+    if not model_name:
+        return ""
+    name = model_name.lower()
+    if "gemini" in name or "nano" in name:
+        return "gemini"
+    if "gpt-image" in name:
+        return "gpt-image-1.5"
+    if "upload-manuel" in name:
+        return "upload-manuel"
+    return "unknown"
 
 
 def send_to_carousel():
@@ -467,10 +482,15 @@ def generate_texts():
                 
                 if img_result["status"] == "success":
                     success_images += 1
+                    st.session_state.debug_logs.append(
+                        f"  ✅ Image générée ({img_result.get('model_used', 'inconnu')})"
+                    )
                     if img_result.get("tried_fallback"):
                         fallback_images += 1
+                        st.session_state.debug_logs.append("  📌 Source modèle: GPT Image 1.5 (fallback)")
                 else:
                     error_images += 1
+                    st.session_state.debug_logs.append(f"  ⚠️ Image échec : {img_result.get('message', '')[:50]}")
         
         # Afficher résultat images
         if error_images == 0:
@@ -948,6 +968,14 @@ with st.expander("🎨 Textes Carousel", expanded=False):
                 if not model_name and existing_image_url:
                     model_name = get_model_from_image_url(existing_image_url)
                 
+                # Si URL sans modèle mais session_state en a un, persister en DB
+                if existing_image_url and not get_model_from_image_url(existing_image_url) and model_name:
+                    model_tag = model_to_tag(model_name)
+                    if model_tag:
+                        image_url = f"{existing_image_url.split('?')[0]}?model={model_tag}"
+                        save_image_to_carousel(item_id, image_url)
+                        existing_image_url = image_url
+                
                 if model_name:
                     # Afficher avec émoji et couleur selon le modèle
                     if model_name == "upload-manuel":
@@ -961,6 +989,8 @@ with st.expander("🎨 Textes Carousel", expanded=False):
                             st.caption("🔵 GPT Image 1.5")
                     else:
                         st.caption(f"⚪ {model_name}")
+                elif existing_image_url or existing_image:
+                    st.caption("⚪ Modèle inconnu")
             
             # COLONNE DROITE : Contrôles empilés verticalement
             with col_controls:
