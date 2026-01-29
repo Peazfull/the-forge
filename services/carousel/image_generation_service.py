@@ -168,18 +168,33 @@ def generate_carousel_image(prompt: str) -> Dict[str, object]:
             "message": "..." (si erreur)
         }
     """
-    # TENTATIVE 1 : Nano Banana Pro (1 retry, timeout court)
+    # TENTATIVE 1 : Nano Banana Pro (1 tentative, timeout 75s)
+    gemini_model = "gemini-3-pro-image-preview"
+    gemini_image_size = "2K"
+    gemini_max_retries = 1  # 1 tentative, puis fallback direct
+    gemini_retry_delays = []  # Pas de retry
+    gemini_timeout = 75  # 75 secondes par tentative
+    
+    gemini_settings = {
+        "model": gemini_model,
+        "image_size": gemini_image_size,
+        "max_retries": gemini_max_retries,
+        "retry_delays": gemini_retry_delays,
+        "timeout": gemini_timeout
+    }
+    
     result_gemini = _try_generate_image(
-        model="gemini-3-pro-image-preview",
+        model=gemini_model,
         prompt=prompt,
-        image_size="2K",
-        max_retries=1,  # 1 seul retry (2 tentatives au total)
-        retry_delays=[3],  # 3s entre les tentatives
-        timeout=30  # 30 secondes par tentative
+        image_size=gemini_image_size,
+        max_retries=gemini_max_retries,
+        retry_delays=gemini_retry_delays,
+        timeout=gemini_timeout
     )
     
     if result_gemini.get("status") == "success":
         result_gemini["tried_fallback"] = False
+        result_gemini["gemini_settings"] = gemini_settings
         return result_gemini
     
     # FALLBACK : GPT Image 1.5 (OpenAI)
@@ -191,6 +206,7 @@ def generate_carousel_image(prompt: str) -> Dict[str, object]:
     if result_gpt.get("status") == "success":
         result_gpt["tried_fallback"] = True
         result_gpt["gemini_error"] = result_gemini.get('message', 'Erreur Gemini')
+        result_gpt["gemini_settings"] = gemini_settings
         return result_gpt
     
     # Les deux ont échoué
@@ -199,7 +215,8 @@ def generate_carousel_image(prompt: str) -> Dict[str, object]:
     
     return {
         "status": "error",
-        "message": f"❌ ÉCHEC COMPLET (Nano Banana Pro + GPT Image 1.5)\n\n🔴 Nano Banana Pro:\n{gemini_msg}\n\n🟡 GPT Image 1.5:\n{gpt_msg}\n\n💡 Réessayez dans quelques minutes."
+        "message": f"❌ ÉCHEC COMPLET (Nano Banana Pro + GPT Image 1.5)\n\n🔴 Nano Banana Pro:\n{gemini_msg}\n\n🟡 GPT Image 1.5:\n{gpt_msg}\n\n💡 Réessayez dans quelques minutes.",
+        "gemini_settings": gemini_settings
     }
 
 

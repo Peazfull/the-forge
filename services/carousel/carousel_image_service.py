@@ -121,6 +121,7 @@ def generate_and_save_carousel_image(prompt: str, position: int) -> Dict[str, ob
         "image_path": save_result["path"],
         "model_used": result.get("model_used", "unknown"),
         "tried_fallback": result.get("tried_fallback", False),
+        "gemini_settings": result.get("gemini_settings"),
         "resolution": result.get("resolution", "1024x1024"),
         "message": "Image générée et sauvegardée"
     }

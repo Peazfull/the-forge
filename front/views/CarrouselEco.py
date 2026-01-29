@@ -373,6 +373,13 @@ def process_generation_queue():
             if img_result["status"] == "success":
                 model_used = img_result.get("model_used", "inconnu")
                 st.session_state.debug_logs.append(f"  ✅ Image générée ({model_used})")
+                if img_result.get("tried_fallback"):
+                    gemini_settings = img_result.get("gemini_settings") or {}
+                    timeout = gemini_settings.get("timeout", "n/a")
+                    retries = gemini_settings.get("max_retries", "n/a")
+                    st.session_state.debug_logs.append(
+                        f"  ⚠️ Fallback GPT Image 1.5 (timeout Gemini: {timeout}s, retries: {retries})"
+                    )
                 # Stocker le modèle utilisé pour affichage
                 if "carousel_image_models" not in st.session_state:
                     st.session_state.carousel_image_models = {}
@@ -438,6 +445,7 @@ def generate_texts():
     if carousel_data["status"] == "success" and carousel_data["count"] > 0:
         success_images = 0
         error_images = 0
+        fallback_images = 0
         
         for item in carousel_data["items"]:
             position = item["position"]
@@ -449,6 +457,8 @@ def generate_texts():
                 
                 if img_result["status"] == "success":
                     success_images += 1
+                    if img_result.get("tried_fallback"):
+                        fallback_images += 1
                 else:
                     error_images += 1
         
@@ -457,6 +467,9 @@ def generate_texts():
             st.success(f"✅ {success_images} images générées")
         else:
             st.warning(f"⚠️ {success_images}/{success_images + error_images} images générées")
+        
+        if fallback_images > 0:
+            st.info(f"ℹ️ {fallback_images} images générées via fallback GPT Image 1.5")
     
     # Nettoyer le session_state pour forcer le rechargement des valeurs de la DB
     keys_to_delete = [key for key in st.session_state.keys() if key.startswith("title_carou_") or key.startswith("content_carou_")]
@@ -875,6 +888,11 @@ with st.expander("🎨 Textes Carousel", expanded=False):
                                 "tried_fallback": result.get("tried_fallback", False)
                             }
                             st.success(f"✅ Image régénérée ({result.get('model_used', '?')})")
+                            if result.get("tried_fallback"):
+                                gemini_settings = result.get("gemini_settings") or {}
+                                timeout = gemini_settings.get("timeout", "n/a")
+                                retries = gemini_settings.get("max_retries", "n/a")
+                                st.info(f"Fallback GPT Image 1.5 (timeout Gemini: {timeout}s, retries: {retries})")
                             time.sleep(0.5)
                             st.rerun()
                         else:
@@ -912,6 +930,11 @@ with st.expander("🎨 Textes Carousel", expanded=False):
                                         "tried_fallback": result.get("tried_fallback", False)
                                     }
                                     st.success(f"✅ Image générée ({result.get('model_used', '?')})")
+                                    if result.get("tried_fallback"):
+                                        gemini_settings = result.get("gemini_settings") or {}
+                                        timeout = gemini_settings.get("timeout", "n/a")
+                                        retries = gemini_settings.get("max_retries", "n/a")
+                                        st.info(f"Fallback GPT Image 1.5 (timeout Gemini: {timeout}s, retries: {retries})")
                                     time.sleep(0.5)
                                     st.rerun()
                                 else:
@@ -1018,7 +1041,7 @@ if st.session_state.eco_modal_item:
 # ======================================================
 
 with st.expander("🎨 Test Image", expanded=False):
-    st.caption("Génération d'image : Nano Banana Pro (2 retries) → Fallback GPT Image 1.5 (OpenAI state-of-the-art)")
+    st.caption("Génération d'image : Nano Banana Pro (timeout 75s, 0 retry) → Fallback GPT Image 1.5 (OpenAI state-of-the-art)")
     st.markdown("")
     
     # Zone de prompt
