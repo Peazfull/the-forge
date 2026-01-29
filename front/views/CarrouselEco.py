@@ -496,7 +496,17 @@ def set_item_position(item_id, target_position):
     current_idx = st.session_state.eco_selected_items.index(item_id)
     target_idx = target_position - 1
     
-    # Retirer et réinsérer
+    if target_idx == current_idx:
+        return
+    
+    # Si la position cible est déjà prise, on swap
+    if 0 <= target_idx < len(st.session_state.eco_selected_items):
+        other_item_id = st.session_state.eco_selected_items[target_idx]
+        st.session_state.eco_selected_items[target_idx] = item_id
+        st.session_state.eco_selected_items[current_idx] = other_item_id
+        return
+    
+    # Sinon, on réinsère (fallback)
     item = st.session_state.eco_selected_items.pop(current_idx)
     st.session_state.eco_selected_items.insert(target_idx, item)
 
@@ -551,6 +561,8 @@ with st.expander("📰 Bulletin Eco", expanded=False):
         col_header, col_preview_btn = st.columns([3, 1])
         with col_header:
             st.caption(f"Top 14 · **{selected_count}** sélectionnée{'s' if selected_count > 1 else ''}")
+            if selected_count > 1 and not st.session_state.eco_preview_mode:
+                st.caption("Astuce: changer une position fait un échange automatique (pas de doublons).")
         
         with col_preview_btn:
             if selected_count > 0:
@@ -627,15 +639,16 @@ with st.expander("📰 Bulletin Eco", expanded=False):
                     if st.session_state.eco_preview_mode:
                         st.markdown(f"**#{current_position}**")
                     else:
-                        # Mode normal : input modifiable
-                        new_position = st.number_input(
+                        # Mode normal : selectbox (évite doublons)
+                        positions = list(range(1, selected_count + 1))
+                        current_position = current_position or 1
+                        new_position = st.selectbox(
                             label="Pos",
-                            min_value=1,
-                            max_value=selected_count,
-                            value=current_position if current_position else 1,
-                            step=1,
+                            options=positions,
+                            index=positions.index(current_position),
                             key=f"pos_eco_{item_id}",
-                            label_visibility="collapsed"
+                            label_visibility="collapsed",
+                            help="Changer la position échange automatiquement avec l'item concerné"
                         )
                         
                         # Si changement de position
