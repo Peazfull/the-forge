@@ -145,15 +145,26 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ======================================================
-# DEBUG LOGS (visible uniquement si logs existent)
+# DEBUG LOGS + RESET VERROU
 # ======================================================
-if "debug_logs" in st.session_state and st.session_state.debug_logs:
-    with st.expander("🐛 Debug Logs (voir ce qui s'est passé)", expanded=True):
-        st.code("\n".join(st.session_state.debug_logs), language="text")
-        
-        if st.button("🗑️ Effacer les logs"):
-            st.session_state.debug_logs = []
+col_debug, col_reset = st.columns([4, 1])
+
+with col_reset:
+    if st.session_state.get("generation_in_progress", False):
+        st.error("⚠️ Verrou bloqué")
+        if st.button("🔓 Débloquer", type="primary"):
+            st.session_state.generation_in_progress = False
+            st.success("✅ Débloqué")
             st.rerun()
+
+with col_debug:
+    if "debug_logs" in st.session_state and st.session_state.debug_logs:
+        with st.expander("🐛 Debug Logs (voir ce qui s'est passé)", expanded=True):
+            st.code("\n".join(st.session_state.debug_logs), language="text")
+            
+            if st.button("🗑️ Effacer les logs"):
+                st.session_state.debug_logs = []
+                st.rerun()
 
 # ======================================================
 # SESSION STATE INIT
