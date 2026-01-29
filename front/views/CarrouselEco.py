@@ -555,6 +555,18 @@ def move_item_down(item_id):
 if st.session_state.get("trigger_generation", False):
     st.session_state.trigger_generation = False  # Reset le flag immédiatement
     
+    # Reset logs au moment du clic
+    if "debug_logs" not in st.session_state:
+        st.session_state.debug_logs = []
+    st.session_state.debug_logs = []
+    st.session_state.debug_logs.append("🚀 Nouvelle demande de génération")
+    
+    # Si une génération est déjà en cours, ne pas relancer
+    if st.session_state.get("generation_in_progress", False):
+        st.session_state.debug_logs.append("⚠️ Génération déjà en cours, nouvelle demande ignorée")
+        st.warning("Une génération est déjà en cours. Attends la fin avant de relancer.")
+        st.rerun()
+    
     # Initialiser la génération (file d'attente)
     with st.spinner("🔄 Initialisation de la génération..."):
         send_to_carousel()
