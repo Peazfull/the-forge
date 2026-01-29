@@ -1,0 +1,183 @@
+"""
+Génération des slides carousel (1080x1080) via Pillow.
+Stack: image de fond + filtre + logo + title_bg + texte + swipe.
+"""
+
+from __future__ import annotations
+
+from io import BytesIO
+from typing import Optional, Tuple
+from PIL import Image, ImageDraw, ImageFont
+import requests
+import os
+
+
+ASSETS_DIR = os.path.join(
+    os.path.dirname(__file__),
+    "..", "..",
+    "front", "layout", "assets", "carousel_eco"
+)
+
+CANVAS_SIZE = (1080, 1080)
+LOGO_SIZE = (200, 65)
+LOGO_TOP = 15
+TITLE_BG_TOP_FROM_BOTTOM = 410  # px depuis le bas
+SWIPE_MARGIN = 40
+LEFT_MARGIN = 60
+RIGHT_MARGIN = 60
+CONTENT_TOP_GAP = 20
+CONTENT_BOTTOM_MARGIN = 120
+
+# Polices (fallback sur PIL par défaut si fichier absent)
+FONT_TITLE_PATH = os.path.join(ASSETS_DIR, "TitleFont.ttf")
+FONT_CONTENT_PATH = os.path.join(ASSETS_DIR, "ContentFont.ttf")
+
+
+def _load_font(path: str, size: int) -> ImageFont.ImageFont:
+    if os.path.exists(path):
+        return ImageFont.truetype(path, size=size)
+    return ImageFont.load_default()
+
+
+def _load_image_from_url(image_url: str) -> Image.Image:
+    response = requests.get(image_url, timeout=20)
+    response.raise_for_status()
+    return Image.open(BytesIO(response.content)).convert("RGBA")
+
+
+def _load_image_from_bytes(image_bytes: bytes) -> Image.Image:
+    return Image.open(BytesIO(image_bytes)).convert("RGBA")
+
+
+def _cover_resize(img: Image.Image, target: Tuple[int, int]) -> Image.Image:
+    target_w, target_h = target
+    src_w, src_h = img.size
+    scale = max(target_w / src_w, target_h / src_h)
+    new_w, new_h = int(src_w * scale), int(src_h * scale)
+    img = img.resize((new_w, new_h), Image.LANCZOS)
+    left = (new_w - target_w) // 2
+    top = (new_h - target_h) // 2
+    return img.crop((left, top, left + target_w, top + target_h))
+
+
+def _wrap_text(text: str, draw: ImageDraw.ImageDraw, font: ImageFont.ImageFont, max_width: int) -> list[str]:
+    words = text.split()
+    lines = []
+    current = []
+    for word in words:
+        candidate = " ".join(current + [word])
+        if draw.textlength(candidate, font=font) <= max_width:
+            current.append(word)
+        else:
+            if current:
+                lines.append(" ".join(current))
+            current = [word]
+    if current:
+        lines.append(" ".join(current))
+    return lines
+
+
+def _fit_text(
+    draw: ImageDraw.ImageDraw,
+    text: str,
+    max_width: int,
+    max_height: int,
+    start_size: int,
+    font_path: str
+) -> Tuple[ImageFont.ImageFont, list[str]]:
+    size = start_size
+    while size > 12:
+        font = _load_font(font_path, size)
+        lines = _wrap_text(text, draw, font, max_width)
+        line_height = int(size * 1.2)
+        total_height = line_height * len(lines)
+        if total_height <= max_height:
+            return font, lines
+        size -= 2
+    font = _load_font(font_path, 12)
+    return font, _wrap_text(text, draw, font, max_width)
+
+
+def generate_carousel_slide(
+    title: str,
+    content: str,
+    image_url: Optional[str] = None,
+    image_bytes: Optional[bytes] = None
+) -> bytes:
+    """
+    Retourne un PNG (bytes) de la slide finale.
+    """
+    if not image_url and not image_bytes:
+        raise ValueError("Aucune image disponible pour la slide.")
+
+    if image_bytes:
+        base_img = _load_image_from_bytes(image_bytes)
+    else:
+        base_img = _load_image_from_url(image_url)  # type: ignore[arg-type]
+
+    base_img = _cover_resize(base_img, CANVAS_SIZE)
+    canvas = base_img.copy()
+
+    # Overlay filtre principal
+    filter_path = os.path.join(ASSETS_DIR, "filter_main.png")
+    if os.path.exists(filter_path):
+        overlay = Image.open(filter_path).convert("RGBA")
+        canvas.alpha_composite(overlay)
+
+    draw = ImageDraw.Draw(canvas)
+
+    # Logo
+    logo_path = os.path.join(ASSETS_DIR, "Logo.png")
+    if os.path.exists(logo_path):
+        logo = Image.open(logo_path).convert("RGBA")
+        logo = logo.resize(LOGO_SIZE, Image.LANCZOS)
+        logo_x = (CANVAS_SIZE[0] - LOGO_SIZE[0]) // 2
+        canvas.alpha_composite(logo, (logo_x, LOGO_TOP))
+
+    # Title background
+    title_bg_path = os.path.join(ASSETS_DIR, "Title_bg_eco.png")
+    title_bg_top = CANVAS_SIZE[1] - TITLE_BG_TOP_FROM_BOTTOM
+    if os.path.exists(title_bg_path):
+        title_bg = Image.open(title_bg_path).convert("RGBA")
+        title_bg = title_bg.resize((CANVAS_SIZE[0], title_bg.size[1]), Image.LANCZOS)
+        canvas.alpha_composite(title_bg, (0, title_bg_top))
+        title_bg_height = title_bg.size[1]
+    else:
+        title_bg_height = 0
+
+    # Title text
+    title_max_width = CANVAS_SIZE[0] - LEFT_MARGIN - RIGHT_MARGIN
+    title_font, title_lines = _fit_text(
+        draw, title, title_max_width, 80, start_size=44, font_path=FONT_TITLE_PATH
+    )
+    title_y = title_bg_top + max(0, (title_bg_height - int(title_font.size * 1.2)) // 2)
+    for line in title_lines[:2]:
+        draw.text((LEFT_MARGIN, title_y), line, font=title_font, fill="white")
+        title_y += int(title_font.size * 1.2)
+
+    # Content text
+    content_top = title_bg_top + title_bg_height + CONTENT_TOP_GAP
+    content_max_height = CANVAS_SIZE[1] - content_top - CONTENT_BOTTOM_MARGIN
+    content_font, content_lines = _fit_text(
+        draw, content, title_max_width, content_max_height, start_size=30, font_path=FONT_CONTENT_PATH
+    )
+    line_height = int(content_font.size * 1.25)
+    y = content_top
+    for line in content_lines:
+        if y + line_height > CANVAS_SIZE[1] - CONTENT_BOTTOM_MARGIN:
+            break
+        draw.text((LEFT_MARGIN, y), line, font=content_font, fill="white")
+        y += line_height
+
+    # Swipe
+    swipe_path = os.path.join(ASSETS_DIR, "Swipe.png")
+    if os.path.exists(swipe_path):
+        swipe = Image.open(swipe_path).convert("RGBA")
+        x = CANVAS_SIZE[0] - swipe.size[0] - SWIPE_MARGIN
+        y = CANVAS_SIZE[1] - swipe.size[1] - SWIPE_MARGIN
+        canvas.alpha_composite(swipe, (x, y))
+
+    # Export
+    output = BytesIO()
+    canvas.convert("RGB").save(output, format="PNG")
+    return output.getvalue()

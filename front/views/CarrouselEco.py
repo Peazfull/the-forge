@@ -2,6 +2,7 @@ import streamlit as st
 import time
 import base64
 import os
+import hashlib
 from urllib.parse import urlparse, parse_qs
 from db.supabase_client import get_supabase
 from services.carousel.carousel_eco_service import insert_items_to_carousel_eco, get_carousel_eco_items
@@ -15,6 +16,7 @@ from services.carousel.carousel_image_service import (
     save_image_base64
 )
 from services.carousel.image_generation_service import save_image_to_carousel
+from services.carousel.carousel_slide_service import generate_carousel_slide
 
 # ======================================================
 # CUSTOM CSS
@@ -248,6 +250,48 @@ def model_to_tag(model_name: str) -> str:
     if "upload-manuel" in name:
         return "upload-manuel"
     return "unknown"
+
+
+def generate_all_slide_previews():
+    """Génère toutes les slides et les met en cache session_state."""
+    carousel_data = get_carousel_eco_items()
+    if carousel_data["status"] != "success" or carousel_data["count"] == 0:
+        return {"status": "error", "message": "Aucun item"}
+    
+    if "slide_previews" not in st.session_state:
+        st.session_state.slide_previews = {}
+    
+    errors = 0
+    for item in carousel_data["items"]:
+        item_id = item["id"]
+        position = item["position"]
+        title_carou = item.get("title_carou") or ""
+        content_carou = item.get("content_carou") or ""
+        image_url = item.get("image_url")
+        image_bytes = None if image_url else read_carousel_image(position)
+        
+        if not title_carou or not content_carou or (not image_url and not image_bytes):
+            errors += 1
+            continue
+        
+        hash_input = f"{title_carou}|{content_carou}|{image_url or ''}|{len(image_bytes) if image_bytes else 0}"
+        cache_key = hashlib.md5(hash_input.encode("utf-8")).hexdigest()
+        
+        try:
+            slide_bytes = generate_carousel_slide(
+                title=title_carou.upper(),
+                content=content_carou,
+                image_url=image_url,
+                image_bytes=image_bytes
+            )
+            st.session_state.slide_previews[item_id] = {
+                "key": cache_key,
+                "bytes": slide_bytes
+            }
+        except Exception:
+            errors += 1
+    
+    return {"status": "success", "errors": errors}
 
 
 def send_to_carousel():
@@ -790,6 +834,19 @@ with st.expander("📰 Bulletin Eco", expanded=False):
             
             st.divider()
         
+        # Bouton global : générer les previews slides
+        if st.button("🖼️ Générer les slides", type="primary", use_container_width=True):
+            with st.spinner("Génération des slides en cours..."):
+                result = generate_all_slide_previews()
+            if result.get("status") == "success":
+                if result.get("errors", 0) == 0:
+                    st.success("✅ Slides générées")
+                else:
+                    st.warning(f"⚠️ Slides générées avec {result.get('errors')} erreurs")
+            else:
+                st.error("❌ Impossible de générer les slides")
+            st.rerun()
+        
         st.markdown("")
         
         # Boutons d'action
@@ -1138,6 +1195,73 @@ with st.expander("🎨 Textes Carousel", expanded=False):
                         st.rerun()
             
             # Plus besoin de logique async avec flags - tout est fait directement dans les boutons
+            
+            st.divider()
+
+
+# ======================================================
+# PREVIEW SLIDES
+# ======================================================
+
+with st.expander("🖼️ Preview Slides", expanded=False):
+    carousel_data = get_carousel_eco_items()
+    
+    if carousel_data["status"] == "error":
+        st.error(f"Erreur : {carousel_data.get('message', 'Erreur inconnue')}")
+    elif carousel_data["count"] == 0:
+        st.info("Aucun item · Envoyez d'abord des items depuis 'Bulletin Eco'")
+    else:
+        if "slide_previews" not in st.session_state:
+            st.session_state.slide_previews = {}
+        
+        for item in carousel_data["items"]:
+            item_id = item["id"]
+            position = item["position"]
+            title_carou = item.get("title_carou") or ""
+            content_carou = item.get("content_carou") or ""
+            image_url = item.get("image_url")
+            image_bytes = None if image_url else read_carousel_image(position)
+            
+            st.markdown(f"**Slide #{position}**")
+            col_preview, col_actions = st.columns([4, 1])
+            
+            with col_actions:
+                if st.button("🔄 Regénérer slide", key=f"regen_slide_{item_id}", use_container_width=True):
+                    st.session_state.slide_previews.pop(item_id, None)
+                    st.rerun()
+            
+            # Empêcher la génération si les champs sont vides
+            if not title_carou or not content_carou or (not image_url and not image_bytes):
+                with col_preview:
+                    st.warning("Il manque le titre, le texte ou l'image pour générer la slide.")
+                st.divider()
+                continue
+            
+            # Cache preview (key simple basée sur contenu)
+            hash_input = f"{title_carou}|{content_carou}|{image_url or ''}|{len(image_bytes) if image_bytes else 0}"
+            cache_key = hashlib.md5(hash_input.encode("utf-8")).hexdigest()
+            cached = st.session_state.slide_previews.get(item_id)
+            
+            if not cached or cached.get("key") != cache_key:
+                try:
+                    slide_bytes = generate_carousel_slide(
+                        title=title_carou.upper(),
+                        content=content_carou,
+                        image_url=image_url,
+                        image_bytes=image_bytes
+                    )
+                    st.session_state.slide_previews[item_id] = {
+                        "key": cache_key,
+                        "bytes": slide_bytes
+                    }
+                except Exception as e:
+                    with col_preview:
+                        st.error(f"Erreur génération slide : {str(e)[:120]}")
+                    st.divider()
+                    continue
+            
+            with col_preview:
+                st.image(st.session_state.slide_previews[item_id]["bytes"], use_container_width=True)
             
             st.divider()
 
