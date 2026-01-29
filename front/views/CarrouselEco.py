@@ -1279,7 +1279,8 @@ with st.expander("🖼️ Preview Slides", expanded=False):
             key=lambda i: (0 if i.get("position") == 0 else 1, i.get("position", 999))
         )
         
-        for item in items_sorted:
+        cols = None
+        for idx, item in enumerate(items_sorted):
             item_id = item["id"]
             position = item["position"]
             title_carou = item.get("title_carou") or ""
@@ -1287,65 +1288,59 @@ with st.expander("🖼️ Preview Slides", expanded=False):
             image_url = item.get("image_url")
             image_bytes = None if image_url else read_carousel_image(position)
             
-            if position == 0:
-                st.markdown("**Slide de couverture (0)**")
-            else:
-                st.markdown(f"**Slide #{position}**")
-            col_preview, col_actions = st.columns([4, 1])
+            if idx % 3 == 0:
+                cols = st.columns(3)
+            col = cols[idx % 3]
             
-            with col_actions:
+            with col:
+                if position == 0:
+                    st.markdown("**Slide de couverture (0)**")
+                else:
+                    st.markdown(f"**Slide #{position}**")
+                
                 if st.button("🔄 Regénérer slide", key=f"regen_slide_{item_id}", use_container_width=True):
                     st.session_state.slide_previews.pop(item_id, None)
                     st.rerun()
-            
-            # Empêcher la génération si les champs sont vides
-            if position == 0 and (not image_url and not image_bytes):
-                with col_preview:
+                
+                # Empêcher la génération si les champs sont vides
+                if position == 0 and (not image_url and not image_bytes):
                     st.warning("Il manque l'image pour générer la cover.")
-                st.divider()
-                continue
-            if position != 0 and (not title_carou or not content_carou or (not image_url and not image_bytes)):
-                with col_preview:
-                    st.warning("Il manque le titre, le texte ou l'image pour générer la slide.")
-                st.divider()
-                continue
-            
-            # Cache preview (key simple basée sur contenu)
-            if position == 0:
-                hash_input = f"cover|{image_url or ''}|{len(image_bytes) if image_bytes else 0}"
-            else:
-                hash_input = f"{title_carou}|{content_carou}|{image_url or ''}|{len(image_bytes) if image_bytes else 0}"
-            cache_key = hashlib.md5(hash_input.encode("utf-8")).hexdigest()
-            cached = st.session_state.slide_previews.get(item_id)
-            
-            if not cached or cached.get("key") != cache_key:
-                try:
-                    if position == 0:
-                        slide_bytes = generate_cover_slide(
-                            image_url=image_url,
-                            image_bytes=image_bytes
-                        )
-                    else:
-                        slide_bytes = generate_carousel_slide(
-                            title=title_carou.upper(),
-                            content=content_carou,
-                            image_url=image_url,
-                            image_bytes=image_bytes
-                        )
-                    st.session_state.slide_previews[item_id] = {
-                        "key": cache_key,
-                        "bytes": slide_bytes
-                    }
-                except Exception as e:
-                    with col_preview:
-                        st.error(f"Erreur génération slide : {str(e)[:120]}")
-                    st.divider()
                     continue
-            
-            with col_preview:
+                if position != 0 and (not title_carou or not content_carou or (not image_url and not image_bytes)):
+                    st.warning("Il manque le titre, le texte ou l'image pour générer la slide.")
+                    continue
+                
+                # Cache preview (key simple basée sur contenu)
+                if position == 0:
+                    hash_input = f"cover|{image_url or ''}|{len(image_bytes) if image_bytes else 0}"
+                else:
+                    hash_input = f"{title_carou}|{content_carou}|{image_url or ''}|{len(image_bytes) if image_bytes else 0}"
+                cache_key = hashlib.md5(hash_input.encode("utf-8")).hexdigest()
+                cached = st.session_state.slide_previews.get(item_id)
+                
+                if not cached or cached.get("key") != cache_key:
+                    try:
+                        if position == 0:
+                            slide_bytes = generate_cover_slide(
+                                image_url=image_url,
+                                image_bytes=image_bytes
+                            )
+                        else:
+                            slide_bytes = generate_carousel_slide(
+                                title=title_carou.upper(),
+                                content=content_carou,
+                                image_url=image_url,
+                                image_bytes=image_bytes
+                            )
+                        st.session_state.slide_previews[item_id] = {
+                            "key": cache_key,
+                            "bytes": slide_bytes
+                        }
+                    except Exception as e:
+                        st.error(f"Erreur génération slide : {str(e)[:120]}")
+                        continue
+                
                 st.image(st.session_state.slide_previews[item_id]["bytes"], use_container_width=True)
-            
-            st.divider()
 
 
 # ======================================================

@@ -23,7 +23,7 @@ CANVAS_SIZE = (1080, 1080)
 LOGO_SIZE = (200, 65)
 LOGO_TOP = 15
 TITLE_BG_TOP_FROM_BOTTOM = 410  # px depuis le bas
-SWIPE_MARGIN = 5
+SWIPE_MARGIN = 10
 LEFT_MARGIN = 60
 RIGHT_MARGIN = 60
 CONTENT_TOP_GAP = 20
@@ -206,7 +206,7 @@ def generate_carousel_slide(
 
 
 def _format_french_date(dt: Optional[datetime] = None) -> str:
-    """Format date en FR majuscules (ex: LUNDI 10 FEVRIER 2026)."""
+    """Format date en FR majuscules (ex: DU LUNDI 10 FEVRIER 2026)."""
     if dt is None:
         dt = datetime.now()
     days = ["LUNDI", "MARDI", "MERCREDI", "JEUDI", "VENDREDI", "SAMEDI", "DIMANCHE"]
@@ -216,7 +216,7 @@ def _format_french_date(dt: Optional[datetime] = None) -> str:
     ]
     day = days[dt.weekday()]
     month = months[dt.month - 1]
-    return f"{day} {dt.day} {month} {dt.year}"
+    return f"DU {day} {dt.day} {month} {dt.year}"
 
 
 def generate_cover_slide(
