@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from io import BytesIO
 from typing import Optional, Tuple
+from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
 import requests
 import os
@@ -27,6 +28,11 @@ LEFT_MARGIN = 60
 RIGHT_MARGIN = 60
 CONTENT_TOP_GAP = 20
 CONTENT_BOTTOM_MARGIN = 120
+DATE_FONT_SIZE = 38
+COVER_LOGO_WIDTH = 760
+COVER_LOGO_MID_Y = 520
+COVER_LOGO_BOTTOM_Y = 720
+DATE_TOP_GAP = 12
 
 # Polices (fallback sur PIL par défaut si fichier absent)
 FONT_TITLE_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")
@@ -195,6 +201,91 @@ def generate_carousel_slide(
         canvas.alpha_composite(swipe, (x, y))
 
     # Export
+    output = BytesIO()
+    canvas.convert("RGB").save(output, format="PNG")
+    return output.getvalue()
+
+
+def _format_french_date(dt: Optional[datetime] = None) -> str:
+    """Format date en FR majuscules (ex: LUNDI 10 FEVRIER 2026)."""
+    if dt is None:
+        dt = datetime.now()
+    days = ["LUNDI", "MARDI", "MERCREDI", "JEUDI", "VENDREDI", "SAMEDI", "DIMANCHE"]
+    months = [
+        "JANVIER", "FEVRIER", "MARS", "AVRIL", "MAI", "JUIN",
+        "JUILLET", "AOUT", "SEPTEMBRE", "OCTOBRE", "NOVEMBRE", "DECEMBRE"
+    ]
+    day = days[dt.weekday()]
+    month = months[dt.month - 1]
+    return f"{day} {dt.day} {month} {dt.year}"
+
+
+def generate_cover_slide(
+    image_url: Optional[str] = None,
+    image_bytes: Optional[bytes] = None
+) -> bytes:
+    """
+    Génère la slide de couverture (position 0).
+    """
+    if not image_url and not image_bytes:
+        raise ValueError("Aucune image disponible pour la cover.")
+    
+    if image_bytes:
+        base_img = _load_image_from_bytes(image_bytes)
+    else:
+        base_img = _load_image_from_url(image_url)  # type: ignore[arg-type]
+    
+    base_img = _cover_resize(base_img, CANVAS_SIZE)
+    canvas = base_img.copy()
+    
+    # Overlay filtre principal
+    filter_path = os.path.join(ASSETS_DIR, "filter_main.png")
+    if os.path.exists(filter_path):
+        overlay = Image.open(filter_path).convert("RGBA")
+        canvas.alpha_composite(overlay)
+    
+    draw = ImageDraw.Draw(canvas)
+    
+    # Logo principal (haut)
+    logo_path = os.path.join(ASSETS_DIR, "Logo.png")
+    if os.path.exists(logo_path):
+        logo = Image.open(logo_path).convert("RGBA")
+        logo = logo.resize(LOGO_SIZE, Image.LANCZOS)
+        logo_x = (CANVAS_SIZE[0] - LOGO_SIZE[0]) // 2
+        canvas.alpha_composite(logo, (logo_x, LOGO_TOP))
+    
+    # Logo slide 0 (centre milieu + centre bas)
+    cover_logo_path = os.path.join(ASSETS_DIR, "Logo_slide_0_eco.png")
+    if os.path.exists(cover_logo_path):
+        cover_logo = Image.open(cover_logo_path).convert("RGBA")
+        scale = COVER_LOGO_WIDTH / cover_logo.size[0]
+        cover_logo = cover_logo.resize(
+            (int(cover_logo.size[0] * scale), int(cover_logo.size[1] * scale)),
+            Image.LANCZOS
+        )
+        cover_x = (CANVAS_SIZE[0] - cover_logo.size[0]) // 2
+        canvas.alpha_composite(cover_logo, (cover_x, COVER_LOGO_MID_Y))
+        canvas.alpha_composite(cover_logo, (cover_x, COVER_LOGO_BOTTOM_Y))
+        cover_logo_height = cover_logo.size[1]
+    else:
+        cover_logo_height = 0
+    
+    # Date
+    date_str = _format_french_date()
+    date_font = _load_font(FONT_CONTENT_PATH, DATE_FONT_SIZE)
+    date_w = draw.textlength(date_str, font=date_font)
+    date_x = (CANVAS_SIZE[0] - int(date_w)) // 2
+    date_y = COVER_LOGO_BOTTOM_Y + cover_logo_height + DATE_TOP_GAP
+    draw.text((date_x, date_y), date_str, font=date_font, fill="white")
+    
+    # Swipe
+    swipe_path = os.path.join(ASSETS_DIR, "Swipe.png")
+    if os.path.exists(swipe_path):
+        swipe = Image.open(swipe_path).convert("RGBA")
+        x = CANVAS_SIZE[0] - swipe.size[0] - SWIPE_MARGIN
+        y = CANVAS_SIZE[1] - swipe.size[1] - SWIPE_MARGIN
+        canvas.alpha_composite(swipe, (x, y))
+    
     output = BytesIO()
     canvas.convert("RGB").save(output, format="PNG")
     return output.getvalue()

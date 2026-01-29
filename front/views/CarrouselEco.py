@@ -16,7 +16,7 @@ from services.carousel.carousel_image_service import (
     save_image_base64
 )
 from services.carousel.image_generation_service import save_image_to_carousel
-from services.carousel.carousel_slide_service import generate_carousel_slide
+from services.carousel.carousel_slide_service import generate_carousel_slide, generate_cover_slide
 
 # ======================================================
 # CUSTOM CSS
@@ -275,20 +275,32 @@ def generate_all_slide_previews():
         image_url = item.get("image_url")
         image_bytes = None if image_url else read_carousel_image(position)
         
-        if not title_carou or not content_carou or (not image_url and not image_bytes):
+        if position == 0 and (not image_url and not image_bytes):
+            errors += 1
+            continue
+        if position != 0 and (not title_carou or not content_carou or (not image_url and not image_bytes)):
             errors += 1
             continue
         
-        hash_input = f"{title_carou}|{content_carou}|{image_url or ''}|{len(image_bytes) if image_bytes else 0}"
+        if position == 0:
+            hash_input = f"cover|{image_url or ''}|{len(image_bytes) if image_bytes else 0}"
+        else:
+            hash_input = f"{title_carou}|{content_carou}|{image_url or ''}|{len(image_bytes) if image_bytes else 0}"
         cache_key = hashlib.md5(hash_input.encode("utf-8")).hexdigest()
         
         try:
-            slide_bytes = generate_carousel_slide(
-                title=title_carou.upper(),
-                content=content_carou,
-                image_url=image_url,
-                image_bytes=image_bytes
-            )
+            if position == 0:
+                slide_bytes = generate_cover_slide(
+                    image_url=image_url,
+                    image_bytes=image_bytes
+                )
+            else:
+                slide_bytes = generate_carousel_slide(
+                    title=title_carou.upper(),
+                    content=content_carou,
+                    image_url=image_url,
+                    image_bytes=image_bytes
+                )
             st.session_state.slide_previews[item_id] = {
                 "key": cache_key,
                 "bytes": slide_bytes
@@ -1287,25 +1299,39 @@ with st.expander("🖼️ Preview Slides", expanded=False):
                     st.rerun()
             
             # Empêcher la génération si les champs sont vides
-            if not title_carou or not content_carou or (not image_url and not image_bytes):
+            if position == 0 and (not image_url and not image_bytes):
+                with col_preview:
+                    st.warning("Il manque l'image pour générer la cover.")
+                st.divider()
+                continue
+            if position != 0 and (not title_carou or not content_carou or (not image_url and not image_bytes)):
                 with col_preview:
                     st.warning("Il manque le titre, le texte ou l'image pour générer la slide.")
                 st.divider()
                 continue
             
             # Cache preview (key simple basée sur contenu)
-            hash_input = f"{title_carou}|{content_carou}|{image_url or ''}|{len(image_bytes) if image_bytes else 0}"
+            if position == 0:
+                hash_input = f"cover|{image_url or ''}|{len(image_bytes) if image_bytes else 0}"
+            else:
+                hash_input = f"{title_carou}|{content_carou}|{image_url or ''}|{len(image_bytes) if image_bytes else 0}"
             cache_key = hashlib.md5(hash_input.encode("utf-8")).hexdigest()
             cached = st.session_state.slide_previews.get(item_id)
             
             if not cached or cached.get("key") != cache_key:
                 try:
-                    slide_bytes = generate_carousel_slide(
-                        title=title_carou.upper(),
-                        content=content_carou,
-                        image_url=image_url,
-                        image_bytes=image_bytes
-                    )
+                    if position == 0:
+                        slide_bytes = generate_cover_slide(
+                            image_url=image_url,
+                            image_bytes=image_bytes
+                        )
+                    else:
+                        slide_bytes = generate_carousel_slide(
+                            title=title_carou.upper(),
+                            content=content_carou,
+                            image_url=image_url,
+                            image_bytes=image_bytes
+                        )
                     st.session_state.slide_previews[item_id] = {
                         "key": cache_key,
                         "bytes": slide_bytes
