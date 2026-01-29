@@ -834,19 +834,6 @@ with st.expander("📰 Bulletin Eco", expanded=False):
             
             st.divider()
 
-        # Bouton global : générer les previews slides
-        if st.button("🖼️ Générer les slides", type="primary", use_container_width=True):
-            with st.spinner("Génération des slides en cours..."):
-                result = generate_all_slide_previews()
-            if result.get("status") == "success":
-                if result.get("errors", 0) == 0:
-                    st.success("✅ Slides générées")
-                else:
-                    st.warning(f"⚠️ Slides générées avec {result.get('errors')} erreurs")
-            else:
-                st.error("❌ Impossible de générer les slides")
-            st.rerun()
-        
         st.markdown("")
         
         # Boutons d'action
@@ -1195,8 +1182,20 @@ with st.expander("🎨 Textes Carousel", expanded=False):
                         st.rerun()
             
             # Plus besoin de logique async avec flags - tout est fait directement dans les boutons
-            
-            st.divider()
+
+        # Bouton global : générer les previews slides
+        st.divider()
+        if st.button("🖼️ Générer les slides", type="primary", use_container_width=True):
+            with st.spinner("Génération des slides en cours..."):
+                result = generate_all_slide_previews()
+            if result.get("status") == "success":
+                if result.get("errors", 0) == 0:
+                    st.success("✅ Slides générées")
+                else:
+                    st.warning(f"⚠️ Slides générées avec {result.get('errors')} erreurs")
+            else:
+                st.error("❌ Impossible de générer les slides")
+            st.rerun()
 
 
 # ======================================================
