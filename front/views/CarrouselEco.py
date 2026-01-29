@@ -160,13 +160,7 @@ with col_reset:
             st.rerun()
 
 with col_debug:
-    if "debug_logs" in st.session_state and st.session_state.debug_logs:
-        with st.expander("🐛 Debug Logs (voir ce qui s'est passé)", expanded=True):
-            st.code("\n".join(st.session_state.debug_logs), language="text")
-            
-            if st.button("🗑️ Effacer les logs"):
-                st.session_state.debug_logs = []
-                st.rerun()
+    pass
 
 # ======================================================
 # SESSION STATE INIT
@@ -792,6 +786,17 @@ with st.expander("📰 Bulletin Eco", expanded=False):
                     use_container_width=True,
                     help="Envoyez d'abord des items"
                 )
+
+# ======================================================
+# DEBUG LOGS (APRES BULLETIN)
+# ======================================================
+if "debug_logs" in st.session_state and st.session_state.debug_logs:
+    with st.expander("🐛 Debug Logs (voir ce qui s'est passé)", expanded=True):
+        st.code("\n".join(st.session_state.debug_logs), language="text")
+        
+        if st.button("🗑️ Effacer les logs"):
+            st.session_state.debug_logs = []
+            st.rerun()
 
 
 # ======================================================
