@@ -965,6 +965,12 @@ with st.expander("🎨 Textes Carousel", expanded=False):
                         model_name = model_info.get("model", "")
                         tried_fallback = model_info.get("tried_fallback", False)
                 
+                # Si on a seulement le flag fallback, déduire la source
+                if not model_name and tried_fallback:
+                    model_name = "gpt-image-1.5"
+                elif not model_name and existing_image and not tried_fallback:
+                    model_name = "gemini"
+                
                 if not model_name and existing_image_url:
                     model_name = get_model_from_image_url(existing_image_url)
                 
