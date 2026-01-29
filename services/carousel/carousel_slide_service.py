@@ -27,11 +27,10 @@ SWIPE_MARGIN = 40
 LEFT_MARGIN = 60
 RIGHT_MARGIN = 60
 CONTENT_TOP_GAP = 20
-CONTENT_BOTTOM_MARGIN = 120
+CONTENT_BOTTOM_MARGIN = 60
 DATE_FONT_SIZE = 38
 COVER_LOGO_WIDTH = 760
 COVER_LOGO_MID_Y = 520
-COVER_LOGO_BOTTOM_Y = 720
 DATE_TOP_GAP = 12
 
 # Polices (fallback sur PIL par défaut si fichier absent)
@@ -254,7 +253,7 @@ def generate_cover_slide(
         logo_x = (CANVAS_SIZE[0] - LOGO_SIZE[0]) // 2
         canvas.alpha_composite(logo, (logo_x, LOGO_TOP))
     
-    # Logo slide 0 (centre milieu + centre bas)
+    # Logo slide 0 (centre milieu)
     cover_logo_path = os.path.join(ASSETS_DIR, "Logo_slide_0_eco.png")
     if os.path.exists(cover_logo_path):
         cover_logo = Image.open(cover_logo_path).convert("RGBA")
@@ -265,7 +264,6 @@ def generate_cover_slide(
         )
         cover_x = (CANVAS_SIZE[0] - cover_logo.size[0]) // 2
         canvas.alpha_composite(cover_logo, (cover_x, COVER_LOGO_MID_Y))
-        canvas.alpha_composite(cover_logo, (cover_x, COVER_LOGO_BOTTOM_Y))
         cover_logo_height = cover_logo.size[1]
     else:
         cover_logo_height = 0
@@ -275,7 +273,7 @@ def generate_cover_slide(
     date_font = _load_font(FONT_CONTENT_PATH, DATE_FONT_SIZE)
     date_w = draw.textlength(date_str, font=date_font)
     date_x = (CANVAS_SIZE[0] - int(date_w)) // 2
-    date_y = COVER_LOGO_BOTTOM_Y + cover_logo_height + DATE_TOP_GAP
+    date_y = COVER_LOGO_MID_Y + cover_logo_height + DATE_TOP_GAP
     draw.text((date_x, date_y), date_str, font=date_font, fill="white")
     
     # Swipe
