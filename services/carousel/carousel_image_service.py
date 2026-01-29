@@ -9,7 +9,7 @@ import base64
 from typing import Dict, Optional
 from openai import OpenAI
 from db.supabase_client import get_supabase
-from services.carousel.image_generation_service import generate_carousel_image
+from services.carousel.image_generation_service import generate_carousel_image, save_image_to_carousel
 from prompts.carousel.generate_image_prompts_manual import PROMPT_GENERATE_IMAGE_PROMPT_MANUAL
 import json
 
@@ -24,6 +24,8 @@ CAROUSEL_IMAGE_DIR = os.path.join(
     "front", "layout", "assets", "carousel_eco"
 )
 
+STORAGE_BUCKET = "carousel-eco"
+
 
 def get_image_path(position: int) -> str:
     """
@@ -37,6 +39,33 @@ def get_image_path(position: int) -> str:
     """
     os.makedirs(CAROUSEL_IMAGE_DIR, exist_ok=True)
     return os.path.join(CAROUSEL_IMAGE_DIR, f"imgcaroueco{position}.png")
+
+
+def upload_image_bytes(image_bytes: bytes, position: int) -> Dict[str, object]:
+    """
+    Upload une image vers Supabase Storage (bucket public).
+    """
+    try:
+        supabase = get_supabase()
+        object_path = f"imgcaroueco{position}.png"
+        
+        supabase.storage.from_(STORAGE_BUCKET).upload(
+            object_path,
+            image_bytes,
+            file_options={"content-type": "image/png", "upsert": True}
+        )
+        
+        public_url = supabase.storage.from_(STORAGE_BUCKET).get_public_url(object_path)
+        return {
+            "status": "success",
+            "public_url": public_url
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "public_url": None,
+            "message": f"Erreur upload storage : {str(e)}"
+        }
 
 
 def save_image_base64(image_base64: str, position: int) -> Dict[str, object]:
@@ -67,9 +96,13 @@ def save_image_base64(image_base64: str, position: int) -> Dict[str, object]:
         except:
             pass  # Échec silencieux si pas de droits d'écriture
         
+        # Upload vers Supabase Storage (bucket public)
+        upload_result = upload_image_bytes(image_bytes, position)
+        
         return {
             "status": "success",
             "path": f"session_state[{position}]",
+            "public_url": upload_result.get("public_url"),
             "message": f"Image sauvegardée : imgcaroueco{position}.png"
         }
         
@@ -81,7 +114,7 @@ def save_image_base64(image_base64: str, position: int) -> Dict[str, object]:
         }
 
 
-def generate_and_save_carousel_image(prompt: str, position: int) -> Dict[str, object]:
+def generate_and_save_carousel_image(prompt: str, position: int, item_id: Optional[str] = None) -> Dict[str, object]:
     """
     Génère une image avec un prompt et la sauvegarde sur disque
     
@@ -105,7 +138,7 @@ def generate_and_save_carousel_image(prompt: str, position: int) -> Dict[str, ob
     if result["status"] != "success":
         return result
     
-    # Sauvegarder sur disque
+    # Sauvegarder sur disque + storage
     save_result = save_image_base64(result["image_data"], position)
     
     if save_result["status"] != "success":
@@ -115,10 +148,15 @@ def generate_and_save_carousel_image(prompt: str, position: int) -> Dict[str, ob
         }
     
     # Succès complet
+    # Enregistrer l'URL en DB si possible
+    if item_id and save_result.get("public_url"):
+        save_image_to_carousel(item_id, save_result["public_url"])
+    
     return {
         "status": "success",
         "image_data": result["image_data"],
         "image_path": save_result["path"],
+        "image_url": save_result.get("public_url"),
         "model_used": result.get("model_used", "unknown"),
         "tried_fallback": result.get("tried_fallback", False),
         "gemini_settings": result.get("gemini_settings"),

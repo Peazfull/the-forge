@@ -362,7 +362,7 @@ def process_generation_queue():
         # Générer image
         if prompt_1_result.get("status") == "success":
             st.session_state.debug_logs.append("  🎨 Génération image...")
-            img_result = generate_and_save_carousel_image(prompt_1_result["image_prompt"], position)
+            img_result = generate_and_save_carousel_image(prompt_1_result["image_prompt"], position, item_id=item_id)
             
             if img_result["status"] == "success":
                 model_used = img_result.get("model_used", "inconnu")
@@ -447,7 +447,7 @@ def generate_texts():
             
             if prompt_image_1:
                 # Générer et sauvegarder l'image
-                img_result = generate_and_save_carousel_image(prompt_image_1, position)
+                img_result = generate_and_save_carousel_image(prompt_image_1, position, item_id=item.get("id"))
                 
                 if img_result["status"] == "success":
                     success_images += 1
@@ -906,13 +906,16 @@ with st.expander("🎨 Textes Carousel", expanded=False):
             
             # Vérifier si une image existe déjà
             existing_image = read_carousel_image(position)
+            existing_image_url = item.get("image_url")
             
             # Layout : Image à gauche (petite), Contrôles à droite (empilés)
             col_image, col_controls = st.columns([1, 2])
             
             # COLONNE GAUCHE : Preview de l'image (petite)
             with col_image:
-                if existing_image:
+                if existing_image_url:
+                    st.image(existing_image_url, caption=f"Image #{position}", use_container_width=True)
+                elif existing_image:
                     st.image(existing_image, caption=f"Image #{position}", use_container_width=True)
                     
                     # Afficher le modèle utilisé (si disponible)
@@ -944,7 +947,7 @@ with st.expander("🎨 Textes Carousel", expanded=False):
                 if st.button("🔄 Régénérer", key=f"regen_{item_id}", use_container_width=True, type="secondary", disabled=not prompt_image_2):
                     if prompt_image_2:
                         with st.spinner("🎨 Génération..."):
-                            result = generate_and_save_carousel_image(prompt_image_2, position)
+                            result = generate_and_save_carousel_image(prompt_image_2, position, item_id=item_id)
                         
                         if result["status"] == "success":
                             # Stocker le modèle utilisé
@@ -986,7 +989,7 @@ with st.expander("🎨 Textes Carousel", expanded=False):
                                 
                                 # Générer l'image
                                 with st.spinner("🎨 Génération de l'image..."):
-                                    result = generate_and_save_carousel_image(prompt_result["image_prompt"], position)
+                                    result = generate_and_save_carousel_image(prompt_result["image_prompt"], position, item_id=item_id)
                                 
                                 if result["status"] == "success":
                                     # Stocker le modèle utilisé
@@ -1050,6 +1053,16 @@ with st.expander("🎨 Textes Carousel", expanded=False):
                                 f.write(image_bytes)
                         except:
                             pass  # Échec silencieux
+                        
+                        # Upload vers Supabase Storage + sauvegarde URL en DB
+                        try:
+                            from services.carousel.carousel_image_service import upload_image_bytes
+                            upload_result = upload_image_bytes(image_bytes, position)
+                            if upload_result.get("public_url"):
+                                from services.carousel.image_generation_service import save_image_to_carousel
+                                save_image_to_carousel(item_id, upload_result["public_url"])
+                        except:
+                            pass
                         
                         st.session_state[last_upload_key] = file_id
                         
