@@ -145,6 +145,17 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ======================================================
+# DEBUG LOGS (visible uniquement si logs existent)
+# ======================================================
+if "debug_logs" in st.session_state and st.session_state.debug_logs:
+    with st.expander("🐛 Debug Logs (voir ce qui s'est passé)", expanded=True):
+        st.code("\n".join(st.session_state.debug_logs), language="text")
+        
+        if st.button("🗑️ Effacer les logs"):
+            st.session_state.debug_logs = []
+            st.rerun()
+
+# ======================================================
 # SESSION STATE INIT
 # ======================================================
 
@@ -207,36 +218,58 @@ def close_modal():
 
 def send_to_carousel():
     """Envoie les items et génère tout en une seule passe (boucle simple)"""
+    # Initialiser les logs de debug
+    if "debug_logs" not in st.session_state:
+        st.session_state.debug_logs = []
+    st.session_state.debug_logs = []  # Reset
+    st.session_state.debug_logs.append("🚀 Début send_to_carousel()")
+    
     # SÉCURITÉ : éviter double exécution
     if st.session_state.get("generation_in_progress", False):
+        st.session_state.debug_logs.append("⚠️ Génération déjà en cours, arrêt")
         return  # Déjà en cours, ne pas relancer
     
     st.session_state.generation_in_progress = True
+    st.session_state.debug_logs.append("🔒 Verrou activé")
     
     try:
         # Sécurité : initialiser si absent
         if "eco_selected_items" not in st.session_state:
             st.session_state.eco_selected_items = []
         
+        st.session_state.debug_logs.append(f"📊 Items sélectionnés : {len(st.session_state.eco_selected_items)}")
+        
         # Étape 1 : Insertion
+        st.session_state.debug_logs.append("📤 Début insertion en DB...")
         result = insert_items_to_carousel_eco(st.session_state.eco_selected_items)
             
         if result["status"] != "success":
+            st.session_state.debug_logs.append(f"❌ Erreur insertion : {result.get('message', 'inconnue')}")
             return
         
+        st.session_state.debug_logs.append(f"✅ Insertion OK : {result.get('inserted', 0)} items")
+        
         # Étape 2 : Récupérer les items insérés
+        st.session_state.debug_logs.append("📥 Récupération items depuis DB...")
         carousel_data = get_carousel_eco_items()
         
         if carousel_data["status"] != "success" or carousel_data["count"] == 0:
+            st.session_state.debug_logs.append(f"❌ Erreur récupération ou 0 items")
             return
         
         items = carousel_data["items"]
         total_items = len(items)
         
+        st.session_state.debug_logs.append(f"✅ Récupérés : {total_items} items")
+        st.session_state.debug_logs.append(f"📋 IDs : {[item['id'] for item in items]}")
+        st.session_state.debug_logs.append(f"📋 Positions : {[item['position'] for item in items]}")
+        
         # Import des fonctions
         from services.carousel.generate_carousel_texts_service import generate_carousel_text_for_item, generate_image_prompt_for_item
         supabase = get_supabase()
-            
+        
+        st.session_state.debug_logs.append(f"🔁 Début boucle sur {total_items} items")
+        
         # Boucle sur chaque item
         for idx, item in enumerate(items, start=1):
             item_id = item["id"]
@@ -244,56 +277,87 @@ def send_to_carousel():
             title = item.get("title", "")
             content = item.get("content", "")
             
+            st.session_state.debug_logs.append(f"━━━ ITEM #{position} (iteration {idx}/{total_items}) ━━━")
+            st.session_state.debug_logs.append(f"  ID: {item_id}")
+            st.session_state.debug_logs.append(f"  Titre: {title[:40]}...")
+            
             try:
                 # Générer textes
+                st.session_state.debug_logs.append(f"  ⏳ Génération textes...")
                 text_result = generate_carousel_text_for_item(title, content)
+                
+                st.session_state.debug_logs.append(f"  ✅ Textes générés")
                 
                 if text_result["status"] == "success":
                     # Générer prompts images
+                    st.session_state.debug_logs.append(f"  ⏳ Génération prompts images...")
                     prompt_1_result = generate_image_prompt_for_item(title, content, prompt_type="sunset")
                     prompt_2_result = generate_image_prompt_for_item(title, content, prompt_type="studio")
+                    st.session_state.debug_logs.append(f"  ✅ Prompts images générés")
                     
                     # Sauvegarder en DB
+                    st.session_state.debug_logs.append(f"  💾 Sauvegarde en DB...")
                     supabase.table("carousel_eco").update({
                         "title_carou": text_result["title_carou"],
                         "content_carou": text_result["content_carou"],
                         "prompt_image_1": prompt_1_result.get("image_prompt"),
                         "prompt_image_2": prompt_2_result.get("image_prompt")
                     }).eq("id", item_id).execute()
+                    st.session_state.debug_logs.append(f"  ✅ Sauvegarde DB OK")
                     
                     # Générer image
                     if prompt_1_result.get("status") == "success":
+                        st.session_state.debug_logs.append(f"  🎨 Génération image (timeout 63s max)...")
                         img_result = generate_and_save_carousel_image(prompt_1_result["image_prompt"], position)
                         
                         if img_result["status"] == "success":
+                            model_used = img_result.get("model_used", "inconnu")
+                            st.session_state.debug_logs.append(f"  ✅ Image générée ({model_used})")
                             # Stocker le modèle utilisé pour affichage
                             if "carousel_image_models" not in st.session_state:
                                 st.session_state.carousel_image_models = {}
                             st.session_state.carousel_image_models[position] = {
-                                "model": img_result.get("model_used", "inconnu"),
+                                "model": model_used,
                                 "tried_fallback": img_result.get("tried_fallback", False)
                             }
+                        else:
+                            st.session_state.debug_logs.append(f"  ⚠️ Image échec : {img_result.get('message', '')[:50]}")
+                    else:
+                        st.session_state.debug_logs.append(f"  ⚠️ Pas de prompt image valide")
+                else:
+                    st.session_state.debug_logs.append(f"  ❌ Échec génération textes")
+                
+                st.session_state.debug_logs.append(f"  ✔️ Item #{position} terminé")
                     
             except Exception as e:
                 # Ignorer l'erreur et continuer
+                st.session_state.debug_logs.append(f"  ❌ ERREUR : {str(e)[:100]}")
+                st.session_state.debug_logs.append(f"  ⏭️ Passage au suivant...")
                 continue
+        
+        st.session_state.debug_logs.append(f"🔚 Fin de la boucle - {total_items} items traités")
         
         # Reset
         st.session_state.eco_selected_items = []
         st.session_state.eco_initialized = False
         st.session_state.eco_preview_mode = False
+        st.session_state.debug_logs.append("🧹 Reset sélection")
         
         # Incrémenter compteur pour refresh des inputs
         if "carousel_generation_count" not in st.session_state:
             st.session_state.carousel_generation_count = 0
         st.session_state.carousel_generation_count += 1
+        st.session_state.debug_logs.append(f"🔢 Compteur incrémenté : {st.session_state.carousel_generation_count}")
         
         # Demander un rerun après la génération
         st.session_state.should_rerun_after_generation = True
+        st.session_state.debug_logs.append("🔄 Rerun demandé")
     
     finally:
         # IMPORTANT : Toujours libérer le verrou
         st.session_state.generation_in_progress = False
+        st.session_state.debug_logs.append("🔓 Verrou libéré")
+        st.session_state.debug_logs.append("✅ Fin send_to_carousel()")
 
 
 def toggle_preview_mode():
