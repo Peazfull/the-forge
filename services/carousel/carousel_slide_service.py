@@ -29,13 +29,17 @@ CONTENT_TOP_GAP = 20
 CONTENT_BOTTOM_MARGIN = 120
 
 # Polices (fallback sur PIL par défaut si fichier absent)
-FONT_TITLE_PATH = os.path.join(ASSETS_DIR, "TitleFont.ttf")
-FONT_CONTENT_PATH = os.path.join(ASSETS_DIR, "ContentFont.ttf")
+FONT_TITLE_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")
+FONT_CONTENT_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")
 
 
 def _load_font(path: str, size: int) -> ImageFont.ImageFont:
     if os.path.exists(path):
-        return ImageFont.truetype(path, size=size)
+        try:
+            # Variable font support if available
+            return ImageFont.truetype(path, size=size, layout_engine=ImageFont.Layout.RAQM, axis={"wght": 600})
+        except Exception:
+            return ImageFont.truetype(path, size=size)
     return ImageFont.load_default()
 
 
@@ -98,6 +102,18 @@ def _fit_text(
     return font, _wrap_text(text, draw, font, max_width)
 
 
+def _sentence_case(text: str) -> str:
+    """Met une majuscule au début de chaque phrase."""
+    parts = []
+    for part in text.strip().split(". "):
+        part = part.strip()
+        if not part:
+            continue
+        part = part[0].upper() + part[1:]
+        parts.append(part)
+    return ". ".join(parts)
+
+
 def generate_carousel_slide(
     title: str,
     content: str,
@@ -148,7 +164,7 @@ def generate_carousel_slide(
     # Title text
     title_max_width = CANVAS_SIZE[0] - LEFT_MARGIN - RIGHT_MARGIN
     title_font, title_lines = _fit_text(
-        draw, title, title_max_width, 80, start_size=44, font_path=FONT_TITLE_PATH
+        draw, title, title_max_width, 80, start_size=48, font_path=FONT_TITLE_PATH
     )
     title_y = title_bg_top + max(0, (title_bg_height - int(title_font.size * 1.2)) // 2)
     for line in title_lines[:2]:
@@ -158,8 +174,9 @@ def generate_carousel_slide(
     # Content text
     content_top = title_bg_top + title_bg_height + CONTENT_TOP_GAP
     content_max_height = CANVAS_SIZE[1] - content_top - CONTENT_BOTTOM_MARGIN
+    content = _sentence_case(content)
     content_font, content_lines = _fit_text(
-        draw, content, title_max_width, content_max_height, start_size=30, font_path=FONT_CONTENT_PATH
+        draw, content, title_max_width, content_max_height, start_size=38, font_path=FONT_CONTENT_PATH
     )
     line_height = int(content_font.size * 1.25)
     y = content_top
