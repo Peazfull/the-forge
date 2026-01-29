@@ -833,7 +833,7 @@ with st.expander("📰 Bulletin Eco", expanded=False):
                     open_modal(item)
             
             st.divider()
-        
+
         # Bouton global : générer les previews slides
         if st.button("🖼️ Générer les slides", type="primary", use_container_width=True):
             with st.spinner("Génération des slides en cours..."):
