@@ -6,11 +6,12 @@ Stack: image de fond + filtre + logo + title_bg + texte + swipe.
 from __future__ import annotations
 
 from io import BytesIO
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Set
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
 import requests
 import os
+from db.supabase_client import get_supabase
 
 
 ASSETS_DIR = os.path.join(
@@ -18,6 +19,8 @@ ASSETS_DIR = os.path.join(
     "..", "..",
     "front", "layout", "assets", "carousel_eco"
 )
+
+SLIDES_BUCKET = "carousel-eco-slides"
 
 CANVAS_SIZE = (1080, 1080)
 LOGO_SIZE = (200, 65)
@@ -294,3 +297,32 @@ def generate_cover_slide(
     output = BytesIO()
     canvas.convert("RGB").save(output, format="PNG")
     return output.getvalue()
+
+
+def upload_slide_bytes(filename: str, image_bytes: bytes) -> Optional[str]:
+    """Upload un slide dans le bucket carousel-eco-slides avec upsert."""
+    try:
+        supabase = get_supabase()
+        supabase.storage.from_(SLIDES_BUCKET).upload(
+            filename,
+            image_bytes,
+            file_options={"content-type": "image/png", "upsert": True}
+        )
+        return get_slide_public_url(filename)
+    except Exception:
+        return None
+
+
+def get_slide_public_url(filename: str) -> str:
+    supabase = get_supabase()
+    return supabase.storage.from_(SLIDES_BUCKET).get_public_url(filename)
+
+
+def list_slide_files() -> Set[str]:
+    """Liste les fichiers présents dans le bucket carousel-eco-slides."""
+    try:
+        supabase = get_supabase()
+        items = supabase.storage.from_(SLIDES_BUCKET).list()
+        return {item.get("name") for item in items if item.get("name")}
+    except Exception:
+        return set()

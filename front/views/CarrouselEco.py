@@ -18,7 +18,13 @@ from services.carousel.carousel_image_service import (
     save_image_base64
 )
 from services.carousel.image_generation_service import save_image_to_carousel
-from services.carousel.carousel_slide_service import generate_carousel_slide, generate_cover_slide
+from services.carousel.carousel_slide_service import (
+    generate_carousel_slide,
+    generate_cover_slide,
+    upload_slide_bytes,
+    get_slide_public_url,
+    list_slide_files
+)
 from PIL import Image
 
 # ======================================================
@@ -308,8 +314,19 @@ def generate_all_slide_previews():
                 "key": cache_key,
                 "bytes": slide_bytes
             }
+            # Upload storage (upsert)
+            upload_slide_bytes(f"slide_{position}.png", slide_bytes)
         except Exception:
             errors += 1
+    
+    # Upload outro
+    outro_path = os.path.join(
+        os.path.dirname(__file__),
+        "..", "layout", "assets", "carousel_eco", "outro.png"
+    )
+    if os.path.exists(outro_path):
+        with open(outro_path, "rb") as f:
+            upload_slide_bytes("slide_outro.png", f.read())
     
     return {"status": "success", "errors": errors}
 
@@ -1361,6 +1378,7 @@ with st.expander("🖼️ Preview Slides", expanded=False):
         )
         
         cols = None
+        stored_files = list_slide_files()
         # Ajouter un item "outro" en fin de preview
         items_with_outro = items_sorted + [{"id": "outro", "position": 999}]
         
@@ -1395,7 +1413,9 @@ with st.expander("🖼️ Preview Slides", expanded=False):
                         os.path.dirname(__file__),
                         "..", "layout", "assets", "carousel_eco", "outro.png"
                     )
-                    if os.path.exists(outro_path):
+                    if "slide_outro.png" in stored_files:
+                        st.image(get_slide_public_url("slide_outro.png"), use_container_width=True)
+                    elif os.path.exists(outro_path):
                         st.image(outro_path, use_container_width=True)
                     else:
                         st.warning("outro.png introuvable")
@@ -1434,11 +1454,17 @@ with st.expander("🖼️ Preview Slides", expanded=False):
                             "key": cache_key,
                             "bytes": slide_bytes
                         }
+                        upload_slide_bytes(f"slide_{position}.png", slide_bytes)
                     except Exception as e:
                         st.error(f"Erreur génération slide : {str(e)[:120]}")
                         continue
                 
-                st.image(st.session_state.slide_previews[item_id]["bytes"], use_container_width=True)
+                if cached:
+                    st.image(st.session_state.slide_previews[item_id]["bytes"], use_container_width=True)
+                elif f"slide_{position}.png" in stored_files:
+                    st.image(get_slide_public_url(f"slide_{position}.png"), use_container_width=True)
+                else:
+                    st.image(st.session_state.slide_previews[item_id]["bytes"], use_container_width=True)
 
         # Exports
         st.divider()
