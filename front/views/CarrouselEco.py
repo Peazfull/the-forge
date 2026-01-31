@@ -1280,7 +1280,10 @@ with st.expander("🖼️ Preview Slides", expanded=False):
         )
         
         cols = None
-        for idx, item in enumerate(items_sorted):
+        # Ajouter un item "outro" en fin de preview
+        items_with_outro = items_sorted + [{"id": "outro", "position": 999}]
+        
+        for idx, item in enumerate(items_with_outro):
             item_id = item["id"]
             position = item["position"]
             title_carou = item.get("title_carou") or ""
@@ -1293,16 +1296,27 @@ with st.expander("🖼️ Preview Slides", expanded=False):
             col = cols[idx % 3]
             
             with col:
-                if position == 0:
+                if item_id == "outro":
+                    st.markdown("**Slide de fin**")
+                elif position == 0:
                     st.markdown("**Slide de couverture (0)**")
                 else:
                     st.markdown(f"**Slide #{position}**")
                 
-                if st.button("🔄 Regénérer slide", key=f"regen_slide_{item_id}", use_container_width=True):
-                    st.session_state.slide_previews.pop(item_id, None)
-                    st.rerun()
+                if item_id != "outro":
+                    if st.button("🔄 Regénérer slide", key=f"regen_slide_{item_id}", use_container_width=True):
+                        st.session_state.slide_previews.pop(item_id, None)
+                        st.rerun()
                 
                 # Empêcher la génération si les champs sont vides
+                if item_id == "outro":
+                    outro_path = "/Users/gaelpons/Desktop/The Forge/front/layout/assets/carousel_eco/outro.png"
+                    if os.path.exists(outro_path):
+                        st.image(outro_path, use_container_width=True)
+                    else:
+                        st.warning("outro.png introuvable")
+                    continue
+                
                 if position == 0 and (not image_url and not image_bytes):
                     st.warning("Il manque l'image pour générer la cover.")
                     continue
