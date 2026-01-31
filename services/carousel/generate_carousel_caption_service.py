@@ -56,7 +56,36 @@ def sanitize_caption(text: str) -> str:
     cleaned = re.sub(r"\*\*([^*]+)\*\*", r"\1", cleaned)
     cleaned = re.sub(r"\*([^*]+)\*", r"\1", cleaned)
     cleaned = re.sub(r"_([^_]+)_", r"\1", cleaned)
+    cleaned = _keep_single_leading_emoji_per_line(cleaned)
     return cleaned.strip()
+
+
+def _keep_single_leading_emoji_per_line(text: str) -> str:
+    """
+    Conserve un seul emoji au début de chaque ligne (si présent),
+    supprime tous les emojis ailleurs dans la ligne.
+    """
+    # Plage d'emojis courants + symboles
+    emoji_re = re.compile(r"[\U0001F300-\U0001FAFF\u2600-\u27BF]")
+    
+    lines = []
+    for line in text.splitlines():
+        stripped = line.lstrip()
+        # Capturer le premier emoji au début (s'il existe)
+        leading_emoji = ""
+        if stripped and emoji_re.match(stripped[0]):
+            leading_emoji = stripped[0]
+            stripped = stripped[1:].lstrip()
+        
+        # Retirer tous les emojis restants dans la ligne
+        stripped = emoji_re.sub("", stripped).strip()
+        
+        if leading_emoji:
+            lines.append(f"{leading_emoji} {stripped}".rstrip())
+        else:
+            lines.append(stripped)
+    
+    return "\n".join(lines)
 
 
 def upload_caption_text(text: str) -> bool:
