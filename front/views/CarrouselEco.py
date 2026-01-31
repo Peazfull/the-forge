@@ -337,6 +337,8 @@ def build_carousel_exports(items_sorted):
     for item in items_sorted:
         item_id = item["id"]
         position = item["position"]
+        if not st.session_state.get(f"slide_selected_{item_id}", True):
+            continue
         title_carou = item.get("title_carou") or ""
         content_carou = item.get("content_carou") or ""
         image_url = item.get("image_url")
@@ -369,7 +371,7 @@ def build_carousel_exports(items_sorted):
         os.path.dirname(__file__),
         "..", "layout", "assets", "carousel_eco", "outro.png"
     )
-    if os.path.exists(outro_path):
+    if st.session_state.get("slide_selected_outro", True) and os.path.exists(outro_path):
         with open(outro_path, "rb") as f:
             slides.append((999, "slide_outro.png", f.read()))
     
@@ -1402,6 +1404,22 @@ with st.expander("🖼️ Preview Slides", expanded=False):
                 else:
                     st.markdown(f"**Slide #{position}**")
                 
+                default_checked = st.session_state.get(f"slide_selected_{item_id}", True)
+                if item_id == "outro":
+                    checked = st.checkbox(
+                        "Inclure",
+                        value=default_checked,
+                        key="slide_selected_outro",
+                        label_visibility="collapsed"
+                    )
+                else:
+                    st.checkbox(
+                        "Inclure",
+                        value=default_checked,
+                        key=f"slide_selected_{item_id}",
+                        label_visibility="collapsed"
+                    )
+                
                 if item_id != "outro":
                     if st.button("🔄 Regénérer slide", key=f"regen_slide_{item_id}", use_container_width=True):
                         st.session_state.slide_previews.pop(item_id, None)
@@ -1476,21 +1494,24 @@ with st.expander("🖼️ Preview Slides", expanded=False):
             st.session_state.carousel_export_count = export_data["count"]
         
         if st.session_state.get("carousel_export_zip"):
-            st.caption(f"{st.session_state.get('carousel_export_count', 0)} slides prêtes")
-            st.download_button(
-                "⬇️ Télécharger PNG (ZIP)",
-                data=st.session_state.carousel_export_zip,
-                file_name="carousel_eco_slides.zip",
-                mime="application/zip",
-                use_container_width=True
-            )
-            st.download_button(
-                "⬇️ Télécharger PDF",
-                data=st.session_state.carousel_export_pdf,
-                file_name="carousel_eco_slides.pdf",
-                mime="application/pdf",
-                use_container_width=True
-            )
+            if st.session_state.get("carousel_export_count", 0) == 0:
+                st.warning("Aucune slide sélectionnée pour l'export.")
+            else:
+                st.caption(f"{st.session_state.get('carousel_export_count', 0)} slides prêtes")
+                st.download_button(
+                    "⬇️ Télécharger PNG (ZIP)",
+                    data=st.session_state.carousel_export_zip,
+                    file_name="carousel_eco_slides.zip",
+                    mime="application/zip",
+                    use_container_width=True
+                )
+                st.download_button(
+                    "⬇️ Télécharger PDF",
+                    data=st.session_state.carousel_export_pdf,
+                    file_name="carousel_eco_slides.pdf",
+                    mime="application/pdf",
+                    use_container_width=True
+                )
 
 
 # ======================================================
