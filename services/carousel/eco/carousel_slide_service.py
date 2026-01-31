@@ -274,9 +274,9 @@ def generate_cover_slide(
     date_w = draw.textlength(date_str, font=date_font)
     date_h = int(DATE_FONT_SIZE * 1.2)
     
-    # Centre verticalement le bloc logo + date
+    # Centre verticalement le bloc logo + date, puis descendre de 50px
     total_h = cover_logo_height + DATE_TOP_GAP + date_h
-    start_y = (CANVAS_SIZE[1] - total_h) // 2
+    start_y = (CANVAS_SIZE[1] - total_h) // 2 + 50
     cover_x = (CANVAS_SIZE[0] - cover_logo.size[0]) // 2 if cover_logo_height else 0
     
     if cover_logo_height:
