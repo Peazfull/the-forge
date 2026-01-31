@@ -1164,7 +1164,6 @@ with st.expander("🎨 Textes Carousel", expanded=False):
             # SECTION GÉNÉRATION D'IMAGE
             # ======================================================
             
-            st.markdown("---")
             st.markdown("**🎨 Image Carousel**")
             
             # Récupérer les prompts depuis la DB
@@ -1372,7 +1371,7 @@ with st.expander("🎨 Textes Carousel", expanded=False):
             # Plus besoin de logique async avec flags - tout est fait directement dans les boutons
 
         # Bouton global : générer les previews slides
-        st.divider()
+            st.divider()
         if st.button("🖼️ Générer les slides", type="primary", use_container_width=True):
             with st.spinner("Génération des slides en cours..."):
                 result = generate_all_slide_previews()
