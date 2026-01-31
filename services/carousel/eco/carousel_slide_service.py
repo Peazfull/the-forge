@@ -26,7 +26,7 @@ CANVAS_SIZE = (1080, 1080)
 LOGO_SIZE = (200, 65)
 LOGO_TOP = 15
 TITLE_BG_TOP_FROM_BOTTOM = 460  # px depuis le bas
-TITLE_BG_SIDE_MARGIN = 55
+TITLE_BG_SIDE_MARGIN = 50
 SWIPE_MARGIN = 10
 LEFT_MARGIN = 60
 RIGHT_MARGIN = 60
@@ -276,9 +276,9 @@ def generate_cover_slide(
     date_w = draw.textlength(date_str, font=date_font)
     date_h = int(DATE_FONT_SIZE * 1.2)
     
-    # Centre verticalement le bloc logo + date, puis descendre de 350px
+    # Centre verticalement le bloc logo + date, puis descendre de 200px
     total_h = cover_logo_height + DATE_TOP_GAP + date_h
-    start_y = (CANVAS_SIZE[1] - total_h) // 2 + 350
+    start_y = (CANVAS_SIZE[1] - total_h) // 2 + 200
     cover_x = (CANVAS_SIZE[0] - cover_logo.size[0]) // 2 if cover_logo_height else 0
     
     if cover_logo_height:
