@@ -9,6 +9,7 @@ CONTRAINTES :
 - Termine par un CTA EXACT :
   "Rejoignez la liste d'attente pour notre future newsletter 100% gratuite (lien en bio)."
 - AUCUN markdown (pas de **, pas d'italique, pas de code).
+- Mets 1 emoji au début de chaque mini-titre, et aucun emoji ailleurs dans la ligne.
 
 FORMAT :
 - 1 ligne d'accroche avec "Rejoignez la liste d'attente pour notre future newsletter 100% gratuite (lien en bio)"
