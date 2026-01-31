@@ -27,8 +27,9 @@ LOGO_SIZE = (200, 65)
 LOGO_TOP = 15
 TITLE_BG_TOP_FROM_BOTTOM = 460  # px depuis le bas
 TITLE_BG_SIDE_MARGIN = 50
-SWIPE_MARGIN = 10
+SWIPE_MARGIN = 20
 SWIPE_SIZE = (56, 29)
+COVER_SWIPE_SCALE = 0.5
 LEFT_MARGIN = 60
 RIGHT_MARGIN = 60
 CONTENT_TOP_GAP = 20
@@ -290,10 +291,14 @@ def generate_cover_slide(
     date_y = start_y + cover_logo_height + DATE_TOP_GAP
     draw.text((date_x, date_y), date_str, font=date_font, fill="white")
     
-    # Swipe
+    # Swipe (cover)
     swipe_path = os.path.join(ASSETS_DIR, "Swipe.png")
     if os.path.exists(swipe_path):
         swipe = Image.open(swipe_path).convert("RGBA")
+        swipe = swipe.resize(
+            (int(swipe.size[0] * COVER_SWIPE_SCALE), int(swipe.size[1] * COVER_SWIPE_SCALE)),
+            Image.LANCZOS
+        )
         x = CANVAS_SIZE[0] - swipe.size[0] - SWIPE_MARGIN
         y = CANVAS_SIZE[1] - swipe.size[1] - SWIPE_MARGIN
         canvas.alpha_composite(swipe, (x, y))
