@@ -3,6 +3,8 @@ import time
 import base64
 import os
 import hashlib
+import io
+import zipfile
 from urllib.parse import urlparse, parse_qs
 from db.supabase_client import get_supabase
 from services.carousel.carousel_eco_service import insert_items_to_carousel_eco, get_carousel_eco_items, upsert_carousel_eco_cover
@@ -17,6 +19,7 @@ from services.carousel.carousel_image_service import (
 )
 from services.carousel.image_generation_service import save_image_to_carousel
 from services.carousel.carousel_slide_service import generate_carousel_slide, generate_cover_slide
+from PIL import Image
 
 # ======================================================
 # CUSTOM CSS
@@ -309,6 +312,75 @@ def generate_all_slide_previews():
             errors += 1
     
     return {"status": "success", "errors": errors}
+
+
+def build_carousel_exports(items_sorted):
+    """Construit un ZIP de PNG + un PDF à partir des slides (cover->n->outro)."""
+    slides = []
+    for item in items_sorted:
+        item_id = item["id"]
+        position = item["position"]
+        title_carou = item.get("title_carou") or ""
+        content_carou = item.get("content_carou") or ""
+        image_url = item.get("image_url")
+        image_bytes = None if image_url else read_carousel_image(position)
+        
+        if position == 0 and (not image_url and not image_bytes):
+            continue
+        if position != 0 and (not title_carou or not content_carou or (not image_url and not image_bytes)):
+            continue
+        
+        cached = st.session_state.slide_previews.get(item_id) if "slide_previews" in st.session_state else None
+        if cached and cached.get("bytes"):
+            slide_bytes = cached["bytes"]
+        else:
+            if position == 0:
+                slide_bytes = generate_cover_slide(image_url=image_url, image_bytes=image_bytes)
+            else:
+                slide_bytes = generate_carousel_slide(
+                    title=title_carou.upper(),
+                    content=content_carou,
+                    image_url=image_url,
+                    image_bytes=image_bytes
+                )
+        
+        filename = f"slide_{position}.png"
+        slides.append((position, filename, slide_bytes))
+    
+    # Ajouter outro à la fin
+    outro_path = os.path.join(
+        os.path.dirname(__file__),
+        "..", "layout", "assets", "carousel_eco", "outro.png"
+    )
+    if os.path.exists(outro_path):
+        with open(outro_path, "rb") as f:
+            slides.append((999, "slide_outro.png", f.read()))
+    
+    # Trier par position
+    slides.sort(key=lambda s: s[0])
+    
+    # ZIP
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+        for _, filename, data in slides:
+            zf.writestr(filename, data)
+    zip_buffer.seek(0)
+    
+    # PDF
+    images = []
+    for _, _, data in slides:
+        img = Image.open(io.BytesIO(data)).convert("RGB")
+        images.append(img)
+    pdf_buffer = io.BytesIO()
+    if images:
+        images[0].save(pdf_buffer, format="PDF", save_all=True, append_images=images[1:])
+    pdf_buffer.seek(0)
+    
+    return {
+        "zip": zip_buffer.getvalue(),
+        "pdf": pdf_buffer.getvalue(),
+        "count": len(slides)
+    }
 
 
 def send_to_carousel():
@@ -1358,6 +1430,32 @@ with st.expander("🖼️ Preview Slides", expanded=False):
                         continue
                 
                 st.image(st.session_state.slide_previews[item_id]["bytes"], use_container_width=True)
+
+        # Exports
+        st.divider()
+        if st.button("📦 Préparer export carrousel", use_container_width=True):
+            with st.spinner("Préparation de l'export..."):
+                export_data = build_carousel_exports(items_sorted)
+            st.session_state.carousel_export_zip = export_data["zip"]
+            st.session_state.carousel_export_pdf = export_data["pdf"]
+            st.session_state.carousel_export_count = export_data["count"]
+        
+        if st.session_state.get("carousel_export_zip"):
+            st.caption(f"{st.session_state.get('carousel_export_count', 0)} slides prêtes")
+            st.download_button(
+                "⬇️ Télécharger PNG (ZIP)",
+                data=st.session_state.carousel_export_zip,
+                file_name="carousel_eco_slides.zip",
+                mime="application/zip",
+                use_container_width=True
+            )
+            st.download_button(
+                "⬇️ Télécharger PDF",
+                data=st.session_state.carousel_export_pdf,
+                file_name="carousel_eco_slides.pdf",
+                mime="application/pdf",
+                use_container_width=True
+            )
 
 
 # ======================================================
