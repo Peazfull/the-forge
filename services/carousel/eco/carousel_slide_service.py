@@ -26,6 +26,7 @@ CANVAS_SIZE = (1080, 1080)
 LOGO_SIZE = (200, 65)
 LOGO_TOP = 15
 TITLE_BG_TOP_FROM_BOTTOM = 460  # px depuis le bas
+TITLE_BG_SIDE_MARGIN = 60
 SWIPE_MARGIN = 10
 LEFT_MARGIN = 60
 RIGHT_MARGIN = 60
@@ -162,8 +163,9 @@ def generate_carousel_slide(
     title_bg_top = CANVAS_SIZE[1] - TITLE_BG_TOP_FROM_BOTTOM
     if os.path.exists(title_bg_path):
         title_bg = Image.open(title_bg_path).convert("RGBA")
-        title_bg = title_bg.resize((CANVAS_SIZE[0], title_bg.size[1]), Image.LANCZOS)
-        canvas.alpha_composite(title_bg, (0, title_bg_top))
+        title_bg_width = CANVAS_SIZE[0] - (TITLE_BG_SIDE_MARGIN * 2)
+        title_bg = title_bg.resize((title_bg_width, title_bg.size[1]), Image.LANCZOS)
+        canvas.alpha_composite(title_bg, (TITLE_BG_SIDE_MARGIN, title_bg_top))
         title_bg_height = title_bg.size[1]
     else:
         title_bg_height = 0
@@ -274,9 +276,9 @@ def generate_cover_slide(
     date_w = draw.textlength(date_str, font=date_font)
     date_h = int(DATE_FONT_SIZE * 1.2)
     
-    # Centre verticalement le bloc logo + date, puis descendre de 50px
+    # Centre verticalement le bloc logo + date, puis descendre de 150px
     total_h = cover_logo_height + DATE_TOP_GAP + date_h
-    start_y = (CANVAS_SIZE[1] - total_h) // 2 + 50
+    start_y = (CANVAS_SIZE[1] - total_h) // 2 + 150
     cover_x = (CANVAS_SIZE[0] - cover_logo.size[0]) // 2 if cover_logo_height else 0
     
     if cover_logo_height:
