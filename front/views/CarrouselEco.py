@@ -162,7 +162,7 @@ inject_custom_css()
 st.markdown("""
 <div class="carousel-header">
     <h1>🌍 Carrousel Eco</h1>
-    <p>Sélection & génération de contenus carrousel pour actualités économiques</p>
+    <p>Sélection & génération de contenus carrousel pour actus éco</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -887,7 +887,7 @@ with st.expander("📰 Bulletin Eco", expanded=False):
         with col_header:
             st.caption(f"Top 14 · **{selected_count}** sélectionnée{'s' if selected_count > 1 else ''}")
             if selected_count > 1 and not st.session_state.eco_preview_mode:
-                st.caption("Astuce: changer une position fait un échange automatique (pas de doublons).")
+                
         
         with col_preview_btn:
             if selected_count > 0:
@@ -903,7 +903,6 @@ with st.expander("📰 Bulletin Eco", expanded=False):
         # Zone UX d'ordre (instantané)
         if selected_count > 0:
             st.markdown("#### Ordre sélectionné")
-            st.caption("Réorganisez avec ↑ / ↓ (pas de doublons, instantané).")
             items_dict = {item["id"]: item for item in items}
             
             for idx, item_id in enumerate(st.session_state.eco_selected_items, start=1):
