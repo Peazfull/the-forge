@@ -1022,12 +1022,12 @@ with st.expander("📰 Bulletin Eco", expanded=False):
         st.markdown("")
         
         # Boutons d'action
-        col_send, col_generate = st.columns(2)
+        col_send = st.container()
         
         with col_send:
             if selected_count > 0:
                 if st.button(
-                    f"Envoyer ({selected_count})",
+                    f"Lancer la création du carrousel ({selected_count})",
                     type="primary",
                     use_container_width=True,
                     key="send_button"
@@ -1037,31 +1037,10 @@ with st.expander("📰 Bulletin Eco", expanded=False):
                     st.rerun()
             else:
                 st.button(
-                    "Envoyer (0)",
+                    "Lancer la création du carrousel (0)",
                     disabled=True,
                     use_container_width=True,
                     help="Sélectionnez au moins 1 item"
-                )
-        
-        with col_generate:
-            # Vérifier si des items existent dans carousel_eco
-            carousel_data = get_carousel_eco_items()
-            has_items_in_db = carousel_data.get("count", 0) > 0
-            
-            if has_items_in_db:
-                if st.button(
-                    "Générer textes",
-                    type="secondary",
-                    use_container_width=True
-                ):
-                    generate_texts()
-                    st.rerun()
-            else:
-                st.button(
-                    "Générer textes",
-                    disabled=True,
-                    use_container_width=True,
-                    help="Envoyez d'abord des items"
                 )
 
 # ======================================================
