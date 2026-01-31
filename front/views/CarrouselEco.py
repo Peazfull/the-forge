@@ -1573,29 +1573,9 @@ with st.expander("📝 Caption Instagram", expanded=False):
                 else:
                     st.warning("La caption est vide")
         
-        # Bouton copie (JS)
-        safe_caption = st.session_state.caption_text_area.replace("\\", "\\\\").replace("`", "\\`").replace("${", "\\${")
-        components.html(
-            f"""
-            <button style="width:100%;padding:0.5rem;border-radius:8px;border:1px solid #ddd;cursor:pointer;">
-              📋 Copier la caption
-            </button>
-            <script>
-              const btn = document.currentScript.previousElementSibling;
-              btn.addEventListener('click', async () => {{
-                try {{
-                  await navigator.clipboard.writeText(`{safe_caption}`);
-                  btn.innerText = "✅ Caption copiée";
-                  setTimeout(() => btn.innerText = "📋 Copier la caption", 1500);
-                }} catch (e) {{
-                  btn.innerText = "❌ Copie impossible";
-                  setTimeout(() => btn.innerText = "📋 Copier la caption", 1500);
-                }}
-              }});
-            </script>
-            """,
-            height=60
-        )
+        # Preview copiable (bouton copy natif Streamlit)
+        st.caption("Preview (copiable)")
+        st.code(st.session_state.caption_text_area or "", language="text")
 
 
 # ======================================================
