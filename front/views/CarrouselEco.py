@@ -9,7 +9,11 @@ from urllib.parse import urlparse, parse_qs
 from db.supabase_client import get_supabase
 from services.carousel.carousel_eco_service import insert_items_to_carousel_eco, get_carousel_eco_items, upsert_carousel_eco_cover
 from services.carousel.generate_carousel_texts_service import generate_all_carousel_texts, update_carousel_text
-from services.carousel.generate_carousel_caption_service import generate_caption_from_items
+from services.carousel.generate_carousel_caption_service import (
+    generate_caption_from_items,
+    upload_caption_text,
+    read_caption_text
+)
 from services.carousel.image_generation_service import generate_carousel_image
 from services.carousel.carousel_image_service import (
     generate_and_save_carousel_image,
@@ -1539,25 +1543,35 @@ with st.expander("📝 Caption Instagram", expanded=False):
             if item.get("position") not in [0, 999]
         ]
         
+        if "caption_text_area" not in st.session_state:
+            st.session_state.caption_text_area = read_caption_text() or ""
+        
         if st.button("✨ Générer caption", use_container_width=True):
             with st.spinner("Génération de la caption..."):
                 result = generate_caption_from_items(items_for_caption)
             if result.get("status") == "success":
-                st.session_state.caption_text = result["caption"]
+                st.session_state.caption_text_area = result["caption"]
+                upload_caption_text(st.session_state.caption_text_area)
             else:
                 st.error(f"Erreur : {result.get('message', 'Erreur inconnue')}")
         
-        caption_value = st.session_state.get("caption_text", "")
+        caption_value = st.session_state.get("caption_text_area", "")
         char_count = len(caption_value)
         
-        new_caption = st.text_area(
+        st.text_area(
             label=f"Caption · {char_count} caractères",
-            value=caption_value,
             height=220,
             key="caption_text_area",
             placeholder="Clique sur 'Générer caption' pour démarrer..."
         )
-        st.session_state.caption_text = new_caption
+        st.session_state.caption_text = st.session_state.caption_text_area
+        
+        if st.button("💾 Sauvegarder caption", use_container_width=True):
+            if st.session_state.caption_text_area.strip():
+                upload_caption_text(st.session_state.caption_text_area)
+                st.success("Caption sauvegardée")
+            else:
+                st.warning("La caption est vide")
 
 
 # ======================================================

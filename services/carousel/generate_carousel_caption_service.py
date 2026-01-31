@@ -3,11 +3,14 @@ import streamlit as st
 from openai import OpenAI
 
 from prompts.carousel.generate_carousel_caption import PROMPT_GENERATE_CAROUSEL_CAPTION
+from db.supabase_client import get_supabase
 
 REQUEST_TIMEOUT = 30
 
 CTA_LINE = "Rejoignez la liste d'attente pour notre future newsletter 100% gratuite (lien en bio)."
 HOOK_LINE = "Rejoignez la liste d'attente pour notre future newsletter 100% gratuite (lien en bio)."
+CAPTION_BUCKET = "carousel-eco-slides"
+CAPTION_FILE = "caption.txt"
 
 
 def generate_caption_from_items(items: List[Dict[str, object]]) -> Dict[str, object]:
@@ -46,3 +49,29 @@ def generate_caption_from_items(items: List[Dict[str, object]]) -> Dict[str, obj
         return {"status": "success", "caption": caption}
     except Exception as e:
         return {"status": "error", "message": str(e)}
+
+
+def upload_caption_text(text: str) -> bool:
+    """Upload la caption dans le bucket storage (upsert)."""
+    try:
+        supabase = get_supabase()
+        supabase.storage.from_(CAPTION_BUCKET).upload(
+            CAPTION_FILE,
+            text.encode("utf-8"),
+            file_options={"content-type": "text/plain; charset=utf-8", "upsert": True}
+        )
+        return True
+    except Exception:
+        return False
+
+
+def read_caption_text() -> str:
+    """Récupère la caption depuis le bucket storage."""
+    try:
+        supabase = get_supabase()
+        data = supabase.storage.from_(CAPTION_BUCKET).download(CAPTION_FILE)
+        if isinstance(data, bytes):
+            return data.decode("utf-8", errors="ignore")
+        return ""
+    except Exception:
+        return ""
