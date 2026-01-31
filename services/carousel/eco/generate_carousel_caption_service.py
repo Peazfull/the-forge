@@ -90,7 +90,7 @@ def _keep_single_leading_emoji_per_line(text: str) -> str:
     return "\n".join(lines)
 
 
-def upload_caption_text(text: str) -> bool:
+def upload_caption_text(text: str) -> Dict[str, object]:
     """Upload la caption dans le bucket storage (upsert)."""
     try:
         supabase = get_supabase()
@@ -99,9 +99,9 @@ def upload_caption_text(text: str) -> bool:
             text.encode("utf-8"),
             file_options={"content-type": "text/plain; charset=utf-8", "upsert": True}
         )
-        return True
-    except Exception:
-        return False
+        return {"status": "success"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 
 def read_caption_text() -> str:

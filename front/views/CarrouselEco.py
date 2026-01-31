@@ -508,8 +508,11 @@ def _finalize_generation():
             result = generate_caption_from_items(items_for_caption)
             if result.get("status") == "success":
                 st.session_state.caption_text_area = result["caption"]
-                upload_caption_text(st.session_state.caption_text_area)
-                st.session_state.debug_logs.append("📝 Caption Instagram générée automatiquement")
+                upload_result = upload_caption_text(st.session_state.caption_text_area)
+                if upload_result.get("status") == "success":
+                    st.session_state.debug_logs.append("📝 Caption Instagram générée automatiquement")
+                else:
+                    st.session_state.debug_logs.append(f"⚠️ Caption auto non stockée : {upload_result.get('message', '')[:120]}")
             else:
                 st.session_state.debug_logs.append("⚠️ Caption auto échouée")
     except Exception:
@@ -1554,7 +1557,9 @@ with st.expander("📝 Caption Instagram", expanded=False):
                     result = generate_caption_from_items(items_for_caption)
                 if result.get("status") == "success":
                     st.session_state.caption_text_area = result["caption"]
-                    upload_caption_text(st.session_state.caption_text_area)
+                    upload_result = upload_caption_text(st.session_state.caption_text_area)
+                    if upload_result.get("status") != "success":
+                        st.error(f"Stockage caption échoué : {upload_result.get('message', '')[:120]}")
                 else:
                     st.error(f"Erreur : {result.get('message', 'Erreur inconnue')}")
         
@@ -1572,8 +1577,11 @@ with st.expander("📝 Caption Instagram", expanded=False):
         with col_save:
             if st.button("💾 Sauvegarder caption", use_container_width=True):
                 if st.session_state.caption_text_area.strip():
-                    upload_caption_text(st.session_state.caption_text_area)
-                    st.success("Caption sauvegardée")
+                    upload_result = upload_caption_text(st.session_state.caption_text_area)
+                    if upload_result.get("status") == "success":
+                        st.success("Caption sauvegardée")
+                    else:
+                        st.error(f"Stockage caption échoué : {upload_result.get('message', '')[:120]}")
                 else:
                     st.warning("La caption est vide")
         
