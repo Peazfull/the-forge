@@ -497,6 +497,24 @@ def _finalize_generation():
     st.session_state.generation_active = False
     st.session_state.debug_logs.append("🔓 Verrou libéré")
     
+    # Générer automatiquement la caption Instagram
+    try:
+        carousel_data = get_carousel_eco_items()
+        if carousel_data["status"] == "success" and carousel_data["count"] > 0:
+            items_for_caption = [
+                item for item in carousel_data["items"]
+                if item.get("position") not in [0, 999]
+            ]
+            result = generate_caption_from_items(items_for_caption)
+            if result.get("status") == "success":
+                st.session_state.caption_text_area = result["caption"]
+                upload_caption_text(st.session_state.caption_text_area)
+                st.session_state.debug_logs.append("📝 Caption Instagram générée automatiquement")
+            else:
+                st.session_state.debug_logs.append("⚠️ Caption auto échouée")
+    except Exception:
+        st.session_state.debug_logs.append("⚠️ Caption auto échouée")
+    
     # Demander un rerun après la génération
     st.session_state.should_rerun_after_generation = True
     st.session_state.debug_logs.append("🔄 Rerun demandé")
@@ -1547,7 +1565,7 @@ with st.expander("📝 Caption Instagram", expanded=False):
             if item.get("position") not in [0, 999]
         ]
         
-        if "caption_text_area" not in st.session_state:
+        if "caption_text_area" not in st.session_state or not st.session_state.caption_text_area:
             st.session_state.caption_text_area = read_caption_text() or ""
         
         if st.button("✨ Générer caption", use_container_width=True):
