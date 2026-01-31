@@ -1618,14 +1618,16 @@ with st.expander("💼 Post LinkedIn", expanded=False):
         if "linkedin_text_area" not in st.session_state:
             st.session_state.linkedin_text_area = read_linkedin_text() or ""
         
-        if st.button("✨ Générer post LinkedIn", use_container_width=True):
-            with st.spinner("Génération du post LinkedIn..."):
-                result = generate_linkedin_from_items(items_for_post)
-            if result.get("status") == "success":
-                st.session_state.linkedin_text_area = result["text"]
-                upload_linkedin_text(st.session_state.linkedin_text_area)
-            else:
-                st.error(f"Erreur : {result.get('message', 'Erreur inconnue')}")
+        col_gen, col_save = st.columns(2)
+        with col_gen:
+            if st.button("✨ Générer post LinkedIn", use_container_width=True):
+                with st.spinner("Génération du post LinkedIn..."):
+                    result = generate_linkedin_from_items(items_for_post)
+                if result.get("status") == "success":
+                    st.session_state.linkedin_text_area = result["text"]
+                    upload_linkedin_text(st.session_state.linkedin_text_area)
+                else:
+                    st.error(f"Erreur : {result.get('message', 'Erreur inconnue')}")
         
         linkedin_value = st.session_state.get("linkedin_text_area", "")
         char_count = len(linkedin_value)
@@ -1637,12 +1639,13 @@ with st.expander("💼 Post LinkedIn", expanded=False):
             placeholder="Clique sur 'Générer post LinkedIn' pour démarrer..."
         )
         
-        if st.button("💾 Sauvegarder post LinkedIn", use_container_width=True):
-            if st.session_state.linkedin_text_area.strip():
-                upload_linkedin_text(st.session_state.linkedin_text_area)
-                st.success("Post LinkedIn sauvegardé")
-            else:
-                st.warning("Le post est vide")
+        with col_save:
+            if st.button("💾 Sauvegarder post LinkedIn", use_container_width=True):
+                if st.session_state.linkedin_text_area.strip():
+                    upload_linkedin_text(st.session_state.linkedin_text_area)
+                    st.success("Post LinkedIn sauvegardé")
+                else:
+                    st.warning("Le post est vide")
         
         # Bouton copie (JS)
         safe_text = linkedin_value.replace("\\", "\\\\").replace("`", "\\`").replace("${", "\\${")
