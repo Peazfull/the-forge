@@ -3,8 +3,8 @@ import re
 import streamlit as st
 from openai import OpenAI
 
-from prompts.carousel.generate_carousel_caption import PROMPT_GENERATE_CAROUSEL_CAPTION
-from prompts.carousel.generate_carousel_linkedin import PROMPT_GENERATE_LINKEDIN_POST
+from prompts.carousel.eco.generate_carousel_caption import PROMPT_GENERATE_CAROUSEL_CAPTION
+from prompts.carousel.eco.generate_carousel_linkedin import PROMPT_GENERATE_LINKEDIN_POST
 from db.supabase_client import get_supabase
 
 REQUEST_TIMEOUT = 30

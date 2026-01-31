@@ -8,9 +8,9 @@ import zipfile
 import streamlit.components.v1 as components
 from urllib.parse import urlparse, parse_qs
 from db.supabase_client import get_supabase
-from services.carousel.carousel_eco_service import insert_items_to_carousel_eco, get_carousel_eco_items, upsert_carousel_eco_cover
-from services.carousel.generate_carousel_texts_service import generate_all_carousel_texts, update_carousel_text
-from services.carousel.generate_carousel_caption_service import (
+from services.carousel.eco.carousel_eco_service import insert_items_to_carousel_eco, get_carousel_eco_items, upsert_carousel_eco_cover
+from services.carousel.eco.generate_carousel_texts_service import generate_all_carousel_texts, update_carousel_text
+from services.carousel.eco.generate_carousel_caption_service import (
     generate_caption_from_items,
     upload_caption_text,
     read_caption_text,
@@ -19,7 +19,7 @@ from services.carousel.generate_carousel_caption_service import (
     read_linkedin_text
 )
 from services.carousel.image_generation_service import generate_carousel_image
-from services.carousel.carousel_image_service import (
+from services.carousel.eco.carousel_image_service import (
     generate_and_save_carousel_image,
     generate_prompt_image_3,
     save_prompt_image_3_to_db,
@@ -27,7 +27,7 @@ from services.carousel.carousel_image_service import (
     save_image_base64
 )
 from services.carousel.image_generation_service import save_image_to_carousel
-from services.carousel.carousel_slide_service import (
+from services.carousel.eco.carousel_slide_service import (
     generate_carousel_slide,
     generate_cover_slide,
     upload_slide_bytes,
@@ -331,7 +331,7 @@ def generate_all_slide_previews():
     # Upload outro
     outro_path = os.path.join(
         os.path.dirname(__file__),
-        "..", "layout", "assets", "carousel_eco", "outro.png"
+        "..", "layout", "assets", "carousel", "eco", "outro.png"
     )
     if os.path.exists(outro_path):
         with open(outro_path, "rb") as f:
@@ -378,7 +378,7 @@ def build_carousel_exports(items_sorted):
     # Ajouter outro à la fin
     outro_path = os.path.join(
         os.path.dirname(__file__),
-        "..", "layout", "assets", "carousel_eco", "outro.png"
+        "..", "layout", "assets", "carousel", "eco", "outro.png"
     )
     if st.session_state.get("slide_selected_outro", True) and os.path.exists(outro_path):
         with open(outro_path, "rb") as f:
@@ -520,7 +520,7 @@ def process_generation_queue():
     st.session_state.generation_queue = queue
     
     # Import des fonctions
-    from services.carousel.generate_carousel_texts_service import generate_carousel_text_for_item, generate_image_prompt_for_item
+    from services.carousel.eco.generate_carousel_texts_service import generate_carousel_text_for_item, generate_image_prompt_for_item
     supabase = get_supabase()
     
     # Traitement cover (position 0)
@@ -1318,7 +1318,7 @@ with st.expander("🎨 Textes Carousel", expanded=False):
                         
                         # Aussi essayer sur disque (optionnel)
                         try:
-                            from services.carousel.carousel_image_service import get_image_path
+                            from services.carousel.eco.carousel_image_service import get_image_path
                             image_path = get_image_path(position)
                             os.makedirs(os.path.dirname(image_path), exist_ok=True)
                             with open(image_path, 'wb') as f:
@@ -1328,7 +1328,7 @@ with st.expander("🎨 Textes Carousel", expanded=False):
                         
                         # Upload vers Supabase Storage + sauvegarde URL en DB
                         try:
-                            from services.carousel.carousel_image_service import upload_image_bytes
+                            from services.carousel.eco.carousel_image_service import upload_image_bytes
                             upload_result = upload_image_bytes(image_bytes, position)
                             if upload_result.get("public_url"):
                                 from services.carousel.image_generation_service import save_image_to_carousel
@@ -1444,7 +1444,7 @@ with st.expander("🖼️ Preview Slides", expanded=False):
                 if item_id == "outro":
                     outro_path = os.path.join(
                         os.path.dirname(__file__),
-                        "..", "layout", "assets", "carousel_eco", "outro.png"
+                        "..", "layout", "assets", "carousel", "eco", "outro.png"
                     )
                     if "slide_outro.png" in stored_files:
                         st.image(get_slide_public_url("slide_outro.png"), use_container_width=True)

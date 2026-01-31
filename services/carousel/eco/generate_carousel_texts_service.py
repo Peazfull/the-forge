@@ -3,9 +3,9 @@ import streamlit as st
 from openai import OpenAI
 from typing import Dict, List
 from db.supabase_client import get_supabase
-from prompts.carousel.generate_carousel_texts import PROMPT_GENERATE_CAROUSEL_TEXTS
-from prompts.carousel.generate_image_prompts import PROMPT_GENERATE_IMAGE_PROMPT
-from prompts.carousel.generate_image_prompts_variant import PROMPT_GENERATE_IMAGE_PROMPT_VARIANT
+from prompts.carousel.eco.generate_carousel_texts import PROMPT_GENERATE_CAROUSEL_TEXTS
+from prompts.carousel.eco.generate_image_prompts import PROMPT_GENERATE_IMAGE_PROMPT
+from prompts.carousel.eco.generate_image_prompts_variant import PROMPT_GENERATE_IMAGE_PROMPT_VARIANT
 
 
 REQUEST_TIMEOUT = 30  # Réduit à 30s pour éviter freeze long
