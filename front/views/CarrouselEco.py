@@ -9,6 +9,7 @@ from urllib.parse import urlparse, parse_qs
 from db.supabase_client import get_supabase
 from services.carousel.carousel_eco_service import insert_items_to_carousel_eco, get_carousel_eco_items, upsert_carousel_eco_cover
 from services.carousel.generate_carousel_texts_service import generate_all_carousel_texts, update_carousel_text
+from services.carousel.generate_carousel_caption_service import generate_caption_from_items
 from services.carousel.image_generation_service import generate_carousel_image
 from services.carousel.carousel_image_service import (
     generate_and_save_carousel_image,
@@ -1518,6 +1519,45 @@ with st.expander("🖼️ Preview Slides", expanded=False):
                     mime="application/pdf",
                     use_container_width=True
                 )
+
+
+# ======================================================
+# CAPTION INSTAGRAM
+# ======================================================
+
+with st.expander("📝 Caption Instagram", expanded=False):
+    carousel_data = get_carousel_eco_items()
+    
+    if carousel_data["status"] == "error":
+        st.error(f"Erreur : {carousel_data.get('message', 'Erreur inconnue')}")
+    elif carousel_data["count"] == 0:
+        st.info("Aucun item · Envoyez d'abord des items depuis 'Bulletin Eco'")
+    else:
+        # Exclure cover et items sans contenu
+        items_for_caption = [
+            item for item in carousel_data["items"]
+            if item.get("position") not in [0, 999]
+        ]
+        
+        if st.button("✨ Générer caption", use_container_width=True):
+            with st.spinner("Génération de la caption..."):
+                result = generate_caption_from_items(items_for_caption)
+            if result.get("status") == "success":
+                st.session_state.caption_text = result["caption"]
+            else:
+                st.error(f"Erreur : {result.get('message', 'Erreur inconnue')}")
+        
+        caption_value = st.session_state.get("caption_text", "")
+        char_count = len(caption_value)
+        
+        new_caption = st.text_area(
+            label=f"Caption · {char_count} caractères",
+            value=caption_value,
+            height=220,
+            key="caption_text_area",
+            placeholder="Clique sur 'Générer caption' pour démarrer..."
+        )
+        st.session_state.caption_text = new_caption
 
 
 # ======================================================

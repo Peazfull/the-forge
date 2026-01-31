@@ -1,0 +1,48 @@
+from typing import Dict, List
+import streamlit as st
+from openai import OpenAI
+
+from prompts.carousel.generate_carousel_caption import PROMPT_GENERATE_CAROUSEL_CAPTION
+
+REQUEST_TIMEOUT = 30
+
+CTA_LINE = "Rejoignez la liste d'attente pour notre future newsletter 100% gratuite (lien en bio)."
+HOOK_LINE = "Rejoignez la liste d'attente pour notre future newsletter 100% gratuite (lien en bio)."
+
+
+def generate_caption_from_items(items: List[Dict[str, object]]) -> Dict[str, object]:
+    """
+    Génère une caption Instagram à partir d'une liste d'items carousel.
+    """
+    if not items:
+        return {"status": "error", "message": "Aucun item disponible"}
+    
+    lines = []
+    for item in items:
+        title = item.get("title") or ""
+        content = item.get("content") or ""
+        lines.append(f"- {title}\n  {content[:240]}")
+    
+    user_input = "ACTUS DU JOUR:\n" + "\n\n".join(lines)
+    
+    try:
+        client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": PROMPT_GENERATE_CAROUSEL_CAPTION},
+                {"role": "user", "content": user_input}
+            ],
+            temperature=0.7,
+            timeout=REQUEST_TIMEOUT
+        )
+        caption = (response.choices[0].message.content or "").strip()
+        
+        if HOOK_LINE not in caption:
+            caption = HOOK_LINE + "\n\n" + caption.strip()
+        if CTA_LINE not in caption:
+            caption = caption.rstrip() + "\n\n" + CTA_LINE
+        
+        return {"status": "success", "caption": caption}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
