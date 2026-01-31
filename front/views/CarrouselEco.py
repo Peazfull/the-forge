@@ -1405,25 +1405,31 @@ with st.expander("🖼️ Preview Slides", expanded=False):
                     st.markdown(f"**Slide #{position}**")
                 
                 default_checked = st.session_state.get(f"slide_selected_{item_id}", True)
-                if item_id == "outro":
-                    checked = st.checkbox(
-                        "Inclure",
-                        value=default_checked,
-                        key="slide_selected_outro",
-                        label_visibility="collapsed"
-                    )
-                else:
-                    st.checkbox(
-                        "Inclure",
-                        value=default_checked,
-                        key=f"slide_selected_{item_id}",
-                        label_visibility="collapsed"
-                    )
                 
                 if item_id != "outro":
-                    if st.button("🔄 Regénérer slide", key=f"regen_slide_{item_id}", use_container_width=True):
-                        st.session_state.slide_previews.pop(item_id, None)
-                        st.rerun()
+                    col_btn, col_chk = st.columns([4, 1])
+                    with col_btn:
+                        if st.button("🔄 Regénérer slide", key=f"regen_slide_{item_id}", use_container_width=True):
+                            st.session_state.slide_previews.pop(item_id, None)
+                            st.rerun()
+                    with col_chk:
+                        st.checkbox(
+                            "Inclure",
+                            value=default_checked,
+                            key=f"slide_selected_{item_id}",
+                            label_visibility="collapsed"
+                        )
+                else:
+                    col_spacer, col_chk = st.columns([4, 1])
+                    with col_spacer:
+                        st.caption("")
+                    with col_chk:
+                        st.checkbox(
+                            "Inclure",
+                            value=default_checked,
+                            key="slide_selected_outro",
+                            label_visibility="collapsed"
+                        )
                 
                 # Empêcher la génération si les champs sont vides
                 if item_id == "outro":
