@@ -886,8 +886,6 @@ with st.expander("📰 Bulletin Eco", expanded=False):
         col_header, col_preview_btn = st.columns([3, 1])
         with col_header:
             st.caption(f"Top 14 · **{selected_count}** sélectionnée{'s' if selected_count > 1 else ''}")
-            if selected_count > 1 and not st.session_state.eco_preview_mode:
-                
         
         with col_preview_btn:
             if selected_count > 0:
