@@ -1310,7 +1310,10 @@ with st.expander("🖼️ Preview Slides", expanded=False):
                 
                 # Empêcher la génération si les champs sont vides
                 if item_id == "outro":
-                    outro_path = "/Users/gaelpons/Desktop/The Forge/front/layout/assets/carousel_eco/outro.png"
+                    outro_path = os.path.join(
+                        os.path.dirname(__file__),
+                        "..", "layout", "assets", "carousel_eco", "outro.png"
+                    )
                     if os.path.exists(outro_path):
                         st.image(outro_path, use_container_width=True)
                     else:
