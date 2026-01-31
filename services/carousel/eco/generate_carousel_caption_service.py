@@ -97,7 +97,7 @@ def upload_caption_text(text: str) -> Dict[str, object]:
         supabase.storage.from_(CAPTION_BUCKET).upload(
             CAPTION_FILE,
             text.encode("utf-8"),
-            file_options={"content-type": "text/plain; charset=utf-8", "upsert": True}
+            file_options={"content-type": "text/plain; charset=utf-8", "upsert": "true"}
         )
         return {"status": "success"}
     except Exception as e:
@@ -156,7 +156,7 @@ def upload_linkedin_text(text: str) -> bool:
         supabase.storage.from_(CAPTION_BUCKET).upload(
             LINKEDIN_FILE,
             text.encode("utf-8"),
-            file_options={"content-type": "text/plain; charset=utf-8", "upsert": True}
+            file_options={"content-type": "text/plain; charset=utf-8", "upsert": "true"}
         )
         return True
     except Exception:
