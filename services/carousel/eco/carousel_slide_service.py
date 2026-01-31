@@ -28,6 +28,7 @@ LOGO_TOP = 15
 TITLE_BG_TOP_FROM_BOTTOM = 460  # px depuis le bas
 TITLE_BG_SIDE_MARGIN = 50
 SWIPE_MARGIN = 10
+SWIPE_SIZE = (56, 29)
 LEFT_MARGIN = 60
 RIGHT_MARGIN = 60
 CONTENT_TOP_GAP = 20
@@ -199,6 +200,7 @@ def generate_carousel_slide(
     swipe_path = os.path.join(ASSETS_DIR, "Swipe.png")
     if os.path.exists(swipe_path):
         swipe = Image.open(swipe_path).convert("RGBA")
+        swipe = swipe.resize(SWIPE_SIZE, Image.LANCZOS)
         x = CANVAS_SIZE[0] - swipe.size[0] - SWIPE_MARGIN
         y = CANVAS_SIZE[1] - swipe.size[1] - SWIPE_MARGIN
         canvas.alpha_composite(swipe, (x, y))
@@ -276,9 +278,9 @@ def generate_cover_slide(
     date_w = draw.textlength(date_str, font=date_font)
     date_h = int(DATE_FONT_SIZE * 1.2)
     
-    # Centre verticalement le bloc logo + date, puis descendre de 200px
+    # Centre verticalement le bloc logo + date, puis descendre de 150px
     total_h = cover_logo_height + DATE_TOP_GAP + date_h
-    start_y = (CANVAS_SIZE[1] - total_h) // 2 + 200
+    start_y = (CANVAS_SIZE[1] - total_h) // 2 + 150
     cover_x = (CANVAS_SIZE[0] - cover_logo.size[0]) // 2 if cover_logo_height else 0
     
     if cover_logo_height:
