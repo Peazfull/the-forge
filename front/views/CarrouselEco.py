@@ -5,6 +5,7 @@ import os
 import hashlib
 import io
 import zipfile
+from datetime import datetime
 import streamlit.components.v1 as components
 from urllib.parse import urlparse, parse_qs
 from db.supabase_client import get_supabase
@@ -34,6 +35,7 @@ from services.carousel.eco.carousel_slide_service import (
     get_slide_public_url,
     list_slide_files
 )
+from services.carousel.eco.google_drive_service import upload_bytes_to_drive
 from PIL import Image
 
 # ======================================================
@@ -418,6 +420,55 @@ def build_carousel_exports(items_sorted):
         "pdf": pdf_buffer.getvalue(),
         "count": len(slides)
     }
+
+
+def assemble_slides_for_drive(items_sorted):
+    """Construit la liste ordonnée des slides sélectionnées (bytes)."""
+    slides = []
+    for item in items_sorted:
+        item_id = item["id"]
+        position = item["position"]
+        if not st.session_state.get(f"slide_selected_{item_id}", True):
+            continue
+        
+        title_carou = item.get("title_carou") or ""
+        content_carou = item.get("content_carou") or ""
+        image_url = item.get("image_url")
+        image_bytes = None if image_url else read_carousel_image(position)
+        
+        if position == 0 and (not image_url and not image_bytes):
+            continue
+        if position != 0 and (not title_carou or not content_carou or (not image_url and not image_bytes)):
+            continue
+        
+        cached = st.session_state.slide_previews.get(item_id) if "slide_previews" in st.session_state else None
+        if cached and cached.get("bytes"):
+            slide_bytes = cached["bytes"]
+        else:
+            if position == 0:
+                slide_bytes = generate_cover_slide(image_url=image_url, image_bytes=image_bytes)
+            else:
+                slide_bytes = generate_carousel_slide(
+                    title=title_carou.upper(),
+                    content=content_carou,
+                    image_url=image_url,
+                    image_bytes=image_bytes
+                )
+        
+        slides.append((position, slide_bytes))
+    
+    # Outro
+    if st.session_state.get("slide_selected_outro", True):
+        outro_path = os.path.join(
+            os.path.dirname(__file__),
+            "..", "layout", "assets", "carousel", "eco", "outro.png"
+        )
+        if os.path.exists(outro_path):
+            with open(outro_path, "rb") as f:
+                slides.append((999, f.read()))
+    
+    slides.sort(key=lambda s: s[0])
+    return slides
 
 
 def send_to_carousel():
@@ -1584,6 +1635,30 @@ with st.expander("📝 Caption Instagram", expanded=False):
                         st.error(f"Stockage caption échoué : {upload_result.get('message', '')[:120]}")
                 else:
                     st.warning("La caption est vide")
+
+        if st.button("📤 Envoyer vers Google Drive", use_container_width=True):
+            try:
+                carousel_data = get_carousel_eco_items()
+                items_sorted = sorted(
+                    carousel_data["items"],
+                    key=lambda i: (0 if i.get("position") == 0 else 1, i.get("position", 999))
+                )
+                slides = assemble_slides_for_drive(items_sorted)
+                if not slides:
+                    st.warning("Aucune slide sélectionnée pour l'envoi.")
+                else:
+                    date_str = datetime.now().strftime("%Y-%m-%d")
+                    for idx, (_, data) in enumerate(slides, start=1):
+                        filename = f"slide_eco_{date_str}_{idx:02d}.png"
+                        upload_bytes_to_drive(filename, data, "image/png")
+                    
+                    caption_text = st.session_state.caption_text_area.strip() or read_caption_text()
+                    if caption_text:
+                        caption_name = f"caption_eco_{date_str}.txt"
+                        upload_bytes_to_drive(caption_name, caption_text.encode("utf-8"), "text/plain")
+                    st.success("✅ Slides + caption envoyées sur Drive")
+            except Exception as e:
+                st.error(f"Erreur Drive : {str(e)[:120]}")
         
         # Bouton copie (JS) - petit bouton style "copier"
         safe_caption = st.session_state.caption_text_area.replace("\\", "\\\\").replace("`", "\\`").replace("${", "\\${")
@@ -1658,6 +1733,8 @@ with st.expander("💼 Post LinkedIn", expanded=False):
                     st.success("Post LinkedIn sauvegardé")
                 else:
                     st.warning("Le post est vide")
+
+        # Pas d'export Drive pour LinkedIn (uniquement Instagram)
         
         # Bouton copie (JS)
         safe_text = linkedin_value.replace("\\", "\\\\").replace("`", "\\`").replace("${", "\\${")

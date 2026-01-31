@@ -17,3 +17,6 @@ __pycache__/
 
 # Clé Google Cloud Vertex AI (NE JAMAIS COMMITER)
 vertex-ai-key.json
+
+# Clé Google Cloud Gen AI (NE JAMAIS COMMITER)
+secrets/gen-lang-client-0940349838-7f8453126689.json
