@@ -8,6 +8,7 @@ CONTRAINTES :
 - Format final : un texte fluide avec des sauts de ligne.
 - Termine par un CTA EXACT :
   "Rejoignez la liste d'attente pour notre future newsletter 100% gratuite (lien en bio)."
+- AUCUN markdown (pas de **, pas d'italique, pas de code).
 
 FORMAT :
 - 1 ligne d'accroche avec "Rejoignez la liste d'attente pour notre future newsletter 100% gratuite (lien en bio)"

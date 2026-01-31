@@ -1,4 +1,5 @@
 from typing import Dict, List
+import re
 import streamlit as st
 from openai import OpenAI
 
@@ -8,7 +9,6 @@ from db.supabase_client import get_supabase
 REQUEST_TIMEOUT = 30
 
 CTA_LINE = "Rejoignez la liste d'attente pour notre future newsletter 100% gratuite (lien en bio)."
-HOOK_LINE = "Rejoignez la liste d'attente pour notre future newsletter 100% gratuite (lien en bio)."
 CAPTION_BUCKET = "carousel-eco-slides"
 CAPTION_FILE = "caption.txt"
 
@@ -41,14 +41,22 @@ def generate_caption_from_items(items: List[Dict[str, object]]) -> Dict[str, obj
         )
         caption = (response.choices[0].message.content or "").strip()
         
-        if HOOK_LINE not in caption:
-            caption = HOOK_LINE + "\n\n" + caption.strip()
-        if CTA_LINE not in caption:
-            caption = caption.rstrip() + "\n\n" + CTA_LINE
+        caption = sanitize_caption(caption)
         
         return {"status": "success", "caption": caption}
     except Exception as e:
         return {"status": "error", "message": str(e)}
+
+
+def sanitize_caption(text: str) -> str:
+    """Supprime le markdown (gras, italique, code) pour Instagram."""
+    if not text:
+        return ""
+    cleaned = re.sub(r"`{1,3}([^`]+)`{1,3}", r"\1", text)
+    cleaned = re.sub(r"\*\*([^*]+)\*\*", r"\1", cleaned)
+    cleaned = re.sub(r"\*([^*]+)\*", r"\1", cleaned)
+    cleaned = re.sub(r"_([^_]+)_", r"\1", cleaned)
+    return cleaned.strip()
 
 
 def upload_caption_text(text: str) -> bool:
