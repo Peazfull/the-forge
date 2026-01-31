@@ -1636,30 +1636,6 @@ with st.expander("📝 Caption Instagram", expanded=False):
                 else:
                     st.warning("La caption est vide")
 
-        if st.button("📤 Envoyer vers Google Drive", use_container_width=True):
-            try:
-                carousel_data = get_carousel_eco_items()
-                items_sorted = sorted(
-                    carousel_data["items"],
-                    key=lambda i: (0 if i.get("position") == 0 else 1, i.get("position", 999))
-                )
-                slides = assemble_slides_for_drive(items_sorted)
-                if not slides:
-                    st.warning("Aucune slide sélectionnée pour l'envoi.")
-                else:
-                    date_str = datetime.now().strftime("%Y-%m-%d")
-                    for idx, (_, data) in enumerate(slides, start=1):
-                        filename = f"slide_eco_{date_str}_{idx:02d}.png"
-                        upload_bytes_to_drive(filename, data, "image/png")
-                    
-                    caption_text = st.session_state.caption_text_area.strip() or read_caption_text()
-                    if caption_text:
-                        caption_name = f"caption_eco_{date_str}.txt"
-                        upload_bytes_to_drive(caption_name, caption_text.encode("utf-8"), "text/plain")
-                    st.success("✅ Slides + caption envoyées sur Drive")
-            except Exception as e:
-                st.error(f"Erreur Drive : {str(e)[:120]}")
-        
         # Bouton copie (JS) - petit bouton style "copier"
         safe_caption = st.session_state.caption_text_area.replace("\\", "\\\\").replace("`", "\\`").replace("${", "\\${")
         components.html(
@@ -1688,6 +1664,31 @@ with st.expander("📝 Caption Instagram", expanded=False):
 # ======================================================
 # POST LINKEDIN
 # ======================================================
+
+st.markdown("#### Export Google Drive")
+if st.button("📤 Envoyer vers Google Drive", use_container_width=True):
+    try:
+        carousel_data = get_carousel_eco_items()
+        items_sorted = sorted(
+            carousel_data["items"],
+            key=lambda i: (0 if i.get("position") == 0 else 1, i.get("position", 999))
+        )
+        slides = assemble_slides_for_drive(items_sorted)
+        if not slides:
+            st.warning("Aucune slide sélectionnée pour l'envoi.")
+        else:
+            date_str = datetime.now().strftime("%Y-%m-%d")
+            for idx, (_, data) in enumerate(slides, start=1):
+                filename = f"slide_eco_{date_str}_{idx:02d}.png"
+                upload_bytes_to_drive(filename, data, "image/png")
+            
+            caption_text = st.session_state.caption_text_area.strip() or read_caption_text()
+            if caption_text:
+                caption_name = f"caption_eco_{date_str}.txt"
+                upload_bytes_to_drive(caption_name, caption_text.encode("utf-8"), "text/plain")
+            st.success("✅ Slides + caption envoyées sur Drive")
+    except Exception as e:
+        st.error(f"Erreur Drive : {str(e)[:120]}")
 
 with st.expander("💼 Post LinkedIn", expanded=False):
     carousel_data = get_carousel_eco_items()
