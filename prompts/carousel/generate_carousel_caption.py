@@ -10,9 +10,8 @@ CONTRAINTES :
   "Rejoignez la liste d'attente pour notre future newsletter 100% gratuite (lien en bio)."
 
 FORMAT :
-- 1 ligne d'accroche courte en haut OBLIGATOIRE qui parle de la newsletter.
+- 1 ligne d'accroche avec "Rejoignez la liste d'attente pour notre future newsletter 100% gratuite (lien en bio)"
 - Une liste de 4 à 8 mini-titres (1 par actu).
-- Puis le CTA final (exactement).
-
+- Puis le CTA final : "Partagez et réagissez !"
 Ne retourne que le texte final (pas de JSON).
 """
