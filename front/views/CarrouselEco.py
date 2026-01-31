@@ -5,6 +5,7 @@ import os
 import hashlib
 import io
 import zipfile
+import streamlit.components.v1 as components
 from urllib.parse import urlparse, parse_qs
 from db.supabase_client import get_supabase
 from services.carousel.carousel_eco_service import insert_items_to_carousel_eco, get_carousel_eco_items, upsert_carousel_eco_cover
@@ -12,7 +13,10 @@ from services.carousel.generate_carousel_texts_service import generate_all_carou
 from services.carousel.generate_carousel_caption_service import (
     generate_caption_from_items,
     upload_caption_text,
-    read_caption_text
+    read_caption_text,
+    generate_linkedin_from_items,
+    upload_linkedin_text,
+    read_linkedin_text
 )
 from services.carousel.image_generation_service import generate_carousel_image
 from services.carousel.carousel_image_service import (
@@ -1572,6 +1576,77 @@ with st.expander("📝 Caption Instagram", expanded=False):
                 st.success("Caption sauvegardée")
             else:
                 st.warning("La caption est vide")
+
+
+# ======================================================
+# POST LINKEDIN
+# ======================================================
+
+with st.expander("💼 Post LinkedIn", expanded=False):
+    carousel_data = get_carousel_eco_items()
+    
+    if carousel_data["status"] == "error":
+        st.error(f"Erreur : {carousel_data.get('message', 'Erreur inconnue')}")
+    elif carousel_data["count"] == 0:
+        st.info("Aucun item · Envoyez d'abord des items depuis 'Bulletin Eco'")
+    else:
+        items_for_post = [
+            item for item in carousel_data["items"]
+            if item.get("position") not in [0, 999]
+        ]
+        
+        if "linkedin_text_area" not in st.session_state:
+            st.session_state.linkedin_text_area = read_linkedin_text() or ""
+        
+        if st.button("✨ Générer post LinkedIn", use_container_width=True):
+            with st.spinner("Génération du post LinkedIn..."):
+                result = generate_linkedin_from_items(items_for_post)
+            if result.get("status") == "success":
+                st.session_state.linkedin_text_area = result["text"]
+                upload_linkedin_text(st.session_state.linkedin_text_area)
+            else:
+                st.error(f"Erreur : {result.get('message', 'Erreur inconnue')}")
+        
+        linkedin_value = st.session_state.get("linkedin_text_area", "")
+        char_count = len(linkedin_value)
+        
+        st.text_area(
+            label=f"Post LinkedIn · {char_count} caractères",
+            height=220,
+            key="linkedin_text_area",
+            placeholder="Clique sur 'Générer post LinkedIn' pour démarrer..."
+        )
+        
+        if st.button("💾 Sauvegarder post LinkedIn", use_container_width=True):
+            if st.session_state.linkedin_text_area.strip():
+                upload_linkedin_text(st.session_state.linkedin_text_area)
+                st.success("Post LinkedIn sauvegardé")
+            else:
+                st.warning("Le post est vide")
+        
+        # Bouton copie (JS)
+        safe_text = linkedin_value.replace("\\", "\\\\").replace("`", "\\`").replace("${", "\\${")
+        components.html(
+            f"""
+            <button style="width:100%;padding:0.5rem;border-radius:8px;border:1px solid #ddd;cursor:pointer;">
+              📋 Copier le texte
+            </button>
+            <script>
+              const btn = document.currentScript.previousElementSibling;
+              btn.addEventListener('click', async () => {{
+                try {{
+                  await navigator.clipboard.writeText(`{safe_text}`);
+                  btn.innerText = "✅ Texte copié";
+                  setTimeout(() => btn.innerText = "📋 Copier le texte", 1500);
+                }} catch (e) {{
+                  btn.innerText = "❌ Copie impossible";
+                  setTimeout(() => btn.innerText = "📋 Copier le texte", 1500);
+                }}
+              }});
+            </script>
+            """,
+            height=60
+        )
 
 
 # ======================================================
