@@ -1501,11 +1501,17 @@ with st.expander("🖼️ Preview Slides", expanded=False):
                         st.warning("outro.png introuvable")
                     continue
                 
+                # Si la slide est déjà en storage, on l'affiche direct
+                stored_key = f"slide_{position}.png"
+                if stored_key in stored_files:
+                    st.image(get_slide_public_url(stored_key), use_container_width=True)
+                    continue
+                
                 if position == 0 and (not image_url and not image_bytes):
-                    st.warning("Il manque l'image pour générer la cover.")
+                    st.caption("⚠️ Cover incomplète (image manquante)")
                     continue
                 if position != 0 and (not title_carou or not content_carou or (not image_url and not image_bytes)):
-                    st.warning("Il manque le titre, le texte ou l'image pour générer la slide.")
+                    st.caption("⚠️ Slide incomplète (données manquantes)")
                     continue
                 
                 # Cache preview (key simple basée sur contenu)
