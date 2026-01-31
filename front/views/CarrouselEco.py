@@ -373,7 +373,16 @@ def build_carousel_exports(items_sorted):
         images.append(img)
     pdf_buffer = io.BytesIO()
     if images:
-        images[0].save(pdf_buffer, format="PDF", save_all=True, append_images=images[1:])
+        images[0].save(
+            pdf_buffer,
+            format="PDF",
+            save_all=True,
+            append_images=images[1:],
+            resolution=300,
+            quality=95,
+            subsampling=0,
+            dpi=(300, 300)
+        )
     pdf_buffer.seek(0)
     
     return {
