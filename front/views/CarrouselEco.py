@@ -1543,14 +1543,16 @@ with st.expander("📝 Caption Instagram", expanded=False):
         if "caption_text_area" not in st.session_state or not st.session_state.caption_text_area:
             st.session_state.caption_text_area = read_caption_text() or ""
         
-        if st.button("✨ Générer caption", use_container_width=True):
-            with st.spinner("Génération de la caption..."):
-                result = generate_caption_from_items(items_for_caption)
-            if result.get("status") == "success":
-                st.session_state.caption_text_area = result["caption"]
-                upload_caption_text(st.session_state.caption_text_area)
-            else:
-                st.error(f"Erreur : {result.get('message', 'Erreur inconnue')}")
+        col_gen, col_save = st.columns(2)
+        with col_gen:
+            if st.button("✨ Générer caption", use_container_width=True):
+                with st.spinner("Génération de la caption..."):
+                    result = generate_caption_from_items(items_for_caption)
+                if result.get("status") == "success":
+                    st.session_state.caption_text_area = result["caption"]
+                    upload_caption_text(st.session_state.caption_text_area)
+                else:
+                    st.error(f"Erreur : {result.get('message', 'Erreur inconnue')}")
         
         caption_value = st.session_state.get("caption_text_area", "")
         char_count = len(caption_value)
@@ -1563,12 +1565,37 @@ with st.expander("📝 Caption Instagram", expanded=False):
         )
         st.session_state.caption_text = st.session_state.caption_text_area
         
-        if st.button("💾 Sauvegarder caption", use_container_width=True):
-            if st.session_state.caption_text_area.strip():
-                upload_caption_text(st.session_state.caption_text_area)
-                st.success("Caption sauvegardée")
-            else:
-                st.warning("La caption est vide")
+        with col_save:
+            if st.button("💾 Sauvegarder caption", use_container_width=True):
+                if st.session_state.caption_text_area.strip():
+                    upload_caption_text(st.session_state.caption_text_area)
+                    st.success("Caption sauvegardée")
+                else:
+                    st.warning("La caption est vide")
+        
+        # Bouton copie (JS)
+        safe_caption = st.session_state.caption_text_area.replace("\\", "\\\\").replace("`", "\\`").replace("${", "\\${")
+        components.html(
+            f"""
+            <button style="width:100%;padding:0.5rem;border-radius:8px;border:1px solid #ddd;cursor:pointer;">
+              📋 Copier la caption
+            </button>
+            <script>
+              const btn = document.currentScript.previousElementSibling;
+              btn.addEventListener('click', async () => {{
+                try {{
+                  await navigator.clipboard.writeText(`{safe_caption}`);
+                  btn.innerText = "✅ Caption copiée";
+                  setTimeout(() => btn.innerText = "📋 Copier la caption", 1500);
+                }} catch (e) {{
+                  btn.innerText = "❌ Copie impossible";
+                  setTimeout(() => btn.innerText = "📋 Copier la caption", 1500);
+                }}
+              }});
+            </script>
+            """,
+            height=60
+        )
 
 
 # ======================================================
