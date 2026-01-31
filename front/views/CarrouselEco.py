@@ -1540,7 +1540,11 @@ with st.expander("📝 Caption Instagram", expanded=False):
             if item.get("position") not in [0, 999]
         ]
         
-        if "caption_text_area" not in st.session_state or not st.session_state.caption_text_area:
+        # Initialiser depuis storage (si disponible)
+        if "caption_text_area" not in st.session_state:
+            st.session_state.caption_text_area = read_caption_text() or ""
+        
+        if st.button("🔄 Recharger depuis storage", use_container_width=True):
             st.session_state.caption_text_area = read_caption_text() or ""
         
         col_gen, col_save = st.columns(2)
