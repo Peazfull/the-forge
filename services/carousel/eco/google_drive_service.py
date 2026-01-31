@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Optional
+import json
 import io
 import streamlit as st
 
@@ -21,9 +22,14 @@ def _get_drive_service():
     if service_account is None or build is None or MediaIoBaseUpload is None:
         raise RuntimeError("google-api-python-client non installé")
     sa_path = st.secrets.get("GOOGLE_DRIVE_SA_PATH")
-    if not sa_path:
-        raise RuntimeError("GOOGLE_DRIVE_SA_PATH manquant dans secrets")
-    credentials = service_account.Credentials.from_service_account_file(sa_path, scopes=SCOPES)
+    sa_json = st.secrets.get("GOOGLE_DRIVE_SA_JSON")
+    if sa_json:
+        info = json.loads(sa_json)
+        credentials = service_account.Credentials.from_service_account_info(info, scopes=SCOPES)
+    elif sa_path:
+        credentials = service_account.Credentials.from_service_account_file(sa_path, scopes=SCOPES)
+    else:
+        raise RuntimeError("GOOGLE_DRIVE_SA_PATH/GOOGLE_DRIVE_SA_JSON manquant dans secrets")
     return build("drive", "v3", credentials=credentials, cache_discovery=False)
 
 
