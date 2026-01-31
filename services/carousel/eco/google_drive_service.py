@@ -29,7 +29,8 @@ def _get_drive_service():
     elif sa_path:
         credentials = service_account.Credentials.from_service_account_file(sa_path, scopes=SCOPES)
     else:
-        raise RuntimeError("GOOGLE_DRIVE_SA_PATH/GOOGLE_DRIVE_SA_JSON manquant dans secrets")
+        available = ", ".join(sorted(st.secrets.keys()))
+        raise RuntimeError(f"GOOGLE_DRIVE_SA_PATH/GOOGLE_DRIVE_SA_JSON manquant dans secrets. Disponibles: [{available}]")
     return build("drive", "v3", credentials=credentials, cache_discovery=False)
 
 
