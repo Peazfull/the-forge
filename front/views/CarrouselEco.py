@@ -316,7 +316,7 @@ def generate_all_slide_previews():
                 )
             else:
                 slide_bytes = generate_carousel_slide(
-                    title=title_carou.upper(),
+                    title=title_carou,
                     content=content_carou,
                     image_url=image_url,
                     image_bytes=image_bytes
@@ -368,7 +368,7 @@ def build_carousel_exports(items_sorted):
                 slide_bytes = generate_cover_slide(image_url=image_url, image_bytes=image_bytes)
             else:
                 slide_bytes = generate_carousel_slide(
-                    title=title_carou.upper(),
+                    title=title_carou,
                     content=content_carou,
                     image_url=image_url,
                     image_bytes=image_bytes
@@ -1482,7 +1482,7 @@ with st.expander("🖼️ Preview Slides", expanded=False):
                             )
                         else:
                             slide_bytes = generate_carousel_slide(
-                                title=title_carou.upper(),
+                                title=title_carou,
                                 content=content_carou,
                                 image_url=image_url,
                                 image_bytes=image_bytes
