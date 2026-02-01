@@ -39,15 +39,20 @@ COVER_LOGO_WIDTH = 760
 DATE_TOP_GAP = 12
 
 # Polices (fallback sur PIL par défaut si fichier absent)
-FONT_TITLE_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")
-FONT_CONTENT_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")
+FONT_TITLE_PATH = os.path.join(ASSETS_DIR, "Onest-VariableFont_wght.ttf")
+FONT_CONTENT_PATH = os.path.join(ASSETS_DIR, "Onest-VariableFont_wght.ttf")
+TITLE_FONT_WEIGHT = 600
+CONTENT_FONT_WEIGHT = 400
+TITLE_FONT_SIZE = 40
+CONTENT_FONT_SIZE = 38
 
 
-def _load_font(path: str, size: int) -> ImageFont.ImageFont:
+def _load_font(path: str, size: int, weight: int | None = None) -> ImageFont.ImageFont:
     if os.path.exists(path):
         try:
             # Variable font support if available
-            return ImageFont.truetype(path, size=size, layout_engine=ImageFont.Layout.RAQM, axis={"wght": 600})
+            axis = {"wght": weight} if weight else None
+            return ImageFont.truetype(path, size=size, layout_engine=ImageFont.Layout.RAQM, axis=axis)
         except Exception:
             return ImageFont.truetype(path, size=size)
     return ImageFont.load_default()
@@ -97,18 +102,19 @@ def _fit_text(
     max_width: int,
     max_height: int,
     start_size: int,
-    font_path: str
+    font_path: str,
+    weight: int | None = None
 ) -> Tuple[ImageFont.ImageFont, list[str]]:
     size = start_size
     while size > 12:
-        font = _load_font(font_path, size)
+        font = _load_font(font_path, size, weight=weight)
         lines = _wrap_text(text, draw, font, max_width)
         line_height = int(size * 1.2)
         total_height = line_height * len(lines)
         if total_height <= max_height:
             return font, lines
         size -= 2
-    font = _load_font(font_path, 12)
+    font = _load_font(font_path, 12, weight=weight)
     return font, _wrap_text(text, draw, font, max_width)
 
 
@@ -175,7 +181,7 @@ def generate_carousel_slide(
     # Title text
     title_max_width = CANVAS_SIZE[0] - LEFT_MARGIN - RIGHT_MARGIN
     title_font, title_lines = _fit_text(
-        draw, title, title_max_width, 80, start_size=48, font_path=FONT_TITLE_PATH
+        draw, title, title_max_width, 80, start_size=TITLE_FONT_SIZE, font_path=FONT_TITLE_PATH, weight=TITLE_FONT_WEIGHT
     )
     title_y = title_bg_top + max(0, (title_bg_height - int(title_font.size * 1.2)) // 2)
     for line in title_lines[:2]:
@@ -187,7 +193,7 @@ def generate_carousel_slide(
     content_max_height = CANVAS_SIZE[1] - content_top - CONTENT_BOTTOM_MARGIN
     content = _sentence_case(content)
     content_font, content_lines = _fit_text(
-        draw, content, title_max_width, content_max_height, start_size=38, font_path=FONT_CONTENT_PATH
+        draw, content, title_max_width, content_max_height, start_size=CONTENT_FONT_SIZE, font_path=FONT_CONTENT_PATH, weight=CONTENT_FONT_WEIGHT
     )
     line_height = int(content_font.size * 1.25)
     y = content_top
@@ -275,7 +281,7 @@ def generate_cover_slide(
     
     # Date
     date_str = _format_french_date()
-    date_font = _load_font(FONT_CONTENT_PATH, DATE_FONT_SIZE)
+    date_font = _load_font(FONT_CONTENT_PATH, DATE_FONT_SIZE, weight=CONTENT_FONT_WEIGHT)
     date_w = draw.textlength(date_str, font=date_font)
     date_h = int(DATE_FONT_SIZE * 1.2)
     
