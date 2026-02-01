@@ -180,6 +180,7 @@ def generate_carousel_slide(
 
     # Title text
     title_max_width = CANVAS_SIZE[0] - LEFT_MARGIN - RIGHT_MARGIN
+    title = _sentence_case(title)
     title_font, title_lines = _fit_text(
         draw, title, title_max_width, 80, start_size=TITLE_FONT_SIZE, font_path=FONT_TITLE_PATH, weight=TITLE_FONT_WEIGHT
     )
