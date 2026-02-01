@@ -5,7 +5,7 @@ import os
 import hashlib
 import io
 import zipfile
-from datetime import datetime
+from datetime import datetime, timedelta
 import streamlit.components.v1 as components
 from urllib.parse import urlparse, parse_qs
 from db.supabase_client import get_supabase
@@ -204,19 +204,23 @@ if "eco_modal_item" not in st.session_state:
 if "eco_preview_mode" not in st.session_state:
     st.session_state.eco_preview_mode = False
 
+if "eco_filter_start" not in st.session_state:
+    st.session_state.eco_filter_start = None
+
 # ======================================================
 # FONCTIONS
 # ======================================================
 
-def fetch_top_eco_items(limit=14):
+def fetch_top_eco_items(limit=20, start_dt: datetime | None = None):
     """Récupère le top N des items ECO triés par score"""
     try:
         supabase = get_supabase()
-        response = supabase.table("brew_items").select(
+        query = supabase.table("brew_items").select(
             "id, title, content, tags, labels, score_global"
-        ).eq("tags", "ECO").not_.is_("score_global", "null").order(
-            "score_global", desc=True
-        ).limit(limit).execute()
+        ).eq("tags", "ECO").not_.is_("score_global", "null")
+        if start_dt:
+            query = query.gte("created_at", start_dt.isoformat())
+        response = query.order("score_global", desc=True).limit(limit).execute()
         
         return response.data or []
     except Exception as e:
@@ -865,9 +869,38 @@ if st.session_state.get("generation_active", False):
 # ======================================================
 
 with st.expander("📰 Bulletin Eco", expanded=False):
+    # Filtre temporel (optionnel)
+    st.markdown("#### Filtrer la preview")
+    default_dt = datetime.now() - timedelta(days=1)
+    col_date, col_time, col_apply, col_reset = st.columns([2, 2, 1, 1])
+    with col_date:
+        filter_date = st.date_input("Du (date)", value=default_dt.date(), key="eco_filter_date")
+    with col_time:
+        filter_time = st.time_input(
+            "Du (heure)",
+            value=default_dt.time().replace(second=0, microsecond=0),
+            key="eco_filter_time"
+        )
+    with col_apply:
+        if st.button("Appliquer", key="apply_eco_filter", use_container_width=True):
+            st.session_state.eco_filter_start = datetime.combine(filter_date, filter_time)
+            st.session_state.eco_initialized = False
+            st.rerun()
+    with col_reset:
+        if st.button("Reset", key="reset_eco_filter", use_container_width=True, type="secondary"):
+            st.session_state.eco_filter_start = None
+            st.session_state.eco_initialized = False
+            st.rerun()
+    
+    if st.session_state.eco_filter_start:
+        st.caption(f"Filtre actif : depuis {st.session_state.eco_filter_start.strftime('%d/%m/%Y %H:%M')}")
+    else:
+        st.caption("Filtre inactif : top 20 par score (toutes dates)")
+    
+    st.markdown("---")
     
     # Fetch data
-    items = fetch_top_eco_items(limit=14)
+    items = fetch_top_eco_items(limit=20, start_dt=st.session_state.eco_filter_start)
     
     if not items:
         st.warning("Aucun item ECO trouvé en DB")
@@ -890,7 +923,7 @@ with st.expander("📰 Bulletin Eco", expanded=False):
         
         col_header, col_preview_btn = st.columns([3, 1])
         with col_header:
-            st.caption(f"Top 14 · **{selected_count}** sélectionnée{'s' if selected_count > 1 else ''}")
+            st.caption(f"Top 20 · **{selected_count}** sélectionnée{'s' if selected_count > 1 else ''}")
         
         with col_preview_btn:
             if selected_count > 0:
