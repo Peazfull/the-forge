@@ -207,6 +207,9 @@ if "bourse_preview_mode" not in st.session_state:
 if "bourse_filter_start" not in st.session_state:
     st.session_state.bourse_filter_start = None
 
+if "bourse_auto_caption_done" not in st.session_state:
+    st.session_state.bourse_auto_caption_done = False
+
 # ======================================================
 # FONCTIONS
 # ======================================================
@@ -1607,6 +1610,19 @@ with st.expander("📝 Caption Instagram", expanded=False):
         # Initialiser depuis storage (si disponible)
         if "caption_text_area" not in st.session_state:
             st.session_state.caption_text_area = read_caption_text() or ""
+
+        # Auto-génération de secours si la caption est vide
+        if not st.session_state.caption_text_area and not st.session_state.bourse_auto_caption_done:
+            with st.spinner("Génération automatique de la caption..."):
+                result = generate_caption_from_items(items_for_caption)
+            if result.get("status") == "success":
+                st.session_state.caption_text_area = result["caption"]
+                upload_result = upload_caption_text(st.session_state.caption_text_area)
+                if upload_result.get("status") != "success":
+                    st.warning(f"Stockage caption échoué : {upload_result.get('message', '')[:120]}")
+            else:
+                st.warning(f"Caption auto échouée : {result.get('message', 'Erreur inconnue')}")
+            st.session_state.bourse_auto_caption_done = True
         
         if st.button("🔄 Recharger depuis storage", use_container_width=True):
             st.session_state.caption_text_area = read_caption_text() or ""
