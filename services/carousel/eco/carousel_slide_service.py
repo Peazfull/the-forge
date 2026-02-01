@@ -43,7 +43,7 @@ FONT_TITLE_PATH = os.path.join(ASSETS_DIR, "Onest-VariableFont_wght.ttf")
 FONT_CONTENT_PATH = os.path.join(ASSETS_DIR, "Onest-VariableFont_wght.ttf")
 TITLE_FONT_WEIGHT = 600
 CONTENT_FONT_WEIGHT = 400
-TITLE_FONT_SIZE = 40
+TITLE_FONT_SIZE = 48
 CONTENT_FONT_SIZE = 38
 
 
