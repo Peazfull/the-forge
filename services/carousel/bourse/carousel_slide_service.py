@@ -34,7 +34,7 @@ LEFT_MARGIN = 60
 RIGHT_MARGIN = 60
 CONTENT_TOP_GAP = 20
 CONTENT_BOTTOM_MARGIN = 20
-DATE_FONT_SIZE = 38
+DATE_FONT_SIZE = 49
 COVER_LOGO_WIDTH = 760
 DATE_TOP_GAP = 12
 
@@ -272,7 +272,7 @@ def generate_cover_slide(
     cover_logo_path = os.path.join(ASSETS_DIR, "Logo_slide_0_bourse.png")
     if os.path.exists(cover_logo_path):
         cover_logo = Image.open(cover_logo_path).convert("RGBA")
-        scale = COVER_LOGO_WIDTH / cover_logo.size[0]
+        scale = (COVER_LOGO_WIDTH / cover_logo.size[0]) * 1.3
         cover_logo = cover_logo.resize(
             (int(cover_logo.size[0] * scale), int(cover_logo.size[1] * scale)),
             Image.LANCZOS
