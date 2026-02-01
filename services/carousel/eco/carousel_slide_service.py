@@ -39,10 +39,10 @@ COVER_LOGO_WIDTH = 760
 DATE_TOP_GAP = 12
 
 # Polices (fallback sur PIL par défaut si fichier absent)
-FONT_TITLE_PATH = os.path.join(ASSETS_DIR, "Onest-VariableFont_wght.ttf")
-FONT_CONTENT_PATH = os.path.join(ASSETS_DIR, "Onest-VariableFont_wght.ttf")
+FONT_TITLE_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")
+FONT_CONTENT_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")
 TITLE_FONT_WEIGHT = 600
-CONTENT_FONT_WEIGHT = 400
+CONTENT_FONT_WEIGHT = 600
 TITLE_FONT_SIZE = 48
 CONTENT_FONT_SIZE = 38
 
@@ -180,7 +180,6 @@ def generate_carousel_slide(
 
     # Title text
     title_max_width = CANVAS_SIZE[0] - LEFT_MARGIN - RIGHT_MARGIN
-    title = _sentence_case(title)
     title_font, title_lines = _fit_text(
         draw, title, title_max_width, 80, start_size=TITLE_FONT_SIZE, font_path=FONT_TITLE_PATH, weight=TITLE_FONT_WEIGHT
     )
