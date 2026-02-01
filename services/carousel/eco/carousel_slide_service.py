@@ -39,7 +39,7 @@ COVER_LOGO_WIDTH = 760
 DATE_TOP_GAP = 12
 
 # Polices (fallback sur PIL par défaut si fichier absent)
-FONT_TITLE_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")
+FONT_TITLE_PATH = os.path.join(ASSETS_DIR, "Manrope-Bold.ttf")
 FONT_CONTENT_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")
 TITLE_FONT_WEIGHT = 600
 CONTENT_FONT_WEIGHT = 600
