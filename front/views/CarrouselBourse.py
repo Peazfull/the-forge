@@ -211,18 +211,39 @@ if "bourse_filter_start" not in st.session_state:
 # FONCTIONS
 # ======================================================
 
-def fetch_top_bourse_items(limit=30, start_dt: datetime | None = None):
-    """Récupère le top N des items BOURSE triés par score"""
+def fetch_top_bourse_items(start_dt: datetime | None = None):
+    """Récupère le top BOURSE par label (Action/PEA/Indices/Commodités)."""
     try:
         supabase = get_supabase()
-        query = supabase.table("brew_items").select(
-            "id, title, content, tags, labels, score_global"
-        ).eq("tags", "BOURSE").not_.is_("score_global", "null")
-        if start_dt:
-            query = query.gte("created_at", start_dt.isoformat())
-        response = query.order("score_global", desc=True).limit(limit).execute()
-        
-        return response.data or []
+
+        def _fetch(label: str, limit: int) -> list:
+            query = supabase.table("brew_items").select(
+                "id, title, content, tags, labels, score_global"
+            ).eq("tags", "BOURSE").eq("labels", label).not_.is_("score_global", "null")
+            if start_dt:
+                query = query.gte("created_at", start_dt.isoformat())
+            response = query.order("score_global", desc=True).limit(limit).execute()
+            return response.data or []
+
+        groups = [
+            ("Action", 20),
+            ("PEA", 10),
+            ("Indices", 6),
+            ("Commodités", 4),
+        ]
+
+        combined: list[dict] = []
+        seen_ids: set[str] = set()
+        for label, limit in groups:
+            for item in _fetch(label, limit):
+                item_id = item.get("id")
+                if item_id and item_id in seen_ids:
+                    continue
+                if item_id:
+                    seen_ids.add(item_id)
+                combined.append(item)
+
+        return combined
     except Exception as e:
         st.error(f"Erreur DB : {e}")
         return []
@@ -895,12 +916,12 @@ with st.expander("📰 Bulletin Bourse", expanded=False):
     if st.session_state.bourse_filter_start:
         st.caption(f"Filtre actif : depuis {st.session_state.bourse_filter_start.strftime('%d/%m/%Y %H:%M')}")
     else:
-        st.caption("Filtre inactif : top 30 par score (toutes dates)")
+        st.caption("Filtre inactif : top 40 par labels (toutes dates)")
     
     st.markdown("---")
     
     # Fetch data
-    items = fetch_top_bourse_items(limit=30, start_dt=st.session_state.bourse_filter_start)
+    items = fetch_top_bourse_items(start_dt=st.session_state.bourse_filter_start)
     
     if not items:
         st.warning("Aucun item BOURSE trouvé en DB")
@@ -923,7 +944,7 @@ with st.expander("📰 Bulletin Bourse", expanded=False):
         
         col_header, col_preview_btn = st.columns([3, 1])
         with col_header:
-            st.caption(f"Top 30 · **{selected_count}** sélectionnée{'s' if selected_count > 1 else ''}")
+            st.caption(f"Top 40 · **{selected_count}** sélectionnée{'s' if selected_count > 1 else ''}")
         
         with col_preview_btn:
             if selected_count > 0:
