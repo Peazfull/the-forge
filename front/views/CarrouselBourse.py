@@ -190,7 +190,7 @@ with col_debug:
 # SESSION STATE INIT
 # ======================================================
 
-# Flag pour savoir si on doit initialiser avec les 8 premiers
+# Flag pour savoir si on doit initialiser avec les 10 premiers
 if "bourse_initialized" not in st.session_state:
     st.session_state.bourse_initialized = False
 
@@ -237,7 +237,7 @@ def toggle_selection(item_id):
     if item_id in st.session_state.bourse_selected_items:
         st.session_state.bourse_selected_items.remove(item_id)
     else:
-        if len(st.session_state.bourse_selected_items) < 8:
+        if len(st.session_state.bourse_selected_items) < 10:
             st.session_state.bourse_selected_items.append(item_id)
 
 
@@ -758,7 +758,7 @@ def generate_texts():
 
 
 def get_item_position(item_id):
-    """Retourne la position d'un item (1-8) ou None si non sélectionné"""
+    """Retourne la position d'un item (1-10) ou None si non sélectionné"""
     # Sécurité : initialiser si absent
     if "bourse_selected_items" not in st.session_state:
         st.session_state.bourse_selected_items = []
@@ -905,9 +905,9 @@ with st.expander("📰 Bulletin Bourse", expanded=False):
     if not items:
         st.warning("Aucun item BOURSE trouvé en DB")
     else:
-        # Initialisation : cocher les 8 premiers par défaut (une seule fois)
-        if not st.session_state.bourse_initialized and len(items) >= 8:
-            st.session_state.bourse_selected_items = [item["id"] for item in items[:8]]
+        # Initialisation : cocher les 10 premiers par défaut (une seule fois)
+        if not st.session_state.bourse_initialized and len(items) >= 10:
+            st.session_state.bourse_selected_items = [item["id"] for item in items[:10]]
             st.session_state.bourse_initialized = True
         
         # Nettoyer la sélection si des items ne sont plus dans le top courant
@@ -1010,7 +1010,7 @@ with st.expander("📰 Bulletin Bourse", expanded=False):
             with col_check:
                 # Checkbox logic
                 is_selected = item_id in st.session_state.bourse_selected_items
-                is_disabled = (not is_selected) and (selected_count >= 8)
+                is_disabled = (not is_selected) and (selected_count >= 10)
                 
                 st.checkbox(
                     label="",

@@ -34,17 +34,17 @@ def insert_items_to_carousel_bourse(item_ids: List[str]) -> Dict[str, object]:
     L'ordre dans la liste item_ids détermine la position (1 à N).
     
     Args:
-        item_ids: Liste de 1 à 8 UUIDs d'items (dans l'ordre du carousel)
+        item_ids: Liste de 1 à 10 UUIDs d'items (dans l'ordre du carousel)
     
     Returns:
         {"status": "success" | "error", "inserted": int, "message": str}
     """
     
-    if len(item_ids) < 1 or len(item_ids) > 8:
+    if len(item_ids) < 1 or len(item_ids) > 10:
         return {
             "status": "error",
             "inserted": 0,
-            "message": f"Entre 1 et 8 items requis (reçu {len(item_ids)})"
+            "message": f"Entre 1 et 10 items requis (reçu {len(item_ids)})"
         }
     
     try:

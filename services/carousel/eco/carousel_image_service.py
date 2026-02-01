@@ -44,7 +44,7 @@ def get_image_path(position: int) -> str:
     Retourne le chemin complet de l'image pour une position donnée
     
     Args:
-        position: Position dans le carousel (1-8)
+        position: Position dans le carousel (1-10)
         
     Returns:
         Chemin complet vers imgcaroueco{position}.png
@@ -86,7 +86,7 @@ def save_image_base64(image_base64: str, position: int) -> Dict[str, object]:
     
     Args:
         image_base64: Image encodée en base64
-        position: Position dans le carousel (1-8)
+        position: Position dans le carousel (1-10)
         
     Returns:
         {"status": "success" | "error", "path": str, "message": str}
@@ -132,7 +132,7 @@ def generate_and_save_carousel_image(prompt: str, position: int, item_id: Option
     
     Args:
         prompt: Le prompt de génération d'image
-        position: Position dans le carousel (1-8)
+        position: Position dans le carousel (1-10)
         
     Returns:
         {
@@ -309,7 +309,7 @@ def read_carousel_image(position: int) -> Optional[bytes]:
     Lit une image de carousel depuis session_state ou disque
     
     Args:
-        position: Position dans le carousel (1-8)
+        position: Position dans le carousel (1-10)
         
     Returns:
         Bytes de l'image ou None si inexistante
