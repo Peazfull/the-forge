@@ -57,7 +57,7 @@ def insert_items_to_carousel_eco(item_ids: List[str]) -> Dict[str, object]:
         
         # 2. Récupérer les détails complets des items depuis brew_items
         response = supabase.table("brew_items").select(
-            "id, title, content, tags, labels, score_global"
+            "id, title, content, tags, labels, score_global, created_at"
         ).in_("id", item_ids).execute()
         
         items_data = response.data or []
@@ -87,6 +87,7 @@ def insert_items_to_carousel_eco(item_ids: List[str]) -> Dict[str, object]:
                 "score_global": item.get("score_global"),
                 "tags": item.get("tags"),
                 "labels": item.get("labels"),
+                "source_created_at": item.get("created_at"),
                 # Les champs IA restent NULL pour l'instant
                 "title_carou": None,
                 "content_carou": None,
