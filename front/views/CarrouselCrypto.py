@@ -925,9 +925,13 @@ with st.expander("📰 Bulletin Crypto", expanded=False):
     if not items:
         st.warning("Aucun item CRYPTO trouvé en DB")
     else:
-        # Initialisation : cocher les 10 premiers par défaut (une seule fois)
-        if not st.session_state.crypto_initialized and len(items) >= 10:
-            st.session_state.crypto_selected_items = [item["id"] for item in items[:10]]
+        # Réinitialiser si la sélection est vide mais déjà "initialisée"
+        if st.session_state.crypto_initialized and not st.session_state.crypto_selected_items:
+            st.session_state.crypto_initialized = False
+        
+        # Initialisation : cocher jusqu'à 10 premiers par défaut (une seule fois)
+        if not st.session_state.crypto_initialized and len(items) > 0:
+            st.session_state.crypto_selected_items = [item["id"] for item in items[:min(10, len(items))]]
             st.session_state.crypto_initialized = True
         
         # Nettoyer la sélection si des items ne sont plus dans le top courant
