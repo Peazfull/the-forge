@@ -88,9 +88,9 @@ STYLE :
 AMBIANCE & COULEURS :
 - Sunset stylisée
 - Palette dominante :
-  sunset stylized sky featuring fluo green, cyan blue, and magenta colors
+  golden hour gold, orange and magenta colors
 - Accents lumineux :
-  fluo green, cyan blue, orange light, coral
+  golden hour gold, orange, magenta
 - Atmosphère élégante, maîtrisée, premium
 
 FOND :
