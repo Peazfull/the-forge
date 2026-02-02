@@ -37,6 +37,7 @@ CONTENT_BOTTOM_MARGIN = 20
 DATE_FONT_SIZE = 49
 COVER_LOGO_WIDTH = 760
 DATE_TOP_GAP = 12
+TITLE_COLOR = "#8f00ff"
 
 # Polices (fallback sur PIL par défaut si fichier absent)
 FONT_TITLE_PATH = os.path.join(ASSETS_DIR, "Manrope-Bold.ttf")
@@ -186,7 +187,7 @@ def generate_carousel_slide(
     title_block_height = int(title_font.size * 1.2) * len(title_lines[:2])
     title_y = title_bg_top + max(0, (title_bg_height - title_block_height) // 2)
     for line in title_lines[:2]:
-        draw.text((LEFT_MARGIN, title_y), line, font=title_font, fill="white")
+        draw.text((LEFT_MARGIN, title_y), line, font=title_font, fill=TITLE_COLOR)
         title_y += int(title_font.size * 1.2)
 
     # Content text
