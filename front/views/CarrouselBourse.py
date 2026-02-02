@@ -33,7 +33,8 @@ from services.carousel.bourse.carousel_slide_service import (
     generate_cover_slide,
     upload_slide_bytes,
     get_slide_public_url,
-    list_slide_files
+    list_slide_files,
+    clear_slide_files
 )
 from services.utils.email_service import send_email_with_attachments
 from PIL import Image
@@ -167,6 +168,15 @@ st.markdown("""
     <p>Sélection & génération de contenus carrousel pour actus éco</p>
 </div>
 """, unsafe_allow_html=True)
+
+# ======================================================
+# ISOLATION CACHE PAR PAGE
+# ======================================================
+if st.session_state.get("active_carousel") != "bourse":
+    st.session_state.active_carousel = "bourse"
+    st.session_state.slide_previews = {}
+    st.session_state.carousel_images = {}
+    st.session_state.carousel_image_models = {}
 
 # ======================================================
 # DEBUG LOGS + RESET VERROU
@@ -494,6 +504,13 @@ def send_to_carousel():
     st.session_state.debug_logs.append(f"📋 IDs : {[item['id'] for item in items]}")
     st.session_state.debug_logs.append(f"📋 Positions : {[item['position'] for item in items]}")
     
+    # Purger les slides storage pour éviter l'affichage d'anciens visuels
+    if clear_slide_files():
+        st.session_state.debug_logs.append("🧹 Slides storage nettoyées (bourse)")
+    else:
+        st.session_state.debug_logs.append("⚠️ Impossible de nettoyer les slides storage (bourse)")
+    st.session_state.slide_previews = {}
+
     # Initialiser la file d'attente
     st.session_state.generation_in_progress = True
     st.session_state.generation_active = True
