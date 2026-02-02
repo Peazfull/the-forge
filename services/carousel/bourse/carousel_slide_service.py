@@ -343,3 +343,16 @@ def list_slide_files() -> Set[str]:
         return {item.get("name") for item in items if item.get("name")}
     except Exception:
         return set()
+
+
+def clear_slide_files() -> bool:
+    """Supprime tous les fichiers du bucket carousel-bourse-slides."""
+    try:
+        supabase = get_supabase()
+        files = list_slide_files()
+        if not files:
+            return True
+        supabase.storage.from_(SLIDES_BUCKET).remove(list(files))
+        return True
+    except Exception:
+        return False
