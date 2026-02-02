@@ -56,7 +56,8 @@ SI le sujet principal est une ENTREPRISE :
   - lisible
   - intégré naturellement
     (façade, signalétique, bâtiment, open space, environnement d'activité)
-- La composition qui fait l'action principale de l'imageDOIT être centrée sur la moitié haute de l'image
+- La composition de l'action principale doit être centrée sur la moitié haute de l'image
+- Le logo doit être intégré de façon réaliste et discrète (taille d'enseigne crédible)
 - Aucune mise en scène négative ou dégradante
 
 SI le sujet principal est une PERSONNALITÉ PUBLIQUE très connues :
@@ -98,7 +99,7 @@ FOND :
 - Le fond participe à la DA, sans voler l'attention au sujet
 
 COMPOSITION :
-- L'élément principal doit être toujours situé dans la MOITIÉ HAUTE de l'image
+- L'action principale doit être strictement située dans la MOITIÉ HAUTE de l'image
 - Cadrage centré ou quasi centré (jamais excentré)
 - Perspective naturelle et équilibrée
 - La moitié basse de l'image doit rester calme
@@ -122,7 +123,7 @@ Le prompt final doit contenir explicitement :
 
 IMPORTANT (ENTREPRISE) :
 - La sortie doit suivre explicitement cette structure (adaptée à l'entreprise) :
-"Ultra-realistic editorial press photograph of the [LOGO OFFICIEL] prominently displayed as a lit sign on a [BÂTIMENT / BUREAU] parisian style, with a sunset stylized sky featuring fluo green, cyan blue, and magenta colors. The scene captures an elegant and premium atmosphere with accents of fluo green, cyan blue, orange light and coral. The logo is integrated naturally into the architecture, conveying stability and credibility. The composition centers around the logo in the upper half of the image, with a calm lower half suitable for adding a title later. The background has a subtle gradient without any distracting graphics. 8K render, professional photojournalism style, high-end studio lighting or perfectly controlled natural light, realistic depth of field, light and natural sensor grain, no text in the image, no watermark, no media logo."
+"Ultra-realistic editorial press photograph of the [LOGO OFFICIEL] integrated as a realistic building sign on a [BÂTIMENT / BUREAU] parisian style, with a sunset stylized sky featuring fluo green, cyan blue, and magenta colors. The scene captures an elegant and premium atmosphere with accents of fluo green, cyan blue, orange light and coral. The logo is integrated naturally into the architecture at a credible scale (not oversized), conveying stability and credibility. The main action occurs strictly in the upper half of the image, with a calm lower half suitable for adding a title later. The background has a subtle gradient without any distracting graphics. 8K render, professional photojournalism style, high-end studio lighting or perfectly controlled natural light, realistic depth of field, light and natural sensor grain, no text in the image, no watermark, no media logo."
 
 ────────────────────────
 SORTIE ATTENDUE
