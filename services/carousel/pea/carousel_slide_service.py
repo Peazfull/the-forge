@@ -184,7 +184,7 @@ def generate_carousel_slide(
         draw, title, title_max_width, 80, start_size=TITLE_FONT_SIZE, font_path=FONT_TITLE_PATH, weight=TITLE_FONT_WEIGHT
     )
     title_block_height = int(title_font.size * 1.2) * len(title_lines[:2])
-    title_y = title_bg_top + max(0, (title_bg_height - title_block_height) // 2)
+    title_y = title_bg_top + max(0, (title_bg_height - title_block_height) // 2) - 5
     for line in title_lines[:2]:
         draw.text((LEFT_MARGIN, title_y), line, font=title_font, fill="white")
         title_y += int(title_font.size * 1.2)
