@@ -86,12 +86,13 @@ STYLE :
 - Pas d'illustration, pas de peinture, pas de CGI
 
 AMBIANCE & COULEURS :
-- Sunset stylisée
-- Palette dominante :
-  golden hour gold, orange and magenta colors
-- Accents lumineux :
-  golden hour gold, orange, magenta
-- Atmosphère élégante, maîtrisée, premium
+- Sunset golden hour uniquement
+- Couleurs dominantes :
+  golden amber, warm orange, soft sand tones
+- Accents secondaires :
+  subtle magenta, violet
+- Dégradés lisses, pas de contrastes durs
+- Atmosphère premium, chaleureuse, élégante
 
 FOND :
 - Aucun graphisme envahissant
@@ -99,10 +100,11 @@ FOND :
 - Le fond participe à la DA, sans voler l'attention au sujet
 
 COMPOSITION :
-- L'action principale doit être strictement située dans la MOITIÉ HAUTE de l'image
+- Tous les éléments essentiels (logo + contexte principal)
+  doivent être dans la MOITIÉ HAUTE de l'image
 - Cadrage centré ou quasi centré (jamais excentré)
 - Perspective naturelle et équilibrée
-- La moitié basse de l'image doit rester calme
+- La moitié basse de l'image doit rester calme, minimaliste, dégagée
   pour accueillir un titre ajouté manuellement
 - Aucun texte généré dans l'image
 
@@ -121,9 +123,9 @@ Le prompt final doit contenir explicitement :
 - aucun watermark
 - aucun logo média
 
-IMPORTANT (ENTREPRISE) :
-- La sortie doit suivre explicitement cette structure (adaptée à l'entreprise) :
-"Ultra-realistic editorial press photograph of the [LOGO OFFICIEL] integrated as a realistic building sign on a [BÂTIMENT / BUREAU] parisian style, with a sunset stylized sky featuring fluo green, cyan blue, and magenta colors. The scene captures an elegant and premium atmosphere with accents of fluo green, cyan blue, orange light and coral. The logo is integrated naturally into the architecture at a credible scale (not oversized), conveying stability and credibility. The main action occurs strictly in the upper half of the image, with a calm lower half suitable for adding a title later. The background has a subtle gradient without any distracting graphics. 8K render, professional photojournalism style, high-end studio lighting or perfectly controlled natural light, realistic depth of field, light and natural sensor grain, no text in the image, no watermark, no media logo."
+IMPORTANT (CRYPTO / ENTREPRISE) :
+- La sortie doit suivre explicitement cette structure (adaptée à l'actu) :
+"Ultra-realistic editorial press photograph, 8K render. A symbolic representation of a global decentralized blockchain network, treated as a serious and strategic digital infrastructure. The official [ACTEUR PRINCIPAL] logo visible, accurate and readable, integrated in a factual and institutional way. COLOR CODES (MANDATORY): Dominant colors: golden amber, warm orange, soft sand tones. Secondary accents: subtle magenta and violet. Sunset golden hour atmosphere only. Smooth gradients, no harsh contrasts. Premium, warm, elegant lighting. COMPOSITION (MANDATORY): All essential visual elements (logo + main context) MUST be positioned in the UPPER HALF of the image. Framing centered or near-centered (never excentré). Natural and balanced perspective. LOWER HALF of the image must remain calm, minimal and uncluttered to allow manual headline overlay. No text generated inside the image. STYLE & TONE: Professional photojournalism realism. No illustration style, no CGI look, no painting. No charts, no numbers, no hype visuals. No dramatic, aggressive or emotional cues. Mood: stability, credibility, long-term strength. TECHNICAL: Natural light simulation, realistic depth of field, subtle sensor grain, no watermark, no media branding, no text."
 
 ────────────────────────
 SORTIE ATTENDUE
