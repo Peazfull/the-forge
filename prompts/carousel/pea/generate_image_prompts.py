@@ -56,13 +56,14 @@ jamais par l'image.
 ────────────────────────
 
 SI le sujet principal est une ENTREPRISE :
-- Le LOGO de l'entreprise est OBLIGATOIRE
+- Le LOGO officiel de l'entreprise est OBLIGATOIRE
 - Le logo doit être :
   - officiel
   - factuel
   - lisible
   - intégré naturellement
     (façade, signalétique, bâtiment, open space, environnement d'activité)
+- La composition DOIT être centrée sur le logo (moitié haute)
 - Aucune mise en scène négative ou dégradante
 
 SI le sujet principal est une PERSONNALITÉ PUBLIQUE :
@@ -95,6 +96,8 @@ AMBIANCE & COULEURS :
 - Sunset stylisée
 - Palette dominante :
   sunset stylized sky featuring fluo green, cyan blue, and magenta colors
+- Accents lumineux :
+  fluo green, cyan blue, orange light, coral
 - Atmosphère élégante, maîtrisée, premium
 
 FOND :
@@ -124,6 +127,10 @@ Le prompt final doit contenir explicitement :
 - aucun texte dans l'image
 - aucun watermark
 - aucun logo média
+
+IMPORTANT (ENTREPRISE) :
+- La sortie doit suivre explicitement cette structure (adaptée à l'entreprise) :
+"Ultra-realistic editorial press photograph of the [LOGO OFFICIEL] prominently displayed as a lit sign on a [BÂTIMENT / BUREAU] parisian style, with a sunset stylized sky featuring fluo green, cyan blue, and magenta colors. The scene captures an elegant and premium atmosphere with accents of fluo green, cyan blue, orange light and coral. The logo is integrated naturally into the architecture, conveying stability and credibility. The composition centers around the logo in the upper half of the image, with a calm lower half suitable for adding a title later. The background has a subtle gradient without any distracting graphics. 8K render, professional photojournalism style, high-end studio lighting or perfectly controlled natural light, realistic depth of field, light and natural sensor grain, no text in the image, no watermark, no media logo."
 
 ────────────────────────
 SORTIE ATTENDUE
