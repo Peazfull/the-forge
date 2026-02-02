@@ -259,19 +259,20 @@ def generate_cover_slide(
     
     draw = ImageDraw.Draw(canvas)
     
-    # Logo principal (haut)
+    # Logo principal (haut) - cover (scale x2)
     logo_path = os.path.join(ASSETS_DIR, "Logo.png")
     if os.path.exists(logo_path):
         logo = Image.open(logo_path).convert("RGBA")
-        logo = logo.resize(LOGO_SIZE, Image.LANCZOS)
-        logo_x = (CANVAS_SIZE[0] - LOGO_SIZE[0]) // 2
+        logo_size = (LOGO_SIZE[0] * 2, LOGO_SIZE[1] * 2)
+        logo = logo.resize(logo_size, Image.LANCZOS)
+        logo_x = (CANVAS_SIZE[0] - logo_size[0]) // 2
         canvas.alpha_composite(logo, (logo_x, LOGO_TOP))
     
     # Logo slide 0 (plein centre)
     cover_logo_path = os.path.join(ASSETS_DIR, "Logo_slide_0_eco.png")
     if os.path.exists(cover_logo_path):
         cover_logo = Image.open(cover_logo_path).convert("RGBA")
-        scale = COVER_LOGO_WIDTH / cover_logo.size[0]
+        scale = (COVER_LOGO_WIDTH / cover_logo.size[0]) * 1.3
         cover_logo = cover_logo.resize(
             (int(cover_logo.size[0] * scale), int(cover_logo.size[1] * scale)),
             Image.LANCZOS
