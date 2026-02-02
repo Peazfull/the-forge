@@ -94,7 +94,9 @@ STYLE :
 AMBIANCE & COULEURS :
 - Sunset stylisée
 - Palette dominante :
-  sunset stylized sky featuring fluo green, cyan blue, and magenta colors
+  sunset stylized sky featuring purple, orange, magenta colors
+- Accents lumineux :
+  purple, orange, magenta
 - Atmosphère élégante, maîtrisée, premium
 
 FOND :
