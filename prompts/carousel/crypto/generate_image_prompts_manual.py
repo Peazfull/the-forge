@@ -105,12 +105,13 @@ STYLE :
 - Pas d'illustration, pas de peinture, pas de CGI
 
 AMBIANCE & COULEURS :
-- Sunset stylisée
-- Palette dominante :
-  sunset stylized sky featuring fluo green, cyan blue, and magenta colors
-- Accents lumineux :
-  fluo green, cyan blue, orange light, coral
-- Atmosphère élégante, maîtrisée, premium
+- Sunset golden hour uniquement
+- Couleurs dominantes :
+  golden amber, warm orange, soft sand tones
+- Accents secondaires :
+  subtle magenta, violet
+- Dégradés lisses, pas de contrastes durs
+- Atmosphère premium, chaleureuse, élégante
 
 FOND :
 - Aucun graphisme envahissant
@@ -118,10 +119,11 @@ FOND :
 - Le fond participe à la DA, sans voler l'attention au sujet
 
 COMPOSITION :
-- L'élément principal doit être idéalement situé dans la MOITIÉ HAUTE de l'image
+- Tous les éléments essentiels (logo + contexte principal)
+  doivent être dans la MOITIÉ HAUTE de l'image
 - Cadrage centré ou quasi centré (jamais excentré)
 - Perspective naturelle et équilibrée
-- La moitié basse de l'image doit rester calme
+- La moitié basse de l'image doit rester calme, minimaliste, dégagée
   pour accueillir un titre ajouté manuellement
 - Aucun texte généré dans l'image
 

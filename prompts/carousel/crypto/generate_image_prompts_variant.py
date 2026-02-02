@@ -70,33 +70,34 @@ SI le sujet est un ÉVÉNEMENT :
 
 Cette variante DOIT modifier la DA
 sans modifier le sens éditorial.
+La palette golden hour reste obligatoire, mais l'angle et la scène changent.
 
 STYLE :
-- Ultra-realistic editorial studio photograph
+- Ultra-realistic editorial press photograph
 - Rendu photo premium, presse haut de gamme
 - Pas d'illustration, pas de CGI, pas de peinture
 
-AMBIANCE & COULEURS (DIFFÉRENTE DU PROMPT 1) :
-- Studio sombre premium
-- Palette dominante :
-  vert bouteille / bleu nuit / anthracite
-- Accents lumineux très subtils :
-  reflets dorés ou ambrés
-- Atmosphère sobre, institutionnelle, très maîtrisée
+AMBIANCE & COULEURS (VARIANTE) :
+- Sunset golden hour uniquement
+- Couleurs dominantes :
+  golden amber, warm orange, soft sand tones
+- Accents secondaires :
+  subtle magenta, violet
+- Dégradés lisses, pas de contrastes durs
+- Atmosphère premium, chaleureuse, élégante
 
 FOND :
-- Fond studio uni
-- Couleur profonde et homogène
-- Dégradé très léger autorisé
-- Aucune texture visible
-- Aucune distraction visuelle
+- Aucun graphisme envahissant
+- Dégradé subtil autorisé
+- Le fond participe à la DA, sans voler l'attention au sujet
 
 COMPOSITION :
-- Élément principal placé dans la MOITIÉ HAUTE de l'image
-- Cadrage centré ou légèrement décentré (équilibré)
-- Perspective naturelle
-- Bas de l'image volontairement sobre et vide
-  pour ajout manuel d'un titre
+- Tous les éléments essentiels (logo + contexte principal)
+  doivent être dans la MOITIÉ HAUTE de l'image
+- Cadrage centré ou quasi centré (jamais excentré)
+- Perspective naturelle et équilibrée
+- La moitié basse de l'image doit rester calme, minimaliste, dégagée
+  pour accueillir un titre ajouté manuellement
 
 ────────────────────────
 ÉTAPE 5 — SPÉCIFICATIONS TECHNIQUES
@@ -105,8 +106,7 @@ COMPOSITION :
 Le prompt final doit inclure explicitement :
 - 8K render
 - professional photojournalism style
-- high-end studio lighting
-- controlled highlights and shadows
+- high-end studio lighting or perfectly controlled natural light
 - realistic depth of field
 - subtle sensor grain
 - no text
