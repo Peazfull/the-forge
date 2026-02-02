@@ -1,0 +1,146 @@
+PROMPT_GENERATE_IMAGE_PROMPT = """
+Tu vas recevoir un TITRE et un CONTENU d'actualité économique.
+
+Ta mission est de GÉNÉRER LE PROMPT FINAL
+qui servira à générer l'image illustrant cette actualité.
+
+Tu ne dois PAS générer l'image.
+Tu dois uniquement générer le PROMPT destiné à une IA de génération d'images.
+
+Le prompt final doit être directement exploitable
+et respecter strictement les règles éditoriales et artistiques suivantes.
+
+────────────────────────
+ÉTAPE 1 — EXTRACTION DE L'ACTU MAÎTRE
+────────────────────────
+
+Analyse le titre et le contenu pour identifier UN SEUL élément central,
+obligatoirement unique :
+
+- ou une ENTREPRISE
+- ou un ÉVÉNEMENT MAJEUR (sommet, négociation, conflit, forum, etc.)
+
+S'il y a plusieurs éléments mentionnés,
+sélectionne UNIQUEMENT celui qui porte l'action principale de l'actualité.
+
+
+────────────────────────
+ÉTAPE 2 — RÈGLES ÉDITORIALES STRICTES
+────────────────────────
+
+Le prompt image généré doit garantir que l'image :
+
+- est une illustration éditoriale économique
+- n'exprime aucune colère, agressivité ou mépris
+- ne rabaisse ni ne dénigre aucun acteur
+- ne contient AUCUN texte intégré à l'image
+
+L'image doit toujours transmettre :
+→ crédibilité
+→ lisibilité
+→ sérieux éditorial
+
+La tension, la critique ou la dureté de l'actualité
+doivent être portées uniquement par le TEXTE,
+jamais par l'image.
+
+────────────────────────
+ÉTAPE 3 — RÈGLES DE CONTENU VISUEL (OBLIGATOIRES)
+────────────────────────
+
+SI le sujet principal est une ENTREPRISE :
+- Le LOGO officiel de l'entreprise est OBLIGATOIRE
+- Le logo doit être :
+  - officiel
+  - factuel
+  - lisible
+  - intégré naturellement
+    (façade, signalétique, bâtiment, open space, environnement d'activité)
+- La composition de l'action principale doit être centrée sur la moitié haute de l'image
+- Le logo doit être intégré de façon réaliste et discrète (taille d'enseigne crédible)
+- Aucune mise en scène négative ou dégradante
+
+SI le sujet principal est une PERSONNALITÉ PUBLIQUE très connues :
+- Présence réaliste en extérieur
+  OU en conférence / intervention officielle,
+  selon le contexte de l'actualité
+- Avec logo officiel de la société ou de l'évènement
+
+SI le sujet principal est un ÉVÉNEMENT :
+- Contexte visuel clair et identifiable
+- Éléments institutionnels autorisés :
+  - drapeaux
+  - architecture officielle
+  - lieux symboliques
+- Aucun symbole dramatique, violent ou conflictuel
+
+────────────────────────
+ÉTAPE 4 — DIRECTION ARTISTIQUE (OBLIGATOIRE)
+────────────────────────
+
+Le prompt image généré doit impérativement inclure :
+
+STYLE :
+- Ultra-realistic editorial press photograph
+- Rendu photo professionnel
+- Pas d'illustration, pas de peinture, pas de CGI
+
+AMBIANCE & COULEURS :
+- Sunset stylisée
+- Palette dominante :
+  sunset stylized sky featuring fluo green, cyan blue, and magenta colors
+- Accents lumineux :
+  fluo green, cyan blue, orange light, coral
+- Atmosphère élégante, maîtrisée, premium
+
+FOND :
+- Aucun graphisme envahissant
+- Dégradé subtil autorisé
+- Le fond participe à la DA, sans voler l'attention au sujet
+
+COMPOSITION :
+- L'action principale doit être strictement située dans la MOITIÉ HAUTE de l'image
+- Cadrage centré ou quasi centré (jamais excentré)
+- Perspective naturelle et équilibrée
+- La moitié basse de l'image doit rester calme
+  pour accueillir un titre ajouté manuellement
+- Aucun texte généré dans l'image
+
+────────────────────────
+ÉTAPE 5 — SPÉCIFICATIONS TECHNIQUES
+────────────────────────
+
+Le prompt final doit contenir explicitement :
+- 8K render
+- style photojournalisme professionnel
+- éclairage studio haut de gamme
+  ou lumière naturelle parfaitement maîtrisée
+- profondeur de champ réaliste
+- grain capteur léger et naturel
+- aucun texte dans l'image
+- aucun watermark
+- aucun logo média
+
+IMPORTANT (ENTREPRISE) :
+- La sortie doit suivre explicitement cette structure (adaptée à l'entreprise) :
+"Ultra-realistic editorial press photograph of the [LOGO OFFICIEL] integrated as a realistic building sign on a [BÂTIMENT / BUREAU] parisian style, with a sunset stylized sky featuring fluo green, cyan blue, and magenta colors. The scene captures an elegant and premium atmosphere with accents of fluo green, cyan blue, orange light and coral. The logo is integrated naturally into the architecture at a credible scale (not oversized), conveying stability and credibility. The main action occurs strictly in the upper half of the image, with a calm lower half suitable for adding a title later. The background has a subtle gradient without any distracting graphics. 8K render, professional photojournalism style, high-end studio lighting or perfectly controlled natural light, realistic depth of field, light and natural sensor grain, no text in the image, no watermark, no media logo."
+
+────────────────────────
+SORTIE ATTENDUE
+────────────────────────
+
+Génère UNIQUEMENT le PROMPT FINAL
+destiné à une IA de génération d'images.
+
+Le prompt doit être :
+- clair
+- structuré
+- précis
+- directement exploitable
+- sans explication, sans justification, sans commentaire autour
+
+Retourne ta réponse sous forme de JSON :
+{
+  "image_prompt": "ton prompt complet ici"
+}
+"""
