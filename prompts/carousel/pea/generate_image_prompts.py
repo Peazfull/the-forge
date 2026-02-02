@@ -17,18 +17,12 @@ et respecter strictement les règles éditoriales et artistiques suivantes.
 Analyse le titre et le contenu pour identifier UN SEUL élément central,
 obligatoirement unique :
 
-- une PERSONNALITÉ PUBLIQUE
 - ou une ENTREPRISE
 - ou un ÉVÉNEMENT MAJEUR (sommet, négociation, conflit, forum, etc.)
 
-S'il y a plusieurs acteurs mentionnés,
+S'il y a plusieurs éléments mentionnés,
 sélectionne UNIQUEMENT celui qui porte l'action principale de l'actualité.
 
-Ignore systématiquement :
-- réactions secondaires
-- commentaires d'analystes
-- effets de marché
-- éléments émotionnels ou polémiques
 
 ────────────────────────
 ÉTAPE 2 — RÈGLES ÉDITORIALES STRICTES
@@ -42,7 +36,6 @@ Le prompt image généré doit garantir que l'image :
 - ne contient AUCUN texte intégré à l'image
 
 L'image doit toujours transmettre :
-→ stabilité
 → crédibilité
 → lisibilité
 → sérieux éditorial
@@ -63,15 +56,14 @@ SI le sujet principal est une ENTREPRISE :
   - lisible
   - intégré naturellement
     (façade, signalétique, bâtiment, open space, environnement d'activité)
-- La composition DOIT être centrée sur le logo (moitié haute)
+- La composition qui fait l'action principale de l'imageDOIT être centrée sur la moitié haute de l'image
 - Aucune mise en scène négative ou dégradante
 
-SI le sujet principal est une PERSONNALITÉ PUBLIQUE :
+SI le sujet principal est une PERSONNALITÉ PUBLIQUE très connues :
 - Présence réaliste en extérieur
   OU en conférence / intervention officielle,
   selon le contexte de l'actualité
-- Posture calme, institutionnelle et maîtrisée
-- Expression neutre ou réfléchie
+- Avec logo officiel de la société ou de l'évènement
 
 SI le sujet principal est un ÉVÉNEMENT :
 - Contexte visuel clair et identifiable
@@ -82,7 +74,7 @@ SI le sujet principal est un ÉVÉNEMENT :
 - Aucun symbole dramatique, violent ou conflictuel
 
 ────────────────────────
-ÉTAPE 4 — DIRECTION ARTISTIQUE FORGE (OBLIGATOIRE)
+ÉTAPE 4 — DIRECTION ARTISTIQUE (OBLIGATOIRE)
 ────────────────────────
 
 Le prompt image généré doit impérativement inclure :
@@ -106,7 +98,7 @@ FOND :
 - Le fond participe à la DA, sans voler l'attention au sujet
 
 COMPOSITION :
-- L'élément principal doit être idéalement situé dans la MOITIÉ HAUTE de l'image
+- L'élément principal doit être toujours situé dans la MOITIÉ HAUTE de l'image
 - Cadrage centré ou quasi centré (jamais excentré)
 - Perspective naturelle et équilibrée
 - La moitié basse de l'image doit rester calme
