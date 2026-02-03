@@ -132,6 +132,12 @@ def generate_story_slide(
     image_x = (CANVAS_SIZE[0] - IMAGE_SIDE) // 2
     canvas.alpha_composite(top_img, (image_x, 0))
 
+    bottom_bg_path = os.path.join(ASSETS_DIR, "story_bg_bas.png")
+    if os.path.exists(bottom_bg_path):
+        bottom_bg = Image.open(bottom_bg_path).convert("RGBA")
+        bottom_bg = _cover_resize(bottom_bg, (CANVAS_SIZE[0], CANVAS_SIZE[1] - IMAGE_TOP_HEIGHT))
+        canvas.alpha_composite(bottom_bg, (0, IMAGE_TOP_HEIGHT))
+
     draw = ImageDraw.Draw(canvas)
 
     logo_path = os.path.join(ASSETS_DIR, "Logo.png")
