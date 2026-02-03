@@ -323,49 +323,54 @@ if st.button("🚀 Générer images + slides", use_container_width=True):
     st.session_state["story_slides_cache_buster"] = str(time.time())
     st.rerun()
 
-for idx, label, title, content in [
+image_cards = [
     (1, "Slide 1", slide1_title, slide1_content),
     (2, "Slide 2", "ON VOUS EXPLIQUE", slide2_content),
     (3, "Slide 3", "DE PLUS", slide3_content),
     (4, "Slide 4", "EN GROS", slide4_content),
-]:
-    st.markdown(f"#### {label}")
-    if state.get(f"image_url_{idx}"):
-        st.image(state[f"image_url_{idx}"], use_container_width=True)
+]
 
-    if st.button(f"🎨 Générer image {idx}", use_container_width=True, key=f"gen_image_{idx}"):
-        prompt = state.get(f"prompt_image_{idx}", "")
-        if not prompt:
-            p = generate_story_image_prompt(title, content)
-            prompt = p.get("image_prompt", "")
-            state[f"prompt_image_{idx}"] = prompt
-        if prompt:
-            with st.spinner(f"Génération image {idx}..."):
-                result = generate_carousel_image(prompt)
-            if result.get("status") == "success":
-                image_bytes = base64.b64decode(result["image_data"])
+for row_idx in range(0, len(image_cards), 2):
+    cols = st.columns(2)
+    for col, (idx, label, title, content) in zip(cols, image_cards[row_idx:row_idx + 2]):
+        with col:
+            st.markdown(f"#### {label}")
+            if state.get(f"image_url_{idx}"):
+                st.image(state[f"image_url_{idx}"], use_container_width=True)
+
+            if st.button(f"🎨 Générer image {idx}", use_container_width=True, key=f"gen_image_{idx}"):
+                prompt = state.get(f"prompt_image_{idx}", "")
+                if not prompt:
+                    p = generate_story_image_prompt(title, content)
+                    prompt = p.get("image_prompt", "")
+                    state[f"prompt_image_{idx}"] = prompt
+                if prompt:
+                    with st.spinner(f"Génération image {idx}..."):
+                        result = generate_carousel_image(prompt)
+                    if result.get("status") == "success":
+                        image_bytes = base64.b64decode(result["image_data"])
+                        url = _upload_story_image(idx, image_bytes) or ""
+                        state[f"image_url_{idx}"] = _with_cache_buster(url, str(time.time()))
+                        _save_story_state(state)
+                        st.success(f"✅ Image {idx} générée")
+                        st.rerun()
+                    else:
+                        st.error(result.get("message", f"Erreur image {idx}"))
+                else:
+                    st.warning("Prompt image vide.")
+
+            uploaded = st.file_uploader(
+                f"Charger une image {idx}",
+                type=["png", "jpg", "jpeg"],
+                key=f"upload_story_{idx}",
+            )
+            if uploaded is not None:
+                image_bytes = uploaded.read()
                 url = _upload_story_image(idx, image_bytes) or ""
                 state[f"image_url_{idx}"] = _with_cache_buster(url, str(time.time()))
                 _save_story_state(state)
-                st.success(f"✅ Image {idx} générée")
+                st.success(f"✅ Image {idx} chargée")
                 st.rerun()
-            else:
-                st.error(result.get("message", f"Erreur image {idx}"))
-        else:
-            st.warning("Prompt image vide.")
-
-    uploaded = st.file_uploader(
-        f"Charger une image {idx}",
-        type=["png", "jpg", "jpeg"],
-        key=f"upload_story_{idx}",
-    )
-    if uploaded is not None:
-        image_bytes = uploaded.read()
-        url = _upload_story_image(idx, image_bytes) or ""
-        state[f"image_url_{idx}"] = _with_cache_buster(url, str(time.time()))
-        _save_story_state(state)
-        st.success(f"✅ Image {idx} chargée")
-        st.rerun()
 
 st.divider()
 st.markdown("### Slides")
