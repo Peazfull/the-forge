@@ -249,6 +249,7 @@ with col_img0:
                 _save_breaking_state(state)
                 st.success("✅ Image 0 générée")
                 _auto_generate_slides_if_ready(state, title, content)
+                st.rerun()
             else:
                 st.error(result.get("message", "Erreur image 0"))
     with st.expander("✍️ Re-prompt image 0", expanded=False):
@@ -268,6 +269,7 @@ with col_img0:
                     _save_breaking_state(state)
                     st.success("✅ Image 0 générée")
                     _auto_generate_slides_if_ready(state, title, content)
+                    st.rerun()
                 else:
                     st.error(result.get("message", "Erreur image 0"))
     uploaded_0 = st.file_uploader("Charger une image 0", type=["png", "jpg", "jpeg"], key="breaking_upload_0")
@@ -278,6 +280,7 @@ with col_img0:
         _save_breaking_state(state)
         st.success("✅ Image 0 chargée")
         _auto_generate_slides_if_ready(state, title, content)
+        st.rerun()
 
 with col_img1:
     if state.get("image_url_1"):
@@ -305,6 +308,7 @@ with col_img1:
                 _save_breaking_state(state)
                 st.success("✅ Image 1 générée")
                 _auto_generate_slides_if_ready(state, title, content)
+                st.rerun()
             else:
                 st.error(result.get("message", "Erreur image 1"))
     with st.expander("✍️ Re-prompt image 1", expanded=False):
@@ -324,6 +328,7 @@ with col_img1:
                     _save_breaking_state(state)
                     st.success("✅ Image 1 générée")
                     _auto_generate_slides_if_ready(state, title, content)
+                    st.rerun()
                 else:
                     st.error(result.get("message", "Erreur image 1"))
     uploaded_1 = st.file_uploader("Charger une image 1", type=["png", "jpg", "jpeg"], key="breaking_upload_1")
@@ -334,6 +339,7 @@ with col_img1:
         _save_breaking_state(state)
         st.success("✅ Image 1 chargée")
         _auto_generate_slides_if_ready(state, title, content)
+        st.rerun()
 
 st.divider()
 
