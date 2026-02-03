@@ -206,6 +206,13 @@ def generate_story_slide(
     canvas = Image.new("RGBA", CANVAS_SIZE, "white")
     canvas.alpha_composite(top_img, (0, 0))
 
+    filter_path = os.path.join(ASSETS_DIR, "filter_main.png")
+    if os.path.exists(filter_path):
+        overlay = Image.open(filter_path).convert("RGBA")
+        if overlay.size != CANVAS_SIZE:
+            overlay = overlay.resize(CANVAS_SIZE, Image.LANCZOS)
+        canvas.alpha_composite(overlay, (0, 0))
+
     logo_path = os.path.join(ASSETS_DIR, "Logo.png")
     if os.path.exists(logo_path):
         logo = Image.open(logo_path).convert("RGBA")
