@@ -48,6 +48,10 @@ TITLE_COLOR = "black"
 CONTENT_COLOR = "black"
 TITLE_BG_TEXT_COLOR = "#FCF6DE"
 TITLE_TEXT_LEFT_PADDING = 7
+HIGHLIGHT_BG_COLOR = "#5B2EFF"
+HIGHLIGHT_TEXT_COLOR = "#FCF6DE"
+HIGHLIGHT_PAD_X = 6
+HIGHLIGHT_PAD_Y = 4
 
 FONT_TITLE_PATH = os.path.join(ASSETS_DIR, "Manrope-Bold.ttf")
 FONT_CONTENT_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")
@@ -141,6 +145,48 @@ def _fit_text(
     return font, _wrap_text(text, draw, font, max_width)
 
 
+def _strip_highlight_markers(text: str) -> str:
+    return text.replace("**", "")
+
+
+def _tokenize_highlights(text: str) -> list[tuple[str, bool]]:
+    tokens: list[tuple[str, bool]] = []
+    if not text:
+        return tokens
+    parts = text.split("**")
+    for idx, part in enumerate(parts):
+        if not part:
+            continue
+        is_highlight = (idx % 2 == 1)
+        words = part.split()
+        for w in words:
+            tokens.append((w, is_highlight))
+    return tokens
+
+
+def _wrap_highlight_tokens(
+    tokens: list[tuple[str, bool]],
+    draw: ImageDraw.ImageDraw,
+    font: ImageFont.ImageFont,
+    max_width: int
+) -> list[list[tuple[str, bool]]]:
+    lines: list[list[tuple[str, bool]]] = []
+    current: list[tuple[str, bool]] = []
+    current_width = 0.0
+    for i, (word, is_highlight) in enumerate(tokens):
+        token_text = word + " "
+        token_width = draw.textlength(token_text, font=font)
+        if current and current_width + token_width > max_width:
+            lines.append(current)
+            current = []
+            current_width = 0.0
+        current.append((word, is_highlight))
+        current_width += token_width
+    if current:
+        lines.append(current)
+    return lines
+
+
 def generate_story_slide(
     title: str,
     content: str,
@@ -228,9 +274,10 @@ def generate_story_slide(
 
     content_y = y + CONTENT_TOP_GAP
     content_max_height = (text_area_top + text_area_height) - content_y
-    content_font, content_lines = _fit_text(
+    content_plain = _strip_highlight_markers(content)
+    content_font, content_lines_plain = _fit_text(
         draw,
-        content,
+        content_plain,
         content_max_width,
         content_max_height,
         start_size=CONTENT_FONT_SIZE,
@@ -238,11 +285,28 @@ def generate_story_slide(
         weight=CONTENT_FONT_WEIGHT,
     )
     content_line_height = int(content_font.size * 1.25)
+    content_tokens = _tokenize_highlights(content)
+    content_lines = _wrap_highlight_tokens(content_tokens, draw, content_font, content_max_width)
     y = content_y
-    for line in content_lines:
+    for line_tokens in content_lines:
         if y + content_line_height > CANVAS_SIZE[1] - CONTENT_BOTTOM_MARGIN:
             break
-        draw.text((LEFT_MARGIN, y), line, font=content_font, fill=CONTENT_COLOR)
+        x = LEFT_MARGIN
+        for word, is_highlight in line_tokens:
+            token_text = word + " "
+            token_width = draw.textlength(token_text, font=content_font)
+            if is_highlight:
+                rect = (
+                    x - HIGHLIGHT_PAD_X,
+                    y - HIGHLIGHT_PAD_Y,
+                    x + token_width - HIGHLIGHT_PAD_X,
+                    y + content_line_height - HIGHLIGHT_PAD_Y
+                )
+                draw.rectangle(rect, fill=HIGHLIGHT_BG_COLOR)
+                draw.text((x, y), token_text, font=content_font, fill=HIGHLIGHT_TEXT_COLOR)
+            else:
+                draw.text((x, y), token_text, font=content_font, fill=CONTENT_COLOR)
+            x += token_width
         y += content_line_height
 
     output = BytesIO()

@@ -9,6 +9,8 @@ CONTRAINTES :
 - Slide 2 : titre FIXE "ON VOUS EXPLIQUE" + contenu.
 - Slide 3 : titre FIXE "DE PLUS" + contenu.
 - Slide 4 : titre FIXE "EN GROS" + contenu de conclusion.
+- Dans les contenus uniquement (pas dans les titres), mets en valeur 1 à 2 mots/phrases
+  en les entourant de **double astérisques** (ex: **mot clé**).
 - AUCUN markdown.
 - Réponse en JSON STRICT.
 
