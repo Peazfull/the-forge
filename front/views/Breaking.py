@@ -280,8 +280,8 @@ with col_img1:
 st.divider()
 
 st.markdown("### Slides")
-    if st.button("🖼️ Générer slides", use_container_width=True):
-        _generate_breaking_slides(state, title, content)
+if st.button("🖼️ Générer slides", use_container_width=True):
+    _generate_breaking_slides(state, title, content)
 
 st.markdown("### Preview slides")
 col_p0, col_p1, col_p2 = st.columns(3)
