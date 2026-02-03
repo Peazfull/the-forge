@@ -84,6 +84,17 @@ def _strip_fixed_title_prefix(text: str, fixed_title: str) -> str:
     return re.sub(pattern, "", text, flags=re.IGNORECASE).strip()
 
 
+def _ensure_highlight(text: str, max_words: int = 3) -> str:
+    if not text or "**" in text:
+        return text
+    words = text.split()
+    if len(words) < 2:
+        return text
+    take = min(max_words, len(words))
+    highlighted = " ".join(words[:take])
+    return f"**{highlighted}** " + " ".join(words[take:])
+
+
 def _upload_story_image(position: int, image_bytes: bytes) -> Optional[str]:
     supabase = get_supabase()
     filename = f"story_image_{position}.png"
@@ -196,15 +207,15 @@ if st.button("✨ Générer titres + contenus", use_container_width=True):
         if result.get("status") == "success":
             data = result["data"]
             state["slide1_title"] = data.get("slide1_title", "")
-            state["slide1_content"] = data.get("slide1_content", "")
+            state["slide1_content"] = _ensure_highlight(data.get("slide1_content", ""))
             state["slide2_content"] = _strip_fixed_title_prefix(
-                data.get("slide2_content", ""), "ON VOUS EXPLIQUE"
+                _ensure_highlight(data.get("slide2_content", "")), "ON VOUS EXPLIQUE"
             )
             state["slide3_content"] = _strip_fixed_title_prefix(
-                data.get("slide3_content", ""), "DE PLUS"
+                _ensure_highlight(data.get("slide3_content", "")), "DE PLUS"
             )
             state["slide4_content"] = _strip_fixed_title_prefix(
-                data.get("slide4_content", ""), "EN GROS"
+                _ensure_highlight(data.get("slide4_content", "")), "EN GROS"
             )
             _save_story_state(state)
             st.success("✅ Textes générés")

@@ -12,6 +12,7 @@ CONTRAINTES :
 - IMPORTANT : pour slide2/3/4, ne répète PAS le titre dans le contenu (contenu seul).
 - Dans les contenus uniquement (pas dans les titres), mets en valeur 1 à 2 mots/phrases
   en les entourant de **double astérisques** (ex: **mot clé**).
+- Tu DOIS mettre au moins un **...** dans chaque contenu.
 - Markdown interdit sauf ces **...** dans les contenus.
 - Réponse en JSON STRICT.
 
@@ -23,4 +24,7 @@ FORMAT JSON :
   "slide3_content": "...",
   "slide4_content": "..."
 }
+
+EXEMPLE CONTENU :
+"La BEI **élargit son mandat** pour financer la défense."
 """
