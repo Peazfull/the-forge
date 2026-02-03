@@ -14,7 +14,7 @@ CONTRAINTES :
   en les entourant de **double astérisques** (ex: **mot clé**).
 - Tu DOIS mettre au moins un **...** dans chaque contenu.
 - Markdown interdit sauf ces **...** dans les contenus.
-- Chaque contenu doit contenir au moins 1 retour à la ligne (\\n).
+- Chaque contenu doit contenir 2 phrases MAX, réparties en 2 paragraphes séparés par un retour à la ligne (\\n).
 - Réponse en JSON STRICT.
 
 FORMAT JSON :
