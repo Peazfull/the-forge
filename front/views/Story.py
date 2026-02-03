@@ -195,7 +195,7 @@ if st.button("✨ Générer titres + contenus", use_container_width=True):
             _save_story_state(state)
             st.success("✅ Textes générés")
 
-            with st.spinner("Génération des prompts + images..."):
+            with st.spinner("Génération des prompts images..."):
                 slides = [
                     (1, state["slide1_title"], state["slide1_content"]),
                     (2, "ON VOUS EXPLIQUE", state["slide2_content"]),
@@ -206,16 +206,8 @@ if st.button("✨ Générer titres + contenus", use_container_width=True):
                     p = generate_story_image_prompt(title, content)
                     prompt = p.get("image_prompt", "")
                     state[f"prompt_image_{idx}"] = prompt
-                    if prompt:
-                        img = generate_carousel_image(prompt)
-                        if img.get("status") == "success":
-                            image_bytes = base64.b64decode(img["image_data"])
-                            url = _upload_story_image(idx, image_bytes) or ""
-                            state[f"image_url_{idx}"] = _with_cache_buster(url, str(time.time()))
                 _save_story_state(state)
-
-            if all(state.get(f"image_url_{i}") for i in range(1, 5)):
-                _generate_story_slides(state)
+            st.success("✅ Prompts images générés")
         else:
             st.error(result.get("message", "Erreur de génération"))
 
@@ -235,8 +227,64 @@ if st.button("💾 Sauvegarder textes", use_container_width=True):
     _save_story_state(state)
     st.success("✅ Textes sauvegardés")
 
+with st.expander("✍️ Prompts images (éditables)", expanded=False):
+    p1 = st.text_area("Prompt image 1", value=state.get("prompt_image_1", ""), height=100)
+    p2 = st.text_area("Prompt image 2", value=state.get("prompt_image_2", ""), height=100)
+    p3 = st.text_area("Prompt image 3", value=state.get("prompt_image_3", ""), height=100)
+    p4 = st.text_area("Prompt image 4", value=state.get("prompt_image_4", ""), height=100)
+
+    col_save_prompts, col_regen_prompts = st.columns(2)
+    with col_save_prompts:
+        if st.button("💾 Sauvegarder prompts", use_container_width=True):
+            state["prompt_image_1"] = p1
+            state["prompt_image_2"] = p2
+            state["prompt_image_3"] = p3
+            state["prompt_image_4"] = p4
+            _save_story_state(state)
+            st.success("✅ Prompts sauvegardés")
+    with col_regen_prompts:
+        if st.button("✨ Régénérer prompts", use_container_width=True):
+            slides = [
+                (1, slide1_title, slide1_content),
+                (2, "ON VOUS EXPLIQUE", slide2_content),
+                (3, "DE PLUS", slide3_content),
+                (4, "EN GROS", slide4_content),
+            ]
+            with st.spinner("Génération des prompts..."):
+                for idx, title, content in slides:
+                    p = generate_story_image_prompt(title, content)
+                    state[f"prompt_image_{idx}"] = p.get("image_prompt", "")
+                _save_story_state(state)
+            st.success("✅ Prompts régénérés")
+
 st.divider()
 st.markdown("### Images")
+
+if st.button("🚀 Générer images + slides", use_container_width=True):
+    slides = [
+        (1, slide1_title, slide1_content),
+        (2, "ON VOUS EXPLIQUE", slide2_content),
+        (3, "DE PLUS", slide3_content),
+        (4, "EN GROS", slide4_content),
+    ]
+    with st.spinner("Génération des images..."):
+        for idx, title, content in slides:
+            prompt = state.get(f"prompt_image_{idx}", "")
+            if not prompt:
+                p = generate_story_image_prompt(title, content)
+                prompt = p.get("image_prompt", "")
+                state[f"prompt_image_{idx}"] = prompt
+            if not prompt:
+                continue
+            result = generate_carousel_image(prompt)
+            if result.get("status") == "success":
+                image_bytes = base64.b64decode(result["image_data"])
+                url = _upload_story_image(idx, image_bytes) or ""
+                state[f"image_url_{idx}"] = _with_cache_buster(url, str(time.time()))
+    _save_story_state(state)
+    _generate_story_slides(state)
+    st.session_state["story_slides_cache_buster"] = str(time.time())
+    st.rerun()
 
 for idx, label, title, content in [
     (1, "Slide 1", slide1_title, slide1_content),
@@ -249,9 +297,11 @@ for idx, label, title, content in [
         st.image(state[f"image_url_{idx}"], use_container_width=True)
 
     if st.button(f"🎨 Générer image {idx}", use_container_width=True, key=f"gen_image_{idx}"):
-        p = generate_story_image_prompt(title, content)
-        prompt = p.get("image_prompt", "")
-        state[f"prompt_image_{idx}"] = prompt
+        prompt = state.get(f"prompt_image_{idx}", "")
+        if not prompt:
+            p = generate_story_image_prompt(title, content)
+            prompt = p.get("image_prompt", "")
+            state[f"prompt_image_{idx}"] = prompt
         if prompt:
             with st.spinner(f"Génération image {idx}..."):
                 result = generate_carousel_image(prompt)
@@ -264,6 +314,8 @@ for idx, label, title, content in [
                 st.rerun()
             else:
                 st.error(result.get("message", f"Erreur image {idx}"))
+        else:
+            st.warning("Prompt image vide.")
 
     uploaded = st.file_uploader(
         f"Charger une image {idx}",
