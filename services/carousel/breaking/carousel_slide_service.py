@@ -279,7 +279,7 @@ def generate_cover_slide(
     title_block_height = title_line_height * len(title_lines)
 
     total_h = cover_logo_height + DATE_TOP_GAP + title_block_height
-    start_y = (CANVAS_SIZE[1] - total_h) // 2 + 150
+    start_y = (CANVAS_SIZE[1] - total_h) // 2 + 200
     cover_x = (CANVAS_SIZE[0] - cover_logo.size[0]) // 2 if cover_logo_height else 0
 
     if cover_logo_height:
