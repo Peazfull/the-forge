@@ -226,8 +226,8 @@ def generate_story_slide(
             draw.text((LEFT_MARGIN, y), line, font=title_font, fill=TITLE_COLOR)
             y += title_line_height
 
-    y += CONTENT_TOP_GAP
-    content_max_height = (text_area_top + text_area_height) - y
+    content_y = y + CONTENT_TOP_GAP
+    content_max_height = (text_area_top + text_area_height) - content_y
     content_font, content_lines = _fit_text(
         draw,
         content,
@@ -238,6 +238,7 @@ def generate_story_slide(
         weight=CONTENT_FONT_WEIGHT,
     )
     content_line_height = int(content_font.size * 1.25)
+    y = content_y
     for line in content_lines:
         if y + content_line_height > CANVAS_SIZE[1] - CONTENT_BOTTOM_MARGIN:
             break
