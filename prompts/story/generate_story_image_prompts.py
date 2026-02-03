@@ -4,8 +4,9 @@ qui illustre la news. L'image DOIT être en 16:9 (horizontal).
 
 CONTRAINTES VISUELLES :
 - Contexte visuel cohérent avec l'actualité (lieu, objet, symbole, industrie).
-- Si une entreprise est citée : intégrer un logo OFFICIEL, discret et bien intégré.
-- Si une personnalité / événement géopolitique : inclure un élément contextuel clair.
+- Si une entreprise cotée est citée : intégrer le logo OFFICIEL, discret et bien intégré.
+- Si info géopolitique : inclure un drapeau, un lieu ou un monument immédiatement reconnaissable.
+- Personne uniquement si c'est une personnalité publique majeure du monde économique ou géopolitique.
 - Pas de texte, pas de watermark.
 - Composition claire, sujet principal identifiable, action dans la moitié haute.
 - Palette dominante : sunset stylized sky avec bleu, magenta et orange.
