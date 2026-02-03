@@ -6,6 +6,7 @@ import io
 import zipfile
 from io import BytesIO
 from typing import Dict, Optional
+import re
 from datetime import datetime
 
 import streamlit as st
@@ -74,6 +75,13 @@ def _with_cache_buster(url: str, token: str) -> str:
         return url
     joiner = "&" if "?" in url else "?"
     return f"{url}{joiner}v={token}"
+
+
+def _strip_fixed_title_prefix(text: str, fixed_title: str) -> str:
+    if not text:
+        return ""
+    pattern = rf"^\s*{re.escape(fixed_title)}\s*[:\-–—]?\s*"
+    return re.sub(pattern, "", text, flags=re.IGNORECASE).strip()
 
 
 def _upload_story_image(position: int, image_bytes: bytes) -> Optional[str]:
@@ -189,9 +197,15 @@ if st.button("✨ Générer titres + contenus", use_container_width=True):
             data = result["data"]
             state["slide1_title"] = data.get("slide1_title", "")
             state["slide1_content"] = data.get("slide1_content", "")
-            state["slide2_content"] = data.get("slide2_content", "")
-            state["slide3_content"] = data.get("slide3_content", "")
-            state["slide4_content"] = data.get("slide4_content", "")
+            state["slide2_content"] = _strip_fixed_title_prefix(
+                data.get("slide2_content", ""), "ON VOUS EXPLIQUE"
+            )
+            state["slide3_content"] = _strip_fixed_title_prefix(
+                data.get("slide3_content", ""), "DE PLUS"
+            )
+            state["slide4_content"] = _strip_fixed_title_prefix(
+                data.get("slide4_content", ""), "EN GROS"
+            )
             _save_story_state(state)
             st.success("✅ Textes générés")
 
@@ -214,16 +228,28 @@ if st.button("✨ Générer titres + contenus", use_container_width=True):
 st.markdown("### Textes Story (éditables)")
 slide1_title = st.text_input("Slide 1 · Titre clickbait", value=state.get("slide1_title", ""))
 slide1_content = st.text_area("Slide 1 · Content", value=state.get("slide1_content", ""), height=120)
-slide2_content = st.text_area("Slide 2 · Content (On vous explique)", value=state.get("slide2_content", ""), height=120)
-slide3_content = st.text_area("Slide 3 · Content (De plus)", value=state.get("slide3_content", ""), height=120)
-slide4_content = st.text_area("Slide 4 · Content (En gros)", value=state.get("slide4_content", ""), height=120)
+slide2_content = st.text_area(
+    "Slide 2 · Content (On vous explique)",
+    value=_strip_fixed_title_prefix(state.get("slide2_content", ""), "ON VOUS EXPLIQUE"),
+    height=120
+)
+slide3_content = st.text_area(
+    "Slide 3 · Content (De plus)",
+    value=_strip_fixed_title_prefix(state.get("slide3_content", ""), "DE PLUS"),
+    height=120
+)
+slide4_content = st.text_area(
+    "Slide 4 · Content (En gros)",
+    value=_strip_fixed_title_prefix(state.get("slide4_content", ""), "EN GROS"),
+    height=120
+)
 
 if st.button("💾 Sauvegarder textes", use_container_width=True):
     state["slide1_title"] = slide1_title
     state["slide1_content"] = slide1_content
-    state["slide2_content"] = slide2_content
-    state["slide3_content"] = slide3_content
-    state["slide4_content"] = slide4_content
+    state["slide2_content"] = _strip_fixed_title_prefix(slide2_content, "ON VOUS EXPLIQUE")
+    state["slide3_content"] = _strip_fixed_title_prefix(slide3_content, "DE PLUS")
+    state["slide4_content"] = _strip_fixed_title_prefix(slide4_content, "EN GROS")
     _save_story_state(state)
     st.success("✅ Textes sauvegardés")
 
