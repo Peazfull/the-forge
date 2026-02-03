@@ -33,8 +33,8 @@ CONTENT_BOTTOM_MARGIN = 60
 BOTTOM_BG_HEIGHT = 1043
 BOTTOM_BG_MARGIN_BOTTOM = 20
 BOTTOM_BG_MARGIN_LEFT = 0
-OVERLAY_WIDTH = 1060
-OVERLAY_HEIGHT = 1043
+OVERLAY_WIDTH = 1064
+OVERLAY_HEIGHT = 1047
 
 TITLE_FONT_SIZE = 40
 CONTENT_FONT_SIZE = 38
@@ -171,9 +171,10 @@ def generate_story_slide(
     overlay_path = os.path.join(ASSETS_DIR, "story_overlay_bas.png")
     if os.path.exists(overlay_path):
         overlay = Image.open(overlay_path).convert("RGBA")
-        if overlay.size == (OVERLAY_WIDTH, OVERLAY_HEIGHT):
-            overlay_y = CANVAS_SIZE[1] - OVERLAY_HEIGHT - BOTTOM_BG_MARGIN_BOTTOM
-            canvas.alpha_composite(overlay, (BOTTOM_BG_MARGIN_LEFT, overlay_y))
+        if overlay.size != (OVERLAY_WIDTH, OVERLAY_HEIGHT):
+            overlay = overlay.resize((OVERLAY_WIDTH, OVERLAY_HEIGHT), Image.LANCZOS)
+        overlay_y = CANVAS_SIZE[1] - OVERLAY_HEIGHT - BOTTOM_BG_MARGIN_BOTTOM
+        canvas.alpha_composite(overlay, (BOTTOM_BG_MARGIN_LEFT, overlay_y))
 
     draw = ImageDraw.Draw(canvas)
 
