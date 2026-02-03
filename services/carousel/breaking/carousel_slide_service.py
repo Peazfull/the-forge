@@ -29,6 +29,7 @@ SWIPE_SIZE = (56, 29)
 COVER_SWIPE_SCALE = 0.5
 LEFT_MARGIN = 60
 RIGHT_MARGIN = 60
+TITLE_COVER_SIDE_MARGIN = 120
 CONTENT_TOP_GAP = 20
 CONTENT_BOTTOM_MARGIN = 20
 DATE_FONT_SIZE = 38
@@ -167,7 +168,7 @@ def generate_carousel_slide(
     else:
         title_bg_height = 0
 
-    title_max_width = CANVAS_SIZE[0] - LEFT_MARGIN - RIGHT_MARGIN
+    title_max_width = CANVAS_SIZE[0] - (TITLE_COVER_SIDE_MARGIN * 2)
     title_font, title_lines = _fit_text(
         draw, title, title_max_width, 80, start_size=TITLE_FONT_SIZE, font_path=FONT_TITLE_PATH, weight=TITLE_FONT_WEIGHT
     )
