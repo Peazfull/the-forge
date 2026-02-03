@@ -301,7 +301,7 @@ def generate_story_slide(
                 break
             x = LEFT_MARGIN
             for word, is_highlight in line_tokens:
-                token_text = word + " "
+                token_text = word
                 token_width = draw.textlength(token_text, font=content_font)
                 if is_highlight:
                     rect = (
@@ -314,7 +314,8 @@ def generate_story_slide(
                     draw.text((x, y), token_text, font=content_font, fill=HIGHLIGHT_TEXT_COLOR)
                 else:
                     draw.text((x, y), token_text, font=content_font, fill=CONTENT_COLOR)
-                x += token_width
+                space_width = draw.textlength(" ", font=content_font)
+                x += token_width + space_width
             y += content_line_height
         if idx < len(blocks) - 1:
             y += content_line_height * PARAGRAPH_EXTRA_LINE_GAP
