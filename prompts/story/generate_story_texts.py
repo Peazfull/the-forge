@@ -11,7 +11,7 @@ CONTRAINTES :
 - Slide 4 : titre FIXE "EN GROS" + contenu de conclusion.
 - Dans les contenus uniquement (pas dans les titres), mets en valeur 1 à 2 mots/phrases
   en les entourant de **double astérisques** (ex: **mot clé**).
-- AUCUN markdown.
+- Markdown interdit sauf ces **...** dans les contenus.
 - Réponse en JSON STRICT.
 
 FORMAT JSON :
