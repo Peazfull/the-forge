@@ -149,6 +149,13 @@ def generate_story_slide(
     canvas = Image.new("RGBA", CANVAS_SIZE, "white")
     canvas.alpha_composite(top_img, (0, 0))
 
+    logo_path = os.path.join(ASSETS_DIR, "Logo.png")
+    if os.path.exists(logo_path):
+        logo = Image.open(logo_path).convert("RGBA")
+        logo = logo.resize(LOGO_SIZE, Image.LANCZOS)
+        logo_x = (CANVAS_SIZE[0] - LOGO_SIZE[0]) // 2
+        canvas.alpha_composite(logo, (logo_x, LOGO_TOP))
+
     bottom_bg_path = os.path.join(ASSETS_DIR, "story_bg_bas.png")
     if os.path.exists(bottom_bg_path):
         bottom_bg = Image.open(bottom_bg_path).convert("RGBA")
@@ -160,13 +167,6 @@ def generate_story_slide(
         canvas.alpha_composite(bottom_bg, (0, IMAGE_TOP_HEIGHT))
 
     draw = ImageDraw.Draw(canvas)
-
-    logo_path = os.path.join(ASSETS_DIR, "Logo.png")
-    if os.path.exists(logo_path):
-        logo = Image.open(logo_path).convert("RGBA")
-        logo = logo.resize(LOGO_SIZE, Image.LANCZOS)
-        logo_x = (CANVAS_SIZE[0] - LOGO_SIZE[0]) // 2
-        canvas.alpha_composite(logo, (logo_x, LOGO_TOP))
 
     text_area_top = IMAGE_TOP_HEIGHT + TITLE_TOP_GAP
     text_area_height = CANVAS_SIZE[1] - text_area_top - CONTENT_BOTTOM_MARGIN
