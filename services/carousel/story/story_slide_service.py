@@ -197,7 +197,11 @@ def generate_story_slide(
 
     text_area_top = IMAGE_TOP_HEIGHT + TITLE_TOP_GAP
     text_area_height = CANVAS_SIZE[1] - text_area_top - CONTENT_BOTTOM_MARGIN
-    title_max_width = CANVAS_SIZE[0] - LEFT_MARGIN - RIGHT_MARGIN
+    content_max_width = CANVAS_SIZE[0] - LEFT_MARGIN - RIGHT_MARGIN
+
+    title_max_width = content_max_width
+    if title_bg_x is not None:
+        title_max_width = max(50, TITLE_BG_WIDTH - (TITLE_TEXT_LEFT_PADDING * 2))
 
     title_font, title_lines = _fit_text(
         draw,
@@ -227,7 +231,7 @@ def generate_story_slide(
     content_font, content_lines = _fit_text(
         draw,
         content,
-        title_max_width,
+        content_max_width,
         content_max_height,
         start_size=CONTENT_FONT_SIZE,
         font_path=FONT_CONTENT_PATH,
