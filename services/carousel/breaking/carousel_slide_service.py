@@ -44,6 +44,7 @@ CONTENT_FONT_WEIGHT = 600
 TITLE_FONT_SIZE = 40
 TITLE_COVER_FONT_SIZE = 42
 CONTENT_FONT_SIZE = 38
+TITLE_SLIDE_MAX_HEIGHT = 80
 
 
 def _load_font(path: str, size: int, weight: int | None = None) -> ImageFont.ImageFont:
@@ -169,12 +170,12 @@ def generate_carousel_slide(
     else:
         title_bg_height = 0
 
-    title_max_width = CANVAS_SIZE[0] - (TITLE_COVER_SIDE_MARGIN * 2)
+    slide_text_max_width = CANVAS_SIZE[0] - LEFT_MARGIN - RIGHT_MARGIN
     title_font, title_lines = _fit_text(
-        draw, title, title_max_width, 80, start_size=TITLE_FONT_SIZE, font_path=FONT_TITLE_PATH, weight=TITLE_FONT_WEIGHT
+        draw, title, slide_text_max_width, TITLE_SLIDE_MAX_HEIGHT, start_size=TITLE_FONT_SIZE, font_path=FONT_TITLE_PATH, weight=TITLE_FONT_WEIGHT
     )
     title_block_height = int(title_font.size * 1.2) * len(title_lines[:2])
-    title_y = title_bg_top + max(0, (title_bg_height - title_block_height) // 2)
+    title_y = title_bg_top + max(0, (title_bg_height - title_block_height) // 2) - 5
     for line in title_lines[:2]:
         draw.text((LEFT_MARGIN, title_y), line, font=title_font, fill="white")
         title_y += int(title_font.size * 1.2)
@@ -183,7 +184,7 @@ def generate_carousel_slide(
     content_max_height = CANVAS_SIZE[1] - content_top - CONTENT_BOTTOM_MARGIN
     content = _sentence_case(content)
     content_font, content_lines = _fit_text(
-        draw, content, title_max_width, content_max_height, start_size=CONTENT_FONT_SIZE, font_path=FONT_CONTENT_PATH, weight=CONTENT_FONT_WEIGHT
+        draw, content, slide_text_max_width, content_max_height, start_size=CONTENT_FONT_SIZE, font_path=FONT_CONTENT_PATH, weight=CONTENT_FONT_WEIGHT
     )
     line_height = int(content_font.size * 1.25)
     y = content_top
