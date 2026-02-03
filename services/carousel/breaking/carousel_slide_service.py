@@ -218,11 +218,14 @@ def _format_french_date(dt: Optional[datetime] = None) -> str:
 
 
 def generate_cover_slide(
+    title: str,
     image_url: Optional[str] = None,
     image_bytes: Optional[bytes] = None
 ) -> bytes:
     if not image_url and not image_bytes:
         raise ValueError("Aucune image disponible pour la cover.")
+    if not title:
+        raise ValueError("Aucun titre disponible pour la cover.")
 
     if image_bytes:
         base_img = _load_image_from_bytes(image_bytes)
@@ -258,21 +261,33 @@ def generate_cover_slide(
     else:
         cover_logo_height = 0
 
-    date_str = _format_french_date()
-    date_font = _load_font(FONT_CONTENT_PATH, DATE_FONT_SIZE, weight=CONTENT_FONT_WEIGHT)
-    date_w = draw.textlength(date_str, font=date_font)
-    date_h = int(DATE_FONT_SIZE * 1.2)
+    title_text = title.strip().upper()
+    title_max_width = CANVAS_SIZE[0] - LEFT_MARGIN - RIGHT_MARGIN
+    title_font, title_lines = _fit_text(
+        draw,
+        title_text,
+        title_max_width,
+        160,
+        start_size=TITLE_FONT_SIZE,
+        font_path=FONT_TITLE_PATH,
+        weight=TITLE_FONT_WEIGHT
+    )
+    title_line_height = int(title_font.size * 1.2)
+    title_block_height = title_line_height * len(title_lines)
 
-    total_h = cover_logo_height + DATE_TOP_GAP + date_h
+    total_h = cover_logo_height + DATE_TOP_GAP + title_block_height
     start_y = (CANVAS_SIZE[1] - total_h) // 2 + 150
     cover_x = (CANVAS_SIZE[0] - cover_logo.size[0]) // 2 if cover_logo_height else 0
 
     if cover_logo_height:
         canvas.alpha_composite(cover_logo, (cover_x, start_y))
 
-    date_x = (CANVAS_SIZE[0] - int(date_w)) // 2
-    date_y = start_y + cover_logo_height + DATE_TOP_GAP
-    draw.text((date_x, date_y), date_str, font=date_font, fill="white")
+    title_y = start_y + cover_logo_height + DATE_TOP_GAP
+    for line in title_lines:
+        line_w = draw.textlength(line, font=title_font)
+        line_x = (CANVAS_SIZE[0] - int(line_w)) // 2
+        draw.text((line_x, title_y), line, font=title_font, fill="white")
+        title_y += title_line_height
 
     swipe_path = os.path.join(ASSETS_DIR, "Swipe.png")
     if os.path.exists(swipe_path):

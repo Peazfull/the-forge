@@ -117,7 +117,7 @@ def _generate_breaking_slides(state: Dict[str, object], title: str, content: str
         st.warning("Il faut un titre et un contenu.")
         return
     with st.spinner("Génération des slides..."):
-        cover_bytes = generate_cover_slide(image_url=state["image_url_0"])
+        cover_bytes = generate_cover_slide(title=title, image_url=state["image_url_0"])
         slide1_bytes = generate_carousel_slide(
             title=title,
             content=content,
