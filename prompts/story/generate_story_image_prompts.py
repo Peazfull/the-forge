@@ -6,7 +6,9 @@ CONTRAINTES VISUELLES :
 - Contexte visuel cohérent avec l'actualité (lieu, objet, symbole, industrie).
 - Si une entreprise cotée est citée : intégrer le logo OFFICIEL, discret et bien intégré.
 - Si info géopolitique : inclure un drapeau, un lieu ou un monument immédiatement reconnaissable.
-- Personne uniquement si c'est une personnalité publique majeure du monde économique ou géopolitique.
+- Personnes interdites par défaut. Autoriser uniquement si c'est une personnalité publique majeure
+  du monde économique ou géopolitique, clairement identifiable.
+- L'action principale doit se situer dans la moitié haute de l'image.
 - Pas de texte, pas de watermark.
 - Composition claire, sujet principal identifiable, action dans la moitié haute.
 - Palette dominante : sunset stylized sky avec bleu, magenta et orange.
