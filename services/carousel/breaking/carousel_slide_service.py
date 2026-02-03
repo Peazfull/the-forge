@@ -246,7 +246,7 @@ def generate_cover_slide(
         logo_x = (CANVAS_SIZE[0] - LOGO_SIZE[0]) // 2
         canvas.alpha_composite(logo, (logo_x, LOGO_TOP))
 
-    cover_logo_path = os.path.join(ASSETS_DIR, "Logo_slide_0_breaking.png")
+    cover_logo_path = os.path.join(ASSETS_DIR, "Breaking_logo.png")
     if os.path.exists(cover_logo_path):
         cover_logo = Image.open(cover_logo_path).convert("RGBA")
         scale = COVER_LOGO_WIDTH / cover_logo.size[0]
