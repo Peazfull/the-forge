@@ -35,6 +35,9 @@ BOTTOM_BG_MARGIN_BOTTOM = 20
 BOTTOM_BG_MARGIN_LEFT = 0
 OVERLAY_WIDTH = 1064
 OVERLAY_HEIGHT = 1047
+TITLE_BG_WIDTH = 1000
+TITLE_BG_HEIGHT = 80
+TITLE_BG_TOP_OFFSET_FROM_OVERLAY = 90
 
 TITLE_FONT_SIZE = 40
 CONTENT_FONT_SIZE = 38
@@ -168,6 +171,7 @@ def generate_story_slide(
             paste_y = CANVAS_SIZE[1] - bottom_bg.size[1]
             canvas.alpha_composite(bottom_bg, (0, paste_y))
 
+    overlay_y = None
     overlay_path = os.path.join(ASSETS_DIR, "story_overlay_bas.png")
     if os.path.exists(overlay_path):
         overlay = Image.open(overlay_path).convert("RGBA")
@@ -175,6 +179,15 @@ def generate_story_slide(
             overlay = overlay.resize((OVERLAY_WIDTH, OVERLAY_HEIGHT), Image.LANCZOS)
         overlay_y = CANVAS_SIZE[1] - OVERLAY_HEIGHT - BOTTOM_BG_MARGIN_BOTTOM
         canvas.alpha_composite(overlay, (BOTTOM_BG_MARGIN_LEFT, overlay_y))
+
+    title_bg_path = os.path.join(ASSETS_DIR, "title_bg_story.png")
+    if overlay_y is not None and os.path.exists(title_bg_path):
+        title_bg = Image.open(title_bg_path).convert("RGBA")
+        if title_bg.size != (TITLE_BG_WIDTH, TITLE_BG_HEIGHT):
+            title_bg = title_bg.resize((TITLE_BG_WIDTH, TITLE_BG_HEIGHT), Image.LANCZOS)
+        title_bg_x = (CANVAS_SIZE[0] - TITLE_BG_WIDTH) // 2
+        title_bg_y = overlay_y + TITLE_BG_TOP_OFFSET_FROM_OVERLAY
+        canvas.alpha_composite(title_bg, (title_bg_x, title_bg_y))
 
     draw = ImageDraw.Draw(canvas)
 
