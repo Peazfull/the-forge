@@ -285,29 +285,35 @@ def generate_story_slide(
         weight=CONTENT_FONT_WEIGHT,
     )
     content_line_height = int(content_font.size * 1.25)
-    content_tokens = _tokenize_highlights(content)
-    content_lines = _wrap_highlight_tokens(content_tokens, draw, content_font, content_max_width)
     y = content_y
-    for line_tokens in content_lines:
+    for block in content.splitlines():
         if y + content_line_height > CANVAS_SIZE[1] - CONTENT_BOTTOM_MARGIN:
             break
-        x = LEFT_MARGIN
-        for word, is_highlight in line_tokens:
-            token_text = word + " "
-            token_width = draw.textlength(token_text, font=content_font)
-            if is_highlight:
-                rect = (
-                    x - HIGHLIGHT_PAD_X,
-                    y - HIGHLIGHT_PAD_Y,
-                    x + token_width - HIGHLIGHT_PAD_X,
-                    y + content_line_height - HIGHLIGHT_PAD_Y
-                )
-                draw.rectangle(rect, fill=HIGHLIGHT_BG_COLOR)
-                draw.text((x, y), token_text, font=content_font, fill=HIGHLIGHT_TEXT_COLOR)
-            else:
-                draw.text((x, y), token_text, font=content_font, fill=CONTENT_COLOR)
-            x += token_width
-        y += content_line_height
+        if not block.strip():
+            y += content_line_height
+            continue
+        content_tokens = _tokenize_highlights(block)
+        content_lines = _wrap_highlight_tokens(content_tokens, draw, content_font, content_max_width)
+        for line_tokens in content_lines:
+            if y + content_line_height > CANVAS_SIZE[1] - CONTENT_BOTTOM_MARGIN:
+                break
+            x = LEFT_MARGIN
+            for word, is_highlight in line_tokens:
+                token_text = word + " "
+                token_width = draw.textlength(token_text, font=content_font)
+                if is_highlight:
+                    rect = (
+                        x - HIGHLIGHT_PAD_X,
+                        y - HIGHLIGHT_PAD_Y,
+                        x + token_width + HIGHLIGHT_PAD_X,
+                        y + content_line_height + HIGHLIGHT_PAD_Y
+                    )
+                    draw.rectangle(rect, fill=HIGHLIGHT_BG_COLOR)
+                    draw.text((x, y), token_text, font=content_font, fill=HIGHLIGHT_TEXT_COLOR)
+                else:
+                    draw.text((x, y), token_text, font=content_font, fill=CONTENT_COLOR)
+                x += token_width
+            y += content_line_height
 
     output = BytesIO()
     canvas.convert("RGB").save(output, format="PNG")
