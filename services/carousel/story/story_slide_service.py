@@ -19,7 +19,8 @@ ASSETS_DIR = os.path.join(
 )
 
 CANVAS_SIZE = (1080, 1920)
-IMAGE_TOP_HEIGHT = CANVAS_SIZE[1] // 3  # 640
+IMAGE_TOP_HEIGHT = CANVAS_SIZE[1] // 2  # 960
+IMAGE_SIDE = IMAGE_TOP_HEIGHT  # carré 1:1
 
 LOGO_SIZE = (200, 65)
 LOGO_TOP = 15
@@ -126,9 +127,10 @@ def generate_story_slide(
     else:
         base_img = _load_image_from_url(image_url)  # type: ignore[arg-type]
 
-    top_img = _cover_resize(base_img, (CANVAS_SIZE[0], IMAGE_TOP_HEIGHT))
+    top_img = _cover_resize(base_img, (IMAGE_SIDE, IMAGE_SIDE))
     canvas = Image.new("RGBA", CANVAS_SIZE, "white")
-    canvas.alpha_composite(top_img, (0, 0))
+    image_x = (CANVAS_SIZE[0] - IMAGE_SIDE) // 2
+    canvas.alpha_composite(top_img, (image_x, 0))
 
     draw = ImageDraw.Draw(canvas)
 
