@@ -46,6 +46,8 @@ CONTENT_FONT_WEIGHT = 600
 
 TITLE_COLOR = "black"
 CONTENT_COLOR = "black"
+TITLE_BG_TEXT_COLOR = "#FCF6DE"
+TITLE_TEXT_LEFT_PADDING = 7
 
 FONT_TITLE_PATH = os.path.join(ASSETS_DIR, "Manrope-Bold.ttf")
 FONT_CONTENT_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")
@@ -180,6 +182,8 @@ def generate_story_slide(
         overlay_y = CANVAS_SIZE[1] - OVERLAY_HEIGHT - BOTTOM_BG_MARGIN_BOTTOM
         canvas.alpha_composite(overlay, (BOTTOM_BG_MARGIN_LEFT, overlay_y))
 
+    title_bg_x = None
+    title_bg_y = None
     title_bg_path = os.path.join(ASSETS_DIR, "title_bg_story.png")
     if overlay_y is not None and os.path.exists(title_bg_path):
         title_bg = Image.open(title_bg_path).convert("RGBA")
@@ -206,10 +210,17 @@ def generate_story_slide(
     )
     title_line_height = int(title_font.size * 1.2)
 
-    y = text_area_top
-    for line in title_lines[:2]:
-        draw.text((LEFT_MARGIN, y), line, font=title_font, fill=TITLE_COLOR)
-        y += title_line_height
+    if title_bg_x is not None and title_bg_y is not None:
+        y = title_bg_y + max(0, (TITLE_BG_HEIGHT - (title_line_height * min(2, len(title_lines)))) // 2)
+        text_x = title_bg_x + TITLE_TEXT_LEFT_PADDING
+        for line in title_lines[:2]:
+            draw.text((text_x, y), line, font=title_font, fill=TITLE_BG_TEXT_COLOR)
+            y += title_line_height
+    else:
+        y = text_area_top
+        for line in title_lines[:2]:
+            draw.text((LEFT_MARGIN, y), line, font=title_font, fill=TITLE_COLOR)
+            y += title_line_height
 
     y += CONTENT_TOP_GAP
     content_max_height = (text_area_top + text_area_height) - y
