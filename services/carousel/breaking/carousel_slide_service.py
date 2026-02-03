@@ -142,7 +142,7 @@ def generate_carousel_slide(
     base_img = _cover_resize(base_img, CANVAS_SIZE)
     canvas = base_img.copy()
 
-    filter_path = os.path.join(ASSETS_DIR, "filter_main.png")
+    filter_path = os.path.join(ASSETS_DIR, "Filter_breaking.png")
     if os.path.exists(filter_path):
         overlay = Image.open(filter_path).convert("RGBA")
         canvas.alpha_composite(overlay)
