@@ -185,6 +185,26 @@ if st.button("💾 Sauvegarder texte", use_container_width=True):
     state["content_carou"] = content
     _save_breaking_state(state)
     st.success("✅ Texte sauvegardé")
+if st.button("🔄 Régénérer prompts + images", use_container_width=True):
+    if not title or not content:
+        st.warning("Il faut un titre et un contenu.")
+    else:
+        with st.spinner("Génération des prompts + images..."):
+            p = _generate_breaking_image_prompt(title, content)
+            prompt = p.get("image_prompt", "")
+            state["prompt_image_0"] = prompt
+            state["prompt_image_1"] = prompt
+            if prompt:
+                img0 = generate_carousel_image(prompt)
+                if img0.get("status") == "success":
+                    image_bytes = base64.b64decode(img0["image_data"])
+                    state["image_url_0"] = _upload_breaking_image(0, image_bytes) or ""
+                img1 = generate_carousel_image(prompt)
+                if img1.get("status") == "success":
+                    image_bytes = base64.b64decode(img1["image_data"])
+                    state["image_url_1"] = _upload_breaking_image(1, image_bytes) or ""
+            _save_breaking_state(state)
+        _auto_generate_slides_if_ready(state, title, content)
 
 st.divider()
 
@@ -231,6 +251,25 @@ with col_img0:
                 _auto_generate_slides_if_ready(state, title, content)
             else:
                 st.error(result.get("message", "Erreur image 0"))
+    with st.expander("✍️ Re-prompt image 0", expanded=False):
+        manual_prompt_0 = st.text_area("Prompt manuel 0", key="breaking_manual_prompt_0", height=80)
+        if st.button("🔄 Générer via prompt manuel 0", use_container_width=True):
+            if not manual_prompt_0.strip():
+                st.warning("Prompt manuel vide.")
+            else:
+                state["prompt_image_0"] = manual_prompt_0
+                _save_breaking_state(state)
+                with st.spinner("Génération image 0..."):
+                    result = generate_carousel_image(manual_prompt_0)
+                if result.get("status") == "success":
+                    image_bytes = base64.b64decode(result["image_data"])
+                    url = _upload_breaking_image(0, image_bytes)
+                    state["image_url_0"] = url or ""
+                    _save_breaking_state(state)
+                    st.success("✅ Image 0 générée")
+                    _auto_generate_slides_if_ready(state, title, content)
+                else:
+                    st.error(result.get("message", "Erreur image 0"))
     uploaded_0 = st.file_uploader("Charger une image 0", type=["png", "jpg", "jpeg"], key="breaking_upload_0")
     if uploaded_0 is not None:
         image_bytes = uploaded_0.read()
@@ -268,6 +307,25 @@ with col_img1:
                 _auto_generate_slides_if_ready(state, title, content)
             else:
                 st.error(result.get("message", "Erreur image 1"))
+    with st.expander("✍️ Re-prompt image 1", expanded=False):
+        manual_prompt_1 = st.text_area("Prompt manuel 1", key="breaking_manual_prompt_1", height=80)
+        if st.button("🔄 Générer via prompt manuel 1", use_container_width=True):
+            if not manual_prompt_1.strip():
+                st.warning("Prompt manuel vide.")
+            else:
+                state["prompt_image_1"] = manual_prompt_1
+                _save_breaking_state(state)
+                with st.spinner("Génération image 1..."):
+                    result = generate_carousel_image(manual_prompt_1)
+                if result.get("status") == "success":
+                    image_bytes = base64.b64decode(result["image_data"])
+                    url = _upload_breaking_image(1, image_bytes)
+                    state["image_url_1"] = url or ""
+                    _save_breaking_state(state)
+                    st.success("✅ Image 1 générée")
+                    _auto_generate_slides_if_ready(state, title, content)
+                else:
+                    st.error(result.get("message", "Erreur image 1"))
     uploaded_1 = st.file_uploader("Charger une image 1", type=["png", "jpg", "jpeg"], key="breaking_upload_1")
     if uploaded_1 is not None:
         image_bytes = uploaded_1.read()
