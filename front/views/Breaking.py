@@ -355,22 +355,25 @@ st.divider()
 st.markdown("### Slides")
 if st.button("🖼️ Générer slides", use_container_width=True):
     _generate_breaking_slides(state, title, content)
+    st.session_state["breaking_slides_cache_buster"] = str(time.time())
+    st.rerun()
 
 st.markdown("### Preview slides")
 col_p0, col_p1, col_p2 = st.columns(3)
 supabase = get_supabase()
+slides_cache_buster = st.session_state.get("breaking_slides_cache_buster", "")
 with col_p0:
     st.caption("Slide 0")
     url = supabase.storage.from_(BREAKING_SLIDES_BUCKET).get_public_url("slide_0.png")
     if url:
-        st.image(url, use_container_width=True)
+        st.image(_with_cache_buster(url, slides_cache_buster), use_container_width=True)
 with col_p1:
     st.caption("Slide 1")
     url = supabase.storage.from_(BREAKING_SLIDES_BUCKET).get_public_url("slide_1.png")
     if url:
-        st.image(url, use_container_width=True)
+        st.image(_with_cache_buster(url, slides_cache_buster), use_container_width=True)
 with col_p2:
     st.caption("Outro")
     url = supabase.storage.from_(BREAKING_SLIDES_BUCKET).get_public_url("slide_outro.png")
     if url:
-        st.image(url, use_container_width=True)
+        st.image(_with_cache_buster(url, slides_cache_buster), use_container_width=True)
