@@ -51,7 +51,7 @@ TITLE_TEXT_LEFT_PADDING = 7
 HIGHLIGHT_BG_COLOR = "#5B2EFF"
 HIGHLIGHT_TEXT_COLOR = "#FCF6DE"
 HIGHLIGHT_PAD_X = 6
-HIGHLIGHT_PAD_Y = 0
+HIGHLIGHT_PAD_Y = -2
 PARAGRAPH_EXTRA_LINE_GAP = 1
 
 FONT_TITLE_PATH = os.path.join(ASSETS_DIR, "Manrope-Bold.ttf")
@@ -285,7 +285,7 @@ def generate_story_slide(
         font_path=FONT_CONTENT_PATH,
         weight=CONTENT_FONT_WEIGHT,
     )
-    content_line_height = int(content_font.size * 1.25)
+    content_line_height = int(content_font.size * 1.35)
     y = content_y
     blocks = content.splitlines()
     for idx, block in enumerate(blocks):
