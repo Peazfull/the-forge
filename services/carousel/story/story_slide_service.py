@@ -74,6 +74,24 @@ def _cover_resize(img: Image.Image, target: Tuple[int, int]) -> Image.Image:
     return img.crop((left, top, left + target_w, top + target_h))
 
 
+def _cover_resize_anchor(img: Image.Image, target: Tuple[int, int], anchor: str = "center") -> Image.Image:
+    target_w, target_h = target
+    src_w, src_h = img.size
+    scale = max(target_w / src_w, target_h / src_h)
+    new_w, new_h = int(src_w * scale), int(src_h * scale)
+    img = img.resize((new_w, new_h), Image.LANCZOS)
+    if anchor == "bottom":
+        left = (new_w - target_w) // 2
+        top = max(0, new_h - target_h)
+    elif anchor == "top":
+        left = (new_w - target_w) // 2
+        top = 0
+    else:
+        left = (new_w - target_w) // 2
+        top = (new_h - target_h) // 2
+    return img.crop((left, top, left + target_w, top + target_h))
+
+
 def _wrap_text(text: str, draw: ImageDraw.ImageDraw, font: ImageFont.ImageFont, max_width: int) -> list[str]:
     words = text.split()
     lines = []
@@ -135,7 +153,11 @@ def generate_story_slide(
     bottom_bg_path = os.path.join(ASSETS_DIR, "story_bg_bas.png")
     if os.path.exists(bottom_bg_path):
         bottom_bg = Image.open(bottom_bg_path).convert("RGBA")
-        bottom_bg = _cover_resize(bottom_bg, (CANVAS_SIZE[0], CANVAS_SIZE[1] - IMAGE_TOP_HEIGHT))
+        bottom_bg = _cover_resize_anchor(
+            bottom_bg,
+            (CANVAS_SIZE[0], CANVAS_SIZE[1] - IMAGE_TOP_HEIGHT),
+            anchor="bottom"
+        )
         canvas.alpha_composite(bottom_bg, (0, IMAGE_TOP_HEIGHT))
 
     draw = ImageDraw.Draw(canvas)
