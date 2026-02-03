@@ -215,7 +215,7 @@ def generate_story_slide(
     title_line_height = int(title_font.size * 1.2)
 
     if title_bg_x is not None and title_bg_y is not None:
-        y = title_bg_y + max(0, (TITLE_BG_HEIGHT - (title_line_height * min(2, len(title_lines)))) // 2)
+        y = title_bg_y + max(0, (TITLE_BG_HEIGHT - (title_line_height * min(2, len(title_lines)))) // 2) - 5
         text_x = title_bg_x + TITLE_TEXT_LEFT_PADDING
         for line in title_lines[:2]:
             draw.text((text_x, y), line, font=title_font, fill=TITLE_BG_TEXT_COLOR)
