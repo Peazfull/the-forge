@@ -170,7 +170,7 @@ def _generate_story_slides(state: Dict[str, object]) -> None:
     st.success("✅ Slides générées")
 
 
-st.title("📱 Story")
+st.title("TheArtist - Story")
 st.divider()
 
 state = _load_story_state()
@@ -245,8 +245,8 @@ for idx, label, title, content in [
     (4, "Slide 4", "EN GROS", slide4_content),
 ]:
     st.markdown(f"#### {label}")
-    if state.get(f\"image_url_{idx}\"):
-        st.image(state[f\"image_url_{idx}\"], use_container_width=True)
+    if state.get(f"image_url_{idx}"):
+        st.image(state[f"image_url_{idx}"], use_container_width=True)
 
     if st.button(f"🎨 Générer image {idx}", use_container_width=True, key=f"gen_image_{idx}"):
         p = generate_story_image_prompt(title, content)
@@ -473,34 +473,3 @@ with st.expander("💼 Post LinkedIn", expanded=False):
         """,
         height=55,
     )
-import streamlit as st
-from db.supabase_client import get_supabase
-
-# ======================================================
-# PAGE CONFIG
-# ======================================================
-
-st.title("📖 Story")
-st.divider()
-
-# ======================================================
-# CONTENT
-# ======================================================
-
-st.info("📌 Cette page est en cours de construction")
-
-st.markdown("""
-### Objectif
-Générer des **Stories Instagram** (format vertical 9:16) à partir d'actualités sélectionnées.
-
-### Fonctionnalités prévues
-- Sélection manuelle d'items depuis la DB
-- Template visuel automatique
-- Texte adapté au format story (court, impactant)
-- Preview temps réel
-
-### Output attendu
-- Images 1080x1920 px (9:16)
-- Export PNG/JPG
-- Batch export (plusieurs stories)
-""")
