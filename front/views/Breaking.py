@@ -2,16 +2,29 @@ import base64
 import time
 import json
 import os
+import io
+import zipfile
 from io import BytesIO
 from typing import Dict, Optional
+from datetime import datetime
 
 import streamlit as st
 from openai import OpenAI
+from PIL import Image
 from db.supabase_client import get_supabase
 from prompts.breaking.generate_breaking_texts import PROMPT_GENERATE_BREAKING_TEXTS
 from prompts.breaking.generate_breaking_image_prompts import PROMPT_GENERATE_BREAKING_IMAGE_PROMPT
 from services.carousel.image_generation_service import generate_carousel_image
 from services.carousel.breaking.carousel_slide_service import generate_cover_slide, generate_carousel_slide
+from services.carousel.breaking.generate_breaking_caption_service import (
+    generate_caption_from_breaking,
+    upload_caption_text,
+    read_caption_text,
+    generate_linkedin_from_breaking,
+    upload_linkedin_text,
+    read_linkedin_text,
+)
+from services.utils.email_service import send_email_with_attachments
 
 
 BREAKING_BUCKET = "carousel-breaking"
@@ -107,6 +120,57 @@ def _upload_breaking_slide(filename: str, image_bytes: bytes) -> Optional[str]:
         file_options={"content-type": "image/png", "upsert": "true"},
     )
     return supabase.storage.from_(BREAKING_SLIDES_BUCKET).get_public_url(filename)
+
+
+def _download_breaking_slide(filename: str) -> Optional[bytes]:
+    supabase = get_supabase()
+    try:
+        data = supabase.storage.from_(BREAKING_SLIDES_BUCKET).download(filename)
+        if isinstance(data, bytes):
+            return data
+        return None
+    except Exception:
+        return None
+
+
+def build_breaking_exports() -> Dict[str, object]:
+    slides = []
+    for name in ["slide_0.png", "slide_1.png", "slide_outro.png"]:
+        data = _download_breaking_slide(name)
+        if data:
+            slides.append((name, data))
+    if not slides:
+        return {"zip": b"", "pdf": b"", "count": 0}
+
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+        for filename, data in slides:
+            zf.writestr(filename, data)
+    zip_buffer.seek(0)
+
+    images = []
+    for _, data in slides:
+        img = Image.open(io.BytesIO(data)).convert("RGB")
+        images.append(img)
+    pdf_buffer = io.BytesIO()
+    if images:
+        images[0].save(
+            pdf_buffer,
+            format="PDF",
+            save_all=True,
+            append_images=images[1:],
+            resolution=300,
+            quality=95,
+            subsampling=0,
+            dpi=(300, 300),
+        )
+    pdf_buffer.seek(0)
+
+    return {
+        "zip": zip_buffer.getvalue(),
+        "pdf": pdf_buffer.getvalue(),
+        "count": len(slides),
+    }
 
 
 def _generate_breaking_slides(state: Dict[str, object], title: str, content: str) -> None:
@@ -378,3 +442,171 @@ with col_p2:
     url = supabase.storage.from_(BREAKING_SLIDES_BUCKET).get_public_url("slide_outro.png")
     if url:
         st.image(_with_cache_buster(url, slides_cache_buster), use_container_width=True)
+
+st.divider()
+
+if st.button("📦 Préparer export Breaking", use_container_width=True):
+    with st.spinner("Préparation de l'export..."):
+        export_data = build_breaking_exports()
+    st.session_state.breaking_export_zip = export_data["zip"]
+    st.session_state.breaking_export_pdf = export_data["pdf"]
+    st.session_state.breaking_export_count = export_data["count"]
+
+if st.session_state.get("breaking_export_zip"):
+    if st.session_state.get("breaking_export_count", 0) == 0:
+        st.warning("Aucune slide disponible pour l'export.")
+    else:
+        st.caption(f"{st.session_state.get('breaking_export_count', 0)} slides prêtes")
+        st.download_button(
+            "⬇️ Télécharger PNG (ZIP)",
+            data=st.session_state.breaking_export_zip,
+            file_name="carousel_breaking_slides.zip",
+            mime="application/zip",
+            use_container_width=True,
+        )
+        st.download_button(
+            "⬇️ Télécharger PDF",
+            data=st.session_state.breaking_export_pdf,
+            file_name="carousel_breaking_slides.pdf",
+            mime="application/pdf",
+            use_container_width=True,
+        )
+
+st.markdown("#### Export Email")
+if st.button("✉️ Envoyer par email", use_container_width=True):
+    try:
+        export_data = build_breaking_exports()
+        if export_data.get("count", 0) == 0:
+            st.warning("Aucune slide disponible pour l'envoi.")
+        else:
+            date_str = datetime.now().strftime("%Y-%m-%d")
+            subject = f"Carrousel Breaking - {date_str}"
+            caption_text = st.session_state.get("breaking_caption_text_area", "").strip() or read_caption_text()
+            body = caption_text or "Caption non disponible."
+            attachments = [
+                ("carousel_breaking_slides.zip", export_data["zip"], "application/zip"),
+                ("carousel_breaking_slides.pdf", export_data["pdf"], "application/pdf"),
+            ]
+            send_email_with_attachments(
+                to_email="gaelpons@hotmail.com",
+                subject=subject,
+                body=body,
+                attachments=attachments,
+            )
+            st.success("✅ Email envoyé")
+    except Exception as e:
+        st.error(f"Erreur email : {str(e)[:120]}")
+
+with st.expander("📝 Caption Instagram", expanded=False):
+    if "breaking_caption_text_area" not in st.session_state:
+        st.session_state.breaking_caption_text_area = read_caption_text() or ""
+
+    col_gen, col_save = st.columns(2)
+    with col_gen:
+        if st.button("✨ Générer caption", use_container_width=True):
+            if not title or not content:
+                st.warning("Il faut un titre et un contenu.")
+            else:
+                with st.spinner("Génération de la caption..."):
+                    result = generate_caption_from_breaking(title, content)
+                if result.get("status") == "success":
+                    st.session_state.breaking_caption_text_area = result["caption"]
+                    upload_caption_text(st.session_state.breaking_caption_text_area)
+                else:
+                    st.error(f"Erreur : {result.get('message', 'Erreur inconnue')}")
+    with col_save:
+        if st.button("💾 Sauvegarder caption", use_container_width=True):
+            if st.session_state.breaking_caption_text_area.strip():
+                upload_caption_text(st.session_state.breaking_caption_text_area)
+                st.success("✅ Caption sauvegardée")
+            else:
+                st.warning("Caption vide.")
+
+    caption_value = st.session_state.get("breaking_caption_text_area", "")
+    char_count = len(caption_value)
+    st.text_area(
+        label=f"Caption Instagram · {char_count} caractères",
+        height=220,
+        key="breaking_caption_text_area",
+        placeholder="Clique sur 'Générer caption' pour démarrer...",
+    )
+
+    safe_caption = caption_value.replace("\\", "\\\\").replace("`", "\\`").replace("${", "\\${")
+    st.components.v1.html(
+        f"""
+        <button style="width:100%;padding:0.4rem;border-radius:8px;border:1px solid #ddd;cursor:pointer;">
+          📋 Copier la caption
+        </button>
+        <script>
+          const btn = document.currentScript.previousElementSibling;
+          btn.addEventListener('click', async () => {{
+            try {{
+              await navigator.clipboard.writeText(`{safe_caption}`);
+              btn.innerText = "✅ Caption copiée";
+              setTimeout(() => btn.innerText = "📋 Copier la caption", 1500);
+            }} catch (e) {{
+              btn.innerText = "❌ Copie impossible";
+              setTimeout(() => btn.innerText = "📋 Copier la caption", 1500);
+            }}
+          }});
+        </script>
+        """,
+        height=55,
+    )
+
+with st.expander("💼 Post LinkedIn", expanded=False):
+    if "breaking_linkedin_text_area" not in st.session_state:
+        st.session_state.breaking_linkedin_text_area = read_linkedin_text() or ""
+
+    col_gen, col_save = st.columns(2)
+    with col_gen:
+        if st.button("✨ Générer post LinkedIn", use_container_width=True):
+            if not title or not content:
+                st.warning("Il faut un titre et un contenu.")
+            else:
+                with st.spinner("Génération du post LinkedIn..."):
+                    result = generate_linkedin_from_breaking(title, content)
+                if result.get("status") == "success":
+                    st.session_state.breaking_linkedin_text_area = result["text"]
+                    upload_linkedin_text(st.session_state.breaking_linkedin_text_area)
+                else:
+                    st.error(f"Erreur : {result.get('message', 'Erreur inconnue')}")
+    with col_save:
+        if st.button("💾 Sauvegarder post LinkedIn", use_container_width=True):
+            if st.session_state.breaking_linkedin_text_area.strip():
+                upload_linkedin_text(st.session_state.breaking_linkedin_text_area)
+                st.success("✅ Post LinkedIn sauvegardé")
+            else:
+                st.warning("Post LinkedIn vide.")
+
+    linkedin_value = st.session_state.get("breaking_linkedin_text_area", "")
+    linkedin_char_count = len(linkedin_value)
+    st.text_area(
+        label=f"Post LinkedIn · {linkedin_char_count} caractères",
+        height=220,
+        key="breaking_linkedin_text_area",
+        placeholder="Clique sur 'Générer post LinkedIn' pour démarrer...",
+    )
+
+    safe_linkedin = linkedin_value.replace("\\", "\\\\").replace("`", "\\`").replace("${", "\\${")
+    st.components.v1.html(
+        f"""
+        <button style="width:100%;padding:0.4rem;border-radius:8px;border:1px solid #ddd;cursor:pointer;">
+          📋 Copier le post LinkedIn
+        </button>
+        <script>
+          const btn = document.currentScript.previousElementSibling;
+          btn.addEventListener('click', async () => {{
+            try {{
+              await navigator.clipboard.writeText(`{safe_linkedin}`);
+              btn.innerText = "✅ Post copié";
+              setTimeout(() => btn.innerText = "📋 Copier le post LinkedIn", 1500);
+            }} catch (e) {{
+              btn.innerText = "❌ Copie impossible";
+              setTimeout(() => btn.innerText = "📋 Copier le post LinkedIn", 1500);
+            }}
+          }});
+        </script>
+        """,
+        height=55,
+    )
