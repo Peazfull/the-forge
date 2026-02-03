@@ -19,8 +19,8 @@ ASSETS_DIR = os.path.join(
 )
 
 CANVAS_SIZE = (1080, 1920)
-IMAGE_TOP_HEIGHT = CANVAS_SIZE[1] // 2  # 960
-IMAGE_SIDE = IMAGE_TOP_HEIGHT  # carré 1:1
+IMAGE_SIDE = CANVAS_SIZE[0]  # carré 1:1 plein large
+IMAGE_TOP_HEIGHT = IMAGE_SIDE  # 1080
 
 LOGO_SIZE = (200, 65)
 LOGO_TOP = 15
@@ -147,8 +147,7 @@ def generate_story_slide(
 
     top_img = _cover_resize(base_img, (IMAGE_SIDE, IMAGE_SIDE))
     canvas = Image.new("RGBA", CANVAS_SIZE, "white")
-    image_x = (CANVAS_SIZE[0] - IMAGE_SIDE) // 2
-    canvas.alpha_composite(top_img, (image_x, 0))
+    canvas.alpha_composite(top_img, (0, 0))
 
     bottom_bg_path = os.path.join(ASSETS_DIR, "story_bg_bas.png")
     if os.path.exists(bottom_bg_path):
