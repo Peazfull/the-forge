@@ -117,6 +117,7 @@ if st.button("💾 Sauvegarder texte", use_container_width=True):
 st.divider()
 
 st.markdown("### Prompts images")
+st.caption("Génération automatique à partir du titre + contenu.")
 if st.button("⚡ Générer prompts image", use_container_width=True):
     if not title or not content:
         st.warning("Il faut un titre et un contenu.")
@@ -129,13 +130,14 @@ if st.button("⚡ Générer prompts image", use_container_width=True):
         _save_breaking_state(state)
         st.success("✅ Prompts générés")
 
-prompt0 = st.text_area("Prompt image 0 (cover)", value=state.get("prompt_image_0", ""), height=120)
-prompt1 = st.text_area("Prompt image 1 (slide)", value=state.get("prompt_image_1", ""), height=120)
-if st.button("💾 Sauvegarder prompts", use_container_width=True):
-    state["prompt_image_0"] = prompt0
-    state["prompt_image_1"] = prompt1
-    _save_breaking_state(state)
-    st.success("✅ Prompts sauvegardés")
+with st.expander("✍️ Voir/éditer les prompts (optionnel)", expanded=False):
+    prompt0 = st.text_area("Prompt image 0 (cover)", value=state.get("prompt_image_0", ""), height=120)
+    prompt1 = st.text_area("Prompt image 1 (slide)", value=state.get("prompt_image_1", ""), height=120)
+    if st.button("💾 Sauvegarder prompts", use_container_width=True):
+        state["prompt_image_0"] = prompt0
+        state["prompt_image_1"] = prompt1
+        _save_breaking_state(state)
+        st.success("✅ Prompts sauvegardés")
 
 st.divider()
 
@@ -145,6 +147,16 @@ with col_img0:
     if state.get("image_url_0"):
         st.image(state["image_url_0"], use_container_width=True)
     if st.button("🎨 Générer image 0", use_container_width=True):
+        prompt0 = state.get("prompt_image_0", "")
+        if not prompt0.strip():
+            if not title or not content:
+                st.warning("Il faut un titre et un contenu.")
+                st.stop()
+            with st.spinner("Génération du prompt 0..."):
+                p0 = generate_image_prompt_for_item(title, content, prompt_type="sunset")
+            prompt0 = p0.get("image_prompt", "") if p0.get("status") == "success" else ""
+            state["prompt_image_0"] = prompt0
+            _save_breaking_state(state)
         if not prompt0.strip():
             st.warning("Prompt image 0 vide.")
         else:
@@ -163,6 +175,16 @@ with col_img1:
     if state.get("image_url_1"):
         st.image(state["image_url_1"], use_container_width=True)
     if st.button("🎨 Générer image 1", use_container_width=True):
+        prompt1 = state.get("prompt_image_1", "")
+        if not prompt1.strip():
+            if not title or not content:
+                st.warning("Il faut un titre et un contenu.")
+                st.stop()
+            with st.spinner("Génération du prompt 1..."):
+                p1 = generate_image_prompt_for_item(title, content, prompt_type="studio")
+            prompt1 = p1.get("image_prompt", "") if p1.get("status") == "success" else ""
+            state["prompt_image_1"] = prompt1
+            _save_breaking_state(state)
         if not prompt1.strip():
             st.warning("Prompt image 1 vide.")
         else:
