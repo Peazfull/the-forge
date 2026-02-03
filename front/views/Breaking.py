@@ -10,7 +10,7 @@ from db.supabase_client import get_supabase
 from prompts.breaking.generate_breaking_texts import PROMPT_GENERATE_BREAKING_TEXTS
 from services.carousel.eco.generate_carousel_texts_service import generate_image_prompt_for_item
 from services.carousel.image_generation_service import generate_carousel_image
-from services.carousel.eco.carousel_slide_service import generate_cover_slide, generate_carousel_slide
+from services.carousel.breaking.carousel_slide_service import generate_cover_slide, generate_carousel_slide
 
 
 BREAKING_BUCKET = "carousel-breaking"
@@ -198,7 +198,7 @@ if st.button("🖼️ Générer slides", use_container_width=True):
 
             outro_path = os.path.join(
                 os.path.dirname(__file__),
-                "..", "layout", "assets", "carousel", "eco", "outro.png"
+                "..", "layout", "assets", "carousel", "breaking", "outro.png"
             )
             if os.path.exists(outro_path):
                 with open(outro_path, "rb") as f:
