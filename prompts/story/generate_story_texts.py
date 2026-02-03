@@ -14,6 +14,7 @@ CONTRAINTES :
   en les entourant de **double astérisques** (ex: **mot clé**).
 - Tu DOIS mettre au moins un **...** dans chaque contenu.
 - Markdown interdit sauf ces **...** dans les contenus.
+- Chaque contenu doit contenir au moins 1 retour à la ligne (\\n).
 - Réponse en JSON STRICT.
 
 FORMAT JSON :
@@ -26,5 +27,5 @@ FORMAT JSON :
 }
 
 EXEMPLE CONTENU :
-"La BEI **élargit son mandat** pour financer la défense."
+"La BEI **élargit son mandat** pour financer la défense.\\nCette décision change la donne."
 """
