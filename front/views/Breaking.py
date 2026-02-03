@@ -69,7 +69,7 @@ def _upload_breaking_image(position: int, image_bytes: bytes) -> Optional[str]:
     supabase.storage.from_(BREAKING_BUCKET).upload(
         filename,
         image_bytes,
-        file_options={"content-type": "image/png", "upsert": True},
+        file_options={"content-type": "image/png", "upsert": "true"},
     )
     return supabase.storage.from_(BREAKING_BUCKET).get_public_url(filename)
 
@@ -79,7 +79,7 @@ def _upload_breaking_slide(filename: str, image_bytes: bytes) -> Optional[str]:
     supabase.storage.from_(BREAKING_SLIDES_BUCKET).upload(
         filename,
         image_bytes,
-        file_options={"content-type": "image/png", "upsert": True},
+        file_options={"content-type": "image/png", "upsert": "true"},
     )
     return supabase.storage.from_(BREAKING_SLIDES_BUCKET).get_public_url(filename)
 
