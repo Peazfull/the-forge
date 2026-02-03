@@ -52,6 +52,7 @@ HIGHLIGHT_BG_COLOR = "#5B2EFF"
 HIGHLIGHT_TEXT_COLOR = "#FCF6DE"
 HIGHLIGHT_PAD_X = 6
 HIGHLIGHT_PAD_Y = 0
+PARAGRAPH_EXTRA_LINE_GAP = 1
 
 FONT_TITLE_PATH = os.path.join(ASSETS_DIR, "Manrope-Bold.ttf")
 FONT_CONTENT_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")
@@ -286,11 +287,12 @@ def generate_story_slide(
     )
     content_line_height = int(content_font.size * 1.25)
     y = content_y
-    for block in content.splitlines():
+    blocks = content.splitlines()
+    for idx, block in enumerate(blocks):
         if y + content_line_height > CANVAS_SIZE[1] - CONTENT_BOTTOM_MARGIN:
             break
         if not block.strip():
-            y += content_line_height
+            y += content_line_height * (1 + PARAGRAPH_EXTRA_LINE_GAP)
             continue
         content_tokens = _tokenize_highlights(block)
         content_lines = _wrap_highlight_tokens(content_tokens, draw, content_font, content_max_width)
@@ -314,6 +316,8 @@ def generate_story_slide(
                     draw.text((x, y), token_text, font=content_font, fill=CONTENT_COLOR)
                 x += token_width
             y += content_line_height
+        if idx < len(blocks) - 1:
+            y += content_line_height * PARAGRAPH_EXTRA_LINE_GAP
 
     output = BytesIO()
     canvas.convert("RGB").save(output, format="PNG")
