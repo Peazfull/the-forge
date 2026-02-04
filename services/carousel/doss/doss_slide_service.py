@@ -278,7 +278,7 @@ def generate_doss_slide(
         font_path=FONT_CONTENT_PATH,
         weight=CONTENT_FONT_WEIGHT,
     )
-    content_line_height = int(content_font.size * 1.35)
+    content_line_height = int(content_font.size * 1.25)
     y = content_y
     blocks = content.splitlines()
     for idx, block in enumerate(blocks):
