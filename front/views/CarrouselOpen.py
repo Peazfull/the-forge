@@ -8,6 +8,8 @@ import streamlit as st
 from PIL import Image, ImageDraw, ImageFont
 
 from services.utils.email_service import send_email_with_attachments
+from services.marketbrewery.market_opens_service import get_open_top_flop
+from services.marketbrewery.listes_market import EU_TOP_200
 
 
 ASSETS_DIR = os.path.join(
@@ -15,12 +17,25 @@ ASSETS_DIR = os.path.join(
     "..", "layout", "assets", "carousel", "open"
 )
 FONT_BOLD_PATH = os.path.join(ASSETS_DIR, "Manrope-Bold.ttf")
+FONT_SEMI_BOLD_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")
 DATE_FONT_SIZE = 46
 DATE_TOP = 850
 DATE_FILL = "#F6F6F6"
 DATE_HIGHLIGHT_BG = "#5B2EFF"
 DATE_HIGHLIGHT_PAD_X = 10
 DATE_HIGHLIGHT_PAD_Y = 6
+SLIDE2_TITLE = "Top 10 Open — Actions européennes"
+SLIDE2_MARGIN_X = 60
+SLIDE2_TITLE_SIZE = 44
+SLIDE2_HEADER_SIZE = 28
+SLIDE2_ROW_SIZE = 34
+SLIDE2_TITLE_GAP = 18
+SLIDE2_HEADER_GAP = 14
+SLIDE2_LINE_HEIGHT_MULT = 1.2
+SLIDE2_HEADER_COLOR = "#F6F6F6"
+SLIDE2_TEXT_COLOR = "#F6F6F6"
+SLIDE2_POS_COLOR = "#10b981"
+SLIDE2_NEG_COLOR = "#ef4444"
 CAPTION_FILE = os.path.join(
     os.path.dirname(__file__),
     "..", "..", "prompts", "open", "fixed_caption.txt"
@@ -74,6 +89,90 @@ def _load_font(path: str, size: int) -> ImageFont.ImageFont:
     return ImageFont.load_default()
 
 
+def _format_eur(value: float) -> str:
+    try:
+        return f"{value:,.2f}€".replace(",", " ")
+    except Exception:
+        return f"{value}€"
+
+
+def _get_top10_open_eu() -> list[dict]:
+    try:
+        data = get_open_top_flop(EU_TOP_200, limit=10)
+        if data.get("status") == "success":
+            return data.get("top", []) or []
+        return []
+    except Exception:
+        return []
+
+
+def _render_slide2_table(draw: ImageDraw.ImageDraw, img_w: int, img_h: int) -> None:
+    title_font = _load_font(FONT_BOLD_PATH, SLIDE2_TITLE_SIZE)
+    header_font = _load_font(FONT_BOLD_PATH, SLIDE2_HEADER_SIZE)
+    row_font = _load_font(FONT_SEMI_BOLD_PATH, SLIDE2_ROW_SIZE)
+    title_height = int(SLIDE2_TITLE_SIZE * SLIDE2_LINE_HEIGHT_MULT)
+    header_height = int(SLIDE2_HEADER_SIZE * SLIDE2_LINE_HEIGHT_MULT)
+    row_height = int(SLIDE2_ROW_SIZE * SLIDE2_LINE_HEIGHT_MULT)
+
+    rows = _get_top10_open_eu()
+    total_rows = len(rows) if rows else 1
+
+    block_height = (
+        title_height
+        + SLIDE2_TITLE_GAP
+        + header_height
+        + SLIDE2_HEADER_GAP
+        + (row_height * total_rows)
+    )
+    start_y = max(0, (img_h - block_height) // 2)
+
+    # Title
+    title_width = draw.textlength(SLIDE2_TITLE, font=title_font)
+    title_x = (img_w - title_width) // 2
+    draw.text((title_x, start_y), SLIDE2_TITLE, font=title_font, fill=SLIDE2_HEADER_COLOR)
+
+    # Header row
+    header_y = start_y + title_height + SLIDE2_TITLE_GAP
+    name_x = SLIDE2_MARGIN_X
+    change_center_x = img_w // 2
+    open_right_x = img_w - SLIDE2_MARGIN_X
+    draw.text((name_x, header_y), "Name", font=header_font, fill=SLIDE2_HEADER_COLOR)
+    change_label = "Change"
+    change_width = draw.textlength(change_label, font=header_font)
+    draw.text((change_center_x - change_width / 2, header_y), change_label, font=header_font, fill=SLIDE2_HEADER_COLOR)
+    open_label = "Open"
+    open_width = draw.textlength(open_label, font=header_font)
+    draw.text((open_right_x - open_width, header_y), open_label, font=header_font, fill=SLIDE2_HEADER_COLOR)
+
+    # Rows
+    row_y = header_y + header_height + SLIDE2_HEADER_GAP
+    if not rows:
+        empty_text = "Données indisponibles"
+        empty_width = draw.textlength(empty_text, font=row_font)
+        draw.text(((img_w - empty_width) // 2, row_y), empty_text, font=row_font, fill=SLIDE2_TEXT_COLOR)
+        return
+
+    for row in rows:
+        name = (row.get("name") or "").strip()
+        pct = row.get("pct_change")
+        open_value = row.get("open")
+        try:
+            pct_value = float(pct)
+        except Exception:
+            pct_value = 0.0
+        pct_text = f"{pct_value:+.2f}%"
+        pct_color = SLIDE2_POS_COLOR if pct_value >= 0 else SLIDE2_NEG_COLOR
+        open_text = _format_eur(float(open_value)) if open_value is not None else "—"
+
+        draw.text((name_x, row_y), name, font=row_font, fill=SLIDE2_TEXT_COLOR)
+        pct_width = draw.textlength(pct_text, font=row_font)
+        draw.text((change_center_x - pct_width / 2, row_y), pct_text, font=row_font, fill=pct_color)
+        open_width = draw.textlength(open_text, font=row_font)
+        draw.text((open_right_x - open_width, row_y), open_text, font=row_font, fill=SLIDE2_TEXT_COLOR)
+
+        row_y += row_height
+
+
 def _render_slide_bytes(filename: str, path: str) -> bytes:
     img = Image.open(path).convert("RGBA")
     match = re.search(r"slide[_\s-]?(\d+)", filename, re.IGNORECASE)
@@ -93,6 +192,9 @@ def _render_slide_bytes(filename: str, path: str) -> bytes:
         )
         draw.rectangle(rect, fill=DATE_HIGHLIGHT_BG)
         draw.text((x, DATE_TOP), date_text, font=font, fill=DATE_FILL)
+    elif slide_number == 2:
+        draw = ImageDraw.Draw(img)
+        _render_slide2_table(draw, img.size[0], img.size[1])
     output = io.BytesIO()
     img.convert("RGB").save(output, format="PNG")
     return output.getvalue()
