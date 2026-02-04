@@ -30,13 +30,16 @@ SLIDE2_MARGIN_X = 60
 SLIDE2_TITLE_SIZE = 44
 SLIDE2_HEADER_SIZE = 28
 SLIDE2_ROW_SIZE = 34
-SLIDE2_TITLE_GAP = 18
+SLIDE2_TITLE_GAP = 60
 SLIDE2_HEADER_GAP = 14
-SLIDE2_LINE_HEIGHT_MULT = 1.2
+SLIDE2_LINE_HEIGHT_MULT = 2.4
 SLIDE2_HEADER_COLOR = "#F6F6F6"
 SLIDE2_TEXT_COLOR = "#F6F6F6"
 SLIDE2_POS_COLOR = "#10b981"
 SLIDE2_NEG_COLOR = "#ef4444"
+SLIDE2_TITLE_HIGHLIGHT_BG = "#5B2EFF"
+SLIDE2_TITLE_PAD_X = 12
+SLIDE2_TITLE_PAD_Y = 6
 CAPTION_FILE = os.path.join(
     os.path.dirname(__file__),
     "..", "..", "prompts", "open", "fixed_caption.txt"
@@ -130,6 +133,13 @@ def _render_slide2_table(draw: ImageDraw.ImageDraw, img_w: int, img_h: int) -> N
     # Title
     title_width = draw.textlength(SLIDE2_TITLE, font=title_font)
     title_x = (img_w - title_width) // 2
+    title_rect = (
+        title_x - SLIDE2_TITLE_PAD_X,
+        start_y - SLIDE2_TITLE_PAD_Y,
+        title_x + title_width + SLIDE2_TITLE_PAD_X,
+        start_y + title_height + SLIDE2_TITLE_PAD_Y,
+    )
+    draw.rectangle(title_rect, fill=SLIDE2_TITLE_HIGHLIGHT_BG)
     draw.text((title_x, start_y), SLIDE2_TITLE, font=title_font, fill=SLIDE2_HEADER_COLOR)
 
     # Header row
