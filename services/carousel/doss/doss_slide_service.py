@@ -25,8 +25,8 @@ IMAGE_TOP_SIZE = (CANVAS_SIZE[0], IMAGE_TOP_HEIGHT)
 LOGO_SIZE = (200, 65)
 LOGO_TOP = 15
 TITLE_ZOOM_SIZE = (346, 114)
-TITLE_ZOOM_LEFT = 60
-TITLE_ZOOM_TOP = 430
+TITLE_ZOOM_LEFT = 55
+TITLE_ZOOM_TOP = 415
 
 LEFT_MARGIN = 60
 RIGHT_MARGIN = 60
@@ -239,7 +239,7 @@ def generate_doss_slide(
 
     draw = ImageDraw.Draw(canvas)
 
-    text_area_top = 560
+    text_area_top = 580
     text_area_height = CANVAS_SIZE[1] - text_area_top - CONTENT_BOTTOM_MARGIN
     content_max_width = CANVAS_SIZE[0] - LEFT_MARGIN - RIGHT_MARGIN
 
