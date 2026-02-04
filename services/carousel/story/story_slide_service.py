@@ -218,8 +218,8 @@ def generate_story_slide(
     bottom_bg_path = os.path.join(ASSETS_DIR, "story_bg_bas.png")
     if os.path.exists(bottom_bg_path):
         bottom_bg = Image.open(bottom_bg_path).convert("RGBA")
-        if bottom_bg.size != (CANVAS_SIZE[0], CANVAS_SIZE[0]):
-            bottom_bg = bottom_bg.resize((CANVAS_SIZE[0], CANVAS_SIZE[0]), Image.LANCZOS)
+        if bottom_bg.size != (CANVAS_SIZE[0], 900):
+            bottom_bg = bottom_bg.resize((CANVAS_SIZE[0], 900), Image.LANCZOS)
         paste_y = CANVAS_SIZE[1] - bottom_bg.size[1]
         canvas.alpha_composite(bottom_bg, (0, paste_y))
 
