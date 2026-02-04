@@ -18,9 +18,9 @@ ASSETS_DIR = os.path.join(
     "front", "layout", "assets", "carousel", "doss",
 )
 
-CANVAS_SIZE = (1080, 1920)
-IMAGE_SIDE = CANVAS_SIZE[0]  # carré 1:1 plein large
-IMAGE_TOP_HEIGHT = IMAGE_SIDE  # 1080
+CANVAS_SIZE = (1080, 1080)
+IMAGE_TOP_HEIGHT = 540  # 16:9 sur moitié haute
+IMAGE_TOP_SIZE = (CANVAS_SIZE[0], IMAGE_TOP_HEIGHT)
 
 LOGO_SIZE = (200, 65)
 LOGO_TOP = 15
@@ -198,7 +198,7 @@ def generate_doss_slide(
     else:
         base_img = _load_image_from_url(image_url)  # type: ignore[arg-type]
 
-    top_img = _cover_resize(base_img, (IMAGE_SIDE, IMAGE_SIDE))
+    top_img = _cover_resize(base_img, IMAGE_TOP_SIZE)
     canvas = Image.new("RGBA", CANVAS_SIZE, "white")
     canvas.alpha_composite(top_img, (0, 0))
 
@@ -219,10 +219,9 @@ def generate_doss_slide(
     bottom_bg_path = os.path.join(ASSETS_DIR, "doss_bg_bas.png")
     if os.path.exists(bottom_bg_path):
         bottom_bg = Image.open(bottom_bg_path).convert("RGBA")
-        if bottom_bg.size != (CANVAS_SIZE[0], 900):
-            bottom_bg = bottom_bg.resize((CANVAS_SIZE[0], 900), Image.LANCZOS)
-        paste_y = CANVAS_SIZE[1] - bottom_bg.size[1]
-        canvas.alpha_composite(bottom_bg, (0, paste_y))
+        if bottom_bg.size != (CANVAS_SIZE[0], IMAGE_TOP_HEIGHT):
+            bottom_bg = bottom_bg.resize((CANVAS_SIZE[0], IMAGE_TOP_HEIGHT), Image.LANCZOS)
+        canvas.alpha_composite(bottom_bg, (0, IMAGE_TOP_HEIGHT))
 
     # Suppression overlay/title_bg pour le nouveau design
 
