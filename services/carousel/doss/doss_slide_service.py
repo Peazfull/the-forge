@@ -239,7 +239,7 @@ def generate_doss_slide(
 
     draw = ImageDraw.Draw(canvas)
 
-    text_area_top = 540
+    text_area_top = 560
     text_area_height = CANVAS_SIZE[1] - text_area_top - CONTENT_BOTTOM_MARGIN
     content_max_width = CANVAS_SIZE[0] - LEFT_MARGIN - RIGHT_MARGIN
 
