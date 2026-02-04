@@ -105,13 +105,22 @@ def _get_top10_open_eu() -> list[dict]:
         return []
 
 
-def _render_slide2_table(draw: ImageDraw.ImageDraw, img_w: int, img_h: int) -> None:
+def _get_flop10_open_eu() -> list[dict]:
+    try:
+        data = get_open_top_flop(EU_TOP_200, limit=10)
+        if data.get("status") == "success":
+            return data.get("flop", []) or []
+        return []
+    except Exception:
+        return []
+
+
+def _render_open_table(draw: ImageDraw.ImageDraw, img_w: int, img_h: int, rows: list[dict]) -> None:
     header_font = _load_font(FONT_BOLD_PATH, SLIDE2_HEADER_SIZE)
     row_font = _load_font(FONT_SEMI_BOLD_PATH, SLIDE2_ROW_SIZE)
     header_height = int(SLIDE2_HEADER_SIZE * SLIDE2_LINE_HEIGHT_MULT)
     row_height = int(SLIDE2_ROW_SIZE * SLIDE2_LINE_HEIGHT_MULT)
 
-    rows = _get_top10_open_eu()
     total_rows = len(rows) if rows else 1
 
     block_height = header_height + SLIDE2_HEADER_GAP + (row_height * total_rows)
@@ -180,7 +189,10 @@ def _render_slide_bytes(filename: str, path: str) -> bytes:
         draw.text((x, DATE_TOP), date_text, font=font, fill=DATE_FILL)
     elif slide_number == 2:
         draw = ImageDraw.Draw(img)
-        _render_slide2_table(draw, img.size[0], img.size[1])
+        _render_open_table(draw, img.size[0], img.size[1], _get_top10_open_eu())
+    elif slide_number == 3:
+        draw = ImageDraw.Draw(img)
+        _render_open_table(draw, img.size[0], img.size[1], _get_flop10_open_eu())
     output = io.BytesIO()
     img.convert("RGB").save(output, format="PNG")
     return output.getvalue()
