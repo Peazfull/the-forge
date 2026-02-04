@@ -57,7 +57,7 @@ def _sorted_slide_files() -> list[tuple[str, str]]:
     files = [
         name for name in os.listdir(ASSETS_DIR)
         if name.lower().endswith(".png")
-        and re.search(r"(?:^|[_\s-])slide\s*\d+", name, re.IGNORECASE)
+        and re.search(r"(?:^|[_\s-])slide[_\s-]*\d+", name, re.IGNORECASE)
     ]
     if not files:
         return []
