@@ -27,7 +27,7 @@ LOGO_TOP = 15
 
 LEFT_MARGIN = 60
 RIGHT_MARGIN = 60
-TITLE_TOP_GAP = 40
+TITLE_TOP_GAP = 0
 CONTENT_TOP_GAP = 50
 CONTENT_BOTTOM_MARGIN = 60
 BOTTOM_BG_HEIGHT = 1043
@@ -227,7 +227,7 @@ def generate_doss_slide(
 
     draw = ImageDraw.Draw(canvas)
 
-    text_area_top = IMAGE_TOP_HEIGHT + TITLE_TOP_GAP
+    text_area_top = 540
     text_area_height = CANVAS_SIZE[1] - text_area_top - CONTENT_BOTTOM_MARGIN
     content_max_width = CANVAS_SIZE[0] - LEFT_MARGIN - RIGHT_MARGIN
 
