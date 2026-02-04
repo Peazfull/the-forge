@@ -59,8 +59,8 @@ def _format_french_date(dt: datetime | None = None) -> str:
     if dt is None:
         dt = datetime.now()
     months = [
-        "janvier", "fevrier", "mars", "avril", "mai", "juin",
-        "juillet", "aout", "septembre", "octobre", "novembre", "decembre",
+        "janvier", "février", "mars", "avril", "mai", "juin",
+        "juillet", "août", "septembre", "octobre", "novembre", "décembre",
     ]
     return f"{dt.day:02d} {months[dt.month - 1]} {dt.year}"
 
