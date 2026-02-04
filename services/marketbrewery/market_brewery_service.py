@@ -40,10 +40,14 @@ def get_top_flop_weekly(zone="US", limit=10):
         top = get_top_weekly(zone, limit)
         flop = get_flop_weekly(zone, limit)
         
+        # Forcer l'ordre d'affichage (top: décroissant, flop: croissant)
+        top_sorted = sorted(top, key=lambda x: x.get("pct_change", 0), reverse=True)
+        flop_sorted = sorted(flop, key=lambda x: x.get("pct_change", 0))
+
         return {
             "status": "success",
-            "top": top,
-            "flop": flop
+            "top": top_sorted,
+            "flop": flop_sorted
         }
     except Exception as e:
         return {
