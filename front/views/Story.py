@@ -116,6 +116,17 @@ def _upload_story_slide(filename: str, image_bytes: bytes) -> Optional[str]:
     return supabase.storage.from_(STORY_SLIDES_BUCKET).get_public_url(filename)
 
 
+def _clear_story_slide_files() -> None:
+    supabase = get_supabase()
+    try:
+        items = supabase.storage.from_(STORY_SLIDES_BUCKET).list()
+        files = [item.get("name") for item in items if item.get("name")]
+        if files:
+            supabase.storage.from_(STORY_SLIDES_BUCKET).remove(files)
+    except Exception:
+        pass
+
+
 def _download_story_slide(filename: str) -> Optional[bytes]:
     supabase = get_supabase()
     try:
@@ -181,6 +192,7 @@ def _generate_story_slides(state: Dict[str, object]) -> None:
     ]
 
     with st.spinner("Génération des slides..."):
+        _clear_story_slide_files()
         for filename, title, content, image_url in slide_data:
             if not title or not content or not image_url:
                 continue
