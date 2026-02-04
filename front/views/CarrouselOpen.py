@@ -34,6 +34,7 @@ SLIDE2_HEADER_COLOR = "#E6FF4B"
 SLIDE2_TEXT_COLOR = "#F6F6F6"
 SLIDE2_POS_COLOR = "#10b981"
 SLIDE2_NEG_COLOR = "#ef4444"
+SLIDE2_START_Y = 400
 CAPTION_FILE = os.path.join(
     os.path.dirname(__file__),
     "..", "..", "prompts", "open", "fixed_caption.txt"
@@ -114,7 +115,7 @@ def _render_slide2_table(draw: ImageDraw.ImageDraw, img_w: int, img_h: int) -> N
     total_rows = len(rows) if rows else 1
 
     block_height = header_height + SLIDE2_HEADER_GAP + (row_height * total_rows)
-    start_y = max(0, (img_h - block_height) // 2)
+    start_y = SLIDE2_START_Y
 
     # Header row
     header_y = start_y
