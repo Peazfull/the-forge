@@ -23,6 +23,9 @@ from services.carousel.doss.generate_doss_caption_service import (
     generate_caption_from_doss,
     upload_caption_text,
     read_caption_text,
+    generate_linkedin_from_doss,
+    upload_linkedin_text,
+    read_linkedin_text,
 )
 from services.utils.email_service import send_email_with_attachments
 
@@ -631,3 +634,59 @@ with st.expander("📝 Caption Instagram", expanded=False):
         height=55,
     )
 
+with st.expander("💼 Post LinkedIn", expanded=False):
+    if "doss_linkedin_text_area" not in st.session_state:
+        st.session_state.doss_linkedin_text_area = read_linkedin_text() or ""
+
+    col_gen, col_save = st.columns(2)
+    with col_gen:
+        if st.button("✨ Générer post LinkedIn", use_container_width=True):
+            if not slide1_title or not slide1_content:
+                st.warning("Il faut un titre et un contenu.")
+            else:
+                with st.spinner("Génération du post LinkedIn..."):
+                    result = generate_linkedin_from_doss(slide1_title, slide1_content)
+                if result.get("status") == "success":
+                    st.session_state.doss_linkedin_text_area = result["text"]
+                    upload_linkedin_text(st.session_state.doss_linkedin_text_area)
+                else:
+                    st.error(f"Erreur : {result.get('message', 'Erreur inconnue')}")
+    with col_save:
+        if st.button("💾 Sauvegarder post LinkedIn", use_container_width=True):
+            if st.session_state.doss_linkedin_text_area.strip():
+                upload_linkedin_text(st.session_state.doss_linkedin_text_area)
+                st.success("✅ Post LinkedIn sauvegardé")
+            else:
+                st.warning("Post LinkedIn vide.")
+
+    linkedin_value = st.session_state.get("doss_linkedin_text_area", "")
+    linkedin_char_count = len(linkedin_value)
+    st.text_area(
+        label=f"Post LinkedIn · {linkedin_char_count} caractères",
+        height=220,
+        key="doss_linkedin_text_area",
+        placeholder="Clique sur 'Générer post LinkedIn' pour démarrer...",
+    )
+
+    safe_linkedin = linkedin_value.replace("\\", "\\\\").replace("`", "\\`").replace("${", "\\${")
+    st.components.v1.html(
+        f"""
+        <button style="width:100%;padding:0.4rem;border-radius:8px;border:1px solid #ddd;cursor:pointer;">
+          📋 Copier le post LinkedIn
+        </button>
+        <script>
+          const btn = document.currentScript.previousElementSibling;
+          btn.addEventListener('click', async () => {{
+            try {{
+              await navigator.clipboard.writeText(`{safe_linkedin}`);
+              btn.innerText = "✅ Post copié";
+              setTimeout(() => btn.innerText = "📋 Copier le post LinkedIn", 1500);
+            }} catch (e) {{
+              btn.innerText = "❌ Copie impossible";
+              setTimeout(() => btn.innerText = "📋 Copier le post LinkedIn", 1500);
+            }}
+          }});
+        </script>
+        """,
+        height=55,
+    )
