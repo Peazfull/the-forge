@@ -16,8 +16,11 @@ ASSETS_DIR = os.path.join(
 )
 FONT_BOLD_PATH = os.path.join(ASSETS_DIR, "Manrope-Bold.ttf")
 DATE_FONT_SIZE = 46
-DATE_TOP = 900
-DATE_FILL = "white"
+DATE_TOP = 850
+DATE_FILL = "#F6F6F6"
+DATE_HIGHLIGHT_BG = "#5B2EFF"
+DATE_HIGHLIGHT_PAD_X = 10
+DATE_HIGHLIGHT_PAD_Y = 6
 CAPTION_FILE = os.path.join(
     os.path.dirname(__file__),
     "..", "..", "prompts", "open", "fixed_caption.txt"
@@ -80,7 +83,15 @@ def _render_slide_bytes(filename: str, path: str) -> bytes:
         date_text = _format_french_date()
         font = _load_font(FONT_BOLD_PATH, DATE_FONT_SIZE)
         text_width = draw.textlength(date_text, font=font)
+        text_height = int(DATE_FONT_SIZE * 1.2)
         x = (img.size[0] - text_width) // 2
+        rect = (
+            x - DATE_HIGHLIGHT_PAD_X,
+            DATE_TOP - DATE_HIGHLIGHT_PAD_Y,
+            x + text_width + DATE_HIGHLIGHT_PAD_X,
+            DATE_TOP + text_height + DATE_HIGHLIGHT_PAD_Y,
+        )
+        draw.rectangle(rect, fill=DATE_HIGHLIGHT_BG)
         draw.text((x, DATE_TOP), date_text, font=font, fill=DATE_FILL)
     output = io.BytesIO()
     img.convert("RGB").save(output, format="PNG")
