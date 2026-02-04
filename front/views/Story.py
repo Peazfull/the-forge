@@ -116,6 +116,12 @@ def _upload_story_slide(filename: str, image_bytes: bytes) -> Optional[str]:
     return supabase.storage.from_(STORY_SLIDES_BUCKET).get_public_url(filename)
 
 
+def _get_story_image_url(position: int) -> str:
+    supabase = get_supabase()
+    filename = f"story_image_{position}.png"
+    return supabase.storage.from_(STORY_BUCKET).get_public_url(filename)
+
+
 def _clear_story_slide_files() -> None:
     supabase = get_supabase()
     try:
@@ -179,6 +185,11 @@ def build_story_exports() -> Dict[str, object]:
 
 
 def _generate_story_slides(state: Dict[str, object]) -> None:
+    # Fallback: recharger les URLs images depuis le storage si elles manquent
+    for idx in range(1, 5):
+        key = f"image_url_{idx}"
+        if not state.get(key):
+            state[key] = _get_story_image_url(idx)
     required = ["image_url_1", "image_url_2", "image_url_3", "image_url_4"]
     if any(not state.get(k) for k in required):
         st.warning("Il faut générer les 4 images.")
@@ -347,8 +358,9 @@ for row_idx in range(0, len(image_cards), 2):
     for col, (idx, label, title, content) in zip(cols, image_cards[row_idx:row_idx + 2]):
         with col:
             st.markdown(f"#### {label}")
-            if state.get(f"image_url_{idx}"):
-                st.image(state[f"image_url_{idx}"], use_container_width=True)
+            image_url = state.get(f"image_url_{idx}") or _get_story_image_url(idx)
+            if image_url:
+                st.image(image_url, use_container_width=True)
 
             if st.button(f"🎨 Générer image {idx}", use_container_width=True, key=f"gen_image_{idx}"):
                 prompt = state.get(f"prompt_image_{idx}", "")
