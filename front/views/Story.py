@@ -95,6 +95,21 @@ def _ensure_highlight(text: str, max_words: int = 3) -> str:
     return f"**{highlighted}** " + " ".join(words[take:])
 
 
+def _sync_story_texts(
+    state: Dict[str, object],
+    slide1_title: str,
+    slide1_content: str,
+    slide2_content: str,
+    slide3_content: str,
+    slide4_content: str,
+) -> None:
+    state["slide1_title"] = slide1_title
+    state["slide1_content"] = slide1_content
+    state["slide2_content"] = _strip_fixed_title_prefix(slide2_content, "ON VOUS EXPLIQUE")
+    state["slide3_content"] = _strip_fixed_title_prefix(slide3_content, "DE PLUS")
+    state["slide4_content"] = _strip_fixed_title_prefix(slide4_content, "EN GROS")
+
+
 def _upload_story_image(position: int, image_bytes: bytes) -> Optional[str]:
     supabase = get_supabase()
     filename = f"story_image_{position}.png"
@@ -273,11 +288,14 @@ slide4_content = st.text_area(
 )
 
 if st.button("💾 Sauvegarder textes", use_container_width=True):
-    state["slide1_title"] = slide1_title
-    state["slide1_content"] = slide1_content
-    state["slide2_content"] = _strip_fixed_title_prefix(slide2_content, "ON VOUS EXPLIQUE")
-    state["slide3_content"] = _strip_fixed_title_prefix(slide3_content, "DE PLUS")
-    state["slide4_content"] = _strip_fixed_title_prefix(slide4_content, "EN GROS")
+    _sync_story_texts(
+        state,
+        slide1_title,
+        slide1_content,
+        slide2_content,
+        slide3_content,
+        slide4_content,
+    )
     _save_story_state(state)
     st.success("✅ Textes sauvegardés")
 
@@ -310,6 +328,15 @@ st.divider()
 st.markdown("### Images")
 
 if st.button("🚀 Générer images + slides", use_container_width=True):
+    _sync_story_texts(
+        state,
+        slide1_title,
+        slide1_content,
+        slide2_content,
+        slide3_content,
+        slide4_content,
+    )
+    _save_story_state(state)
     slides = [
         (1, slide1_title, slide1_content),
         (2, "ON VOUS EXPLIQUE", slide2_content),
@@ -352,6 +379,15 @@ for row_idx in range(0, len(image_cards), 2):
                 st.image(image_url, use_container_width=True)
 
             if st.button(f"🎨 Générer image {idx}", use_container_width=True, key=f"gen_image_{idx}"):
+                _sync_story_texts(
+                    state,
+                    slide1_title,
+                    slide1_content,
+                    slide2_content,
+                    slide3_content,
+                    slide4_content,
+                )
+                _save_story_state(state)
                 prompt = state.get(f"prompt_image_{idx}", "")
                 if not prompt:
                     p = generate_story_image_prompt(title, content)
@@ -378,6 +414,15 @@ for row_idx in range(0, len(image_cards), 2):
                 key=f"upload_story_{idx}",
             )
             if uploaded is not None:
+                _sync_story_texts(
+                    state,
+                    slide1_title,
+                    slide1_content,
+                    slide2_content,
+                    slide3_content,
+                    slide4_content,
+                )
+                _save_story_state(state)
                 image_bytes = uploaded.read()
                 url = _upload_story_image(idx, image_bytes) or ""
                 state[f"image_url_{idx}"] = _with_cache_buster(url, str(time.time()))
