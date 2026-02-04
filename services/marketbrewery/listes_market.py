@@ -236,8 +236,11 @@ COMMODITIES = [
 # =========================
 
 EU_FX_PAIRS = [
-    "EURUSD=X", "EURGBP=X", "EURJPY=X", "EURCHF=X",
-    "EURAUD=X", "EURCAD=X", "EURNZD=X",
-    "EURNOK=X", "EURSEK=X", "EURDKK=X",
-    "EURPLN=X", "EURHUF=X", "EURCZK=X",
+    "EURUSD=X",
+    "EURGBP=X",
+    "EURJPY=X",
+    "EURCHF=X",
+    "EURAUD=X",
+    "EURCAD=X",
+    "EURNZD=X",
 ]

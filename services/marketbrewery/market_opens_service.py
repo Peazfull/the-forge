@@ -62,9 +62,9 @@ def _get_latest_open_date(supabase) -> str | None:
     return None
 
 
-def get_open_top_flop(symbols: List[str], limit: int = 10) -> Dict[str, object]:
+def _fetch_open_performances(symbols: List[str]) -> List[Dict[str, object]]:
     """
-    Retourne top/flop sur l'open du dernier jour
+    Retourne toutes les performances open du dernier jour
     (open du jour vs close de la veille), depuis market_daily_open.
     """
     supabase = get_supabase()
@@ -72,11 +72,11 @@ def get_open_top_flop(symbols: List[str], limit: int = 10) -> Dict[str, object]:
     asset_meta = _get_asset_meta_mapping()
     asset_ids = [asset_mapping.get(symbol) for symbol in symbols if asset_mapping.get(symbol)]
     if not asset_ids:
-        return {"status": "success", "top": [], "flop": []}
+        return []
 
     latest_date = _get_latest_open_date(supabase)
     if not latest_date:
-        return {"status": "success", "top": [], "flop": []}
+        return []
 
     response = (
         supabase.table("market_daily_open")
@@ -86,7 +86,7 @@ def get_open_top_flop(symbols: List[str], limit: int = 10) -> Dict[str, object]:
         .execute()
     )
 
-    performances = []
+    performances: List[Dict[str, object]] = []
     for row in (response.data or []):
         meta = asset_meta.get(row.get("asset_id", ""), {})
         symbol = meta.get("symbol", "")
@@ -98,6 +98,15 @@ def get_open_top_flop(symbols: List[str], limit: int = 10) -> Dict[str, object]:
             "date": row.get("date"),
         })
 
+    return performances
+
+
+def get_open_top_flop(symbols: List[str], limit: int = 10) -> Dict[str, object]:
+    """
+    Retourne top/flop sur l'open du dernier jour
+    (open du jour vs close de la veille).
+    """
+    performances = _fetch_open_performances(symbols)
     performances.sort(key=lambda x: x["pct_change"], reverse=True)
     top = performances[:limit]
     flop = performances[-limit:][::-1]
@@ -106,6 +115,18 @@ def get_open_top_flop(symbols: List[str], limit: int = 10) -> Dict[str, object]:
         "status": "success",
         "top": top,
         "flop": flop,
+    }
+
+
+def get_open_performances(symbols: List[str]) -> Dict[str, object]:
+    """
+    Retourne toutes les performances open du dernier jour, triées.
+    """
+    performances = _fetch_open_performances(symbols)
+    performances.sort(key=lambda x: x["pct_change"], reverse=True)
+    return {
+        "status": "success",
+        "items": performances,
     }
 
 

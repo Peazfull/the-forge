@@ -11,6 +11,7 @@ import pandas as pd
 from services.marketbrewery.market_opens_service import (
     refresh_data,
     get_open_top_flop,
+    get_open_performances,
     get_last_open_date,
 )
 from services.marketbrewery.listes_market import EU_TOP_200, EU_INDICES, EU_FX_PAIRS
@@ -248,6 +249,28 @@ def render_zone_section(symbols, zone_name, zone_flag):
         else:
             st.info("Aucune donnée disponible")
 
+def render_simple_section(symbols, zone_name, zone_flag):
+    """
+    Affiche une section simple (liste complète, sans top/flop)
+    """
+    data = get_open_performances(symbols)
+    items = data.get("items", []) if data.get("status") == "success" else []
+    num_assets = len(items)
+
+    st.markdown(f"""
+    <div class="zone-header">
+        <h2>{zone_flag} {zone_name}</h2>
+        <span class="badge badge-info">{num_assets} actifs</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+    if items:
+        df = create_performance_table(items)
+        styled_df = style_dataframe(df)
+        st.dataframe(styled_df, use_container_width=True, hide_index=True)
+    else:
+        st.info("Aucune donnée disponible")
+
 
 # ======================================================
 # MAIN PAGE
@@ -287,8 +310,8 @@ st.markdown("<br>", unsafe_allow_html=True)
 # ========== SECTIONS ==========
 
 render_zone_section(EU_TOP_200, "Actions européennes — Top 200", "🇪🇺")
-render_zone_section(EU_INDICES, "Indices européens", "📊")
-render_zone_section(EU_FX_PAIRS, "Devises EUR — Paires", "💱")
+render_simple_section(EU_INDICES, "Indices européens", "📊")
+render_simple_section(EU_FX_PAIRS, "Devises EUR — Paires majeures", "💱")
 
 st.markdown("<br><br>", unsafe_allow_html=True)
 st.markdown("""
