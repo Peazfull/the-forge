@@ -38,6 +38,9 @@ BOTTOM_BG_MARGIN_BOTTOM = 20
 BOTTOM_BG_MARGIN_LEFT = 0
 OVERLAY_WIDTH = 1064
 OVERLAY_HEIGHT = 1047
+SWIPE_SIZE = (56, 29)
+SWIPE_MARGIN_RIGHT = 30
+SWIPE_MARGIN_BOTTOM = 30
 
 TITLE_FONT_SIZE = 42
 CONTENT_FONT_SIZE = 38
@@ -235,11 +238,20 @@ def generate_doss_slide(
             bottom_bg = bottom_bg.resize((CANVAS_SIZE[0], IMAGE_TOP_HEIGHT), Image.LANCZOS)
         canvas.alpha_composite(bottom_bg, (0, IMAGE_TOP_HEIGHT))
 
+    swipe_path = os.path.join(ASSETS_DIR, "Swipe.png")
+    if os.path.exists(swipe_path):
+        swipe = Image.open(swipe_path).convert("RGBA")
+        if swipe.size != SWIPE_SIZE:
+            swipe = swipe.resize(SWIPE_SIZE, Image.LANCZOS)
+        swipe_x = CANVAS_SIZE[0] - SWIPE_SIZE[0] - SWIPE_MARGIN_RIGHT
+        swipe_y = CANVAS_SIZE[1] - SWIPE_SIZE[1] - SWIPE_MARGIN_BOTTOM
+        canvas.alpha_composite(swipe, (swipe_x, swipe_y))
+
     # Suppression overlay/title_bg pour le nouveau design
 
     draw = ImageDraw.Draw(canvas)
 
-    text_area_top = 550
+    text_area_top = 560
     text_area_height = CANVAS_SIZE[1] - text_area_top - CONTENT_BOTTOM_MARGIN
     content_max_width = CANVAS_SIZE[0] - LEFT_MARGIN - RIGHT_MARGIN
 
