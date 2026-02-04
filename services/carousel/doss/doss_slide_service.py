@@ -28,7 +28,7 @@ LOGO_TOP = 15
 LEFT_MARGIN = 60
 RIGHT_MARGIN = 100
 TITLE_TOP_GAP = 40
-CONTENT_TOP_GAP = 100
+CONTENT_TOP_GAP = 50
 CONTENT_BOTTOM_MARGIN = 60
 BOTTOM_BG_HEIGHT = 1043
 BOTTOM_BG_MARGIN_BOTTOM = 20
@@ -232,10 +232,14 @@ def generate_doss_slide(
     content_max_width = CANVAS_SIZE[0] - LEFT_MARGIN - RIGHT_MARGIN
 
     title_max_width = content_max_width
+    if title.strip() == title.strip().upper():
+        title_text = title
+    else:
+        title_text = title.upper()
 
     title_font, title_lines = _fit_text(
         draw,
-        title,
+        title_text,
         title_max_width,
         120,
         start_size=TITLE_FONT_SIZE,
