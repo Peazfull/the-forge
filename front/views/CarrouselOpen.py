@@ -131,11 +131,11 @@ def _render_open_table(draw: ImageDraw.ImageDraw, img_w: int, img_h: int, rows: 
     name_x = SLIDE2_MARGIN_X
     change_center_x = img_w // 2
     open_right_x = img_w - SLIDE2_MARGIN_X
-    draw.text((name_x, header_y), "Name", font=header_font, fill=SLIDE2_HEADER_COLOR)
+    draw.text((name_x, header_y), "Entreprise", font=header_font, fill=SLIDE2_HEADER_COLOR)
     change_label = "Change"
     change_width = draw.textlength(change_label, font=header_font)
     draw.text((change_center_x - change_width / 2, header_y), change_label, font=header_font, fill=SLIDE2_HEADER_COLOR)
-    open_label = "Open"
+    open_label = "Prix d'Open"
     open_width = draw.textlength(open_label, font=header_font)
     draw.text((open_right_x - open_width, header_y), open_label, font=header_font, fill=SLIDE2_HEADER_COLOR)
 
