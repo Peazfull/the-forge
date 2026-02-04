@@ -1378,28 +1378,38 @@ with st.expander("🎨 Textes Carousel", expanded=False):
                             pass  # Échec silencieux
                         
                         # Upload vers Supabase Storage + sauvegarde URL en DB
+                        upload_success = False
                         try:
                             from services.carousel.pea.carousel_image_service import upload_image_bytes
                             upload_result = upload_image_bytes(image_bytes, position)
-                            if upload_result.get("public_url"):
-                                image_url = f"{upload_result['public_url']}?model=upload-manuel"
-                            save_image_to_pea(item_id, image_url)
-                        except:
-                            pass
+                            public_url = upload_result.get("public_url")
+                            if public_url:
+                                image_url = f"{public_url}?model=upload-manuel"
+                                save_image_to_pea(item_id, image_url)
+                                upload_success = True
+                            else:
+                                st.error(
+                                    f"❌ Upload storage échoué : {upload_result.get('message', '')[:120]}"
+                                )
+                        except Exception as e:
+                            st.error(f"❌ Upload storage échoué : {str(e)[:120]}")
                         
-                        st.session_state[last_upload_key] = file_id
-                        
-                        # Marquer comme upload manuel
-                        if "carousel_image_models" not in st.session_state:
-                            st.session_state.carousel_image_models = {}
-                        st.session_state.carousel_image_models[position] = {
-                            "model": "upload-manuel",
-                            "tried_fallback": False
-                        }
-                        
-                        st.success("✅ Image chargée")
-                        time.sleep(0.5)
-                        st.rerun()
+                        if upload_success:
+                            st.session_state[last_upload_key] = file_id
+                            
+                            # Marquer comme upload manuel
+                            if "carousel_image_models" not in st.session_state:
+                                st.session_state.carousel_image_models = {}
+                            st.session_state.carousel_image_models[position] = {
+                                "model": "upload-manuel",
+                                "tried_fallback": False
+                            }
+                            
+                            st.success("✅ Image chargée")
+                            time.sleep(0.5)
+                            st.rerun()
+                        else:
+                            st.warning("Upload non persisté : l'image sera perdue au refresh.")
             
             # Plus besoin de logique async avec flags - tout est fait directement dans les boutons
 

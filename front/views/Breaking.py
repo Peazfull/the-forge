@@ -97,12 +97,24 @@ def _generate_breaking_image_prompt(title: str, content: str) -> Dict[str, objec
 def _upload_breaking_image(position: int, image_bytes: bytes) -> Optional[str]:
     supabase = get_supabase()
     filename = f"breaking_image_{position}.png"
-    supabase.storage.from_(BREAKING_BUCKET).upload(
-        filename,
-        image_bytes,
-        file_options={"content-type": "image/png", "upsert": "true"},
-    )
-    return supabase.storage.from_(BREAKING_BUCKET).get_public_url(filename)
+    try:
+        supabase.storage.from_(BREAKING_BUCKET).upload(
+            filename,
+            image_bytes,
+            file_options={"content-type": "image/png", "upsert": "true"},
+        )
+        return supabase.storage.from_(BREAKING_BUCKET).get_public_url(filename)
+    except Exception:
+        return None
+
+
+def _safe_upload_breaking_image(position: int, image_bytes: bytes) -> Optional[str]:
+    url = _upload_breaking_image(position, image_bytes)
+    if not url:
+        st.error("❌ Upload storage échoué")
+        st.warning("Upload non persisté : l'image sera perdue au refresh.")
+        return None
+    return url
 
 
 def _with_cache_buster(url: str, token: str) -> str:
@@ -238,13 +250,15 @@ if st.button("✨ Générer titre + contenu", use_container_width=True):
                     img0 = generate_carousel_image(prompt)
                     if img0.get("status") == "success":
                         image_bytes = base64.b64decode(img0["image_data"])
-                        url0 = _upload_breaking_image(0, image_bytes) or ""
-                        state["image_url_0"] = _with_cache_buster(url0, str(time.time()))
+                        url0 = _safe_upload_breaking_image(0, image_bytes)
+                        if url0:
+                            state["image_url_0"] = _with_cache_buster(url0, str(time.time()))
                     img1 = generate_carousel_image(prompt)
                     if img1.get("status") == "success":
                         image_bytes = base64.b64decode(img1["image_data"])
-                        url1 = _upload_breaking_image(1, image_bytes) or ""
-                        state["image_url_1"] = _with_cache_buster(url1, str(time.time()))
+                        url1 = _safe_upload_breaking_image(1, image_bytes)
+                        if url1:
+                            state["image_url_1"] = _with_cache_buster(url1, str(time.time()))
                 _save_breaking_state(state)
 
             # Générer les slides automatiquement si images OK
@@ -272,11 +286,15 @@ if st.button("🔄 Régénérer prompts + images", use_container_width=True):
                 img0 = generate_carousel_image(prompt)
                 if img0.get("status") == "success":
                     image_bytes = base64.b64decode(img0["image_data"])
-                    state["image_url_0"] = _upload_breaking_image(0, image_bytes) or ""
+                    url0 = _safe_upload_breaking_image(0, image_bytes)
+                    if url0:
+                        state["image_url_0"] = url0
                 img1 = generate_carousel_image(prompt)
                 if img1.get("status") == "success":
                     image_bytes = base64.b64decode(img1["image_data"])
-                    state["image_url_1"] = _upload_breaking_image(1, image_bytes) or ""
+                    url1 = _safe_upload_breaking_image(1, image_bytes)
+                    if url1:
+                        state["image_url_1"] = url1
             _save_breaking_state(state)
         _auto_generate_slides_if_ready(state, title, content)
 
@@ -318,12 +336,13 @@ with col_img0:
                 result = generate_carousel_image(prompt0)
             if result.get("status") == "success":
                 image_bytes = base64.b64decode(result["image_data"])
-                url = _upload_breaking_image(0, image_bytes) or ""
-                state["image_url_0"] = _with_cache_buster(url, str(time.time()))
-                _save_breaking_state(state)
-                st.success("✅ Image 0 générée")
-                _auto_generate_slides_if_ready(state, title, content)
-                st.rerun()
+                url = _safe_upload_breaking_image(0, image_bytes)
+                if url:
+                    state["image_url_0"] = _with_cache_buster(url, str(time.time()))
+                    _save_breaking_state(state)
+                    st.success("✅ Image 0 générée")
+                    _auto_generate_slides_if_ready(state, title, content)
+                    st.rerun()
             else:
                 st.error(result.get("message", "Erreur image 0"))
     with st.expander("✍️ Re-prompt image 0", expanded=False):
@@ -338,23 +357,25 @@ with col_img0:
                     result = generate_carousel_image(manual_prompt_0)
                 if result.get("status") == "success":
                     image_bytes = base64.b64decode(result["image_data"])
-                    url = _upload_breaking_image(0, image_bytes) or ""
-                    state["image_url_0"] = _with_cache_buster(url, str(time.time()))
-                    _save_breaking_state(state)
-                    st.success("✅ Image 0 générée")
-                    _auto_generate_slides_if_ready(state, title, content)
-                    st.rerun()
+                    url = _safe_upload_breaking_image(0, image_bytes)
+                    if url:
+                        state["image_url_0"] = _with_cache_buster(url, str(time.time()))
+                        _save_breaking_state(state)
+                        st.success("✅ Image 0 générée")
+                        _auto_generate_slides_if_ready(state, title, content)
+                        st.rerun()
                 else:
                     st.error(result.get("message", "Erreur image 0"))
     uploaded_0 = st.file_uploader("Charger une image 0", type=["png", "jpg", "jpeg"], key="breaking_upload_0")
     if uploaded_0 is not None:
         image_bytes = uploaded_0.read()
-        url = _upload_breaking_image(0, image_bytes) or ""
-        state["image_url_0"] = _with_cache_buster(url, str(time.time()))
-        _save_breaking_state(state)
-        st.success("✅ Image 0 chargée")
-        _auto_generate_slides_if_ready(state, title, content)
-        st.rerun()
+        url = _safe_upload_breaking_image(0, image_bytes)
+        if url:
+            state["image_url_0"] = _with_cache_buster(url, str(time.time()))
+            _save_breaking_state(state)
+            st.success("✅ Image 0 chargée")
+            _auto_generate_slides_if_ready(state, title, content)
+            st.rerun()
 
 with col_img1:
     if state.get("image_url_1"):
@@ -377,12 +398,13 @@ with col_img1:
                 result = generate_carousel_image(prompt1)
             if result.get("status") == "success":
                 image_bytes = base64.b64decode(result["image_data"])
-                url = _upload_breaking_image(1, image_bytes) or ""
-                state["image_url_1"] = _with_cache_buster(url, str(time.time()))
-                _save_breaking_state(state)
-                st.success("✅ Image 1 générée")
-                _auto_generate_slides_if_ready(state, title, content)
-                st.rerun()
+                url = _safe_upload_breaking_image(1, image_bytes)
+                if url:
+                    state["image_url_1"] = _with_cache_buster(url, str(time.time()))
+                    _save_breaking_state(state)
+                    st.success("✅ Image 1 générée")
+                    _auto_generate_slides_if_ready(state, title, content)
+                    st.rerun()
             else:
                 st.error(result.get("message", "Erreur image 1"))
     with st.expander("✍️ Re-prompt image 1", expanded=False):
@@ -397,23 +419,25 @@ with col_img1:
                     result = generate_carousel_image(manual_prompt_1)
                 if result.get("status") == "success":
                     image_bytes = base64.b64decode(result["image_data"])
-                    url = _upload_breaking_image(1, image_bytes) or ""
-                    state["image_url_1"] = _with_cache_buster(url, str(time.time()))
-                    _save_breaking_state(state)
-                    st.success("✅ Image 1 générée")
-                    _auto_generate_slides_if_ready(state, title, content)
-                    st.rerun()
+                    url = _safe_upload_breaking_image(1, image_bytes)
+                    if url:
+                        state["image_url_1"] = _with_cache_buster(url, str(time.time()))
+                        _save_breaking_state(state)
+                        st.success("✅ Image 1 générée")
+                        _auto_generate_slides_if_ready(state, title, content)
+                        st.rerun()
                 else:
                     st.error(result.get("message", "Erreur image 1"))
     uploaded_1 = st.file_uploader("Charger une image 1", type=["png", "jpg", "jpeg"], key="breaking_upload_1")
     if uploaded_1 is not None:
         image_bytes = uploaded_1.read()
-        url = _upload_breaking_image(1, image_bytes) or ""
-        state["image_url_1"] = _with_cache_buster(url, str(time.time()))
-        _save_breaking_state(state)
-        st.success("✅ Image 1 chargée")
-        _auto_generate_slides_if_ready(state, title, content)
-        st.rerun()
+        url = _safe_upload_breaking_image(1, image_bytes)
+        if url:
+            state["image_url_1"] = _with_cache_buster(url, str(time.time()))
+            _save_breaking_state(state)
+            st.success("✅ Image 1 chargée")
+            _auto_generate_slides_if_ready(state, title, content)
+            st.rerun()
 
 st.divider()
 

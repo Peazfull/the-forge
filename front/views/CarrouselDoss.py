@@ -130,12 +130,15 @@ def _sync_doss_texts(
 def _upload_doss_image(position: int, image_bytes: bytes) -> Optional[str]:
     supabase = get_supabase()
     filename = f"doss_image_{position}.png"
-    supabase.storage.from_(DOSS_BUCKET).upload(
-        filename,
-        image_bytes,
-        file_options={"content-type": "image/png", "upsert": "true"},
-    )
-    return supabase.storage.from_(DOSS_BUCKET).get_public_url(filename)
+    try:
+        supabase.storage.from_(DOSS_BUCKET).upload(
+            filename,
+            image_bytes,
+            file_options={"content-type": "image/png", "upsert": "true"},
+        )
+        return supabase.storage.from_(DOSS_BUCKET).get_public_url(filename)
+    except Exception:
+        return None
 
 
 def _upload_doss_slide(filename: str, image_bytes: bytes) -> Optional[str]:
@@ -398,9 +401,13 @@ if st.button("🚀 Générer images + slides", use_container_width=True):
             result = generate_doss_image(prompt)
             if result.get("status") == "success":
                 image_bytes = base64.b64decode(result["image_data"])
-                url = _upload_doss_image(idx, image_bytes) or ""
-                state[f"image_url_{idx}"] = _with_cache_buster(url, str(time.time()))
-                st.session_state.doss_images_cache_buster = str(time.time())
+                url = _upload_doss_image(idx, image_bytes)
+                if url:
+                    state[f"image_url_{idx}"] = _with_cache_buster(url, str(time.time()))
+                    st.session_state.doss_images_cache_buster = str(time.time())
+                else:
+                    st.error("❌ Upload storage échoué")
+                    st.warning("Upload non persisté : l'image sera perdue au refresh.")
     _save_doss_state(state)
     _generate_doss_slides(state)
     st.session_state["doss_slides_cache_buster"] = str(time.time())
@@ -443,12 +450,16 @@ for row_idx in range(0, len(image_cards), 2):
                         result = generate_doss_image(prompt)
                     if result.get("status") == "success":
                         image_bytes = base64.b64decode(result["image_data"])
-                        url = _upload_doss_image(idx, image_bytes) or ""
-                        state[f"image_url_{idx}"] = _with_cache_buster(url, str(time.time()))
-                        _save_doss_state(state)
-                        st.session_state.doss_images_cache_buster = str(time.time())
-                        st.success(f"✅ Image {idx} générée")
-                        st.rerun()
+                        url = _upload_doss_image(idx, image_bytes)
+                        if url:
+                            state[f"image_url_{idx}"] = _with_cache_buster(url, str(time.time()))
+                            _save_doss_state(state)
+                            st.session_state.doss_images_cache_buster = str(time.time())
+                            st.success(f"✅ Image {idx} générée")
+                            st.rerun()
+                        else:
+                            st.error("❌ Upload storage échoué")
+                            st.warning("Upload non persisté : l'image sera perdue au refresh.")
                     else:
                         st.error(result.get("message", f"Erreur image {idx}"))
                 else:
@@ -470,12 +481,16 @@ for row_idx in range(0, len(image_cards), 2):
                 )
                 _save_doss_state(state)
                 image_bytes = uploaded.read()
-                url = _upload_doss_image(idx, image_bytes) or ""
-                state[f"image_url_{idx}"] = _with_cache_buster(url, str(time.time()))
-                _save_doss_state(state)
-                st.session_state.doss_images_cache_buster = str(time.time())
-                st.success(f"✅ Image {idx} chargée")
-                st.rerun()
+                url = _upload_doss_image(idx, image_bytes)
+                if url:
+                    state[f"image_url_{idx}"] = _with_cache_buster(url, str(time.time()))
+                    _save_doss_state(state)
+                    st.session_state.doss_images_cache_buster = str(time.time())
+                    st.success(f"✅ Image {idx} chargée")
+                    st.rerun()
+                else:
+                    st.error("❌ Upload storage échoué")
+                    st.warning("Upload non persisté : l'image sera perdue au refresh.")
 
 st.divider()
 st.markdown("### Slides")
