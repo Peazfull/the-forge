@@ -36,8 +36,8 @@ SLIDE2_POS_COLOR = "#00BF63"
 SLIDE2_NEG_COLOR = "#FF5757"
 SLIDE2_START_Y = 400
 SLIDE2_TITLE_ASSET = os.path.join(ASSETS_DIR, "top10europe.png")
-SLIDE2_TITLE_ASSET_SIZE = (556, 109)
-SLIDE2_TITLE_ASSET_TOP = 300
+SLIDE2_TITLE_ASSET_MAX_WIDTH = 556
+SLIDE2_TITLE_ASSET_TOP = 230
 CAPTION_FILE = os.path.join(
     os.path.dirname(__file__),
     "..", "..", "prompts", "open", "fixed_caption.txt"
@@ -194,8 +194,13 @@ def _render_slide_bytes(filename: str, path: str) -> bytes:
         draw = ImageDraw.Draw(img)
         if os.path.exists(SLIDE2_TITLE_ASSET):
             title_asset = Image.open(SLIDE2_TITLE_ASSET).convert("RGBA")
-            title_asset = title_asset.resize(SLIDE2_TITLE_ASSET_SIZE, Image.LANCZOS)
-            title_x = (img.size[0] - SLIDE2_TITLE_ASSET_SIZE[0]) // 2
+            scale = SLIDE2_TITLE_ASSET_MAX_WIDTH / title_asset.size[0]
+            new_size = (
+                int(title_asset.size[0] * scale),
+                int(title_asset.size[1] * scale),
+            )
+            title_asset = title_asset.resize(new_size, Image.LANCZOS)
+            title_x = (img.size[0] - new_size[0]) // 2
             img.alpha_composite(title_asset, (title_x, SLIDE2_TITLE_ASSET_TOP))
         _render_open_table(draw, img.size[0], img.size[1], _get_top10_open_eu())
     elif slide_number == 3:
