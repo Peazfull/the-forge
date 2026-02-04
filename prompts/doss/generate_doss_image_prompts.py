@@ -8,6 +8,7 @@ CONTRAINTES VISUELLES :
 - Si info géopolitique : inclure un drapeau, un lieu ou un monument immédiatement reconnaissable.
 - Personnes interdites par défaut. Autoriser uniquement si c'est une personnalité publique majeure
   du monde économique ou géopolitique, clairement identifiable.
+- Jamais de foule ou figurants inconnus.
 - L'action principale doit se situer dans la moitié haute de l'image.
 - Pas de texte, pas de watermark.
 - Composition claire, sujet principal identifiable, action dans la moitié haute.
