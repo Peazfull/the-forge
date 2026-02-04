@@ -36,7 +36,7 @@ BOTTOM_BG_MARGIN_LEFT = 0
 OVERLAY_WIDTH = 1064
 OVERLAY_HEIGHT = 1047
 
-TITLE_FONT_SIZE = 42
+TITLE_FONT_SIZE = 46
 CONTENT_FONT_SIZE = 38
 TITLE_FONT_WEIGHT = 600
 CONTENT_FONT_WEIGHT = 600
@@ -46,7 +46,8 @@ CONTENT_COLOR = "#F6F6F6"
 HIGHLIGHT_BG_COLOR = "#5B2EFF"
 HIGHLIGHT_TEXT_COLOR = "#F6F6F6"
 HIGHLIGHT_PAD_X = 6
-HIGHLIGHT_PAD_Y = -4
+TITLE_HIGHLIGHT_PAD_Y = 0
+CONTENT_HIGHLIGHT_PAD_Y = -4
 PARAGRAPH_EXTRA_LINE_GAP = 1
 
 FONT_TITLE_PATH = os.path.join(ASSETS_DIR, "Manrope-Bold.ttf")
@@ -252,9 +253,9 @@ def generate_story_slide(
             token_width = draw.textlength(word, font=title_font)
             rect = (
                 x - HIGHLIGHT_PAD_X,
-                y - HIGHLIGHT_PAD_Y,
+                y - TITLE_HIGHLIGHT_PAD_Y,
                 x + token_width + HIGHLIGHT_PAD_X,
-                y + title_line_height + HIGHLIGHT_PAD_Y
+                y + title_line_height + TITLE_HIGHLIGHT_PAD_Y
             )
             draw.rectangle(rect, fill=HIGHLIGHT_BG_COLOR)
             draw.text((x, y), word, font=title_font, fill=HIGHLIGHT_TEXT_COLOR)
@@ -295,9 +296,9 @@ def generate_story_slide(
                 if is_highlight:
                     rect = (
                         x - HIGHLIGHT_PAD_X,
-                        y - HIGHLIGHT_PAD_Y,
+                        y - CONTENT_HIGHLIGHT_PAD_Y,
                         x + token_width + HIGHLIGHT_PAD_X,
-                        y + content_line_height + HIGHLIGHT_PAD_Y
+                        y + content_line_height + CONTENT_HIGHLIGHT_PAD_Y
                     )
                     draw.rectangle(rect, fill=HIGHLIGHT_BG_COLOR)
                     draw.text((x, y), token_text, font=content_font, fill=HIGHLIGHT_TEXT_COLOR)
