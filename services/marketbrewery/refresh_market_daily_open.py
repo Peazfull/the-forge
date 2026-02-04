@@ -56,7 +56,7 @@ def _upsert_open_data(supabase, asset_id, point):
         "open_value": point["open_value"],
         "close_prev_value": point["close_prev_value"],
         "pct_change": point["pct_change"],
-    }).execute()
+    }, on_conflict="asset_id,date").execute()
 
 
 def _clean_old_open_data(supabase, days=10):
