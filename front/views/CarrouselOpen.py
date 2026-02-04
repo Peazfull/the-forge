@@ -5,7 +5,7 @@ import zipfile
 from datetime import datetime
 
 import streamlit as st
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 
 from services.utils.email_service import send_email_with_attachments
 
@@ -14,6 +14,10 @@ ASSETS_DIR = os.path.join(
     os.path.dirname(__file__),
     "..", "layout", "assets", "carousel", "open"
 )
+FONT_BOLD_PATH = os.path.join(ASSETS_DIR, "Manrope-Bold.ttf")
+DATE_FONT_SIZE = 46
+DATE_TOP = 800
+DATE_FILL = "white"
 CAPTION_FILE = os.path.join(
     os.path.dirname(__file__),
     "..", "..", "prompts", "open", "fixed_caption.txt"
@@ -33,13 +37,13 @@ def _sorted_slide_files() -> list[tuple[str, str]]:
         return []
     files = [
         name for name in os.listdir(ASSETS_DIR)
-        if name.lower().endswith(".png") and name.startswith("slide_")
+        if name.lower().endswith(".png")
     ]
     if not files:
         return []
 
     def _key(name: str) -> tuple[int, str]:
-        match = re.search(r"slide_(\d+)", name)
+        match = re.search(r"slide[_\s-]?(\d+)", name, re.IGNORECASE)
         num = int(match.group(1)) if match else 999
         return (num, name)
 
@@ -47,12 +51,47 @@ def _sorted_slide_files() -> list[tuple[str, str]]:
     return [(name, os.path.join(ASSETS_DIR, name)) for name in files]
 
 
+def _format_french_date(dt: datetime | None = None) -> str:
+    if dt is None:
+        dt = datetime.now()
+    months = [
+        "janvier", "fevrier", "mars", "avril", "mai", "juin",
+        "juillet", "aout", "septembre", "octobre", "novembre", "decembre",
+    ]
+    return f"{dt.day:02d} {months[dt.month - 1]} {dt.year}"
+
+
+def _load_font(path: str, size: int) -> ImageFont.ImageFont:
+    if os.path.exists(path):
+        try:
+            return ImageFont.truetype(path, size=size)
+        except Exception:
+            return ImageFont.load_default()
+    return ImageFont.load_default()
+
+
+def _render_slide_bytes(filename: str, path: str) -> bytes:
+    img = Image.open(path).convert("RGBA")
+    match = re.search(r"slide[_\s-]?(\d+)", filename, re.IGNORECASE)
+    slide_number = int(match.group(1)) if match else None
+    if slide_number == 1:
+        draw = ImageDraw.Draw(img)
+        date_text = _format_french_date()
+        font = _load_font(FONT_BOLD_PATH, DATE_FONT_SIZE)
+        text_width = draw.textlength(date_text, font=font)
+        x = (img.size[0] - text_width) // 2
+        draw.text((x, DATE_TOP), date_text, font=font, fill=DATE_FILL)
+    output = io.BytesIO()
+    img.convert("RGB").save(output, format="PNG")
+    return output.getvalue()
+
+
 def build_open_exports(slide_paths: list[tuple[str, str]]) -> dict[str, object]:
     slides = []
     for filename, path in slide_paths:
         try:
-            with open(path, "rb") as f:
-                slides.append((filename, f.read()))
+            slide_bytes = _render_slide_bytes(filename, path)
+            slides.append((filename, slide_bytes))
         except Exception:
             continue
 
@@ -105,7 +144,11 @@ if slide_files:
         col = cols[idx % 3]
         with col:
             st.caption(filename)
-            st.image(path, use_container_width=True)
+            try:
+                slide_bytes = _render_slide_bytes(filename, path)
+                st.image(slide_bytes, use_container_width=True)
+            except Exception:
+                st.image(path, use_container_width=True)
 
 st.divider()
 if st.button("📦 Préparer export Open", use_container_width=True):
