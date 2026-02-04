@@ -161,7 +161,11 @@ def _clear_story_slide_files() -> None:
     supabase = get_supabase()
     try:
         items = supabase.storage.from_(STORY_SLIDES_BUCKET).list()
-        files = [item.get("name") for item in items if item.get("name")]
+        files = [
+            item.get("name")
+            for item in items
+            if item.get("name") and item.get("name") != STORY_STATE_FILE
+        ]
         if files:
             supabase.storage.from_(STORY_SLIDES_BUCKET).remove(files)
     except Exception:
@@ -399,6 +403,7 @@ if st.button("🚀 Générer images + slides", use_container_width=True):
                 image_bytes = base64.b64decode(result["image_data"])
                 url = _upload_story_image(idx, image_bytes) or ""
                 state[f"image_url_{idx}"] = _with_cache_buster(url, str(time.time()))
+                st.session_state.story_images_cache_buster = str(time.time())
     _save_story_state(state)
     _generate_story_slides(state)
     st.session_state["story_slides_cache_buster"] = str(time.time())
@@ -417,8 +422,9 @@ for row_idx in range(0, len(image_cards), 2):
         with col:
             st.markdown(f"#### {label}")
             image_url = state.get(f"image_url_{idx}") or _get_story_image_url(idx)
+            cache_buster = st.session_state.get("story_images_cache_buster", "")
             if image_url:
-                st.image(image_url, use_container_width=True)
+                st.image(_with_cache_buster(image_url, cache_buster), use_container_width=True)
 
             if st.button(f"🎨 Générer image {idx}", use_container_width=True, key=f"gen_image_{idx}"):
                 _sync_story_texts(
@@ -443,6 +449,7 @@ for row_idx in range(0, len(image_cards), 2):
                         url = _upload_story_image(idx, image_bytes) or ""
                         state[f"image_url_{idx}"] = _with_cache_buster(url, str(time.time()))
                         _save_story_state(state)
+                        st.session_state.story_images_cache_buster = str(time.time())
                         st.success(f"✅ Image {idx} générée")
                         st.rerun()
                     else:
@@ -469,6 +476,7 @@ for row_idx in range(0, len(image_cards), 2):
                 url = _upload_story_image(idx, image_bytes) or ""
                 state[f"image_url_{idx}"] = _with_cache_buster(url, str(time.time()))
                 _save_story_state(state)
+                st.session_state.story_images_cache_buster = str(time.time())
                 st.success(f"✅ Image {idx} chargée")
                 st.rerun()
 
