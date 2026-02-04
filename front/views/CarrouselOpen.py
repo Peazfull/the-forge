@@ -16,7 +16,7 @@ ASSETS_DIR = os.path.join(
 )
 FONT_BOLD_PATH = os.path.join(ASSETS_DIR, "Manrope-Bold.ttf")
 DATE_FONT_SIZE = 46
-DATE_TOP = 800
+DATE_TOP = 900
 DATE_FILL = "white"
 CAPTION_FILE = os.path.join(
     os.path.dirname(__file__),
@@ -38,6 +38,7 @@ def _sorted_slide_files() -> list[tuple[str, str]]:
     files = [
         name for name in os.listdir(ASSETS_DIR)
         if name.lower().endswith(".png")
+        and re.search(r"(?:^|[_\s-])slide\s*\d+", name, re.IGNORECASE)
     ]
     if not files:
         return []
