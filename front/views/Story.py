@@ -243,16 +243,10 @@ if st.button("✨ Générer titres + contenus", use_container_width=True):
             _save_story_state(state)
             st.success("✅ Textes générés")
 
-            with st.spinner("Génération des prompts images..."):
-                slides = [
-                    (1, state["slide1_title"], state["slide1_content"]),
-                    (2, "ON VOUS EXPLIQUE", state["slide2_content"]),
-                    (3, "DE PLUS", state["slide3_content"]),
-                    (4, "EN GROS", state["slide4_content"]),
-                ]
-                for idx, title, content in slides:
-                    p = generate_story_image_prompt(title, content)
-                    prompt = p.get("image_prompt", "")
+            with st.spinner("Génération du prompt image global..."):
+                p = generate_story_image_prompt(state["slide1_title"], state["slide1_content"])
+                prompt = p.get("image_prompt", "")
+                for idx in range(1, 5):
                     state[f"prompt_image_{idx}"] = prompt
                 _save_story_state(state)
             st.success("✅ Prompts images générés")
@@ -304,16 +298,11 @@ with st.expander("✍️ Prompts images (éditables)", expanded=False):
             st.success("✅ Prompts sauvegardés")
     with col_regen_prompts:
         if st.button("✨ Régénérer prompts", use_container_width=True):
-            slides = [
-                (1, slide1_title, slide1_content),
-                (2, "ON VOUS EXPLIQUE", slide2_content),
-                (3, "DE PLUS", slide3_content),
-                (4, "EN GROS", slide4_content),
-            ]
-            with st.spinner("Génération des prompts..."):
-                for idx, title, content in slides:
-                    p = generate_story_image_prompt(title, content)
-                    state[f"prompt_image_{idx}"] = p.get("image_prompt", "")
+            with st.spinner("Génération du prompt global..."):
+                p = generate_story_image_prompt(slide1_title, slide1_content)
+                prompt = p.get("image_prompt", "")
+                for idx in range(1, 5):
+                    state[f"prompt_image_{idx}"] = prompt
                 _save_story_state(state)
             st.success("✅ Prompts régénérés")
 
