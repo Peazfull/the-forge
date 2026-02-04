@@ -1,6 +1,7 @@
 import io
 import os
 import re
+import time
 import zipfile
 from datetime import datetime
 
@@ -242,12 +243,23 @@ def build_open_exports(slide_paths: list[tuple[str, str]]) -> dict[str, object]:
     }
 
 
+def refresh_open_slides() -> None:
+    """Force un refresh des données et un rerun pour la preview/export."""
+    st.cache_data.clear()
+    st.session_state.open_refresh_token = str(time.time())
+
+
 st.title("TheArtist - Open")
 st.divider()
 
 slide_files = _sorted_slide_files()
 if not slide_files:
     st.warning("Aucune slide trouvée dans les assets (fichiers slide_*.png).")
+
+if st.button("🖼️ Générer les slides", type="primary", use_container_width=True):
+    refresh_open_slides()
+    st.success("✅ Slides régénérées")
+    st.rerun()
 
 st.markdown("### Preview slides")
 if slide_files:
