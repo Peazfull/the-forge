@@ -11,7 +11,15 @@ from typing import Dict
 from openai import OpenAI
 
 
-def _try_generate_image(model: str, prompt: str, image_size: str, max_retries: int, retry_delays: list, timeout: int) -> Dict[str, object]:
+def _try_generate_image(
+    model: str,
+    prompt: str,
+    image_size: str,
+    max_retries: int,
+    retry_delays: list,
+    timeout: int,
+    aspect_ratio: str = "1:1"
+) -> Dict[str, object]:
     """
     Fonction interne pour essayer de générer une image avec un modèle spécifique
     """
@@ -26,7 +34,7 @@ def _try_generate_image(model: str, prompt: str, image_size: str, max_retries: i
         }],
         "generationConfig": {
             "imageConfig": {
-                "aspectRatio": "1:1",
+                "aspectRatio": aspect_ratio,
                 "imageSize": image_size
             }
         }
@@ -101,7 +109,7 @@ def _try_generate_image(model: str, prompt: str, image_size: str, max_retries: i
     }
 
 
-def _generate_with_gpt_image(prompt: str) -> Dict[str, object]:
+def _generate_with_gpt_image(prompt: str, size: str = "1024x1024") -> Dict[str, object]:
     """
     Génère une image avec GPT Image 1.5 (OpenAI) en fallback
     Meilleur que DALL-E 3 : instruction following supérieur, meilleur text rendering
@@ -112,7 +120,7 @@ def _generate_with_gpt_image(prompt: str) -> Dict[str, object]:
         response = client.images.generate(
             model="gpt-image-1.5",  # Nouveau modèle state-of-the-art 2026
             prompt=prompt,
-            size="1024x1024",  # Format 1:1
+            size=size,
             quality="high",  # Qualité haute (low/medium/high)
         )
         
@@ -130,7 +138,7 @@ def _generate_with_gpt_image(prompt: str) -> Dict[str, object]:
             "status": "success",
             "image_data": image_base64,
             "model_used": "gpt-image-1.5",
-            "resolution": "1024x1024"
+            "resolution": size
         }
             
     except Exception as e:
@@ -148,7 +156,7 @@ def _generate_with_gpt_image(prompt: str) -> Dict[str, object]:
         }
 
 
-def generate_carousel_image(prompt: str) -> Dict[str, object]:
+def generate_carousel_image(prompt: str, aspect_ratio: str = "1:1") -> Dict[str, object]:
     """
     Génère une image 1:1 avec Nano Banana Pro → Fallback GPT Image 1.5
     
@@ -189,7 +197,8 @@ def generate_carousel_image(prompt: str) -> Dict[str, object]:
         image_size=gemini_image_size,
         max_retries=gemini_max_retries,
         retry_delays=gemini_retry_delays,
-        timeout=gemini_timeout
+        timeout=gemini_timeout,
+        aspect_ratio=aspect_ratio
     )
     
     if result_gemini.get("status") == "success":
@@ -201,7 +210,13 @@ def generate_carousel_image(prompt: str) -> Dict[str, object]:
     print(f"⚠️ Nano Banana Pro échoué : {result_gemini.get('message')}")
     print("🔄 Fallback vers GPT Image 1.5...")
     
-    result_gpt = _generate_with_gpt_image(prompt)
+    gpt_size_map = {
+        "1:1": "1024x1024",
+        "16:9": "1792x1024",
+        "9:16": "1024x1792"
+    }
+    gpt_size = gpt_size_map.get(aspect_ratio, "1024x1024")
+    result_gpt = _generate_with_gpt_image(prompt, size=gpt_size)
     
     if result_gpt.get("status") == "success":
         result_gpt["tried_fallback"] = True

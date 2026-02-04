@@ -13,7 +13,7 @@ from datetime import datetime
 import streamlit as st
 from PIL import Image
 from db.supabase_client import get_supabase
-from services.carousel.image_generation_service import generate_carousel_image
+from services.carousel.doss.generate_doss_texts_service import generate_doss_image
 from services.carousel.doss.generate_doss_texts_service import (
     generate_doss_texts,
     generate_doss_image_prompt,
@@ -395,7 +395,7 @@ if st.button("🚀 Générer images + slides", use_container_width=True):
                 state[f"prompt_image_{idx}"] = prompt
             if not prompt:
                 continue
-            result = generate_carousel_image(prompt)
+            result = generate_doss_image(prompt)
             if result.get("status") == "success":
                 image_bytes = base64.b64decode(result["image_data"])
                 url = _upload_doss_image(idx, image_bytes) or ""
@@ -440,7 +440,7 @@ for row_idx in range(0, len(image_cards), 2):
                     state[f"prompt_image_{idx}"] = prompt
                 if prompt:
                     with st.spinner(f"Génération image {idx}..."):
-                        result = generate_carousel_image(prompt)
+                result = generate_doss_image(prompt)
                     if result.get("status") == "success":
                         image_bytes = base64.b64decode(result["image_data"])
                         url = _upload_doss_image(idx, image_bytes) or ""

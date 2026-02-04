@@ -55,3 +55,8 @@ def generate_doss_image_prompt(title: str, content: str) -> dict:
     )
     content = response.choices[0].message.content or ""
     return json.loads(content)
+
+
+def generate_doss_image(prompt: str) -> dict:
+    from services.carousel.image_generation_service import generate_carousel_image
+    return generate_carousel_image(prompt, aspect_ratio="16:9")
