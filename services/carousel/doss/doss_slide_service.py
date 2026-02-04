@@ -25,7 +25,7 @@ IMAGE_TOP_SIZE = (CANVAS_SIZE[0], IMAGE_TOP_HEIGHT)
 LOGO_SIZE = (200, 65)
 LOGO_TOP = 15
 TITLE_ZOOM_SIZE = (346, 114)
-TITLE_ZOOM_LEFT = 55
+TITLE_ZOOM_LEFT = 53
 TITLE_ZOOM_TOP = 415
 
 LEFT_MARGIN = 60
@@ -50,7 +50,7 @@ HIGHLIGHT_BG_COLOR = "#5B2EFF"
 HIGHLIGHT_TEXT_COLOR = "#F6F6F6"
 HIGHLIGHT_PAD_X = 6
 TITLE_HIGHLIGHT_PAD_Y = 0
-CONTENT_HIGHLIGHT_PAD_Y = -4
+CONTENT_HIGHLIGHT_PAD_Y = -5    
 PARAGRAPH_EXTRA_LINE_GAP = 1
 
 FONT_TITLE_PATH = os.path.join(ASSETS_DIR, "Manrope-Bold.ttf")
@@ -239,7 +239,7 @@ def generate_doss_slide(
 
     draw = ImageDraw.Draw(canvas)
 
-    text_area_top = 580
+    text_area_top = 560
     text_area_height = CANVAS_SIZE[1] - text_area_top - CONTENT_BOTTOM_MARGIN
     content_max_width = CANVAS_SIZE[0] - LEFT_MARGIN - RIGHT_MARGIN
 
@@ -290,7 +290,7 @@ def generate_doss_slide(
         font_path=FONT_CONTENT_PATH,
         weight=CONTENT_FONT_WEIGHT,
     )
-    content_line_height = int(content_font.size * 1.25)
+    content_line_height = int(content_font.size * 1.2)
     y = content_y
     blocks = content.splitlines()
     for idx, block in enumerate(blocks):
