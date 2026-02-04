@@ -14,7 +14,12 @@ from services.marketbrewery.market_opens_service import (
     get_open_performances,
     get_last_open_date,
 )
-from services.marketbrewery.listes_market import EU_TOP_200, EU_INDICES, EU_FX_PAIRS
+from services.marketbrewery.listes_market import (
+    EU_TOP_200,
+    EU_INDICES,
+    EU_FX_PAIRS,
+    FR_SBF_120,
+)
 
 
 # ======================================================
@@ -310,6 +315,7 @@ st.markdown("<br>", unsafe_allow_html=True)
 # ========== SECTIONS ==========
 
 render_zone_section(EU_TOP_200, "Actions européennes — Top 200", "🇪🇺")
+render_zone_section(FR_SBF_120, "Actions françaises — SBF 120", "🇫🇷")
 render_simple_section(EU_INDICES, "Indices européens", "📊")
 render_simple_section(EU_FX_PAIRS, "Devises EUR — Paires majeures", "💱")
 
