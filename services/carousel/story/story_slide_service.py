@@ -35,21 +35,16 @@ BOTTOM_BG_MARGIN_BOTTOM = 20
 BOTTOM_BG_MARGIN_LEFT = 0
 OVERLAY_WIDTH = 1064
 OVERLAY_HEIGHT = 1047
-TITLE_BG_WIDTH = 1000
-TITLE_BG_HEIGHT = 80
-TITLE_BG_TOP_OFFSET_FROM_OVERLAY = 90
 
 TITLE_FONT_SIZE = 42
 CONTENT_FONT_SIZE = 38
 TITLE_FONT_WEIGHT = 600
 CONTENT_FONT_WEIGHT = 600
 
-TITLE_COLOR = "black"
-CONTENT_COLOR = "black"
-TITLE_BG_TEXT_COLOR = "#FCF6DE"
-TITLE_TEXT_LEFT_PADDING = 7
+TITLE_COLOR = "#F6F6F6"
+CONTENT_COLOR = "#F6F6F6"
 HIGHLIGHT_BG_COLOR = "#5B2EFF"
-HIGHLIGHT_TEXT_COLOR = "#FCF6DE"
+HIGHLIGHT_TEXT_COLOR = "#F6F6F6"
 HIGHLIGHT_PAD_X = 6
 HIGHLIGHT_PAD_Y = -4
 PARAGRAPH_EXTRA_LINE_GAP = 1
@@ -227,25 +222,7 @@ def generate_story_slide(
             paste_y = CANVAS_SIZE[1] - bottom_bg.size[1]
             canvas.alpha_composite(bottom_bg, (0, paste_y))
 
-    overlay_y = None
-    overlay_path = os.path.join(ASSETS_DIR, "story_overlay_bas.png")
-    if os.path.exists(overlay_path):
-        overlay = Image.open(overlay_path).convert("RGBA")
-        if overlay.size != (OVERLAY_WIDTH, OVERLAY_HEIGHT):
-            overlay = overlay.resize((OVERLAY_WIDTH, OVERLAY_HEIGHT), Image.LANCZOS)
-        overlay_y = CANVAS_SIZE[1] - OVERLAY_HEIGHT - BOTTOM_BG_MARGIN_BOTTOM
-        canvas.alpha_composite(overlay, (BOTTOM_BG_MARGIN_LEFT, overlay_y))
-
-    title_bg_x = None
-    title_bg_y = None
-    title_bg_path = os.path.join(ASSETS_DIR, "title_bg_story.png")
-    if overlay_y is not None and os.path.exists(title_bg_path):
-        title_bg = Image.open(title_bg_path).convert("RGBA")
-        if title_bg.size != (TITLE_BG_WIDTH, TITLE_BG_HEIGHT):
-            title_bg = title_bg.resize((TITLE_BG_WIDTH, TITLE_BG_HEIGHT), Image.LANCZOS)
-        title_bg_x = (CANVAS_SIZE[0] - TITLE_BG_WIDTH) // 2
-        title_bg_y = overlay_y + TITLE_BG_TOP_OFFSET_FROM_OVERLAY
-        canvas.alpha_composite(title_bg, (title_bg_x, title_bg_y))
+    # Suppression overlay/title_bg pour le nouveau design
 
     draw = ImageDraw.Draw(canvas)
 
@@ -254,8 +231,6 @@ def generate_story_slide(
     content_max_width = CANVAS_SIZE[0] - LEFT_MARGIN - RIGHT_MARGIN
 
     title_max_width = content_max_width
-    if title_bg_x is not None:
-        title_max_width = max(50, TITLE_BG_WIDTH - (TITLE_TEXT_LEFT_PADDING * 2))
 
     title_font, title_lines = _fit_text(
         draw,
@@ -268,17 +243,23 @@ def generate_story_slide(
     )
     title_line_height = int(title_font.size * 1.2)
 
-    if title_bg_x is not None and title_bg_y is not None:
-        y = title_bg_y + max(0, (TITLE_BG_HEIGHT - (title_line_height * min(2, len(title_lines)))) // 2) - 8
-        text_x = title_bg_x + TITLE_TEXT_LEFT_PADDING
-        for line in title_lines[:2]:
-            draw.text((text_x, y), line, font=title_font, fill=TITLE_BG_TEXT_COLOR)
-            y += title_line_height
-    else:
-        y = text_area_top
-        for line in title_lines[:2]:
-            draw.text((LEFT_MARGIN, y), line, font=title_font, fill=TITLE_COLOR)
-            y += title_line_height
+    y = text_area_top
+    for line in title_lines[:2]:
+        x = LEFT_MARGIN
+        words = line.split()
+        for word in words:
+            token_width = draw.textlength(word, font=title_font)
+            rect = (
+                x - HIGHLIGHT_PAD_X,
+                y - HIGHLIGHT_PAD_Y,
+                x + token_width + HIGHLIGHT_PAD_X,
+                y + title_line_height + HIGHLIGHT_PAD_Y
+            )
+            draw.rectangle(rect, fill=HIGHLIGHT_BG_COLOR)
+            draw.text((x, y), word, font=title_font, fill=HIGHLIGHT_TEXT_COLOR)
+            space_width = draw.textlength(" ", font=title_font)
+            x += token_width + space_width
+        y += title_line_height
 
     content_y = y + CONTENT_TOP_GAP
     content_max_height = (text_area_top + text_area_height) - content_y
