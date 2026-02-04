@@ -17,7 +17,8 @@ from services.marketbrewery.listes_market import (
     EU_TOP_200,
     CRYPTO_TOP_30,
     INDICES,
-    COMMODITIES
+    COMMODITIES,
+    EU_FX_PAIRS
 )
 
 
@@ -29,7 +30,8 @@ def get_all_symbols():
         "EU": EU_TOP_200,
         "CRYPTO": CRYPTO_TOP_30,
         "INDICES": INDICES,
-        "COMMODITIES": COMMODITIES
+        "COMMODITIES": COMMODITIES,
+        "FX_EU": EU_FX_PAIRS
     }
 
 

@@ -26,6 +26,8 @@ def render_sidebar():
                 st.session_state.current_page = "front/views/HandBrewery"
             if st.button("📈 Market Brewery", key="market_brewery", use_container_width=True):
                 st.session_state.current_page = "front/views/MarketBrewery"
+            if st.button("📍 Market Opens", key="market_opens", use_container_width=True):
+                st.session_state.current_page = "front/views/MarketOpens"
             if st.button("🚀 Vue 6", key="vue6", use_container_width=True):
                 st.session_state.current_page = "front/views/vue6"
 

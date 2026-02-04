@@ -90,6 +90,13 @@ SYMBOL_TO_NAME = {
     # 🛢️ Commodities
     "GC=F": "Gold", "SI=F": "Silver", "CL=F": "WTI Crude Oil", "BZ=F": "Brent Crude",
     "NG=F": "Natural Gas", "HG=F": "Copper", "PL=F": "Platinum", "PA=F": "Palladium",
+
+    # 💱 FX (EUR pairs)
+    "EURUSD=X": "EUR/USD", "EURGBP=X": "EUR/GBP", "EURJPY=X": "EUR/JPY",
+    "EURCHF=X": "EUR/CHF", "EURAUD=X": "EUR/AUD", "EURCAD=X": "EUR/CAD",
+    "EURNZD=X": "EUR/NZD", "EURNOK=X": "EUR/NOK", "EURSEK=X": "EUR/SEK",
+    "EURDKK=X": "EUR/DKK", "EURPLN=X": "EUR/PLN", "EURHUF=X": "EUR/HUF",
+    "EURCZK=X": "EUR/CZK",
 }
 
 # =========================
@@ -199,6 +206,17 @@ INDICES = [
 ]
 
 # =========================
+# 🇪🇺 INDICES EUROPÉENS
+# =========================
+
+EU_INDICES = [
+    "^FCHI",      # CAC 40
+    "^STOXX50E",  # Euro STOXX 50
+    "^GDAXI",     # DAX
+    "^FTSE",      # FTSE 100
+]
+
+# =========================
 # 🛢️ COMMODITIES
 # =========================
 
@@ -211,4 +229,15 @@ COMMODITIES = [
     "HG=F",   # Copper
     "PL=F",   # Platinum
     "PA=F",   # Palladium
+]
+
+# =========================
+# 💱 PAIRES EUR (EUROPE)
+# =========================
+
+EU_FX_PAIRS = [
+    "EURUSD=X", "EURGBP=X", "EURJPY=X", "EURCHF=X",
+    "EURAUD=X", "EURCAD=X", "EURNZD=X",
+    "EURNOK=X", "EURSEK=X", "EURDKK=X",
+    "EURPLN=X", "EURHUF=X", "EURCZK=X",
 ]

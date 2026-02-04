@@ -14,7 +14,8 @@ from services.marketbrewery.listes_market import (
     CRYPTO_TOP_30,
     INDICES,
     COMMODITIES,
-    SYMBOL_TO_NAME
+    SYMBOL_TO_NAME,
+    EU_FX_PAIRS
 )
 
 
@@ -45,7 +46,8 @@ def init_assets():
         ("EU", "stock", EU_TOP_200),
         ("CRYPTO", "crypto", CRYPTO_TOP_30),
         ("GLOBAL", "index", INDICES),
-        ("GLOBAL", "commodity", COMMODITIES)
+        ("GLOBAL", "commodity", COMMODITIES),
+        ("EU", "fx", EU_FX_PAIRS)
     ]
     
     total_inserted = 0
