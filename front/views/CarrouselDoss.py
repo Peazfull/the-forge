@@ -232,18 +232,18 @@ def _generate_doss_slides(state: Dict[str, object]) -> None:
         return
 
     slide_data = [
-        ("slide_1.png", state.get("slide1_title", ""), state.get("slide1_content", ""), state.get("image_url_1")),
-        ("slide_2.png", "ON VOUS EXPLIQUE", state.get("slide2_content", ""), state.get("image_url_2")),
-        ("slide_3.png", "DE PLUS", state.get("slide3_content", ""), state.get("image_url_3")),
-        ("slide_4.png", "EN GROS", state.get("slide4_content", ""), state.get("image_url_4")),
+        (1, "slide_1.png", state.get("slide1_title", ""), state.get("slide1_content", ""), state.get("image_url_1")),
+        (2, "slide_2.png", "ON VOUS EXPLIQUE", state.get("slide2_content", ""), state.get("image_url_2")),
+        (3, "slide_3.png", "DE PLUS", state.get("slide3_content", ""), state.get("image_url_3")),
+        (4, "slide_4.png", "EN GROS", state.get("slide4_content", ""), state.get("image_url_4")),
     ]
 
     with st.spinner("Génération des slides..."):
         _clear_doss_slide_files()
-        for filename, title, content, image_url in slide_data:
+        for position, filename, title, content, image_url in slide_data:
             if not title or not content or not image_url:
                 continue
-            slide_bytes = generate_doss_slide(title=title, content=content, image_url=image_url)
+            slide_bytes = generate_doss_slide(title=title, content=content, image_url=image_url, position=position)
             _upload_doss_slide(filename, slide_bytes)
     st.success("✅ Slides générées")
 

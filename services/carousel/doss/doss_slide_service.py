@@ -24,6 +24,9 @@ IMAGE_TOP_SIZE = (CANVAS_SIZE[0], IMAGE_TOP_HEIGHT)
 
 LOGO_SIZE = (200, 65)
 LOGO_TOP = 15
+TITLE_ZOOM_SIZE = (346, 114)
+TITLE_ZOOM_LEFT = 60
+TITLE_ZOOM_TOP = 480
 
 LEFT_MARGIN = 60
 RIGHT_MARGIN = 60
@@ -188,7 +191,8 @@ def generate_doss_slide(
     title: str,
     content: str,
     image_url: Optional[str] = None,
-    image_bytes: Optional[bytes] = None
+    image_bytes: Optional[bytes] = None,
+    position: int | None = None
 ) -> bytes:
     if not image_url and not image_bytes:
         raise ValueError("Aucune image disponible pour le doss.")
@@ -215,6 +219,14 @@ def generate_doss_slide(
         logo = logo.resize(LOGO_SIZE, Image.LANCZOS)
         logo_x = (CANVAS_SIZE[0] - LOGO_SIZE[0]) // 2
         canvas.alpha_composite(logo, (logo_x, LOGO_TOP))
+
+    if position == 1:
+        title_zoom_path = os.path.join(ASSETS_DIR, "Title_zoom.png")
+        if os.path.exists(title_zoom_path):
+            title_zoom = Image.open(title_zoom_path).convert("RGBA")
+            if title_zoom.size != TITLE_ZOOM_SIZE:
+                title_zoom = title_zoom.resize(TITLE_ZOOM_SIZE, Image.LANCZOS)
+            canvas.alpha_composite(title_zoom, (TITLE_ZOOM_LEFT, TITLE_ZOOM_TOP))
 
     bottom_bg_path = os.path.join(ASSETS_DIR, "doss_bg_bas.png")
     if os.path.exists(bottom_bg_path):
