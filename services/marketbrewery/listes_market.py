@@ -232,6 +232,31 @@ COMMODITIES = [
 ]
 
 # =========================
+# 🛢️ COMMODITIES MAJEURES
+# =========================
+
+COMMODITIES_MAJOR = [
+    "GC=F",  # Gold
+    "SI=F",  # Silver
+    "CL=F",  # Crude Oil WTI
+    "BZ=F",  # Brent Crude
+    "NG=F",  # Natural Gas
+    "HG=F",  # Copper
+]
+
+# =========================
+# 🪙 CRYPTO MAJEURES
+# =========================
+
+CRYPTO_MAJOR = [
+    "BTC-USD",  # Bitcoin
+    "ETH-USD",  # Ethereum
+    "BNB-USD",  # BNB
+    "SOL-USD",  # Solana
+    "XRP-USD",  # XRP
+]
+
+# =========================
 # 💱 PAIRES EUR (EUROPE)
 # =========================
 

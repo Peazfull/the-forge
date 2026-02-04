@@ -12,7 +12,13 @@ from datetime import datetime, timedelta
 import yfinance as yf
 
 from db.supabase_client import get_supabase
-from services.marketbrewery.listes_market import EU_TOP_200, EU_INDICES, EU_FX_PAIRS
+from services.marketbrewery.listes_market import (
+    EU_TOP_200,
+    EU_INDICES,
+    EU_FX_PAIRS,
+    COMMODITIES_MAJOR,
+    CRYPTO_MAJOR,
+)
 
 
 def _get_asset_id_mapping(supabase):
@@ -73,7 +79,9 @@ def refresh_market_daily_open():
     if not asset_mapping:
         return
 
-    symbols = list(dict.fromkeys(EU_TOP_200 + EU_INDICES + EU_FX_PAIRS))
+    symbols = list(dict.fromkeys(
+        EU_TOP_200 + EU_INDICES + EU_FX_PAIRS + COMMODITIES_MAJOR + CRYPTO_MAJOR
+    ))
 
     for symbol in symbols:
         asset_id = asset_mapping.get(symbol)

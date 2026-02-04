@@ -19,6 +19,8 @@ from services.marketbrewery.listes_market import (
     EU_INDICES,
     EU_FX_PAIRS,
     FR_SBF_120,
+    COMMODITIES_MAJOR,
+    CRYPTO_MAJOR,
 )
 
 
@@ -318,6 +320,8 @@ render_zone_section(EU_TOP_200, "Actions européennes — Top 200", "🇪🇺")
 render_zone_section(FR_SBF_120, "Actions françaises — SBF 120", "🇫🇷")
 render_simple_section(EU_INDICES, "Indices européens", "📊")
 render_simple_section(EU_FX_PAIRS, "Devises EUR — Paires majeures", "💱")
+render_simple_section(COMMODITIES_MAJOR, "Commodities — majeures", "🛢️")
+render_simple_section(CRYPTO_MAJOR, "Crypto — majeures", "🪙")
 
 st.markdown("<br><br>", unsafe_allow_html=True)
 st.markdown("""
