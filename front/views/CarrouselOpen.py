@@ -25,21 +25,15 @@ DATE_FILL = "#F6F6F6"
 DATE_HIGHLIGHT_BG = "#5B2EFF"
 DATE_HIGHLIGHT_PAD_X = 10
 DATE_HIGHLIGHT_PAD_Y = 6
-SLIDE2_TITLE = "Top 10 Open — Actions européennes"
 SLIDE2_MARGIN_X = 60
-SLIDE2_TITLE_SIZE = 42
 SLIDE2_HEADER_SIZE = 24
 SLIDE2_ROW_SIZE = 26
-SLIDE2_TITLE_GAP = 60
 SLIDE2_HEADER_GAP = 14
 SLIDE2_LINE_HEIGHT_MULT = 2
 SLIDE2_HEADER_COLOR = "#E6FF4B"
 SLIDE2_TEXT_COLOR = "#F6F6F6"
 SLIDE2_POS_COLOR = "#10b981"
 SLIDE2_NEG_COLOR = "#ef4444"
-SLIDE2_TITLE_HIGHLIGHT_BG = "#5B2EFF"
-SLIDE2_TITLE_PAD_X = 12
-SLIDE2_TITLE_PAD_Y = 0
 CAPTION_FILE = os.path.join(
     os.path.dirname(__file__),
     "..", "..", "prompts", "open", "fixed_caption.txt"
@@ -111,39 +105,19 @@ def _get_top10_open_eu() -> list[dict]:
 
 
 def _render_slide2_table(draw: ImageDraw.ImageDraw, img_w: int, img_h: int) -> None:
-    title_font = _load_font(FONT_BOLD_PATH, SLIDE2_TITLE_SIZE)
     header_font = _load_font(FONT_BOLD_PATH, SLIDE2_HEADER_SIZE)
     row_font = _load_font(FONT_SEMI_BOLD_PATH, SLIDE2_ROW_SIZE)
-    title_height = int(SLIDE2_TITLE_SIZE * SLIDE2_LINE_HEIGHT_MULT)
     header_height = int(SLIDE2_HEADER_SIZE * SLIDE2_LINE_HEIGHT_MULT)
     row_height = int(SLIDE2_ROW_SIZE * SLIDE2_LINE_HEIGHT_MULT)
 
     rows = _get_top10_open_eu()
     total_rows = len(rows) if rows else 1
 
-    block_height = (
-        title_height
-        + SLIDE2_TITLE_GAP
-        + header_height
-        + SLIDE2_HEADER_GAP
-        + (row_height * total_rows)
-    )
+    block_height = header_height + SLIDE2_HEADER_GAP + (row_height * total_rows)
     start_y = max(0, (img_h - block_height) // 2)
 
-    # Title
-    title_width = draw.textlength(SLIDE2_TITLE, font=title_font)
-    title_x = (img_w - title_width) // 2
-    title_rect = (
-        title_x - SLIDE2_TITLE_PAD_X,
-        start_y - SLIDE2_TITLE_PAD_Y,
-        title_x + title_width + SLIDE2_TITLE_PAD_X,
-        start_y + title_height + SLIDE2_TITLE_PAD_Y,
-    )
-    draw.rectangle(title_rect, fill=SLIDE2_TITLE_HIGHLIGHT_BG)
-    draw.text((title_x, start_y), SLIDE2_TITLE, font=title_font, fill=SLIDE2_HEADER_COLOR)
-
     # Header row
-    header_y = start_y + title_height + SLIDE2_TITLE_GAP
+    header_y = start_y
     name_x = SLIDE2_MARGIN_X
     change_center_x = img_w // 2
     open_right_x = img_w - SLIDE2_MARGIN_X
