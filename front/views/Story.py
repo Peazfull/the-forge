@@ -4,6 +4,7 @@ import json
 import os
 import io
 import zipfile
+import hashlib
 from io import BytesIO
 from typing import Dict, Optional
 import re
@@ -75,6 +76,25 @@ def _with_cache_buster(url: str, token: str) -> str:
         return url
     joiner = "&" if "?" in url else "?"
     return f"{url}{joiner}v={token}"
+
+
+def _compute_story_texts_hash(
+    raw_text: str,
+    slide1_title: str,
+    slide1_content: str,
+    slide2_content: str,
+    slide3_content: str,
+    slide4_content: str,
+) -> str:
+    payload = "|".join([
+        raw_text or "",
+        slide1_title or "",
+        slide1_content or "",
+        slide2_content or "",
+        slide3_content or "",
+        slide4_content or "",
+    ])
+    return hashlib.md5(payload.encode("utf-8")).hexdigest()
 
 
 def _strip_fixed_title_prefix(text: str, fixed_title: str) -> str:
@@ -286,6 +306,28 @@ slide4_content = st.text_area(
     value=_strip_fixed_title_prefix(state.get("slide4_content", ""), "EN GROS"),
     height=120
 )
+
+# Autosave textes pour éviter la perte après refresh
+autosave_hash = _compute_story_texts_hash(
+    raw_text,
+    slide1_title,
+    slide1_content,
+    slide2_content,
+    slide3_content,
+    slide4_content,
+)
+if st.session_state.get("story_autosave_hash") != autosave_hash:
+    _sync_story_texts(
+        state,
+        slide1_title,
+        slide1_content,
+        slide2_content,
+        slide3_content,
+        slide4_content,
+    )
+    state["raw_text"] = raw_text
+    _save_story_state(state)
+    st.session_state.story_autosave_hash = autosave_hash
 
 if st.button("💾 Sauvegarder textes", use_container_width=True):
     _sync_story_texts(
