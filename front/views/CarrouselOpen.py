@@ -35,6 +35,8 @@ SLIDE2_TEXT_COLOR = "#F6F6F6"
 SLIDE2_POS_COLOR = "#00BF63"
 SLIDE2_NEG_COLOR = "#FF5757"
 SLIDE2_START_Y = 400
+SLIDE2_ROW_SEPARATOR_COLOR = (255, 255, 255, 40)
+SLIDE2_ROW_SEPARATOR_INSET = 0
 SLIDE2_TITLE_ASSET = os.path.join(ASSETS_DIR, "Top_10_eur.png")
 SLIDE2_TITLE_ASSET_TOP = 310
 SLIDE3_TITLE_ASSET = os.path.join(ASSETS_DIR, "Flop_10_eur.png")
@@ -173,6 +175,15 @@ def _render_open_table(
         draw.text((change_center_x - pct_width / 2, row_y), pct_text, font=row_font, fill=pct_color)
         open_width = draw.textlength(open_text, font=row_font)
         draw.text((open_right_x - open_width, row_y), open_text, font=row_font, fill=SLIDE2_TEXT_COLOR)
+
+        # Separator line between rows
+        separator_y = row_y + row_height - int(row_height * 0.15)
+        draw.line(
+            (name_x + SLIDE2_ROW_SEPARATOR_INSET, separator_y,
+             open_right_x - SLIDE2_ROW_SEPARATOR_INSET, separator_y),
+            fill=SLIDE2_ROW_SEPARATOR_COLOR,
+            width=1
+        )
 
         row_y += row_height
 
