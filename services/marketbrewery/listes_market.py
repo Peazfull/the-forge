@@ -85,7 +85,9 @@ SYMBOL_TO_NAME = {
     # 📊 Indices
     "^GSPC": "S&P 500", "^DJI": "Dow Jones Industrial Average", "^IXIC": "NASDAQ Composite",
     "^RUT": "Russell 2000", "^FCHI": "CAC 40", "^STOXX50E": "Euro STOXX 50",
-    "^GDAXI": "DAX 40", "^FTSE": "FTSE 100", "^N225": "Nikkei 225", "^HSI": "Hang Seng Index",
+    "^GDAXI": "DAX 40", "^FTSE": "FTSE 100", "^SSMI": "SMI (Switzerland)",
+    "^IBEX": "IBEX 35 (Spain)", "^FTMIB": "FTSE MIB (Italy)",
+    "^N225": "Nikkei 225", "^HSI": "Hang Seng Index",
     
     # 🛢️ Commodities
     "GC=F": "Gold", "SI=F": "Silver", "CL=F": "WTI Crude Oil", "BZ=F": "Brent Crude",

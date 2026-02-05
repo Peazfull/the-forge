@@ -18,6 +18,7 @@ from services.marketbrewery.listes_market import (
     EU_FX_PAIRS,
     COMMODITIES_MAJOR,
     CRYPTO_MAJOR,
+    EU_BONDS_10Y,
 )
 
 
@@ -80,7 +81,7 @@ def refresh_market_daily_open():
         return
 
     symbols = list(dict.fromkeys(
-        EU_TOP_200 + EU_INDICES + EU_FX_PAIRS + COMMODITIES_MAJOR + CRYPTO_MAJOR
+        EU_TOP_200 + EU_INDICES + EU_FX_PAIRS + COMMODITIES_MAJOR + CRYPTO_MAJOR + EU_BONDS_10Y
     ))
 
     for symbol in symbols:
