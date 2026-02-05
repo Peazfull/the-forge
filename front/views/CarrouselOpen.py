@@ -19,8 +19,8 @@ ASSETS_DIR = os.path.join(
 )
 FONT_BOLD_PATH = os.path.join(ASSETS_DIR, "Manrope-Bold.ttf")
 FONT_SEMI_BOLD_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")
-DATE_FONT_SIZE = 46
-DATE_TOP = 850
+DATE_FONT_SIZE = 42
+DATE_TOP = 600
 DATE_FILL = "#F6F6F6"
 DATE_HIGHLIGHT_BG = "#5B2EFF"
 DATE_HIGHLIGHT_PAD_X = 10
@@ -86,7 +86,7 @@ def _format_french_date(dt: datetime | None = None) -> str:
         "janvier", "février", "mars", "avril", "mai", "juin",
         "juillet", "août", "septembre", "octobre", "novembre", "décembre",
     ]
-    return f"{dt.day:02d} {months[dt.month - 1]} {dt.year}"
+    return f"l'open Europe du {dt.day:02d} {months[dt.month - 1]} {dt.year}"
 
 
 def _load_font(path: str, size: int) -> ImageFont.ImageFont:
@@ -223,13 +223,6 @@ def _render_slide_bytes(filename: str, path: str) -> bytes:
         text_width = draw.textlength(date_text, font=font)
         text_height = int(DATE_FONT_SIZE * 1.2)
         x = (img.size[0] - text_width) // 2
-        rect = (
-            x - DATE_HIGHLIGHT_PAD_X,
-            DATE_TOP - DATE_HIGHLIGHT_PAD_Y,
-            x + text_width + DATE_HIGHLIGHT_PAD_X,
-            DATE_TOP + text_height + DATE_HIGHLIGHT_PAD_Y,
-        )
-        draw.rectangle(rect, fill=DATE_HIGHLIGHT_BG)
         draw.text((x, DATE_TOP), date_text, font=font, fill=DATE_FILL)
     elif slide_number == 2:
         draw = ImageDraw.Draw(img)
