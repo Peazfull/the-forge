@@ -214,6 +214,21 @@ EU_INDICES = [
     "^STOXX50E",  # Euro STOXX 50
     "^GDAXI",     # DAX
     "^FTSE",      # FTSE 100
+    "^SSMI",      # SMI (Switzerland)
+    "^IBEX",      # IBEX 35 (Spain)
+    "^FTMIB",     # FTSE MIB (Italy)
+]
+
+# =========================
+# 🇪🇺 OBLIGATIONS 10 ANS
+# =========================
+
+EU_BONDS_10Y = [
+    "FR10Y=RR",  # France 10Y
+    "DE10Y=RR",  # Germany 10Y
+    "ES10Y=RR",  # Spain 10Y
+    "IT10Y=RR",  # Italy 10Y
+    "GB10Y=RR",  # UK 10Y
 ]
 
 # =========================
