@@ -42,6 +42,8 @@ SLIDE2_TITLE_COLOR = "#F6F6F6"
 SLIDE2_TITLE_HIGHLIGHT_BG = "#5B2EFF"
 SLIDE2_TITLE_PAD_X = 5
 SLIDE2_TITLE_PAD_Y = 0
+SLIDE2_TITLE_ASSET = os.path.join(ASSETS_DIR, "Top_10_eur.png")
+SLIDE2_TITLE_ASSET_TOP = 275
 CAPTION_FILE = os.path.join(
     os.path.dirname(__file__),
     "..", "..", "prompts", "open", "fixed_caption.txt"
@@ -218,6 +220,9 @@ def _render_slide_bytes(filename: str, path: str) -> bytes:
         draw.text((x, DATE_TOP), date_text, font=font, fill=DATE_FILL)
     elif slide_number == 2:
         draw = ImageDraw.Draw(img)
+        if os.path.exists(SLIDE2_TITLE_ASSET):
+            title_asset = Image.open(SLIDE2_TITLE_ASSET).convert("RGBA")
+            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE2_TITLE_ASSET_TOP))
         _render_open_table(
             draw,
             img.size[0],
