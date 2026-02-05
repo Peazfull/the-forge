@@ -35,15 +35,8 @@ SLIDE2_TEXT_COLOR = "#F6F6F6"
 SLIDE2_POS_COLOR = "#00BF63"
 SLIDE2_NEG_COLOR = "#FF5757"
 SLIDE2_START_Y = 400
-SLIDE2_TITLE_TEXT = "Top 10 actions Européennes"
-SLIDE2_TITLE_SIZE = 36
-SLIDE2_TITLE_GAP = 30
-SLIDE2_TITLE_COLOR = "#F6F6F6"
-SLIDE2_TITLE_HIGHLIGHT_BG = "#5B2EFF"
-SLIDE2_TITLE_PAD_X = 5
-SLIDE2_TITLE_PAD_Y = 0
 SLIDE2_TITLE_ASSET = os.path.join(ASSETS_DIR, "Top_10_eur.png")
-SLIDE2_TITLE_ASSET_TOP = 275
+SLIDE2_TITLE_ASSET_TOP = 330
 CAPTION_FILE = os.path.join(
     os.path.dirname(__file__),
     "..", "..", "prompts", "open", "fixed_caption.txt"
@@ -128,13 +121,10 @@ def _render_open_table(
     draw: ImageDraw.ImageDraw,
     img_w: int,
     img_h: int,
-    rows: list[dict],
-    title_text: str | None = None
+    rows: list[dict]
 ) -> None:
-    title_font = _load_font(FONT_BOLD_PATH, SLIDE2_TITLE_SIZE)
     header_font = _load_font(FONT_BOLD_PATH, SLIDE2_HEADER_SIZE)
     row_font = _load_font(FONT_SEMI_BOLD_PATH, SLIDE2_ROW_SIZE)
-    title_height = int(SLIDE2_TITLE_SIZE * SLIDE2_LINE_HEIGHT_MULT)
     header_height = int(SLIDE2_HEADER_SIZE * SLIDE2_LINE_HEIGHT_MULT)
     row_height = int(SLIDE2_ROW_SIZE * SLIDE2_LINE_HEIGHT_MULT)
 
@@ -143,22 +133,8 @@ def _render_open_table(
     block_height = header_height + SLIDE2_HEADER_GAP + (row_height * total_rows)
     start_y = SLIDE2_START_Y
 
-    # Optional title (aligned with table)
-    header_y = start_y
-    if title_text:
-        title_y = max(0, start_y - SLIDE2_TITLE_GAP - title_height)
-        title_x = SLIDE2_MARGIN_X
-        title_width = draw.textlength(title_text, font=title_font)
-        rect = (
-            title_x - SLIDE2_TITLE_PAD_X,
-            title_y - SLIDE2_TITLE_PAD_Y,
-            title_x + title_width + SLIDE2_TITLE_PAD_X,
-            title_y + title_height + SLIDE2_TITLE_PAD_Y,
-        )
-        draw.rectangle(rect, fill=SLIDE2_TITLE_HIGHLIGHT_BG)
-        draw.text((title_x, title_y), title_text, font=title_font, fill=SLIDE2_TITLE_COLOR)
-
     # Header row
+    header_y = start_y
     name_x = SLIDE2_MARGIN_X
     change_center_x = img_w // 2
     open_right_x = img_w - SLIDE2_MARGIN_X
@@ -223,13 +199,7 @@ def _render_slide_bytes(filename: str, path: str) -> bytes:
         if os.path.exists(SLIDE2_TITLE_ASSET):
             title_asset = Image.open(SLIDE2_TITLE_ASSET).convert("RGBA")
             img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE2_TITLE_ASSET_TOP))
-        _render_open_table(
-            draw,
-            img.size[0],
-            img.size[1],
-            _get_top10_open_eu(),
-            title_text=SLIDE2_TITLE_TEXT
-        )
+        _render_open_table(draw, img.size[0], img.size[1], _get_top10_open_eu())
     elif slide_number == 3:
         draw = ImageDraw.Draw(img)
         _render_open_table(draw, img.size[0], img.size[1], _get_flop10_open_eu())
