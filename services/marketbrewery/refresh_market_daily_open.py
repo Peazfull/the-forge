@@ -40,7 +40,8 @@ def _fetch_daily_data(symbol, days=5):
         hist = ticker.history(period=f"{days}d", interval="1d")
         if hist.empty:
             return []
-        hist = hist.dropna()
+        # Ne conserver que Open/Close (Volume peut être NaN sur les bonds)
+        hist = hist[["Open", "Close"]].dropna()
         results = []
         for date, row in hist.iterrows():
             results.append({
