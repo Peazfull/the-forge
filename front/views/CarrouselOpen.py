@@ -10,7 +10,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 from services.utils.email_service import send_email_with_attachments
 from services.marketbrewery.market_opens_service import get_open_top_flop
-from services.marketbrewery.listes_market import EU_TOP_200
+from services.marketbrewery.listes_market import EU_TOP_200, FR_SBF_120
 
 
 ASSETS_DIR = os.path.join(
@@ -41,6 +41,8 @@ SLIDE2_TITLE_ASSET = os.path.join(ASSETS_DIR, "Top_10_eur.png")
 SLIDE2_TITLE_ASSET_TOP = 310
 SLIDE3_TITLE_ASSET = os.path.join(ASSETS_DIR, "Flop_10_eur.png")
 SLIDE3_TITLE_ASSET_TOP = 310
+SLIDE4_TITLE_ASSET = os.path.join(ASSETS_DIR, "Top_10_fr.png")
+SLIDE4_TITLE_ASSET_TOP = 310
 CAPTION_FILE = os.path.join(
     os.path.dirname(__file__),
     "..", "..", "prompts", "open", "fixed_caption.txt"
@@ -116,6 +118,16 @@ def _get_flop10_open_eu() -> list[dict]:
         data = get_open_top_flop(EU_TOP_200, limit=10)
         if data.get("status") == "success":
             return data.get("flop", []) or []
+        return []
+    except Exception:
+        return []
+
+
+def _get_top10_open_fr() -> list[dict]:
+    try:
+        data = get_open_top_flop(FR_SBF_120, limit=10)
+        if data.get("status") == "success":
+            return data.get("top", []) or []
         return []
     except Exception:
         return []
@@ -219,6 +231,12 @@ def _render_slide_bytes(filename: str, path: str) -> bytes:
             title_asset = Image.open(SLIDE3_TITLE_ASSET).convert("RGBA")
             img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE3_TITLE_ASSET_TOP))
         _render_open_table(draw, img.size[0], img.size[1], _get_flop10_open_eu())
+    elif slide_number == 4:
+        draw = ImageDraw.Draw(img)
+        if os.path.exists(SLIDE4_TITLE_ASSET):
+            title_asset = Image.open(SLIDE4_TITLE_ASSET).convert("RGBA")
+            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE4_TITLE_ASSET_TOP))
+        _render_open_table(draw, img.size[0], img.size[1], _get_top10_open_fr())
     output = io.BytesIO()
     img.convert("RGB").save(output, format="PNG")
     return output.getvalue()
