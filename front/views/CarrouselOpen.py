@@ -9,8 +9,8 @@ import streamlit as st
 from PIL import Image, ImageDraw, ImageFont
 
 from services.utils.email_service import send_email_with_attachments
-from services.marketbrewery.market_opens_service import get_open_top_flop
-from services.marketbrewery.listes_market import EU_TOP_200, FR_SBF_120
+from services.marketbrewery.market_opens_service import get_open_top_flop, get_open_performances
+from services.marketbrewery.listes_market import EU_TOP_200, FR_SBF_120, EU_INDICES
 
 
 ASSETS_DIR = os.path.join(
@@ -20,7 +20,7 @@ ASSETS_DIR = os.path.join(
 FONT_BOLD_PATH = os.path.join(ASSETS_DIR, "Manrope-Bold.ttf")
 FONT_SEMI_BOLD_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")
 DATE_FONT_SIZE = 42
-DATE_TOP = 660
+DATE_TOP = 640
 DATE_FILL = "#F6F6F6"
 DATE_HIGHLIGHT_BG = "#5B2EFF"
 DATE_HIGHLIGHT_PAD_X = 10
@@ -45,6 +45,8 @@ SLIDE4_TITLE_ASSET = os.path.join(ASSETS_DIR, "Top_10_fr.png")
 SLIDE4_TITLE_ASSET_TOP = 310
 SLIDE5_TITLE_ASSET = os.path.join(ASSETS_DIR, "Flop_10_fr.png")
 SLIDE5_TITLE_ASSET_TOP = 310
+SLIDE6_TITLE_ASSET = os.path.join(ASSETS_DIR, "Indices_eur.png")
+SLIDE6_TITLE_ASSET_TOP = 310
 CAPTION_FILE = os.path.join(
     os.path.dirname(__file__),
     "..", "..", "prompts", "open", "fixed_caption.txt"
@@ -105,6 +107,13 @@ def _format_eur(value: float) -> str:
         return f"{value}€"
 
 
+def _format_points(value: float) -> str:
+    try:
+        return f"{value:,.2f}".replace(",", " ")
+    except Exception:
+        return f"{value}"
+
+
 def _get_top10_open_eu() -> list[dict]:
     try:
         data = get_open_top_flop(EU_TOP_200, limit=10)
@@ -135,6 +144,16 @@ def _get_top10_open_fr() -> list[dict]:
         return []
 
 
+def _get_indices_open_eu() -> list[dict]:
+    try:
+        data = get_open_performances(EU_INDICES)
+        if data.get("status") == "success":
+            return data.get("items", []) or []
+        return []
+    except Exception:
+        return []
+
+
 def _get_flop10_open_fr() -> list[dict]:
     try:
         data = get_open_top_flop(FR_SBF_120, limit=10)
@@ -149,7 +168,10 @@ def _render_open_table(
     draw: ImageDraw.ImageDraw,
     img_w: int,
     img_h: int,
-    rows: list[dict]
+    rows: list[dict],
+    name_label: str = "Entreprise",
+    open_label: str = "Prix d'Open",
+    format_open=None
 ) -> None:
     header_font = _load_font(FONT_BOLD_PATH, SLIDE2_HEADER_SIZE)
     row_font = _load_font(FONT_SEMI_BOLD_PATH, SLIDE2_ROW_SIZE)
@@ -166,11 +188,10 @@ def _render_open_table(
     name_x = SLIDE2_MARGIN_X
     change_center_x = img_w // 2
     open_right_x = img_w - SLIDE2_MARGIN_X
-    draw.text((name_x, header_y), "Entreprise", font=header_font, fill=SLIDE2_HEADER_COLOR)
+    draw.text((name_x, header_y), name_label, font=header_font, fill=SLIDE2_HEADER_COLOR)
     change_label = "Change"
     change_width = draw.textlength(change_label, font=header_font)
     draw.text((change_center_x - change_width / 2, header_y), change_label, font=header_font, fill=SLIDE2_HEADER_COLOR)
-    open_label = "Prix d'Open"
     open_width = draw.textlength(open_label, font=header_font)
     draw.text((open_right_x - open_width, header_y), open_label, font=header_font, fill=SLIDE2_HEADER_COLOR)
 
@@ -183,7 +204,7 @@ def _render_open_table(
         return
 
     for row in rows:
-        name = (row.get("name") or "").strip()
+        name = (row.get("name") or row.get("symbol") or "").strip()
         pct = row.get("pct_change")
         open_value = row.get("open")
         try:
@@ -192,7 +213,11 @@ def _render_open_table(
             pct_value = 0.0
         pct_text = f"{pct_value:+.2f}%"
         pct_color = SLIDE2_POS_COLOR if pct_value >= 0 else SLIDE2_NEG_COLOR
-        open_text = _format_eur(float(open_value)) if open_value is not None else "—"
+        if open_value is not None:
+            formatter = format_open or _format_eur
+            open_text = formatter(float(open_value))
+        else:
+            open_text = "—"
 
         draw.text((name_x, row_y), name, font=row_font, fill=SLIDE2_TEXT_COLOR)
         pct_width = draw.textlength(pct_text, font=row_font)
@@ -248,6 +273,20 @@ def _render_slide_bytes(filename: str, path: str) -> bytes:
             title_asset = Image.open(SLIDE5_TITLE_ASSET).convert("RGBA")
             img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE5_TITLE_ASSET_TOP))
         _render_open_table(draw, img.size[0], img.size[1], _get_flop10_open_fr())
+    elif slide_number == 6:
+        draw = ImageDraw.Draw(img)
+        if os.path.exists(SLIDE6_TITLE_ASSET):
+            title_asset = Image.open(SLIDE6_TITLE_ASSET).convert("RGBA")
+            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE6_TITLE_ASSET_TOP))
+        _render_open_table(
+            draw,
+            img.size[0],
+            img.size[1],
+            _get_indices_open_eu(),
+            name_label="Indice",
+            open_label="Open",
+            format_open=_format_points
+        )
     output = io.BytesIO()
     img.convert("RGB").save(output, format="PNG")
     return output.getvalue()
