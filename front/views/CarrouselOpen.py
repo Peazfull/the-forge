@@ -36,7 +36,9 @@ SLIDE2_POS_COLOR = "#00BF63"
 SLIDE2_NEG_COLOR = "#FF5757"
 SLIDE2_START_Y = 400
 SLIDE2_TITLE_ASSET = os.path.join(ASSETS_DIR, "Top_10_eur.png")
-SLIDE2_TITLE_ASSET_TOP = 330
+SLIDE2_TITLE_ASSET_TOP = 310
+SLIDE3_TITLE_ASSET = os.path.join(ASSETS_DIR, "Flop_10_eur.png")
+SLIDE3_TITLE_ASSET_TOP = 310
 CAPTION_FILE = os.path.join(
     os.path.dirname(__file__),
     "..", "..", "prompts", "open", "fixed_caption.txt"
@@ -202,6 +204,9 @@ def _render_slide_bytes(filename: str, path: str) -> bytes:
         _render_open_table(draw, img.size[0], img.size[1], _get_top10_open_eu())
     elif slide_number == 3:
         draw = ImageDraw.Draw(img)
+        if os.path.exists(SLIDE3_TITLE_ASSET):
+            title_asset = Image.open(SLIDE3_TITLE_ASSET).convert("RGBA")
+            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE3_TITLE_ASSET_TOP))
         _render_open_table(draw, img.size[0], img.size[1], _get_flop10_open_eu())
     output = io.BytesIO()
     img.convert("RGB").save(output, format="PNG")
