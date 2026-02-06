@@ -7,7 +7,8 @@ Service central exposant :
 - get_open_top_flop() : top/flop open vs close précédent
 """
 
-from typing import Dict, List
+from typing import Dict, List, Optional
+from datetime import datetime, timezone
 
 from db.supabase_client import get_supabase
 from services.marketbrewery.refresh_market_daily_open import refresh_market_daily_open
@@ -62,7 +63,21 @@ def _get_latest_open_date(supabase) -> str | None:
     return None
 
 
-def _fetch_open_performances(symbols: List[str]) -> List[Dict[str, object]]:
+def _get_today_open_date() -> str:
+    """
+    Retourne la date du jour en Europe/Paris (YYYY-MM-DD).
+    """
+    try:
+        from zoneinfo import ZoneInfo
+        return datetime.now(ZoneInfo("Europe/Paris")).date().isoformat()
+    except Exception:
+        return datetime.now(timezone.utc).date().isoformat()
+
+
+def _fetch_open_performances(
+    symbols: List[str],
+    target_date: Optional[str] = None,
+) -> List[Dict[str, object]]:
     """
     Retourne toutes les performances open du dernier jour
     (open du jour vs close de la veille), depuis market_daily_open.
@@ -74,21 +89,24 @@ def _fetch_open_performances(symbols: List[str]) -> List[Dict[str, object]]:
     if not asset_ids:
         return []
 
-    latest_date = _get_latest_open_date(supabase)
-    if not latest_date:
+    target_date = target_date or _get_latest_open_date(supabase)
+    if not target_date:
         return []
 
     response = (
         supabase.table("market_daily_open")
         .select("asset_id, date, open_value, close_prev_value, pct_change")
-        .eq("date", latest_date)
         .in_("asset_id", asset_ids)
+        .eq("date", target_date)
         .execute()
     )
 
     performances: List[Dict[str, object]] = []
     for row in (response.data or []):
-        meta = asset_meta.get(row.get("asset_id", ""), {})
+        asset_id = row.get("asset_id")
+        if not asset_id:
+            continue
+        meta = asset_meta.get(asset_id, {})
         symbol = meta.get("symbol", "")
         performances.append({
             "symbol": symbol,
@@ -101,12 +119,16 @@ def _fetch_open_performances(symbols: List[str]) -> List[Dict[str, object]]:
     return performances
 
 
-def get_open_top_flop(symbols: List[str], limit: int = 10) -> Dict[str, object]:
+def get_open_top_flop(
+    symbols: List[str],
+    limit: int = 10,
+    target_date: Optional[str] = None,
+) -> Dict[str, object]:
     """
     Retourne top/flop sur l'open du dernier jour
     (open du jour vs close de la veille).
     """
-    performances = _fetch_open_performances(symbols)
+    performances = _fetch_open_performances(symbols, target_date=target_date)
     performances.sort(key=lambda x: x["pct_change"], reverse=True)
     top = performances[:limit]
     flop = performances[-limit:][::-1]
@@ -118,16 +140,23 @@ def get_open_top_flop(symbols: List[str], limit: int = 10) -> Dict[str, object]:
     }
 
 
-def get_open_performances(symbols: List[str]) -> Dict[str, object]:
+def get_open_performances(
+    symbols: List[str],
+    target_date: Optional[str] = None,
+) -> Dict[str, object]:
     """
     Retourne toutes les performances open du dernier jour, triées.
     """
-    performances = _fetch_open_performances(symbols)
+    performances = _fetch_open_performances(symbols, target_date=target_date)
     performances.sort(key=lambda x: x["pct_change"], reverse=True)
     return {
         "status": "success",
         "items": performances,
     }
+
+
+def get_today_open_date() -> str:
+    return _get_today_open_date()
 
 
 def get_last_open_date() -> str | None:

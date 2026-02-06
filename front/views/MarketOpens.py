@@ -13,6 +13,7 @@ from services.marketbrewery.market_opens_service import (
     get_open_top_flop,
     get_open_performances,
     get_last_open_date,
+    get_today_open_date,
 )
 from services.marketbrewery.listes_market import (
     EU_TOP_200,
@@ -227,7 +228,8 @@ def render_zone_section(symbols, zone_name, zone_flag):
     """
     Affiche une section complète pour une zone (version minimaliste)
     """
-    open_data = get_open_top_flop_cached(symbols, limit=10)
+    target_date = get_today_open_date()
+    open_data = get_open_top_flop(symbols, limit=10, target_date=target_date)
     num_assets = len(open_data.get("top", [])) if open_data.get("status") == "success" else 0
 
     st.markdown(f"""
@@ -261,7 +263,8 @@ def render_simple_section(symbols, zone_name, zone_flag):
     """
     Affiche une section simple (liste complète, sans top/flop)
     """
-    data = get_open_performances(symbols)
+    target_date = get_today_open_date()
+    data = get_open_performances(symbols, target_date=target_date)
     items = data.get("items", []) if data.get("status") == "success" else []
     num_assets = len(items)
 
@@ -307,11 +310,15 @@ with col_refresh:
                 st.error(f"❌ Erreur : {result['message']}")
 
 with col_date:
+    today_date = get_today_open_date()
     last_date = get_last_open_date()
-    if last_date:
-        st.markdown(f'<div class="date-badge">📅 Dernière date : {last_date}</div>', unsafe_allow_html=True)
+    if today_date:
+        label = f"📅 Date du jour : {today_date}"
+        if last_date and last_date != today_date:
+            label += f" · Dernière en base : {last_date}"
+        st.markdown(f'<div class="date-badge">{label}</div>', unsafe_allow_html=True)
     else:
-        st.markdown('<div class="date-badge">📅 Aucune donnée — Lancer un refresh</div>', unsafe_allow_html=True)
+        st.markdown('<div class="date-badge">📅 Aucune date disponible</div>', unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
