@@ -15,7 +15,8 @@ from services.marketbrewery.listes_market import (
     INDICES,
     COMMODITIES,
     SYMBOL_TO_NAME,
-    EU_FX_PAIRS
+    EU_FX_PAIRS,
+    EU_BONDS_10Y
 )
 
 
@@ -47,7 +48,8 @@ def init_assets():
         ("CRYPTO", "crypto", CRYPTO_TOP_30),
         ("GLOBAL", "index", INDICES),
         ("GLOBAL", "commodity", COMMODITIES),
-        ("EU", "fx", EU_FX_PAIRS)
+        ("EU", "fx", EU_FX_PAIRS),
+        ("EU", "bond", EU_BONDS_10Y)
     ]
     
     total_inserted = 0
@@ -71,9 +73,11 @@ def init_assets():
                     total_skipped += 1
                     continue
                 
-                # Déterminer la currency selon la zone
+                # Déterminer la currency selon la zone / type
                 currency = "USD"
-                if zone == "FR":
+                if asset_type == "bond":
+                    currency = "GBP" if symbol.startswith("GB") else "EUR"
+                elif zone == "FR":
                     currency = "EUR"
                 elif zone == "EU":
                     # Pour l'EU, on va regarder le suffix du symbol

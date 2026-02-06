@@ -88,6 +88,13 @@ SYMBOL_TO_NAME = {
     "^GDAXI": "DAX 40", "^FTSE": "FTSE 100", "^SSMI": "SMI (Switzerland)",
     "^IBEX": "IBEX 35 (Spain)", "^FTMIB": "FTSE MIB (Italy)",
     "^N225": "Nikkei 225", "^HSI": "Hang Seng Index",
+
+    # 🇪🇺 Obligations 10Y
+    "FR10Y=RR": "France 10Y",
+    "DE10Y=RR": "Germany 10Y",
+    "ES10Y=RR": "Spain 10Y",
+    "IT10Y=RR": "Italy 10Y",
+    "GB10Y=RR": "UK 10Y",
     
     # 🛢️ Commodities
     "GC=F": "Gold", "SI=F": "Silver", "CL=F": "WTI Crude Oil", "BZ=F": "Brent Crude",
