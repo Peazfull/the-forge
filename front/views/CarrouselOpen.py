@@ -10,7 +10,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 from services.utils.email_service import send_email_with_attachments
 from services.marketbrewery.market_opens_service import get_open_top_flop, get_open_performances
-from services.marketbrewery.listes_market import EU_TOP_200, FR_SBF_120, EU_INDICES, COMMODITIES_MAJOR
+from services.marketbrewery.listes_market import EU_TOP_200, FR_SBF_120, EU_INDICES, COMMODITIES_MAJOR, EU_FX_PAIRS
 
 
 ASSETS_DIR = os.path.join(
@@ -49,6 +49,8 @@ SLIDE6_TITLE_ASSET = os.path.join(ASSETS_DIR, "Indices_eur.png")
 SLIDE6_TITLE_ASSET_TOP = 310
 SLIDE7_TITLE_ASSET = os.path.join(ASSETS_DIR, "Como_eur.png")
 SLIDE7_TITLE_ASSET_TOP = 310
+SLIDE8_TITLE_ASSET = os.path.join(ASSETS_DIR, "Devises_eur.png")
+SLIDE8_TITLE_ASSET_TOP = 310
 CAPTION_FILE = os.path.join(
     os.path.dirname(__file__),
     "..", "..", "prompts", "open", "fixed_caption.txt"
@@ -159,6 +161,16 @@ def _get_indices_open_eu() -> list[dict]:
 def _get_commodities_open() -> list[dict]:
     try:
         data = get_open_performances(COMMODITIES_MAJOR)
+        if data.get("status") == "success":
+            return data.get("items", []) or []
+        return []
+    except Exception:
+        return []
+
+
+def _get_fx_open_eu() -> list[dict]:
+    try:
+        data = get_open_performances(EU_FX_PAIRS)
         if data.get("status") == "success":
             return data.get("items", []) or []
         return []
@@ -305,6 +317,12 @@ def _render_slide_bytes(filename: str, path: str) -> bytes:
             title_asset = Image.open(SLIDE7_TITLE_ASSET).convert("RGBA")
             img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE7_TITLE_ASSET_TOP))
         _render_open_table(draw, img.size[0], img.size[1], _get_commodities_open())
+    elif slide_number == 8:
+        draw = ImageDraw.Draw(img)
+        if os.path.exists(SLIDE8_TITLE_ASSET):
+            title_asset = Image.open(SLIDE8_TITLE_ASSET).convert("RGBA")
+            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE8_TITLE_ASSET_TOP))
+        _render_open_table(draw, img.size[0], img.size[1], _get_fx_open_eu())
     output = io.BytesIO()
     img.convert("RGB").save(output, format="PNG")
     return output.getvalue()
