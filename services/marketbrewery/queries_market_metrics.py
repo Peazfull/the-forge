@@ -9,6 +9,22 @@ Lecture depuis la table market_top_flop (pré-calculés)
 from db.supabase_client import get_supabase
 
 
+def _get_latest_date_ref(zone, perf_type):
+    supabase = get_supabase()
+    response = (
+        supabase.table("market_top_flop")
+        .select("date_ref")
+        .eq("zone", zone)
+        .eq("type", perf_type)
+        .order("date_ref", desc=True)
+        .limit(1)
+        .execute()
+    )
+    if response.data:
+        return response.data[0].get("date_ref")
+    return None
+
+
 
 
 def get_top_weekly(zone, limit=10):
@@ -19,10 +35,14 @@ def get_top_weekly(zone, limit=10):
     supabase = get_supabase()
     
     try:
+        latest_date = _get_latest_date_ref(zone, "top")
+        if not latest_date:
+            return []
         response = supabase.table("market_top_flop")\
             .select("symbol, asset_name, pct_change, close_value, date_ref")\
             .eq("zone", zone)\
             .eq("type", "top")\
+            .eq("date_ref", latest_date)\
             .order("rank", desc=False)\
             .limit(limit)\
             .execute()
@@ -53,10 +73,14 @@ def get_flop_weekly(zone, limit=10):
     supabase = get_supabase()
     
     try:
+        latest_date = _get_latest_date_ref(zone, "flop")
+        if not latest_date:
+            return []
         response = supabase.table("market_top_flop")\
             .select("symbol, asset_name, pct_change, close_value, date_ref")\
             .eq("zone", zone)\
             .eq("type", "flop")\
+            .eq("date_ref", latest_date)\
             .order("rank", desc=False)\
             .limit(limit)\
             .execute()
