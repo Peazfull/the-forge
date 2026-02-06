@@ -133,6 +133,19 @@ def clean_old_data(supabase):
         print(f"❌ Erreur nettoyage : {e}")
 
 
+def clean_old_top_flop(supabase, days=30):
+    """
+    Nettoie les anciens top/flop au-delà d'une fenêtre glissante.
+    """
+    print("\n🧹 Nettoyage des top/flop anciens...")
+    try:
+        cutoff_date = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
+        supabase.table("market_top_flop").delete().lt("date_ref", cutoff_date).execute()
+        print(f"✅ Top/Flop antérieurs à {cutoff_date} supprimés")
+    except Exception as e:
+        print(f"❌ Erreur nettoyage top/flop : {e}")
+
+
 def calculate_and_store_top_flop(supabase, asset_mapping):
     """
     Calcule les top/flop pour chaque zone et les stocke dans market_top_flop
@@ -151,12 +164,11 @@ def calculate_and_store_top_flop(supabase, asset_mapping):
     }
     
     refresh_date = datetime.now().strftime("%Y-%m-%d")
-    
-    # Supprimer les anciens résultats
+    # Reset complet pour éviter toute accumulation
     try:
-        supabase.table("market_top_flop").delete().eq("refresh_date", refresh_date).execute()
-    except:
-        pass
+        supabase.table("market_top_flop").delete().neq("id", "00000000-0000-0000-0000-000000000000").execute()
+    except Exception as e:
+        print(f"❌ Erreur reset market_top_flop : {e}")
     
     for zone_name, symbols in zones.items():
         print(f"\n📍 Zone : {zone_name}")
