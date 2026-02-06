@@ -8,10 +8,10 @@ Weekly market movements (close-based)
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-from db.supabase_client import get_supabase
 from services.marketbrewery.market_brewery_service import (
     refresh_data,
-    get_top_flop_weekly
+    get_top_flop_weekly,
+    get_last_weekly_date,
 )
 
 # ======================================================
@@ -152,28 +152,11 @@ def get_last_refresh_date():
     Récupère la date et l'heure du dernier refresh depuis la DB
     """
     try:
-        supabase = get_supabase()
-        # Utiliser market_top_flop (réécrit à chaque refresh) pour dater le refresh réel
-        response = supabase.table("market_top_flop")\
-            .select("date_ref, created_at")\
-            .order("created_at", desc=True)\
-            .limit(1)\
-            .execute()
-        
-        if response.data and len(response.data) > 0:
-            # Utiliser created_at pour avoir l'heure exacte
-            created_at_str = response.data[0].get("created_at")
-            if created_at_str:
-                # Format ISO : 2026-01-22T14:30:00+00:00
-                dt_obj = datetime.fromisoformat(created_at_str.replace('Z', '+00:00'))
-                return dt_obj.strftime("%d/%m/%Y à %Hh%M")
-            else:
-                # Fallback sur date seule
-                date_str = response.data[0].get("date_ref")
-                date_obj = datetime.strptime(date_str, "%Y-%m-%d")
-                return date_obj.strftime("%d/%m/%Y")
-        else:
-            return None
+        date_str = get_last_weekly_date()
+        if date_str:
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+            return date_obj.strftime("%d/%m/%Y")
+        return None
     except Exception as e:
         return None
 
