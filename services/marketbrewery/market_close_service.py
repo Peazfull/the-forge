@@ -114,14 +114,9 @@ def get_close_top_flop(
     """
     performances = _fetch_close_performances(symbols)
 
-    positives = [p for p in performances if p.get("pct_change", 0) > 0]
-    negatives = [p for p in performances if p.get("pct_change", 0) < 0]
-
-    positives.sort(key=lambda x: x.get("pct_change", 0), reverse=True)
-    negatives.sort(key=lambda x: x.get("pct_change", 0))
-
-    top = positives[:limit]
-    flop = negatives[:limit]
+    performances.sort(key=lambda x: x.get("pct_change", 0), reverse=True)
+    top = performances[:limit]
+    flop = list(reversed(performances[-limit:]))
 
     return {
         "status": "success",
