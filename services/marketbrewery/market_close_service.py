@@ -12,7 +12,6 @@ from datetime import datetime, timedelta
 
 from db.supabase_client import get_supabase
 from services.marketbrewery.refresh_market_daily_close_daily import refresh_market_daily_close_daily
-from services.marketbrewery.listes_market import SYMBOL_TO_NAME
 
 
 def refresh_data() -> Dict[str, str]:
@@ -145,9 +144,10 @@ def _fetch_close_performances(symbols: List[str]) -> List[Dict[str, object]]:
         seen_asset_ids.add(asset_id)
         meta = asset_meta.get(asset_id, {})
         symbol = meta.get("symbol", "")
+        name = meta.get("name") or symbol
         performances.append({
             "symbol": symbol,
-            "name": SYMBOL_TO_NAME.get(symbol, symbol),
+            "name": name,
             "pct_change": float(row.get("pct_change", 0)),
             "close": float(row.get("close_value", 0)),
             "date": row.get("date"),

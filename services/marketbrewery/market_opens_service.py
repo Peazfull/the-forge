@@ -12,7 +12,6 @@ from datetime import datetime, timezone
 
 from db.supabase_client import get_supabase
 from services.marketbrewery.refresh_market_daily_open import refresh_market_daily_open
-from services.marketbrewery.listes_market import SYMBOL_TO_NAME
 
 
 def refresh_data() -> Dict[str, str]:
@@ -108,9 +107,10 @@ def _fetch_open_performances(
             continue
         meta = asset_meta.get(asset_id, {})
         symbol = meta.get("symbol", "")
+        name = meta.get("name") or symbol
         performances.append({
             "symbol": symbol,
-            "name": SYMBOL_TO_NAME.get(symbol, symbol),
+            "name": name,
             "pct_change": float(row.get("pct_change", 0)),
             "open": float(row.get("open_value", 0)),
             "date": row.get("date"),
