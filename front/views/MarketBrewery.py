@@ -249,11 +249,11 @@ def style_dataframe(df):
     return styled
 
 
-def render_zone_section(zone_code, zone_name, zone_flag):
+def render_zone_section(zone_code, zone_name, zone_flag, limit=10):
     """
     Affiche une section complète pour une zone (version minimaliste)
     """
-    weekly_data = get_top_flop_weekly_cached(zone_code, limit=10)
+    weekly_data = get_top_flop_weekly_cached(zone_code, limit=limit)
     
     # Calculer le nombre d'actifs
     num_assets = len(weekly_data.get("top", [])) if weekly_data.get("status") == "success" else 0
@@ -269,7 +269,7 @@ def render_zone_section(zone_code, zone_name, zone_flag):
     col_top_weekly, col_flop_weekly = st.columns(2, gap="large")
     
     with col_top_weekly:
-        st.markdown('<p class="section-title">🟢 Top 10 Weekly</p>', unsafe_allow_html=True)
+        st.markdown(f'<p class="section-title">🟢 Top {limit} Weekly</p>', unsafe_allow_html=True)
         if weekly_data["status"] == "success" and weekly_data["top"]:
             df_top_w = create_performance_table(weekly_data["top"], "Top Weekly")
             styled_df = style_dataframe(df_top_w)
@@ -278,7 +278,7 @@ def render_zone_section(zone_code, zone_name, zone_flag):
             st.info("Aucune donnée disponible")
     
     with col_flop_weekly:
-        st.markdown('<p class="section-title">🔴 Flop 10 Weekly</p>', unsafe_allow_html=True)
+        st.markdown(f'<p class="section-title">🔴 Flop {limit} Weekly</p>', unsafe_allow_html=True)
         if weekly_data["status"] == "success" and weekly_data["flop"]:
             df_flop_w = create_performance_table(weekly_data["flop"], "Flop Weekly")
             styled_df = style_dataframe(df_flop_w)
@@ -338,6 +338,9 @@ render_zone_section("FR", "France — SBF 120", "🇫🇷")
 
 # 🇪🇺 Europe
 render_zone_section("EU", "Europe — Top 200", "🇪🇺")
+
+# 📊 Indices
+render_zone_section("INDICES", "Indices — Majors", "📊", limit=5)
 
 # 🪙 Crypto
 render_zone_section("CRYPTO", "Crypto — Top 30", "🪙")

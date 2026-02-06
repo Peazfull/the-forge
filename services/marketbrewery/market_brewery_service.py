@@ -17,6 +17,7 @@ from services.marketbrewery.listes_market import (
     FR_SBF_120,
     EU_TOP_200,
     CRYPTO_TOP_30,
+    INDICES,
 )
 
 
@@ -125,6 +126,7 @@ def _get_zone_symbols(zone: str) -> List[str]:
         "FR": FR_SBF_120,
         "EU": EU_TOP_200,
         "CRYPTO": CRYPTO_TOP_30,
+        "INDICES": INDICES,
     }
     return zones.get(zone, [])
 

@@ -17,6 +17,7 @@ from services.marketbrewery.listes_market import (
     FR_SBF_120,
     EU_TOP_200,
     CRYPTO_TOP_30,
+    INDICES,
 )
 
 
@@ -71,7 +72,9 @@ def refresh_market_weekly_close():
     if not asset_mapping:
         return
 
-    symbols = list(dict.fromkeys(US_TOP_200 + FR_SBF_120 + EU_TOP_200 + CRYPTO_TOP_30))
+    symbols = list(dict.fromkeys(
+        US_TOP_200 + FR_SBF_120 + EU_TOP_200 + CRYPTO_TOP_30 + INDICES
+    ))
 
     for symbol in symbols:
         asset_id = asset_mapping.get(symbol)
