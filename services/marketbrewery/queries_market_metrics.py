@@ -48,10 +48,15 @@ def get_top_weekly(zone, limit=10):
             .execute()
         
         results = []
+        seen_symbols = set()
         for row in response.data:
+            symbol = row.get("symbol")
+            if not symbol or symbol in seen_symbols:
+                continue
+            seen_symbols.add(symbol)
             results.append({
-                "symbol": row["symbol"],
-                "name": row.get("asset_name", row["symbol"]),
+                "symbol": symbol,
+                "name": row.get("asset_name", symbol),
                 "pct_change": float(row["pct_change"]),
                 "close": float(row["close_value"]),
                 "date": row["date_ref"],
@@ -86,10 +91,15 @@ def get_flop_weekly(zone, limit=10):
             .execute()
         
         results = []
+        seen_symbols = set()
         for row in response.data:
+            symbol = row.get("symbol")
+            if not symbol or symbol in seen_symbols:
+                continue
+            seen_symbols.add(symbol)
             results.append({
-                "symbol": row["symbol"],
-                "name": row.get("asset_name", row["symbol"]),
+                "symbol": symbol,
+                "name": row.get("asset_name", symbol),
                 "pct_change": float(row["pct_change"]),
                 "close": float(row["close_value"]),
                 "date": row["date_ref"],
