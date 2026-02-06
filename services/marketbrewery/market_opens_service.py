@@ -128,9 +128,15 @@ def get_open_top_flop(
     (open du jour vs close de la veille).
     """
     performances = _fetch_open_performances(symbols, target_date=_get_today_open_date())
-    performances.sort(key=lambda x: x["pct_change"], reverse=True)
-    top = performances[:limit]
-    flop = performances[-limit:][::-1]
+
+    positives = [p for p in performances if p.get("pct_change", 0) > 0]
+    negatives = [p for p in performances if p.get("pct_change", 0) < 0]
+
+    positives.sort(key=lambda x: x.get("pct_change", 0), reverse=True)
+    negatives.sort(key=lambda x: x.get("pct_change", 0))
+
+    top = positives[:limit]
+    flop = negatives[:limit]
 
     return {
         "status": "success",
