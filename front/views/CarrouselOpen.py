@@ -111,6 +111,13 @@ def _format_eur(value: float) -> str:
         return f"{value}€"
 
 
+def _format_usd(value: float) -> str:
+    try:
+        return f"${value:,.2f}".replace(",", " ")
+    except Exception:
+        return f"${value}"
+
+
 def _format_points(value: float) -> str:
     try:
         return f"{value:,.2f}".replace(",", " ")
@@ -316,13 +323,29 @@ def _render_slide_bytes(filename: str, path: str) -> bytes:
         if os.path.exists(SLIDE7_TITLE_ASSET):
             title_asset = Image.open(SLIDE7_TITLE_ASSET).convert("RGBA")
             img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE7_TITLE_ASSET_TOP))
-        _render_open_table(draw, img.size[0], img.size[1], _get_commodities_open())
+        _render_open_table(
+            draw,
+            img.size[0],
+            img.size[1],
+            _get_commodities_open(),
+            name_label="Asset",
+            open_label="Open",
+            format_open=_format_usd
+        )
     elif slide_number == 8:
         draw = ImageDraw.Draw(img)
         if os.path.exists(SLIDE8_TITLE_ASSET):
             title_asset = Image.open(SLIDE8_TITLE_ASSET).convert("RGBA")
             img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE8_TITLE_ASSET_TOP))
-        _render_open_table(draw, img.size[0], img.size[1], _get_fx_open_eu())
+        _render_open_table(
+            draw,
+            img.size[0],
+            img.size[1],
+            _get_fx_open_eu(),
+            name_label="Currency",
+            open_label="Open",
+            format_open=_format_usd
+        )
     output = io.BytesIO()
     img.convert("RGB").save(output, format="PNG")
     return output.getvalue()
