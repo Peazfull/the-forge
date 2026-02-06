@@ -10,7 +10,14 @@ from PIL import Image, ImageDraw, ImageFont
 
 from services.utils.email_service import send_email_with_attachments
 from services.marketbrewery.market_opens_service import get_open_top_flop, get_open_performances
-from services.marketbrewery.listes_market import EU_TOP_200, FR_SBF_120, EU_INDICES, COMMODITIES_MAJOR, EU_FX_PAIRS
+from services.marketbrewery.listes_market import (
+    EU_TOP_200,
+    FR_SBF_120,
+    EU_INDICES,
+    COMMODITIES_MAJOR,
+    EU_FX_PAIRS,
+    CRYPTO_MAJOR,
+)
 
 
 ASSETS_DIR = os.path.join(
@@ -51,6 +58,8 @@ SLIDE7_TITLE_ASSET = os.path.join(ASSETS_DIR, "Como_eur.png")
 SLIDE7_TITLE_ASSET_TOP = 310
 SLIDE8_TITLE_ASSET = os.path.join(ASSETS_DIR, "Devises_eur.png")
 SLIDE8_TITLE_ASSET_TOP = 310
+SLIDE9_TITLE_ASSET = os.path.join(ASSETS_DIR, "Cryptos_eur.png")
+SLIDE9_TITLE_ASSET_TOP = 310
 CAPTION_FILE = os.path.join(
     os.path.dirname(__file__),
     "..", "..", "prompts", "open", "fixed_caption.txt"
@@ -181,6 +190,26 @@ def _get_fx_open_eu() -> list[dict]:
         if data.get("status") == "success":
             items = data.get("items", []) or []
             preferred = ["EURUSD=X", "EURGBP=X", "EURCHF=X"]
+            preferred_order = {sym: idx for idx, sym in enumerate(preferred)}
+            items.sort(
+                key=lambda item: (
+                    0 if item.get("symbol") in preferred_order else 1,
+                    preferred_order.get(item.get("symbol"), 999),
+                    item.get("symbol", "")
+                )
+            )
+            return items
+        return []
+    except Exception:
+        return []
+
+
+def _get_crypto_open() -> list[dict]:
+    try:
+        data = get_open_performances(CRYPTO_MAJOR)
+        if data.get("status") == "success":
+            items = data.get("items", []) or []
+            preferred = ["BTC-USD", "ETH-USD", "SOL-USD"]
             preferred_order = {sym: idx for idx, sym in enumerate(preferred)}
             items.sort(
                 key=lambda item: (
@@ -353,6 +382,20 @@ def _render_slide_bytes(filename: str, path: str) -> bytes:
             img.size[1],
             _get_fx_open_eu(),
             name_label="Currency",
+            open_label="Open",
+            format_open=_format_usd
+        )
+    elif slide_number == 9:
+        draw = ImageDraw.Draw(img)
+        if os.path.exists(SLIDE9_TITLE_ASSET):
+            title_asset = Image.open(SLIDE9_TITLE_ASSET).convert("RGBA")
+            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE9_TITLE_ASSET_TOP))
+        _render_open_table(
+            draw,
+            img.size[0],
+            img.size[1],
+            _get_crypto_open(),
+            name_label="Crypto",
             open_label="Open",
             format_open=_format_usd
         )
