@@ -28,8 +28,8 @@ def render_sidebar():
                 st.session_state.current_page = "front/views/MarketBrewery"
             if st.button("📍 Market Opens", key="market_opens", use_container_width=True):
                 st.session_state.current_page = "front/views/MarketOpens"
-            if st.button("🚀 Vue 6", key="vue6", use_container_width=True):
-                st.session_state.current_page = "front/views/vue6"
+            if st.button("✅ Market Close", key="market_close", use_container_width=True):
+                st.session_state.current_page = "front/views/MarketClose"
 
         # ===== MENU 2 =====
         with st.expander("🏛️ The Ministry", expanded=False):
