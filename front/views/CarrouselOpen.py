@@ -113,9 +113,9 @@ def _format_eur(value: float) -> str:
 
 def _format_usd(value: float) -> str:
     try:
-        return f"${value:,.2f}".replace(",", " ")
+        return f"{value:,.2f} $".replace(",", " ")
     except Exception:
-        return f"${value}"
+        return f"{value} $"
 
 
 def _format_points(value: float) -> str:
