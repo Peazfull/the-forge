@@ -54,6 +54,18 @@ def get_asset_id_mapping(supabase):
         return {}
 
 
+def get_asset_meta_mapping(supabase):
+    """
+    Crée un mapping asset_id → name
+    """
+    try:
+        response = supabase.table("assets").select("id, name").execute()
+        return {asset["id"]: asset.get("name", "") for asset in (response.data or [])}
+    except Exception as e:
+        print(f"❌ Erreur lors du chargement des noms assets : {e}")
+        return {}
+
+
 def fetch_yahoo_data(symbol, weeks=3):
     """
     Récupère les N dernières weekly close depuis Yahoo Finance
@@ -153,7 +165,7 @@ def calculate_and_store_top_flop(supabase, asset_mapping):
     print("\n📊 Calcul des top/flop par zone...")
     
     from services.marketbrewery.listes_market import (
-        US_TOP_200, FR_SBF_120, EU_TOP_200, CRYPTO_TOP_30, SYMBOL_TO_NAME
+        US_TOP_200, FR_SBF_120, EU_TOP_200, CRYPTO_TOP_30
     )
     
     zones = {
@@ -170,6 +182,8 @@ def calculate_and_store_top_flop(supabase, asset_mapping):
     except Exception as e:
         print(f"❌ Erreur reset market_top_flop : {e}")
     
+    asset_meta = get_asset_meta_mapping(supabase)
+
     for zone_name, symbols in zones.items():
         print(f"\n📍 Zone : {zone_name}")
         
@@ -199,8 +213,8 @@ def calculate_and_store_top_flop(supabase, asset_mapping):
                 
                 pct_change = ((close_current - close_previous) / close_previous) * 100
                 
-                # Récupérer le nom de l'asset
-                asset_name = SYMBOL_TO_NAME.get(symbol, symbol)
+                # Récupérer le nom de l'asset depuis la table assets
+                asset_name = asset_meta.get(asset_id, "") or symbol
                 
                 performances.append({
                     "symbol": symbol,

@@ -153,8 +153,9 @@ def get_last_refresh_date():
     """
     try:
         supabase = get_supabase()
-        response = supabase.table("market_daily_close")\
-            .select("date, created_at")\
+        # Utiliser market_top_flop (réécrit à chaque refresh) pour dater le refresh réel
+        response = supabase.table("market_top_flop")\
+            .select("date_ref, created_at")\
             .order("created_at", desc=True)\
             .limit(1)\
             .execute()
@@ -168,7 +169,7 @@ def get_last_refresh_date():
                 return dt_obj.strftime("%d/%m/%Y à %Hh%M")
             else:
                 # Fallback sur date seule
-                date_str = response.data[0]["date"]
+                date_str = response.data[0].get("date_ref")
                 date_obj = datetime.strptime(date_str, "%Y-%m-%d")
                 return date_obj.strftime("%d/%m/%Y")
         else:
