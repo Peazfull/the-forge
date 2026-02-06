@@ -60,3 +60,5 @@ def render_sidebar():
                 st.session_state.current_page = "front/views/CarrouselOpen"
             if st.button("🗃️ Carrousel Close", key="carrousel_close", use_container_width=True):
                 st.session_state.current_page = "front/views/CarrouselClose"
+            if st.button("🗓️ Carrousel Weekly", key="carrousel_weekly", use_container_width=True):
+                st.session_state.current_page = "front/views/CarrouselWeekly"

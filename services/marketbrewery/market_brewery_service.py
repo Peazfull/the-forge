@@ -120,6 +120,18 @@ def get_last_weekly_date() -> str | None:
         return None
 
 
+def get_weekly_performances(symbols: List[str]) -> Dict[str, object]:
+    """
+    Retourne toutes les performances weekly, triées.
+    """
+    try:
+        performances = _fetch_weekly_performances(symbols)
+        performances.sort(key=lambda x: x.get("pct_change", 0), reverse=True)
+        return {"status": "success", "items": performances}
+    except Exception as e:
+        return {"status": "error", "message": str(e), "items": []}
+
+
 def _get_zone_symbols(zone: str) -> List[str]:
     zones = {
         "US": US_TOP_200,
