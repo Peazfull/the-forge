@@ -79,7 +79,7 @@ def _fetch_open_performances(
     target_date: Optional[str] = None,
 ) -> List[Dict[str, object]]:
     """
-    Retourne toutes les performances open du dernier jour
+    Retourne toutes les performances open du jour
     (open du jour vs close de la veille), depuis market_daily_open.
     """
     supabase = get_supabase()
@@ -122,13 +122,12 @@ def _fetch_open_performances(
 def get_open_top_flop(
     symbols: List[str],
     limit: int = 10,
-    target_date: Optional[str] = None,
 ) -> Dict[str, object]:
     """
     Retourne top/flop sur l'open du dernier jour
     (open du jour vs close de la veille).
     """
-    performances = _fetch_open_performances(symbols, target_date=target_date)
+    performances = _fetch_open_performances(symbols, target_date=_get_today_open_date())
     performances.sort(key=lambda x: x["pct_change"], reverse=True)
     top = performances[:limit]
     flop = performances[-limit:][::-1]
@@ -142,21 +141,16 @@ def get_open_top_flop(
 
 def get_open_performances(
     symbols: List[str],
-    target_date: Optional[str] = None,
 ) -> Dict[str, object]:
     """
     Retourne toutes les performances open du dernier jour, triées.
     """
-    performances = _fetch_open_performances(symbols, target_date=target_date)
+    performances = _fetch_open_performances(symbols, target_date=_get_today_open_date())
     performances.sort(key=lambda x: x["pct_change"], reverse=True)
     return {
         "status": "success",
         "items": performances,
     }
-
-
-def get_today_open_date() -> str:
-    return _get_today_open_date()
 
 
 def get_last_open_date() -> str | None:
@@ -169,3 +163,7 @@ def get_last_open_date() -> str | None:
     except Exception:
         return None
     return None
+
+
+def get_today_open_date() -> str:
+    return _get_today_open_date()

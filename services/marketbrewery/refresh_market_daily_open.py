@@ -137,6 +137,7 @@ def refresh_market_daily_open():
         asset_id = asset_mapping.get(symbol)
         if not asset_id:
             continue
+
         daily_data = _fetch_daily_data(symbol, days=5)
         if len(daily_data) < 2:
             continue

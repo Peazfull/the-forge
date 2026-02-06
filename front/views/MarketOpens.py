@@ -228,8 +228,7 @@ def render_zone_section(symbols, zone_name, zone_flag):
     """
     Affiche une section complète pour une zone (version minimaliste)
     """
-    target_date = get_today_open_date()
-    open_data = get_open_top_flop(symbols, limit=10, target_date=target_date)
+    open_data = get_open_top_flop(symbols, limit=10)
     num_assets = len(open_data.get("top", [])) if open_data.get("status") == "success" else 0
 
     st.markdown(f"""
@@ -263,8 +262,7 @@ def render_simple_section(symbols, zone_name, zone_flag):
     """
     Affiche une section simple (liste complète, sans top/flop)
     """
-    target_date = get_today_open_date()
-    data = get_open_performances(symbols, target_date=target_date)
+    data = get_open_performances(symbols)
     items = data.get("items", []) if data.get("status") == "success" else []
     num_assets = len(items)
 
