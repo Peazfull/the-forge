@@ -30,6 +30,21 @@ def _get_asset_id_mapping(supabase):
         return {}
 
 
+def _fetch_symbols(
+    supabase,
+    *,
+    asset_type: str | None = None,
+    market: str | None = None,
+) -> list[str]:
+    query = supabase.table("assets").select("symbol").eq("is_active", True)
+    if asset_type:
+        query = query.eq("asset_type", asset_type)
+    if market:
+        query = query.eq("market", market)
+    response = query.execute()
+    return [row["symbol"] for row in (response.data or []) if row.get("symbol")]
+
+
 def _fetch_daily_closes(symbol, days=5):
     """
     Récupère les N derniers jours (daily) depuis Yahoo Finance
@@ -79,9 +94,23 @@ def refresh_market_daily_close_daily():
     if not asset_mapping:
         return
 
-    symbols = list(dict.fromkeys(
-        EU_TOP_200 + EU_INDICES + EU_FX_PAIRS + COMMODITIES_MAJOR + CRYPTO_MAJOR + EU_BONDS_10Y
-    ))
+    # Récupérer les symboles depuis la DB (si disponible), sinon fallback listes statiques
+    eu_stocks = _fetch_symbols(supabase, asset_type="stock", market="EU")
+    fr_stocks = _fetch_symbols(supabase, asset_type="stock", market="FR")
+    indices = _fetch_symbols(supabase, asset_type="index")
+    bonds = _fetch_symbols(supabase, asset_type="bond")
+    fx = _fetch_symbols(supabase, asset_type="fx")
+    crypto = _fetch_symbols(supabase, asset_type="crypto")
+    commodities = _fetch_symbols(supabase, asset_type="commodity")
+
+    if any([eu_stocks, fr_stocks, indices, bonds, fx, crypto, commodities]):
+        symbols = list(dict.fromkeys(
+            eu_stocks + fr_stocks + indices + bonds + fx + crypto + commodities
+        ))
+    else:
+        symbols = list(dict.fromkeys(
+            EU_TOP_200 + EU_INDICES + EU_FX_PAIRS + COMMODITIES_MAJOR + CRYPTO_MAJOR + EU_BONDS_10Y
+        ))
 
     for symbol in symbols:
         asset_id = asset_mapping.get(symbol)

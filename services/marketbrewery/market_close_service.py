@@ -50,6 +50,57 @@ def _get_asset_meta_mapping() -> Dict[str, Dict[str, str]]:
         return {}
 
 
+def get_close_symbol_lists() -> Dict[str, List[str]]:
+    """
+    Retourne les listes de symboles depuis la DB (si disponibles).
+    """
+    supabase = get_supabase()
+    try:
+        response = (
+            supabase.table("assets")
+            .select("symbol, asset_type, market")
+            .eq("is_active", True)
+            .execute()
+        )
+    except Exception:
+        return {}
+
+    symbols = response.data or []
+    lists = {
+        "eu_stocks": [],
+        "fr_stocks": [],
+        "indices": [],
+        "bonds": [],
+        "fx": [],
+        "crypto": [],
+        "commodities": [],
+    }
+
+    for row in symbols:
+        symbol = row.get("symbol")
+        if not symbol:
+            continue
+        asset_type = row.get("asset_type")
+        market = row.get("market")
+
+        if asset_type == "stock" and market == "EU":
+            lists["eu_stocks"].append(symbol)
+        elif asset_type == "stock" and market == "FR":
+            lists["fr_stocks"].append(symbol)
+        elif asset_type == "index":
+            lists["indices"].append(symbol)
+        elif asset_type == "bond":
+            lists["bonds"].append(symbol)
+        elif asset_type == "fx":
+            lists["fx"].append(symbol)
+        elif asset_type == "crypto":
+            lists["crypto"].append(symbol)
+        elif asset_type == "commodity":
+            lists["commodities"].append(symbol)
+
+    return lists
+
+
 def _get_latest_close_date(supabase) -> str | None:
     response = (
         supabase.table("market_daily_close_daily")
@@ -116,7 +167,16 @@ def get_close_top_flop(
 
     performances.sort(key=lambda x: x.get("pct_change", 0), reverse=True)
     top = performances[:limit]
-    flop = list(reversed(performances[-limit:]))
+    top_symbols = {item.get("symbol") for item in top}
+
+    flop_candidates = sorted(performances, key=lambda x: x.get("pct_change", 0))
+    flop = []
+    for item in flop_candidates:
+        if item.get("symbol") in top_symbols:
+            continue
+        flop.append(item)
+        if len(flop) >= limit:
+            break
 
     return {
         "status": "success",

@@ -13,6 +13,7 @@ from services.marketbrewery.market_close_service import (
     get_close_top_flop,
     get_close_performances,
     get_last_close_date,
+    get_close_symbol_lists,
 )
 from services.marketbrewery.listes_market import (
     EU_TOP_200,
@@ -311,13 +312,23 @@ st.markdown("<br>", unsafe_allow_html=True)
 
 # ========== SECTIONS ==========
 
-render_zone_section(EU_TOP_200, "Actions européennes — Top 200", "🇪🇺")
-render_zone_section(FR_SBF_120, "Actions françaises — SBF 120", "🇫🇷")
-render_simple_section(EU_INDICES, "Indices européens", "📊")
-render_simple_section(EU_BONDS_10Y, "Obligations 10Y — Europe", "📈")
-render_simple_section(EU_FX_PAIRS, "Devises EUR — Paires majeures", "💱")
-render_simple_section(COMMODITIES_MAJOR, "Commodities — majeures", "🛢️")
-render_simple_section(CRYPTO_MAJOR, "Crypto — majeures", "🪙")
+symbol_lists = get_close_symbol_lists()
+
+eu_stocks = symbol_lists.get("eu_stocks") or EU_TOP_200
+fr_stocks = symbol_lists.get("fr_stocks") or FR_SBF_120
+indices = symbol_lists.get("indices") or EU_INDICES
+bonds = symbol_lists.get("bonds") or EU_BONDS_10Y
+fx = symbol_lists.get("fx") or EU_FX_PAIRS
+commodities = symbol_lists.get("commodities") or COMMODITIES_MAJOR
+crypto = symbol_lists.get("crypto") or CRYPTO_MAJOR
+
+render_zone_section(eu_stocks, "Actions européennes — Top 200", "🇪🇺")
+render_zone_section(fr_stocks, "Actions françaises — SBF 120", "🇫🇷")
+render_simple_section(indices, "Indices européens", "📊")
+render_simple_section(bonds, "Obligations 10Y — Europe", "📈")
+render_simple_section(fx, "Devises EUR — Paires majeures", "💱")
+render_simple_section(commodities, "Commodities — majeures", "🛢️")
+render_simple_section(crypto, "Crypto — majeures", "🪙")
 
 st.markdown("<br><br>", unsafe_allow_html=True)
 st.markdown("""
