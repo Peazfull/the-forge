@@ -179,7 +179,17 @@ def _get_fx_open_eu() -> list[dict]:
     try:
         data = get_open_performances(EU_FX_PAIRS)
         if data.get("status") == "success":
-            return data.get("items", []) or []
+            items = data.get("items", []) or []
+            preferred = ["EURUSD=X", "EURGBP=X", "EURCHF=X"]
+            preferred_order = {sym: idx for idx, sym in enumerate(preferred)}
+            items.sort(
+                key=lambda item: (
+                    0 if item.get("symbol") in preferred_order else 1,
+                    preferred_order.get(item.get("symbol"), 999),
+                    item.get("symbol", "")
+                )
+            )
+            return items
         return []
     except Exception:
         return []
