@@ -65,6 +65,10 @@ SLIDE8_TITLE_ASSET_TOP = 310
 SLIDE9_TITLE_ASSET = os.path.join(ASSETS_DIR, "Cryptos_eur.png")
 SLIDE9_TITLE_ASSET_TOP = 310
 SLIDE9_INDICES_TITLE_ASSET = os.path.join(ASSETS_DIR, "Flop_indices.png")
+SLIDE10_TITLE_ASSET = os.path.join(ASSETS_DIR, "Top10_cryptos.png")
+SLIDE10_TITLE_ASSET_TOP = 310
+SLIDE11_TITLE_ASSET = os.path.join(ASSETS_DIR, "Flop10_cryptos.png")
+SLIDE11_TITLE_ASSET_TOP = 310
 CAPTION_FILE = os.path.join(
     os.path.dirname(__file__),
     "..", "..", "prompts", "weekly", "fixed_caption.txt"
@@ -266,6 +270,26 @@ def _get_crypto_weekly() -> list[dict]:
         return []
 
 
+def _get_top10_weekly_crypto() -> list[dict]:
+    try:
+        data = get_top_flop_weekly("CRYPTO", limit=10)
+        if data.get("status") == "success":
+            return data.get("top", []) or []
+        return []
+    except Exception:
+        return []
+
+
+def _get_flop10_weekly_crypto() -> list[dict]:
+    try:
+        data = get_top_flop_weekly("CRYPTO", limit=10)
+        if data.get("status") == "success":
+            return data.get("flop", []) or []
+        return []
+    except Exception:
+        return []
+
+
 def _get_flop10_weekly_fr() -> list[dict]:
     try:
         data = get_top_flop_weekly("FR", limit=10)
@@ -443,6 +467,34 @@ def _render_slide_bytes(filename: str, path: str) -> bytes:
             name_label="Indice",
             close_label="Close",
             format_close=_format_points
+        )
+    elif slide_number == 10:
+        draw = ImageDraw.Draw(img)
+        if os.path.exists(SLIDE10_TITLE_ASSET):
+            title_asset = Image.open(SLIDE10_TITLE_ASSET).convert("RGBA")
+            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE10_TITLE_ASSET_TOP))
+        _render_close_table(
+            draw,
+            img.size[0],
+            img.size[1],
+            _get_top10_weekly_crypto(),
+            name_label="Crypto",
+            close_label="Close",
+            format_close=_format_usd
+        )
+    elif slide_number == 11:
+        draw = ImageDraw.Draw(img)
+        if os.path.exists(SLIDE11_TITLE_ASSET):
+            title_asset = Image.open(SLIDE11_TITLE_ASSET).convert("RGBA")
+            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE11_TITLE_ASSET_TOP))
+        _render_close_table(
+            draw,
+            img.size[0],
+            img.size[1],
+            _get_flop10_weekly_crypto(),
+            name_label="Crypto",
+            close_label="Close",
+            format_close=_format_usd
         )
     output = io.BytesIO()
     img.convert("RGB").save(output, format="PNG")
