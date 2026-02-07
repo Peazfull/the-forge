@@ -5,14 +5,14 @@ from services.enrichment.update_metadata import update_item_metadata
 import time
 
 
-def fetch_items_to_enrich(limit: Optional[int] = None, force_all: bool = True) -> List[Dict]:
+def fetch_items_to_enrich(limit: Optional[int] = None, force_all: bool = False) -> List[Dict]:
     """
     Récupère les items à enrichir.
     
     Args:
         limit: Nombre max d'items à récupérer (None = tous)
         force_all: Si True, récupère TOUS les items (même déjà enrichis)
-                   Si False, uniquement ceux avec labels IS NULL
+                   Si False (défaut), uniquement ceux avec labels IS NULL
     
     Returns:
         Liste d'items avec id, title, content

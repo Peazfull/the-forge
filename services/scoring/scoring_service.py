@@ -4,14 +4,14 @@ from services.scoring.analyze_score import analyze_score
 from services.scoring.update_score import update_item_score
 
 
-def fetch_items_to_score(limit: Optional[int] = None, force_all: bool = True) -> List[Dict[str, str]]:
+def fetch_items_to_score(limit: Optional[int] = None, force_all: bool = False) -> List[Dict[str, str]]:
     """
     Récupère les items à scorer depuis la DB.
     
     Args:
         limit: Nombre max d'items à récupérer (None = tous)
         force_all: Si True, récupère tous les items enrichis (même déjà scorés)
-                   Si False, récupère uniquement les items non scorés
+                   Si False (défaut), récupère uniquement les items non scorés
     
     Returns:
         Liste d'items avec id, title, content, tags, labels, entities, source_type

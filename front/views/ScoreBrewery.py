@@ -106,7 +106,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 with st.container():
-    col_button, col_limit = st.columns([3, 1])
+    col_button, col_limit, col_force = st.columns([2.5, 0.8, 0.7])
     
     with col_limit:
         limit_option = st.selectbox(
@@ -121,20 +121,31 @@ with st.container():
         else:
             limit_value = int(limit_option)
     
+    with col_force:
+        force_all = st.checkbox("♻️ Re-scorer tout", value=False, help="Si décoché : uniquement les nouveaux items")
+    
     with col_button:
         # Compter les items à scorer
         try:
-            items_to_score = fetch_items_to_score(limit=limit_value, force_all=True)
+            items_to_score = fetch_items_to_score(limit=limit_value, force_all=force_all)
             items_count = len(items_to_score)
+            
+            # Compter le total pour affichage
+            items_total = fetch_items_to_score(limit=None, force_all=True)
+            total_count = len(items_total)
         except Exception as e:
             st.error(f"Erreur lors du comptage des items: {str(e)}")
             items_count = 0
+            total_count = 0
         
-        if items_count == 0:
+        if total_count == 0:
             st.info("📭 Aucun item enrichi dans la base de données")
+        elif items_count == 0 and not force_all:
+            st.success("✅ Tous les items sont déjà scorés ! (cochez ♻️ pour re-scorer)")
     
         if items_count > 0:
-            if st.button("🎯 Lancer le scoring", use_container_width=True, type="primary"):
+            button_label = f"🎯 Scorer {items_count} item{'s' if items_count > 1 else ''}"
+            if st.button(button_label, use_container_width=True, type="primary"):
                 
                 # Progress bar container
                 progress_container = st.container()
@@ -150,7 +161,7 @@ with st.container():
                 # Lancer le scoring
                 start_time = time.time()
                 
-                items = fetch_items_to_score(limit=limit_value, force_all=True)
+                items = fetch_items_to_score(limit=limit_value, force_all=force_all)
                 total = len(items)
                 success_count = 0
                 error_count = 0

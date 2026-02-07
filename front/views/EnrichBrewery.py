@@ -112,7 +112,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 with st.container():
-    col_button, col_limit = st.columns([3, 1])
+    col_button, col_limit, col_force = st.columns([2.5, 0.8, 0.7])
     
     with col_limit:
         limit_option = st.selectbox(
@@ -127,16 +127,26 @@ with st.container():
         else:
             limit_value = int(limit_option)
     
+    with col_force:
+        force_all = st.checkbox("♻️ Re-traiter tout", value=False, help="Si décoché : uniquement les nouveaux items")
+    
     with col_button:
-        # Compter les items à enrichir (tous les items)
-        items_to_enrich = fetch_items_to_enrich(limit=limit_value, force_all=True)
+        # Compter les items à enrichir
+        items_to_enrich = fetch_items_to_enrich(limit=limit_value, force_all=force_all)
         items_count = len(items_to_enrich)
         
-        if items_count == 0:
+        # Compter le total pour affichage
+        items_total = fetch_items_to_enrich(limit=None, force_all=True)
+        total_count = len(items_total)
+        
+        if total_count == 0:
             st.info("📭 Aucun item dans la base de données")
+        elif items_count == 0 and not force_all:
+            st.success("✅ Tous les items sont déjà enrichis ! (cochez ♻️ pour re-traiter)")
     
         if items_count > 0:
-            if st.button("🚀 Lancer l'enrichissement", use_container_width=True, type="primary"):
+            button_label = f"🚀 Enrichir {items_count} item{'s' if items_count > 1 else ''}"
+            if st.button(button_label, use_container_width=True, type="primary"):
                 
                 # Progress bar container
                 progress_container = st.container()
@@ -152,8 +162,8 @@ with st.container():
                 # Lancer l'enrichissement
                 start_time = time.time()
                 
-                # Récupérer TOUS les items (force_all=True)
-                items = fetch_items_to_enrich(limit=limit_value, force_all=True)
+                # Récupérer les items selon le mode sélectionné
+                items = fetch_items_to_enrich(limit=limit_value, force_all=force_all)
                 total = len(items)
                 success_count = 0
                 error_count = 0

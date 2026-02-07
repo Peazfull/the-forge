@@ -117,9 +117,9 @@ plusieurs banques relèvent leurs objectifs de valorisation."
 BARÈME GLOBAL DE SYNTHÈSE
 ───────────────────────────────────────────────────────
 
-90–100 : Événement majeur, structurant, impact marché clair
-80–89  : Information très importante, prioritaire
-60–79  : Information intéressante mais secondaire
+90–100 : Événement majeur, structurant, impact marché clair, concerne des grosse entreprises ou des acteurs majeurs.
+80–89  : Information très importante, impact ou buzz ou bon a savoir pour tout investissuer particulier passionné par l'économie, les marchés, les entreprises, les crypto, les actions, les indices, les taux, les politiques publiques, etc..
+60–79  : Information intéressante mais secondaire meme si mérite d'être mis dans l'actu mais peu de contexte pour développer un article ou un buzz.
 40–59  : Information faible ou contextuelle
 < 40   : Bruit, spéculation, analyse technique prédictive
 
