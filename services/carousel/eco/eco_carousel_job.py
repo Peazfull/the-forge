@@ -3,7 +3,7 @@ import time
 from typing import List, Dict, Optional
 
 from db.supabase_client import get_supabase
-from services.carousel.eco.carousel_service import (
+from services.carousel.eco.carousel_eco_service import (
     insert_items_to_carousel_eco,
     get_carousel_eco_items,
     upsert_carousel_eco_cover,
