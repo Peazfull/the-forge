@@ -612,9 +612,9 @@ def process_generation_queue():
         _finalize_generation()
         return
     
-    # Prendre le prochain item
-    item = queue.pop(0)
-    st.session_state.generation_queue = queue
+    # Prendre le prochain item SANS le retirer de la queue
+    # (on le retirera après succès complet)
+    item = queue[0]
     
     # Import des fonctions
     from services.carousel.eco.generate_carousel_texts_service import generate_carousel_text_for_item, generate_image_prompt_for_item
@@ -737,6 +737,9 @@ def process_generation_queue():
         
         # Reset compteur d'erreurs si succès
         st.session_state.generation_error_count[item_id] = 0
+        
+        # IMPORTANT : Retirer l'item de la queue SEULEMENT après succès complet
+        st.session_state.generation_queue.pop(0)
     
     except Exception as e:
         # Incrémenter le compteur d'erreurs
@@ -749,9 +752,11 @@ def process_generation_queue():
             "error": str(e)[:200]
         })
         
-        # Si c'est la 3e erreur, on skip définitivement
+        # Si c'est la 3e erreur, on skip définitivement (retirer de la queue)
         if st.session_state.generation_error_count[item_id] >= 3:
-            st.session_state.debug_logs.append(f"  ⚠️ Item sera skip au prochain passage (3 erreurs)")
+            st.session_state.debug_logs.append(f"  ⚠️ Item skip après 3 erreurs")
+            st.session_state.generation_queue.pop(0)
+        # Sinon, laisser l'item en tête de queue pour réessayer
     
     # Incrémenter le compteur de traitement
     st.session_state.generation_done = st.session_state.get("generation_done", 0) + 1

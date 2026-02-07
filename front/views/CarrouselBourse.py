@@ -665,9 +665,9 @@ def process_generation_queue():
         _finalize_generation()
         return
     
-    # Prendre le prochain item
-    item = queue.pop(0)
-    st.session_state.generation_queue = queue
+    # Prendre le prochain item SANS le retirer de la queue
+    # (on le retirera après succès complet)
+    item = queue[0]
     item_id = item["id"]
     position = item["position"]
     
@@ -753,6 +753,9 @@ def process_generation_queue():
         # Reset du compteur d'erreurs en cas de succès
         if item_id in st.session_state.generation_error_count:
             st.session_state.generation_error_count[item_id] = 0
+        
+        # IMPORTANT : Retirer l'item de la queue SEULEMENT après succès complet
+        st.session_state.generation_queue.pop(0)
     
     except Exception as e:
         st.session_state.debug_logs.append(f"  ❌ ERREUR : {str(e)[:120]}")
@@ -765,8 +768,10 @@ def process_generation_queue():
         st.session_state.generation_error_count[item_id] = error_count + 1
         # Remettre l'item dans la queue si moins de 3 erreurs
         if st.session_state.generation_error_count[item_id] < 3:
-            st.session_state.generation_queue.insert(0, item)
-            st.session_state.debug_logs.append(f"  🔄 Item remis en queue (tentative {st.session_state.generation_error_count[item_id]}/3)")
+            st.session_state.debug_logs.append(f"  🔄 Item restera en tête de queue (tentative {st.session_state.generation_error_count[item_id]}/3)")
+        else:
+            st.session_state.debug_logs.append(f"  ⚠️ Item skip après 3 erreurs")
+            st.session_state.generation_queue.pop(0)
     
     # Incrémenter le compteur de traitement
     st.session_state.generation_done = st.session_state.get("generation_done", 0) + 1
