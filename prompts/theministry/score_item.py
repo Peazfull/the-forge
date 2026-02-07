@@ -40,46 +40,41 @@ Utilise ces éléments pour contextualiser ton scoring.
 CRITÈRES DE NOTATION (0–100)
 ───────────────────────────────────────────────────────
 
-🎯 IMPORTANCE & IMPACT (40 points max)
-Évalue l’impact économique, financier, géopolitique ou marché réel.
+🎯 IMPORTANCE & IMPACT (50 points max)
+Évalue l’impact économique, financier, géopolitique ou marché réel pour un investissuer particulier passionné par l'économie, les marchés, les entreprises, les crypto, les actions, les indices, les taux, les politiques publiques, etc..
 
 - Impact majeur, structurant, global → 30–40
 - Impact réel mais sectoriel ou limité → 15–29
 - Impact faible ou anecdotique → 0–14
 
 Exemples :
-✓ Décision Fed/BCE, sanctions, crise macro, résultats majeurs → 35–40
-✓ Résultats d’entreprise importante, restructuration → 20–30
-✓ Annonce mineure, bruit de marché → 5–15
+✓ Décision Fed/BCE, sanctions, crise macro, résultats majeurs d'entrprise, actu sur une personnalité majeures (Elon Musk, Trump, Bezos, et autres...), evenement géopolitique majeur top pays, entrepises grosses capitalisation USA ou EUROPEENNE, etc. → 45-50
+✓ Actualité d’entreprise importante, restructuration → 35 - 45
+✓ Annonce mineure -> 25 -35
+✓ Revision objectif de prix par des grosse entité bancaires -> 20 - 30
+bruit de marché, analyse techniques bancales et non sourcées-> 15 - 25
 
 ───────────────────────────────────────────────────────
 
 📝 QUALITÉ INFORMATIONNELLE (30 points max)
-Évalue la clarté, la factualité et la solidité du contenu.
+Évalue la clarté, la factualité et la solidité du contenu et surtout, est-ce que ça peut être buzzing pour le média.
 
-- Clair, structuré, chiffré, causal → 25–30
-- Correct mais peu approfondi → 15–24
-- Flou, incomplet, peu informatif → 0–14
+- Clair, structuré, chiffré, causal, buzzy → 25–30
+- Correct mais peu approfondi, peu buzzy → 15–24
+- Flou, incomplet, peu informatif, peu buzzy → 0–14
 
 ───────────────────────────────────────────────────────
 
-🔍 PERTINENCE ÉDITORIALE (30 points max)
+🔍 PERTINENCE ÉDITORIALE (20 points max)
 Évalue l’utilité réelle pour comprendre l’économie, les marchés ou les entreprises.
 
-- Très pertinent, aide à comprendre une dynamique → 25–30
-- Pertinent mais classique → 15–24
-- Générique, déjà vu, peu utile → 0–14
+- Très pertinent, buzzing,aide à comprendre une dynamique, actu impactante, acteurs majeurs, etc.→ 15–20
+- Pertinent mais classique, buzzy, mais peu impactant → 10-15
+- Générique, déjà vu, peu utile, peu buzzy → 0-10
 
 ───────────────────────────────────────────────────────
 RÈGLES ÉDITORIALES SPÉCIALES
 ───────────────────────────────────────────────────────
-
-🔑 SOURCES
-- SOURCE = NEWSLETTER  
-  → Source clé et fiable  
-  → Appliquer une pénalité LÉGÈRE liée au lag temporel  
-  → Une excellente news issue d’une newsletter peut avoir un score élevé,
-    mais légèrement inférieur à une source primaire équivalente.
 
 - SOURCE = YOUTUBE  
   → Pénalité légère à modérée (contenu souvent interprété ou recyclé)
@@ -95,14 +90,14 @@ Si le contenu repose principalement sur :
 - figures chartistes (tête-épaules, supports, résistances, triangles)
 - scénarios conditionnels du type :
   "si ce niveau casse alors le prix pourrait…"
-- projections de prix sans cause fondamentale explicite
+- projections de prix sans cause fondamentale explicite basé sur des analystes peu ou pas connu ou des suppositions. 
 
 ALORS :
 → Appliquer une pénalité MAJEURE
 → Le score doit être STRICTEMENT inférieur à 40
 → Ce type de contenu n’est pas destiné aux carrousels finaux
 
-Cette règle ne concerne PAS les projections fondées sur des faits.
+Cette règle ne concerne PAS les projections fondées sur des faits par les très grosse banque ou fonds d'investissement.
 
 ───────────────────────────────────────────────────────
 
@@ -117,17 +112,6 @@ Exemple acceptable :
 "Résultats très supérieurs aux attentes, amélioration des marges,
 plusieurs banques relèvent leurs objectifs de valorisation."
 
-───────────────────────────────────────────────────────
-
-📉 RECOMMANDATIONS D’ANALYSTES
-
-- Par défaut : pénalité légère
-- Une recommandation standard plafonne généralement vers 60–70
-- Exception :
-  - acteur majeur
-  - changement significatif
-  - impact potentiel réel sur un actif important
-→ la pénalité peut être réduite
 
 ───────────────────────────────────────────────────────
 BARÈME GLOBAL DE SYNTHÈSE
@@ -140,7 +124,7 @@ BARÈME GLOBAL DE SYNTHÈSE
 < 40   : Bruit, spéculation, analyse technique prédictive
 
 ───────────────────────────────────────────────────────
-EXEMPLE AVEC PÉNALITÉ NEWSLETTER
+EXEMPLE
 ───────────────────────────────────────────────────────
 
 Titre : "Tesla enregistre une hausse de 6% au Q3"
@@ -151,17 +135,16 @@ Entities : Tesla
 Source : newsletter
 
 ANALYSE :
-- Impact : 25/40 (résultats importants mais pas exceptionnels)
-- Qualité : 22/30 (correct, chiffres donnés)
-- Pertinence : 18/30 (info pertinente mais déjà diffusée)
-- **PÉNALITÉ newsletter : -8 points** (info potentiellement lagguée)
+- Impact : 40/50 (entreprise majeurs dans l'actu, patron trsè clickbait, résultats importants mais pas exceptionnels)
+- Qualité : 20/30 (correct, chiffres donnés mais peu de contexte pour développer un article ou un buzz)
+- Pertinence : 15/20 (info a mettre dans l'actu mais peu de contexte pour développer un article ou un buzz)
 
-Score brut : 65
-Score final : 57
+Score brut : 75
+
 
 OUTPUT :
 {
-  "score": 57
+  "score": 75
 }
 
 ───────────────────────────────────────────────────────
