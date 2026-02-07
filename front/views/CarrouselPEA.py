@@ -514,54 +514,52 @@ def send_to_carousel():
         st.session_state.carousel_image_models = {}
 
         # ═══════════════════════════════════════════════
-        # GÉNÉRATION COVER (position 0) - SYNCHRONE
+        # CRÉER UN ITEM COVER SPÉCIAL (position 0)
         # ═══════════════════════════════════════════════
+        cover_item = None
         if items:
             from services.carousel.pea.generate_carousel_texts_service import generate_image_prompt_for_item
             supabase = get_supabase()
             
             source = items[0]
-            source_title = source.get("title", "")
-            source_content = source.get("content", "")
-            
-            st.session_state.debug_logs.append("━━━ GÉNÉRATION COVER (position 0) - SYNCHRONE ━━━")
-            st.session_state.debug_logs.append(f"  Source: {source_title[:40]}...")
+            st.session_state.debug_logs.append("━━━ PRÉPARATION COVER (position 0) ━━━")
+            st.session_state.debug_logs.append(f"  Source: {source.get('title', '')[:40]}...")
             
             try:
                 cover_upsert = upsert_carousel_pea_cover(source)
                 if cover_upsert.get("status") != "success":
                     raise Exception(cover_upsert.get("message", "Erreur cover DB"))
                 cover_id = cover_upsert.get("id")
+                st.session_state.debug_logs.append(f"  ✅ Cover DB OK (id: {cover_id})")
                 
-                prompt_result = generate_image_prompt_for_item(source_title, source_content, prompt_type="sunset")
-                if prompt_result.get("status") != "success":
-                    raise Exception(prompt_result.get("message", "Prompt cover KO"))
-                
-                supabase.table("carousel_pea").update({
-                    "prompt_image_1": prompt_result.get("image_prompt")
-                }).eq("id", cover_id).execute()
-                
-                from services.carousel.pea.carousel_image_service import generate_and_save_carousel_image
-                img_result = generate_and_save_carousel_image(prompt_result["image_prompt"], position=0, item_id=cover_id)
-                if img_result["status"] == "success":
-                    model_used = img_result.get("model_used", "inconnu")
-                    st.session_state.debug_logs.append(f"  ✅ Cover générée ({model_used})")
-                else:
-                    st.session_state.debug_logs.append(f"  ⚠️ Cover échec : {img_result.get('message', '')[:50]}")
+                # Créer un item spécial pour la cover
+                cover_item = {
+                    "id": cover_id,
+                    "position": 0,
+                    "title": source.get("title", ""),
+                    "content": source.get("content", ""),
+                    "is_cover": True  # Flag spécial
+                }
+                st.session_state.debug_logs.append("  ✅ Cover ajoutée à la queue")
             except Exception as e:
                 st.session_state.debug_logs.append(f"  ❌ ERREUR cover : {str(e)[:120]}")
 
         # ═══════════════════════════════════════════════
-        # INITIALISER LA FILE D'ATTENTE (sans cover)
+        # INITIALISER LA FILE D'ATTENTE (cover + items)
         # ═══════════════════════════════════════════════
+        queue = []
+        if cover_item:
+            queue.append(cover_item)
+        queue.extend(items)
+        
         st.session_state.generation_in_progress = True
         st.session_state.generation_active = True
-        st.session_state.generation_queue = items  # Seulement les items de contenu (positions 1-N)
-        st.session_state.generation_total = len(items)
+        st.session_state.generation_queue = queue  # Cover + items normaux
+        st.session_state.generation_total = len(queue)
         st.session_state.generation_done = 0
         st.session_state.generation_errors = []
         st.session_state.generation_error_count = {}  # Compteur d'erreurs par item_id
-        st.session_state.debug_logs.append("🔒 Verrou activé + file d'attente initialisée")
+        st.session_state.debug_logs.append(f"🔒 Verrou activé + file d'attente initialisée ({len(queue)} items)")
         
     except Exception as e:
         # SÉCURITÉ : si erreur critique, toujours libérer les verrous
@@ -657,43 +655,69 @@ def process_generation_queue():
     
     title = item.get("title", "")
     content = item.get("content", "")
+    is_cover = item.get("is_cover", False)
     total_items = st.session_state.get("generation_total", 0)
     current_idx = st.session_state.get("generation_done", 0) + 1
     
-    st.session_state.debug_logs.append(f"━━━ ITEM #{position} (iteration {current_idx}/{total_items}) ━━━")
+    st.session_state.debug_logs.append(f"━━━ {'COVER' if is_cover else 'ITEM'} #{position} (iteration {current_idx}/{total_items}) ━━━")
     st.session_state.debug_logs.append(f"  ID: {item_id}")
     st.session_state.debug_logs.append(f"  Titre: {title[:40]}...")
     
     try:
-        # Générer textes
-        st.session_state.debug_logs.append("  ⏳ Génération textes...")
-        text_result = generate_carousel_text_for_item(title, content)
+        # Si c'est la cover, seulement générer le prompt et l'image
+        if is_cover:
+            from services.carousel.pea.generate_carousel_texts_service import generate_image_prompt_for_item
+            
+            st.session_state.debug_logs.append("  ⏳ Génération prompt image cover...")
+            prompt_result = generate_image_prompt_for_item(title, content, prompt_type="sunset")
+            if prompt_result.get("status") != "success":
+                raise Exception(prompt_result.get("message", "Prompt cover KO"))
+            st.session_state.debug_logs.append("  ✅ Prompt image cover généré")
+            
+            st.session_state.debug_logs.append("  💾 Sauvegarde prompt en DB...")
+            supabase.table("carousel_pea").update({
+                "prompt_image_1": prompt_result.get("image_prompt")
+            }).eq("id", item_id).execute()
+            st.session_state.debug_logs.append("  ✅ Prompt sauvegardé")
+            
+            st.session_state.debug_logs.append("  🎨 Génération image cover...")
+            img_result = generate_and_save_carousel_image(prompt_result["image_prompt"], position=0, item_id=item_id)
+            if img_result["status"] == "success":
+                model_used = img_result.get("model_used", "inconnu")
+                st.session_state.debug_logs.append(f"  ✅ Cover générée ({model_used})")
+            else:
+                st.session_state.debug_logs.append(f"  ⚠️ Cover échec : {img_result.get('message', '')[:50]}")
         
-        if text_result.get("status") != "success":
-            raise Exception(f"Génération textes KO: {text_result.get('message', '')[:100]}")
-        
-        st.session_state.debug_logs.append("  ✅ Textes générés")
-        
-        # Générer prompts images
-        st.session_state.debug_logs.append("  ⏳ Génération prompts images...")
-        prompt_1_result = generate_image_prompt_for_item(title, content, prompt_type="sunset")
-        prompt_2_result = generate_image_prompt_for_item(title, content, prompt_type="studio")
-        st.session_state.debug_logs.append("  ✅ Prompts images générés")
-        
-        # Sauvegarder en DB
-        st.session_state.debug_logs.append("  💾 Sauvegarde en DB...")
-        supabase.table("carousel_pea").update({
-            "title_carou": text_result["title_carou"],
-            "content_carou": text_result["content_carou"],
-            "prompt_image_1": prompt_1_result.get("image_prompt"),
-            "prompt_image_2": prompt_2_result.get("image_prompt")
-        }).eq("id", item_id).execute()
-        st.session_state.debug_logs.append("  ✅ Sauvegarde DB OK")
-        
-        # Générer image
-        if prompt_1_result.get("status") == "success":
-            st.session_state.debug_logs.append("  🎨 Génération image...")
-            img_result = generate_and_save_carousel_image(prompt_1_result["image_prompt"], position, item_id=item_id)
+        else:
+            # Item normal : générer textes + prompts + image
+            st.session_state.debug_logs.append("  ⏳ Génération textes...")
+            text_result = generate_carousel_text_for_item(title, content)
+            
+            if text_result.get("status") != "success":
+                raise Exception(f"Génération textes KO: {text_result.get('message', '')[:100]}")
+            
+            st.session_state.debug_logs.append("  ✅ Textes générés")
+            
+            # Générer prompts images
+            st.session_state.debug_logs.append("  ⏳ Génération prompts images...")
+            prompt_1_result = generate_image_prompt_for_item(title, content, prompt_type="sunset")
+            prompt_2_result = generate_image_prompt_for_item(title, content, prompt_type="studio")
+            st.session_state.debug_logs.append("  ✅ Prompts images générés")
+            
+            # Sauvegarder en DB
+            st.session_state.debug_logs.append("  💾 Sauvegarde en DB...")
+            supabase.table("carousel_pea").update({
+                "title_carou": text_result["title_carou"],
+                "content_carou": text_result["content_carou"],
+                "prompt_image_1": prompt_1_result.get("image_prompt"),
+                "prompt_image_2": prompt_2_result.get("image_prompt")
+            }).eq("id", item_id).execute()
+            st.session_state.debug_logs.append("  ✅ Sauvegarde DB OK")
+            
+            # Générer image
+            if prompt_1_result.get("status") == "success":
+                st.session_state.debug_logs.append("  🎨 Génération image...")
+                img_result = generate_and_save_carousel_image(prompt_1_result["image_prompt"], position, item_id=item_id)
             
             if img_result["status"] == "success":
                 model_used = img_result.get("model_used", "inconnu")
