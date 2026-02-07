@@ -174,9 +174,19 @@ st.markdown("""
 # ======================================================
 if st.session_state.get("active_carousel") != "bourse":
     st.session_state.active_carousel = "bourse"
+    # Nettoyer TOUS les caches pour éviter contamination entre modules
     st.session_state.slide_previews = {}
     st.session_state.carousel_images = {}
     st.session_state.carousel_image_models = {}
+    st.session_state.generation_queue = []
+    st.session_state.generation_in_progress = False
+    st.session_state.generation_active = False
+    st.session_state.generation_done = 0
+    st.session_state.generation_total = 0
+    st.session_state.generation_errors = []
+    st.session_state.generation_error_count = {}
+    if "generation_inflight_item" in st.session_state:
+        del st.session_state.generation_inflight_item
 
 # ======================================================
 # DEBUG LOGS + RESET VERROU
@@ -539,19 +549,26 @@ def send_to_carousel():
             st.session_state.debug_logs.append(f"  Source: {source_title[:40]}...")
             
             try:
+                st.session_state.debug_logs.append("  🔄 Upsert cover en DB...")
                 cover_upsert = upsert_carousel_bourse_cover(source)
                 if cover_upsert.get("status") != "success":
                     raise Exception(cover_upsert.get("message", "Erreur cover DB"))
                 cover_id = cover_upsert.get("id")
+                st.session_state.debug_logs.append(f"  ✅ Cover DB OK (id: {cover_id})")
                 
+                st.session_state.debug_logs.append("  🔄 Génération prompt image...")
                 prompt_result = generate_image_prompt_for_item(source_title, source_content, prompt_type="sunset")
                 if prompt_result.get("status") != "success":
                     raise Exception(prompt_result.get("message", "Prompt cover KO"))
+                st.session_state.debug_logs.append("  ✅ Prompt image généré")
                 
+                st.session_state.debug_logs.append("  💾 Sauvegarde prompt en DB...")
                 supabase.table("carousel_bourse").update({
                     "prompt_image_1": prompt_result.get("image_prompt")
                 }).eq("id", cover_id).execute()
+                st.session_state.debug_logs.append("  ✅ Prompt sauvegardé")
                 
+                st.session_state.debug_logs.append("  🎨 Génération image cover...")
                 from services.carousel.bourse.carousel_image_service import generate_and_save_carousel_image
                 img_result = generate_and_save_carousel_image(prompt_result["image_prompt"], position=0, item_id=cover_id)
                 if img_result["status"] == "success":
@@ -580,10 +597,6 @@ def send_to_carousel():
         st.session_state.generation_active = False
         st.session_state.debug_logs.append(f"❌ ERREUR CRITIQUE : {str(e)[:200]}")
         st.error(f"Erreur critique : {str(e)[:200]}")
-        return
-    
-    # IMPORTANT : Lancer le traitement de la queue
-    st.rerun()
 
 
 def _finalize_generation():

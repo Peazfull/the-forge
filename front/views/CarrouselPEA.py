@@ -174,9 +174,19 @@ st.markdown("""
 # ======================================================
 if st.session_state.get("active_carousel") != "pea":
     st.session_state.active_carousel = "pea"
+    # Nettoyer TOUS les caches pour éviter contamination entre modules
     st.session_state.slide_previews = {}
     st.session_state.carousel_images = {}
     st.session_state.carousel_image_models = {}
+    st.session_state.generation_queue = []
+    st.session_state.generation_in_progress = False
+    st.session_state.generation_active = False
+    st.session_state.generation_done = 0
+    st.session_state.generation_total = 0
+    st.session_state.generation_errors = []
+    st.session_state.generation_error_count = {}
+    if "generation_inflight_item" in st.session_state:
+        del st.session_state.generation_inflight_item
 
 # ======================================================
 # DEBUG LOGS + RESET VERROU
@@ -559,10 +569,6 @@ def send_to_carousel():
         st.session_state.generation_active = False
         st.session_state.debug_logs.append(f"❌ ERREUR CRITIQUE : {str(e)[:200]}")
         st.error(f"Erreur critique : {str(e)[:200]}")
-        return
-    
-    # IMPORTANT : Lancer le traitement de la queue
-    st.rerun()
 
 
 def _finalize_generation():
