@@ -346,7 +346,7 @@ st.markdown("""
 
 with st.container():
     # Filtres
-    col_tag, col_label, col_score_min, col_score_max, col_sort = st.columns(5)
+    col_tag, col_label, col_date, col_score_min, col_score_max, col_sort = st.columns(6)
 
     with col_tag:
         filter_tag = st.selectbox(
@@ -364,6 +364,15 @@ with st.container():
             index=0,
             label_visibility="collapsed",
             placeholder="Label"
+        )
+    
+    with col_date:
+        filter_date = st.selectbox(
+            "Date",
+            options=["Tous", "Aujourd'hui"],
+            index=0,
+            label_visibility="collapsed",
+            placeholder="Date"
         )
     
     with col_score_min:
@@ -401,7 +410,7 @@ with st.container():
         supabase = get_supabase()
     
         query = supabase.table("brew_items").select(
-            "id, title, content, tags, labels, score_global"
+            "id, title, content, tags, labels, score_global, batch_date"
         ).not_.is_("score_global", "null").order(
             "score_global", desc=(filter_sort == "Score ↓")
         )
@@ -412,6 +421,11 @@ with st.container():
         
         if filter_label != "Tous":
             query = query.eq("labels", filter_label)
+        
+        if filter_date == "Aujourd'hui":
+            from datetime import date
+            today = date.today().isoformat()
+            query = query.eq("batch_date", today)
         
         if filter_score_min > 0:
             query = query.gte("score_global", filter_score_min)
