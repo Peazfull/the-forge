@@ -37,8 +37,6 @@ def render_sidebar():
                 st.session_state.current_page = "front/views/EnrichBrewery"
             if st.button("⭐ Score", key="score_brewery", use_container_width=True):
                 st.session_state.current_page = "front/views/ScoreBrewery"
-            if st.button("👁️ Preview finale", key="preview_brewery", use_container_width=True):
-                st.session_state.current_page = "front/views/PreviewBrewery"
 
         # ===== MENU 3 =====
         with st.expander("🎨 The Artist", expanded=False):
