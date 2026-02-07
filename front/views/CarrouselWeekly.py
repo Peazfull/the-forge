@@ -61,7 +61,7 @@ SLIDE6_TITLE_ASSET = os.path.join(ASSETS_DIR, "Top_10_eur.png")
 SLIDE6_TITLE_ASSET_TOP = 310
 SLIDE7_TITLE_ASSET = os.path.join(ASSETS_DIR, "Flop_10_eur.png")
 SLIDE7_TITLE_ASSET_TOP = 310
-SLIDE8_TITLE_ASSET = os.path.join(ASSETS_DIR, "Devises_eur.png")
+SLIDE8_TITLE_ASSET = os.path.join(ASSETS_DIR, "Top_indices.png")
 SLIDE8_TITLE_ASSET_TOP = 310
 SLIDE9_TITLE_ASSET = os.path.join(ASSETS_DIR, "Cryptos_eur.png")
 SLIDE9_TITLE_ASSET_TOP = 310
@@ -415,10 +415,10 @@ def _render_slide_bytes(filename: str, path: str) -> bytes:
             draw,
             img.size[0],
             img.size[1],
-            _get_fx_weekly_eu(),
-            name_label="Currency",
+            _get_indices_weekly_eu(),
+            name_label="Indice",
             close_label="Close",
-            format_close=_format_usd
+            format_close=_format_points
         )
     elif slide_number == 9:
         draw = ImageDraw.Draw(img)
