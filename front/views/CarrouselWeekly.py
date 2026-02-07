@@ -65,6 +65,7 @@ SLIDE8_TITLE_ASSET = os.path.join(ASSETS_DIR, "Top_indices.png")
 SLIDE8_TITLE_ASSET_TOP = 310
 SLIDE9_TITLE_ASSET = os.path.join(ASSETS_DIR, "Cryptos_eur.png")
 SLIDE9_TITLE_ASSET_TOP = 310
+SLIDE9_INDICES_TITLE_ASSET = os.path.join(ASSETS_DIR, "Flop_indices.png")
 CAPTION_FILE = os.path.join(
     os.path.dirname(__file__),
     "..", "..", "prompts", "weekly", "fixed_caption.txt"
@@ -200,7 +201,21 @@ def _get_indices_weekly_eu() -> list[dict]:
     try:
         data = get_weekly_performances(EU_INDICES)
         if data.get("status") == "success":
-            return data.get("items", []) or []
+            return (data.get("items", []) or [])[:5]
+        return []
+    except Exception:
+        return []
+
+
+def _get_indices_weekly_eu_flop() -> list[dict]:
+    try:
+        data = get_weekly_performances(EU_INDICES)
+        if data.get("status") == "success":
+            items = data.get("items", []) or []
+            if not items:
+                return []
+            items_sorted = sorted(items, key=lambda x: x.get("pct_change", 0))
+            return items_sorted[:5]
         return []
     except Exception:
         return []
@@ -422,17 +437,17 @@ def _render_slide_bytes(filename: str, path: str) -> bytes:
         )
     elif slide_number == 9:
         draw = ImageDraw.Draw(img)
-        if os.path.exists(SLIDE9_TITLE_ASSET):
-            title_asset = Image.open(SLIDE9_TITLE_ASSET).convert("RGBA")
+        if os.path.exists(SLIDE9_INDICES_TITLE_ASSET):
+            title_asset = Image.open(SLIDE9_INDICES_TITLE_ASSET).convert("RGBA")
             img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE9_TITLE_ASSET_TOP))
         _render_close_table(
             draw,
             img.size[0],
             img.size[1],
-            _get_crypto_weekly(),
-            name_label="Crypto",
+            _get_indices_weekly_eu_flop(),
+            name_label="Indice",
             close_label="Close",
-            format_close=_format_usd
+            format_close=_format_points
         )
     output = io.BytesIO()
     img.convert("RGB").save(output, format="PNG")
