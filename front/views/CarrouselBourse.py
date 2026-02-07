@@ -580,9 +580,25 @@ def process_generation_queue():
 
     inflight_item = st.session_state.get("generation_inflight_item")
     if inflight_item:
-        st.session_state.debug_logs.append("⚠️ Item en cours détecté, remise en file")
-        queue.insert(0, inflight_item)
-        st.session_state.generation_inflight_item = None
+        retry_counts = st.session_state.setdefault("generation_retry_counts", {})
+        inflight_key = "cover" if inflight_item.get("is_cover") else (
+            inflight_item.get("id") or inflight_item.get("item_id") or "unknown"
+        )
+        retry_counts[inflight_key] = retry_counts.get(inflight_key, 0) + 1
+        if retry_counts[inflight_key] > 3:
+            st.session_state.debug_logs.append("❌ Item bloqué, skip après 3 essais")
+            if "generation_errors" not in st.session_state:
+                st.session_state.generation_errors = []
+            st.session_state.generation_errors.append({
+                "id": inflight_key,
+                "position": inflight_item.get("position", "?"),
+                "error": "Item bloqué (requeue > 3)"
+            })
+            st.session_state.generation_inflight_item = None
+        else:
+            st.session_state.debug_logs.append("⚠️ Item en cours détecté, remise en file")
+            queue.insert(0, inflight_item)
+            st.session_state.generation_inflight_item = None
     
     if not queue:
         st.session_state.debug_logs.append("🔚 File d'attente vide")
@@ -637,6 +653,8 @@ def process_generation_queue():
         
         st.session_state.generation_done = st.session_state.get("generation_done", 0) + 1
         st.session_state.generation_inflight_item = None
+        retry_counts = st.session_state.get("generation_retry_counts", {})
+        retry_counts.pop("cover", None)
         return
     
     item_id = item["id"]
@@ -650,6 +668,7 @@ def process_generation_queue():
     st.session_state.debug_logs.append(f"  ID: {item_id}")
     st.session_state.debug_logs.append(f"  Titre: {title[:40]}...")
     
+    item_key = item_id or f"pos:{position}"
     try:
         # Générer textes
         st.session_state.debug_logs.append("  ⏳ Génération textes...")
@@ -718,6 +737,8 @@ def process_generation_queue():
         })
     finally:
         st.session_state.generation_inflight_item = None
+        retry_counts = st.session_state.get("generation_retry_counts", {})
+        retry_counts.pop(item_key, None)
     
     # Incrémenter le compteur de traitement
     st.session_state.generation_done = st.session_state.get("generation_done", 0) + 1
