@@ -369,7 +369,7 @@ with st.container():
     with col_date:
         filter_date = st.selectbox(
             "Date",
-            options=["Tous", "Aujourd'hui"],
+            options=["Tous", "Dernières 24h"],
             index=0,
             label_visibility="collapsed",
             placeholder="Date"
@@ -410,7 +410,7 @@ with st.container():
         supabase = get_supabase()
     
         query = supabase.table("brew_items").select(
-            "id, title, content, tags, labels, score_global, batch_date"
+            "id, title, content, tags, labels, score_global, processed_at"
         ).not_.is_("score_global", "null").order(
             "score_global", desc=(filter_sort == "Score ↓")
         )
@@ -422,10 +422,10 @@ with st.container():
         if filter_label != "Tous":
             query = query.eq("labels", filter_label)
         
-        if filter_date == "Aujourd'hui":
-            from datetime import date
-            today = date.today().isoformat()
-            query = query.eq("batch_date", today)
+        if filter_date == "Dernières 24h":
+            from datetime import datetime, timedelta
+            twenty_four_hours_ago = (datetime.now() - timedelta(hours=24)).isoformat()
+            query = query.gte("processed_at", twenty_four_hours_ago)
         
         if filter_score_min > 0:
             query = query.gte("score_global", filter_score_min)
