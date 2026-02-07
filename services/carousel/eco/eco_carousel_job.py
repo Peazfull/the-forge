@@ -158,6 +158,10 @@ class EcoCarouselJob:
                 self._log("🖼️ Génération des slides finales...")
                 self._generate_final_slides()
                 
+                # Générer la caption Instagram
+                self._log("📝 Génération caption Instagram...")
+                self._generate_caption()
+                
                 self.state = "completed"
                 self.just_completed = True  # Notifier le frontend
                 self._log(f"✅ Génération terminée ! {self.processed} items traités")
@@ -316,6 +320,40 @@ class EcoCarouselJob:
                 self._log("  ✅ Slide outro ajoutée")
             except Exception:
                 pass
+    
+    def _generate_caption(self) -> None:
+        """Génère automatiquement la caption Instagram."""
+        from services.carousel.eco.generate_carousel_caption_service import generate_caption_from_items
+        
+        supabase = get_supabase()
+        
+        try:
+            # Récupérer les items (sans la cover et l'outro)
+            carousel_data = supabase.table("carousel_eco").select("*").order("position").execute()
+            items = carousel_data.data if carousel_data.data else []
+            
+            # Filtrer : uniquement positions 1-N (pas 0 ni 999)
+            items_for_caption = [
+                item for item in items
+                if item.get("position") not in [0, 999]
+            ]
+            
+            if not items_for_caption:
+                self._log("  ⚠️ Pas d'items pour la caption")
+                return
+            
+            # Générer la caption
+            result = generate_caption_from_items(items_for_caption)
+            
+            if result.get("status") == "success":
+                self._log("  ✅ Caption Instagram générée")
+            else:
+                error_msg = result.get("message", "Erreur inconnue")
+                self._log(f"  ⚠️ Caption échec : {error_msg[:50]}")
+        
+        except Exception as e:
+            error_msg = f"Erreur caption : {str(e)[:100]}"
+            self._log(f"  ⚠️ {error_msg}")
 
 
 # Instance globale
