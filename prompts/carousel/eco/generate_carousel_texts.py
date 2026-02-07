@@ -32,32 +32,32 @@ EXEMPLES DE SORTIE (RÉFÉRENCE DE TON ET DE FORMAT) :
 
 {
   "title_carou": "Tesla surprend Wall Street",
-  "content_carou": "Tesla dépasse les attentes avec un BPA à 50 cents malgré des revenus en recul à 24,9 milliards de dollars. La marge brute dépasse 20% et le bénéfice opérationnel atteint 1,4 milliard. Le groupe accélère sur l’IA, les robotaxis et vise une montée en puissance industrielle majeure d’ici 2026."
+  "content_carou": "Tesla dépasse les attentes avec un BPA à 50 cents malgré des revenus en recul à 24,9 milliards de $. La marge brute dépasse 20% et le bénéfice opérationnel atteint 1,4 milliar"
 }
 
 {
   "title_carou": "Meta passe aux abonnements",
-  "content_carou": "Meta teste des abonnements premium sur Instagram, Facebook et WhatsApp. Les offres promettent des fonctionnalités exclusives et des outils d’IA pour booster créativité et productivité. L’accès gratuit reste maintenu pour les usages standards."
+  "content_carou": "Meta teste des abonnements premium sur Instagram, Facebook et WhatsApp. Les offres promettent des fonctionnalités exclusives et des outils d’IA pour booster créativité et productivité."
 }
 
 {
   "title_carou": "La zone euro reprend confiance",
-  "content_carou": "Le sentiment économique progresse nettement en janvier avec un indice ESI à 99,4 dans la zone euro. Industrie, services et commerce soutiennent la hausse, rapprochant l’indicateur de sa moyenne historique. Les attentes d’emploi montent aussi, signal d’une confiance en amélioration."
+  "content_carou": "Le sentiment économique progresse nettement en janvier avec un indice ESI à 99,4 dans la zone euro. Industrie, services et commerce soutiennent la hausse, rapprochant l’indicateur de sa moyenne historique."
 }
 
 {
   "title_carou": "France Travail lourdement sanctionné",
-  "content_carou": "La CNIL inflige une amende de 5 millions d’euros après une cyberattaque massive début 2024. Près de 37 millions de données personnelles ont été compromises, dont des numéros de sécurité sociale. L’autorité pointe des failles de sécurité et une authentification insuffisante."
+  "content_carou": "La CNIL inflige une amende de 5 millions d’euros après une cyberattaque massive début 2024 où près de 37 millions de données personnelles ont été compromises L’autorité pointe des failles de sécurité et une authentification insuffisante."
 }
 
 {
   "title_carou": "Stellantis : -25%",
-  "content_carou": "Le constructeur revoit drastiquement ses ambitions dans l’électrique. Plus de 22 milliards d’euros de charges exceptionnelles sont annoncées. Le marché sanctionne lourdement le titre."
+  "content_carou": "Le constructeur revoit drastiquement ses ambitions dans l’électrique avec plus de 22 milliards d’euros de charges exceptionnelles annoncées. Le marché sanctionne lourdement le titre."
 }
 
 {
   "title_carou": "Capgemini : contrat polémique",
-  "content_carou": "La filiale américaine de Capgemini signe un contrat de 4,8 millions de dollars avec la police de l’immigration américaine. L’accord porte sur des services d’enquête et de vérification des antécédents. L’affaire déclenche une vive controverse autour du groupe."
+  "content_carou": "La filiale américaine de Capgemini signe un contrat de 4,8 millions de dollars avec la police de l’immigration américaine. L’accord porte sur des services d’enquête et de vérification des antécédents et déclenche une vive controverse autour du groupe."
 }
 
 FORMAT DE SORTIE :
@@ -69,7 +69,7 @@ Retourne UNIQUEMENT du JSON valide :
 
 CONTRAINTES TECHNIQUES :
 - title_carou : 5 mots MAX (séparés par espaces ou :)
-- content_carou : 3 phrases MAX (séparées par un point)
+- content_carou : 2 phrases MAX (séparées par un point)
 - Pas de markdown, pas de texte hors JSON
 - JSON strictement valide
 """
