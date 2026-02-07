@@ -1,4 +1,4 @@
-PROMPT_GENERATE_IMAGE_PROMPT = """
+PROMPT_GENERATE_IMAGE_PROMPT_MANUAL= """
 Tu vas recevoir un TITRE et un CONTENU d’actualité économique, politique ou institutionnelle avec mes recommandations manuelles de l'image attendu en plus. 
 
 Ta mission est de générer UNIQUEMENT le PROMPT FINAL
