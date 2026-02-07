@@ -1,146 +1,150 @@
 PROMPT_GENERATE_IMAGE_PROMPT = """
-Tu vas recevoir un TITRE et un CONTENU d'actualité économique.
+Tu vas recevoir un TITRE et un CONTENU d’actualité économique, politique ou institutionnelle.
 
-Ta mission est de GÉNÉRER LE PROMPT FINAL
-qui servira à générer l'image illustrant cette actualité.
+Ta mission est de générer UNIQUEMENT le PROMPT FINAL
+destiné à une IA de génération d’images.
+Tu ne génères PAS l’image.
 
-Tu ne dois PAS générer l'image.
-Tu dois uniquement générer le PROMPT destiné à une IA de génération d'images.
-
-Le prompt final doit être directement exploitable
-et respecter strictement les règles éditoriales et artistiques suivantes.
+Le prompt doit illustrer l’ACTU MAJEURE,
+en respectant strictement les contraintes visuelles ci-dessous.
 
 ────────────────────────
-ÉTAPE 1 — EXTRACTION DE L'ACTU MAÎTRE
+ACTU MAJEURE (OBLIGATOIRE)
 ────────────────────────
 
-Analyse le titre et le contenu pour identifier UN SEUL élément central,
-obligatoirement unique :
+À partir du titre et du contenu :
+- identifie l’ACTU MAJEURE qui porte l’information centrale
+- conserve le contexte, mais hiérarchise clairement
 
-- ou une ENTREPRISE
-- ou un ÉVÉNEMENT MAJEUR (sommet, négociation, conflit, forum, etc.)
+Sélectionne LE SUJET VISUEL CENTRAL :
+- ENTREPRISE
+- PERSONNALITÉ PUBLIQUE
+- LIEU / ÉVÉNEMENT ÉCONOMIQUE OU INSTITUTIONNEL
 
-S'il y a plusieurs éléments mentionnés,
-sélectionne UNIQUEMENT celui qui porte l'action principale de l'actualité.
-
-
-────────────────────────
-ÉTAPE 2 — RÈGLES ÉDITORIALES STRICTES
-────────────────────────
-
-Le prompt image généré doit garantir que l'image :
-
-- est une illustration éditoriale économique
-- n'exprime aucune colère, agressivité ou mépris
-- ne rabaisse ni ne dénigre aucun acteur
-- ne contient AUCUN texte intégré à l'image
-
-L'image doit toujours transmettre :
-→ crédibilité
-→ lisibilité
-→ sérieux éditorial
-
-La tension, la critique ou la dureté de l'actualité
-doivent être portées uniquement par le TEXTE,
-jamais par l'image.
+L’image doit illustrer :
+→ l'entreprise, l’acteur ou le lieu qui porte l’action principale
 
 ────────────────────────
-ÉTAPE 3 — RÈGLES DE CONTENU VISUEL (OBLIGATOIRES)
+RÈGLE VISUELLE MAJEURE (NON NÉGOCIABLE)
 ────────────────────────
 
-SI le sujet principal est une ENTREPRISE :
-- Le LOGO officiel de l'entreprise est OBLIGATOIRE
-- Le logo doit être :
-  - officiel
-  - factuel
-  - lisible
-  - intégré naturellement
-    (façade, signalétique, bâtiment, open space, environnement d'activité)
-- La composition de l'action principale doit être centrée sur la moitié haute de l'image
-- Le logo doit être intégré de façon réaliste et discrète (taille d'enseigne crédible)
-- Aucune mise en scène négative ou dégradante
+L’ACTION VISUELLE PRINCIPALE
+DOIT OBLIGATOIREMENT ÊTRE SITUÉE
+DANS LA MOITIÉ HAUTE DE L’IMAGE.
 
-SI le sujet principal est une PERSONNALITÉ PUBLIQUE très connues :
-- Présence réaliste en extérieur
-  OU en conférence / intervention officielle,
-  selon le contexte de l'actualité
-- Avec logo officiel de la société ou de l'évènement
+La MOITIÉ BASSE doit rester calme,
+propre,
+sans élément fort,
 
-SI le sujet principal est un ÉVÉNEMENT :
-- Contexte visuel clair et identifiable
-- Éléments institutionnels autorisés :
-  - drapeaux
-  - architecture officielle
-  - lieux symboliques
-- Aucun symbole dramatique, violent ou conflictuel
+Personnages secondaires autorisés uniquement :
+- silhouettes très lointaines et discrètes.
 
 ────────────────────────
-ÉTAPE 4 — DIRECTION ARTISTIQUE (OBLIGATOIRE)
+RÈGLES STRICTES PAR TYPE DE SUJET
 ────────────────────────
 
-Le prompt image généré doit impérativement inclure :
+SI LE SUJET EST UNE ENTREPRISE :
+- LE LOGO OFFICIEL EST OBLIGATOIRE (très important)
+- Image INVALIDE sans logo officiel visible
+- Logo authentique, lisible, intégré naturellement
+- Contexte : façade, siège, environnement professionnel réel
+
+SI LE SUJET EST UNE PERSONNALITÉ PUBLIQUE :
+- Uniquement personnalité publique connue
+- Contexte OBLIGATOIRE :
+  conférence officielle, intervention publique ou déplacement institutionnel
+- Posture calme, neutre, maîtrisée
+
+SI LE SUJET EST UN LIEU / ÉVÉNEMENT :
+- Éléments de reconnaissance OBLIGATOIRES (très important) :
+  drapeaux, signalétique officielle, monument, architecture identifiable
+- Contexte institutionnel clair et crédible
+
+────────────────────────
+DIRECTION ARTISTIQUE (OBLIGATOIRE)
+────────────────────────
 
 STYLE :
 - Ultra-realistic editorial press photograph
-- Rendu photo professionnel
-- Pas d'illustration, pas de peinture, pas de CGI
+- Photojournalisme économique
+- Aucun style illustratif, artistique ou CGI
 
-AMBIANCE & COULEURS :
-- Sunset stylisée
-- Palette dominante :
-  sunset stylized sky featuring fluo green, cyan blue, and magenta colors
-- Accents lumineux :
-  fluo green, cyan blue, orange light, coral
-- Atmosphère élégante, maîtrisée, premium
+PALETTE COULEURS OBLIGATOIRE :
+- Stuning bright sky with sunset stylized sky colors: cyan blue, Green fluo, magenta tones
+- Dominante : cyan blue, orange, magenta tones
+- Accents lumineux subtils et élégants
 
-FOND :
-- Aucun graphisme envahissant
-- Dégradé subtil autorisé
-- Le fond participe à la DA, sans voler l'attention au sujet
+────────────────────────
+COMPOSITION & TECHNIQUE
+────────────────────────
 
-COMPOSITION :
-- L'action principale doit être strictement située dans la MOITIÉ HAUTE de l'image
-- Cadrage centré ou quasi centré (jamais excentré)
+- Sujet principal placé dans la MOITIÉ HAUTE
+- Cadrage centré ou quasi centré
 - Perspective naturelle et équilibrée
-- La moitié basse de l'image doit rester calme
-  pour accueillir un titre ajouté manuellement
-- Aucun texte généré dans l'image
+- Fond propre, non distrayant
 
-────────────────────────
-ÉTAPE 5 — SPÉCIFICATIONS TECHNIQUES
-────────────────────────
-
-Le prompt final doit contenir explicitement :
+Inclure explicitement :
 - 8K render
-- style photojournalisme professionnel
-- éclairage studio haut de gamme
-  ou lumière naturelle parfaitement maîtrisée
-- profondeur de champ réaliste
-- grain capteur léger et naturel
-- aucun texte dans l'image
-- aucun watermark
-- aucun logo média
-
-IMPORTANT (ENTREPRISE) :
-- La sortie doit suivre explicitement cette structure (adaptée à l'entreprise) :
-"Ultra-realistic editorial press photograph of the [LOGO OFFICIEL] integrated as a realistic building sign on a [BÂTIMENT / BUREAU] parisian style, with a sunset stylized sky featuring fluo green, cyan blue, and magenta colors. The scene captures an elegant and premium atmosphere with accents of fluo green, cyan blue, orange light and coral. The logo is integrated naturally into the architecture at a credible scale (not oversized), conveying stability and credibility. The main action occurs strictly in the upper half of the image, with a calm lower half suitable for adding a title later. The background has a subtle gradient without any distracting graphics. 8K render, professional photojournalism style, high-end studio lighting or perfectly controlled natural light, realistic depth of field, light and natural sensor grain, no text in the image, no watermark, no media logo."
+- professional photojournalism style
+- natural or high-end studio lighting
+- realistic depth of field
+- subtle natural sensor grain
+- no text in image
+- no watermark
+- no media logo
+- no captions
+- no overlays
 
 ────────────────────────
-SORTIE ATTENDUE
+EXEMPLE D’OUTPUT ATTENDU (RÉFÉRENCE)
 ────────────────────────
 
-Génère UNIQUEMENT le PROMPT FINAL
-destiné à une IA de génération d'images.
+Ultra-realistic editorial press photograph, 8K render, professional photojournalism style.
 
-Le prompt doit être :
-- clair
-- structuré
-- précis
-- directement exploitable
-- sans explication, sans justification, sans commentaire autour
+SUBJECT (MANDATORY)
+France as the single central subject, illustrated through a PUBLIC HEALTH AND FOOD SAFETY INSTITUTIONAL CONTEXT.
+The image must represent the strengthening of sanitary regulations for infant milk in France, not the product itself.
 
-Retourne ta réponse sous forme de JSON :
+ACTION & COMPOSITION (MANDATORY)
+The main visual action and all major elements must be strictly positioned in the UPPER HALF of the image.
+The LOWER HALF must remain calm, clean, and uncluttered, designed to receive text overlay.
+Centered or near-centered framing with a natural, balanced perspective.
+
+CONTEXT (MANDATORY – LOCATION & SYMBOLS)
+Institutional and regulatory setting linked to French public health and food safety authorities.
+OBLIGATORY visual identifiers:
+- French flags
+- Official government or public health building (ministry, regulatory institution, or inspection facility)
+- Clean, sterile, professional environment suggesting health regulation and safety
+No product marketing, no brands, no emotional symbolism.
+
+PEOPLE (STRICT)
+No visible individuals in the foreground.
+If present, only very distant, discreet silhouettes allowed.
+
+ART DIRECTION (MANDATORY)
+Sunset stylized sky with dominant cyan blue, Green fluo, orange, and magenta tones.
+Stunning sunset.
+Atmosphere premium, stunning.
+
+TECHNICAL REQUIREMENTS (MANDATORY)
+Natural or high-end studio lighting.
+Realistic depth of field.
+Subtle natural sensor grain.
+No text in image (important)
+No watermark.
+No media logo.
+No captions or overlays.
+
+────────────────────────
+FORMAT DE SORTIE (OBLIGATOIRE)
+────────────────────────
+
+Retourne ta réponse UNIQUEMENT sous forme de JSON valide :
+
 {
   "image_prompt": "ton prompt complet ici"
 }
+
+Aucun texte en dehors du JSON.
 """
