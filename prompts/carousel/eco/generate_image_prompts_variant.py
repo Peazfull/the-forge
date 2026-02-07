@@ -16,14 +16,13 @@ ACTU MAJEURE (OBLIGATOIRE)
 - identifie l’ACTU MAJEURE qui porte l’information centrale
 - conserve le contexte, mais hiérarchise clairement
 
-Sélectionne UN SEUL SUJET VISUEL CENTRAL :
+Sélectionne LE SUJET VISUEL CENTRAL :
 - ENTREPRISE
 - PERSONNALITÉ PUBLIQUE
 - LIEU / ÉVÉNEMENT ÉCONOMIQUE OU INSTITUTIONNEL
 
 L’image doit illustrer :
-→ l’acteur ou le lieu qui porte l’action principale
-→ jamais les réactions, conséquences ou commentaires secondaires
+→ l'entreprise, l’acteur ou le lieu qui porte l’action principale
 
 ────────────────────────
 RÈGLE VISUELLE MAJEURE (NON NÉGOCIABLE)
@@ -36,10 +35,8 @@ DANS LA MOITIÉ HAUTE DE L’IMAGE.
 La MOITIÉ BASSE doit rester calme,
 propre,
 sans élément fort,
-prévue pour accueillir du texte ajouté manuellement.
 
-Aucun personnage secondaire visible.
-Autorisé uniquement :
+Personnages secondaires autorisés uniquement :
 - silhouettes très lointaines et discrètes.
 
 ────────────────────────
@@ -47,7 +44,7 @@ RÈGLES STRICTES PAR TYPE DE SUJET
 ────────────────────────
 
 SI LE SUJET EST UNE ENTREPRISE :
-- LE LOGO OFFICIEL EST OBLIGATOIRE
+- LE LOGO OFFICIEL EST OBLIGATOIRE (très important)
 - Image INVALIDE sans logo officiel visible
 - Logo authentique, lisible, intégré naturellement
 - Contexte : façade, siège, environnement professionnel réel
@@ -59,7 +56,7 @@ SI LE SUJET EST UNE PERSONNALITÉ PUBLIQUE :
 - Posture calme, neutre, maîtrisée
 
 SI LE SUJET EST UN LIEU / ÉVÉNEMENT :
-- Éléments de reconnaissance OBLIGATOIRES :
+- Éléments de reconnaissance OBLIGATOIRES (très important) :
   drapeaux, signalétique officielle, monument, architecture identifiable
 - Contexte institutionnel clair et crédible
 
@@ -73,7 +70,7 @@ STYLE :
 - Aucun style illustratif, artistique ou CGI
 
 PALETTE COULEURS OBLIGATOIRE :
-- Sunset stylized sky
+- Stuning bright sky with sunset stylized sky colors: purple, Purple fluo, magenta tones
 - Dominante : purple, orange, magenta tones
 - Accents lumineux subtils et élégants
 
@@ -105,8 +102,8 @@ EXEMPLE D’OUTPUT ATTENDU (RÉFÉRENCE)
 Ultra-realistic editorial press photograph, 8K render, professional photojournalism style.
 
 SUBJECT (MANDATORY)
-Germany as the single central subject, illustrated through a clear INSTITUTIONAL DEFENSE CONTEXT.
-Focus on German defense policy and rearmament as the core action of the image.
+France as the single central subject, illustrated through a PUBLIC HEALTH AND FOOD SAFETY INSTITUTIONAL CONTEXT.
+The image must represent the strengthening of sanitary regulations for infant milk in France, not the product itself.
 
 ACTION & COMPOSITION (MANDATORY)
 The main visual action and all major elements must be strictly positioned in the UPPER HALF of the image.
@@ -114,27 +111,27 @@ The LOWER HALF must remain calm, clean, and uncluttered, designed to receive tex
 Centered or near-centered framing with a natural, balanced perspective.
 
 CONTEXT (MANDATORY – LOCATION & SYMBOLS)
-Institutional and governmental setting linked to German defense spending.
+Institutional and regulatory setting linked to French public health and food safety authorities.
 OBLIGATORY visual identifiers:
-- German flags (Bundesflagge)
-- Official government architecture such as the Bundestag building or a Bundeswehr institutional site
-- Clear, sober military-institutional environment
-No dramatic or conflict-driven imagery.
+- French flags
+- Official government or public health building (ministry, regulatory institution, or inspection facility)
+- Clean, sterile, professional environment suggesting health regulation and safety
+No product marketing, no brands, no emotional symbolism.
 
 PEOPLE (STRICT)
 No visible individuals in the foreground.
 If present, only very distant, discreet silhouettes allowed.
 
 ART DIRECTION (MANDATORY)
-Sunset stylized sky with dominant purple, orange, and magenta tones.
-Subtle, elegant light accents.
-Atmosphere premium, serious, credible, institutional.
+Sunset stylized sky with dominant purple, purple fluo, orange, and magenta tones.
+Stunning sunset.
+Atmosphere premium, stunning.
 
 TECHNICAL REQUIREMENTS (MANDATORY)
 Natural or high-end studio lighting.
 Realistic depth of field.
 Subtle natural sensor grain.
-No text in image.
+No text in image (important)
 No watermark.
 No media logo.
 No captions or overlays.

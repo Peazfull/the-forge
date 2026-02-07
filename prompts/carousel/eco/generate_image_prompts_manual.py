@@ -16,14 +16,13 @@ ACTU MAJEURE (OBLIGATOIRE)
 - identifie l’ACTU MAJEURE qui porte l’information centrale
 - conserve le contexte, mais hiérarchise clairement
 
-Sélectionne UN SEUL SUJET VISUEL CENTRAL :
+Sélectionne LE SUJET VISUEL CENTRAL :
 - ENTREPRISE
 - PERSONNALITÉ PUBLIQUE
 - LIEU / ÉVÉNEMENT ÉCONOMIQUE OU INSTITUTIONNEL
 
 L’image doit illustrer :
-→ l’acteur ou le lieu qui porte l’action principale
-→ jamais les réactions, conséquences ou commentaires secondaires
+→ l'entreprise, l’acteur ou le lieu qui porte l’action principale
 
 ────────────────────────
 RÈGLE VISUELLE MAJEURE (NON NÉGOCIABLE)
@@ -36,10 +35,8 @@ DANS LA MOITIÉ HAUTE DE L’IMAGE.
 La MOITIÉ BASSE doit rester calme,
 propre,
 sans élément fort,
-prévue pour accueillir du texte ajouté manuellement.
 
-Aucun personnage secondaire visible.
-Autorisé uniquement :
+Personnages secondaires autorisés uniquement :
 - silhouettes très lointaines et discrètes.
 
 ────────────────────────
@@ -47,7 +44,7 @@ RÈGLES STRICTES PAR TYPE DE SUJET
 ────────────────────────
 
 SI LE SUJET EST UNE ENTREPRISE :
-- LE LOGO OFFICIEL EST OBLIGATOIRE
+- LE LOGO OFFICIEL EST OBLIGATOIRE (très important)
 - Image INVALIDE sans logo officiel visible
 - Logo authentique, lisible, intégré naturellement
 - Contexte : façade, siège, environnement professionnel réel
@@ -59,7 +56,7 @@ SI LE SUJET EST UNE PERSONNALITÉ PUBLIQUE :
 - Posture calme, neutre, maîtrisée
 
 SI LE SUJET EST UN LIEU / ÉVÉNEMENT :
-- Éléments de reconnaissance OBLIGATOIRES :
+- Éléments de reconnaissance OBLIGATOIRES (très important) :
   drapeaux, signalétique officielle, monument, architecture identifiable
 - Contexte institutionnel clair et crédible
 
@@ -73,7 +70,7 @@ STYLE :
 - Aucun style illustratif, artistique ou CGI
 
 PALETTE COULEURS OBLIGATOIRE :
-- Sunset stylized sky
+- Stuning bright sky with sunset stylized sky colors: purple, Purple fluo, magenta tones
 - Dominante : purple, orange, magenta tones
 - Accents lumineux subtils et élégants
 
@@ -126,15 +123,15 @@ No visible individuals in the foreground.
 If present, only very distant, discreet silhouettes allowed.
 
 ART DIRECTION (MANDATORY)
-Sunset stylized sky with dominant purple, orange, and magenta tones.
-Subtle, elegant light accents.
-Atmosphere premium, calm, credible, institutional.
+Sunset stylized sky with dominant purple, purple fluo, orange, and magenta tones.
+Stunning sunset.
+Atmosphere premium, stunning.
 
 TECHNICAL REQUIREMENTS (MANDATORY)
 Natural or high-end studio lighting.
 Realistic depth of field.
 Subtle natural sensor grain.
-No text in image.
+No text in image (important)
 No watermark.
 No media logo.
 No captions or overlays.
