@@ -48,7 +48,7 @@ SLIDE2_NEG_COLOR = "#FF5757"
 SLIDE2_START_Y = 400
 SLIDE2_ROW_SEPARATOR_COLOR = (255, 255, 255, 200)
 SLIDE2_ROW_SEPARATOR_INSET = 0
-SLIDE2_TITLE_ASSET = os.path.join(ASSETS_DIR, "Top_10_eur.png")
+SLIDE2_TITLE_ASSET = os.path.join(ASSETS_DIR, "Top_10_usa.png")
 SLIDE2_TITLE_ASSET_TOP = 310
 SLIDE3_TITLE_ASSET = os.path.join(ASSETS_DIR, "Flop_10_eur.png")
 SLIDE3_TITLE_ASSET_TOP = 310
@@ -148,6 +148,16 @@ def _format_points(value: float) -> str:
 def _get_top10_weekly_eu() -> list[dict]:
     try:
         data = get_top_flop_weekly("EU", limit=10)
+        if data.get("status") == "success":
+            return data.get("top", []) or []
+        return []
+    except Exception:
+        return []
+
+
+def _get_top10_weekly_us() -> list[dict]:
+    try:
+        data = get_top_flop_weekly("US", limit=10)
         if data.get("status") == "success":
             return data.get("top", []) or []
         return []
@@ -335,7 +345,14 @@ def _render_slide_bytes(filename: str, path: str) -> bytes:
         if os.path.exists(SLIDE2_TITLE_ASSET):
             title_asset = Image.open(SLIDE2_TITLE_ASSET).convert("RGBA")
             img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE2_TITLE_ASSET_TOP))
-        _render_close_table(draw, img.size[0], img.size[1], _get_top10_weekly_eu())
+        _render_close_table(
+            draw,
+            img.size[0],
+            img.size[1],
+            _get_top10_weekly_us(),
+            close_label="Close",
+            format_close=_format_usd
+        )
     elif slide_number == 3:
         draw = ImageDraw.Draw(img)
         if os.path.exists(SLIDE3_TITLE_ASSET):
