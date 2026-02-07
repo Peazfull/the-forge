@@ -184,7 +184,8 @@ if st.session_state.get("active_carousel") != "bourse":
 col_debug, col_reset = st.columns([4, 1])
 
 with col_reset:
-    if st.session_state.get("generation_in_progress", False):
+    # Afficher le bouton uniquement si generation_in_progress=True ET generation_active=False
+    if st.session_state.get("generation_in_progress", False) and not st.session_state.get("generation_active", False):
         st.error("⚠️ Verrou bloqué")
         if st.button("🔓 Débloquer", type="primary"):
             st.session_state.generation_in_progress = False
@@ -462,67 +463,123 @@ def build_carousel_exports(items_sorted):
 
 def send_to_carousel():
     """Démarre une génération robuste via file d'attente (1 item par run)."""
-    # Initialiser les logs de debug
-    if "debug_logs" not in st.session_state:
-        st.session_state.debug_logs = []
-    st.session_state.debug_logs = []  # Reset
-    st.session_state.debug_logs.append("🚀 Début send_to_carousel()")
-    
-    # SÉCURITÉ : éviter double exécution
-    if st.session_state.get("generation_in_progress", False):
-        st.session_state.debug_logs.append("⚠️ Génération déjà en cours, arrêt")
-        return
-    
-    # Sécurité : initialiser si absent
-    if "bourse_selected_items" not in st.session_state:
-        st.session_state.bourse_selected_items = []
-    
-    st.session_state.debug_logs.append(f"📊 Items sélectionnés : {len(st.session_state.bourse_selected_items)}")
-    
-    # Étape 1 : Insertion
-    st.session_state.debug_logs.append("📤 Début insertion en DB...")
-    result = insert_items_to_carousel_bourse(st.session_state.bourse_selected_items)
+    try:
+        # Initialiser les logs de debug
+        if "debug_logs" not in st.session_state:
+            st.session_state.debug_logs = []
+        st.session_state.debug_logs = []  # Reset
+        st.session_state.debug_logs.append("🚀 Début send_to_carousel()")
         
-    if result["status"] != "success":
-        st.session_state.debug_logs.append(f"❌ Erreur insertion : {result.get('message', 'inconnue')}")
-        return
-    
-    st.session_state.debug_logs.append(f"✅ Insertion OK : {result.get('inserted', 0)} items")
-    
-    # Étape 2 : Récupérer les items insérés
-    st.session_state.debug_logs.append("📥 Récupération items depuis DB...")
-    carousel_data = get_carousel_bourse_items()
-    
-    if carousel_data["status"] != "success" or carousel_data["count"] == 0:
-        st.session_state.debug_logs.append("❌ Erreur récupération ou 0 items")
-        return
-    
-    items = carousel_data["items"]
-    total_items = len(items)
-    
-    st.session_state.debug_logs.append(f"✅ Récupérés : {total_items} items")
-    st.session_state.debug_logs.append(f"📋 IDs : {[item['id'] for item in items]}")
-    st.session_state.debug_logs.append(f"📋 Positions : {[item['position'] for item in items]}")
-    
-    # Purger les slides storage pour éviter l'affichage d'anciens visuels
-    if clear_slide_files():
-        st.session_state.debug_logs.append("🧹 Slides storage nettoyées (bourse)")
-    else:
-        st.session_state.debug_logs.append("⚠️ Impossible de nettoyer les slides storage (bourse)")
-    st.session_state.slide_previews = {}
+        # SÉCURITÉ : éviter double exécution
+        if st.session_state.get("generation_in_progress", False):
+            st.session_state.debug_logs.append("⚠️ Génération déjà en cours, arrêt")
+            return
+        
+        # Sécurité : initialiser si absent
+        if "bourse_selected_items" not in st.session_state:
+            st.session_state.bourse_selected_items = []
+        
+        st.session_state.debug_logs.append(f"📊 Items sélectionnés : {len(st.session_state.bourse_selected_items)}")
+        
+        # Étape 1 : Insertion
+        st.session_state.debug_logs.append("📤 Début insertion en DB...")
+        result = insert_items_to_carousel_bourse(st.session_state.bourse_selected_items)
+            
+        if result["status"] != "success":
+            st.session_state.debug_logs.append(f"❌ Erreur insertion : {result.get('message', 'inconnue')}")
+            return
+        
+        st.session_state.debug_logs.append(f"✅ Insertion OK : {result.get('inserted', 0)} items")
+        
+        # Étape 2 : Récupérer les items insérés
+        st.session_state.debug_logs.append("📥 Récupération items depuis DB...")
+        carousel_data = get_carousel_bourse_items()
+        
+        if carousel_data["status"] != "success" or carousel_data["count"] == 0:
+            st.session_state.debug_logs.append("❌ Erreur récupération ou 0 items")
+            return
+        
+        items = carousel_data["items"]
+        total_items = len(items)
+        
+        st.session_state.debug_logs.append(f"✅ Récupérés : {total_items} items")
+        st.session_state.debug_logs.append(f"📋 IDs : {[item['id'] for item in items]}")
+        st.session_state.debug_logs.append(f"📋 Positions : {[item['position'] for item in items]}")
+        
+        # Purger TOUS les storages (images + slides) pour éviter l'affichage d'anciens visuels
+        from services.carousel.bourse.carousel_image_service import clear_image_files
+        
+        if clear_image_files():
+            st.session_state.debug_logs.append("🧹 Images storage nettoyées (carousel-bourse)")
+        else:
+            st.session_state.debug_logs.append("⚠️ Impossible de nettoyer les images storage")
+        
+        if clear_slide_files():
+            st.session_state.debug_logs.append("🧹 Slides storage nettoyées (carousel-bourse-slides)")
+        else:
+            st.session_state.debug_logs.append("⚠️ Impossible de nettoyer les slides storage")
+        
+        # Reset des caches session state
+        st.session_state.slide_previews = {}
+        st.session_state.carousel_images = {}
+        st.session_state.carousel_image_models = {}
 
-    # Initialiser la file d'attente
-    st.session_state.generation_in_progress = True
-    st.session_state.generation_active = True
-    # Ajouter une pseudo-tâche cover au début (basée sur l'item #1)
-    cover_task = {"is_cover": True, "source_item": items[0]} if items else None
-    queue = ([cover_task] if cover_task else []) + items
-    
-    st.session_state.generation_queue = queue
-    st.session_state.generation_total = len(queue)
-    st.session_state.generation_done = 0
-    st.session_state.generation_errors = []
-    st.session_state.debug_logs.append("🔒 Verrou activé + file d'attente initialisée")
+        # ═══════════════════════════════════════════════
+        # GÉNÉRATION COVER (position 0) - SYNCHRONE
+        # ═══════════════════════════════════════════════
+        if items:
+            from services.carousel.bourse.generate_carousel_texts_service import generate_image_prompt_for_item
+            supabase = get_supabase()
+            
+            source = items[0]
+            source_title = source.get("title", "")
+            source_content = source.get("content", "")
+            
+            st.session_state.debug_logs.append("━━━ GÉNÉRATION COVER (position 0) - SYNCHRONE ━━━")
+            st.session_state.debug_logs.append(f"  Source: {source_title[:40]}...")
+            
+            try:
+                cover_upsert = upsert_carousel_bourse_cover(source)
+                if cover_upsert.get("status") != "success":
+                    raise Exception(cover_upsert.get("message", "Erreur cover DB"))
+                cover_id = cover_upsert.get("id")
+                
+                prompt_result = generate_image_prompt_for_item(source_title, source_content, prompt_type="sunset")
+                if prompt_result.get("status") != "success":
+                    raise Exception(prompt_result.get("message", "Prompt cover KO"))
+                
+                supabase.table("carousel_bourse").update({
+                    "prompt_image_1": prompt_result.get("image_prompt")
+                }).eq("id", cover_id).execute()
+                
+                from services.carousel.bourse.carousel_image_service import generate_and_save_carousel_image
+                img_result = generate_and_save_carousel_image(prompt_result["image_prompt"], position=0, item_id=cover_id)
+                if img_result["status"] == "success":
+                    model_used = img_result.get("model_used", "inconnu")
+                    st.session_state.debug_logs.append(f"  ✅ Cover générée ({model_used})")
+                else:
+                    st.session_state.debug_logs.append(f"  ⚠️ Cover échec : {img_result.get('message', '')[:50]}")
+            except Exception as e:
+                st.session_state.debug_logs.append(f"  ❌ ERREUR cover : {str(e)[:120]}")
+
+        # ═══════════════════════════════════════════════
+        # INITIALISER LA FILE D'ATTENTE (sans cover)
+        # ═══════════════════════════════════════════════
+        st.session_state.generation_in_progress = True
+        st.session_state.generation_active = True
+        st.session_state.generation_queue = items  # Seulement les items de contenu (positions 1-N)
+        st.session_state.generation_total = len(items)
+        st.session_state.generation_done = 0
+        st.session_state.generation_errors = []
+        st.session_state.generation_error_count = {}  # Compteur d'erreurs par item_id
+        st.session_state.debug_logs.append("🔒 Verrou activé + file d'attente initialisée")
+        
+    except Exception as e:
+        # SÉCURITÉ : si erreur critique, toujours libérer les verrous
+        st.session_state.generation_in_progress = False
+        st.session_state.generation_active = False
+        st.session_state.debug_logs.append(f"❌ ERREUR CRITIQUE : {str(e)[:200]}")
+        st.error(f"Erreur critique : {str(e)[:200]}")
 
 
 def _finalize_generation():
@@ -532,6 +589,14 @@ def _finalize_generation():
     st.session_state.bourse_initialized = False
     st.session_state.bourse_preview_mode = False
     st.session_state.debug_logs.append("🧹 Reset sélection")
+    
+    # Reset caches images et models
+    st.session_state.carousel_images = {}
+    st.session_state.carousel_image_models = {}
+    st.session_state.slide_previews = {}
+    st.session_state.generation_error_count = {}
+    if "generation_inflight_item" in st.session_state:
+        del st.session_state.generation_inflight_item
     
     # Incrémenter compteur pour refresh des inputs
     if "carousel_generation_count" not in st.session_state:
@@ -577,12 +642,6 @@ def process_generation_queue():
         return
     
     queue = st.session_state.get("generation_queue", [])
-
-    inflight_item = st.session_state.get("generation_inflight_item")
-    if inflight_item:
-        st.session_state.debug_logs.append("⚠️ Item en cours détecté, remise en file")
-        queue.insert(0, inflight_item)
-        st.session_state.generation_inflight_item = None
     
     if not queue:
         st.session_state.debug_logs.append("🔚 File d'attente vide")
@@ -592,55 +651,21 @@ def process_generation_queue():
     # Prendre le prochain item
     item = queue.pop(0)
     st.session_state.generation_queue = queue
-    st.session_state.generation_inflight_item = item
+    item_id = item["id"]
+    position = item["position"]
+    
+    # Vérifier le compteur d'erreurs pour cet item
+    error_count = st.session_state.generation_error_count.get(item_id, 0)
+    if error_count >= 3:
+        st.session_state.debug_logs.append(f"  ⏭️ Item #{position} ignoré (3 échecs)")
+        st.session_state.generation_done = st.session_state.get("generation_done", 0) + 1
+        return
     
     # Import des fonctions
     from services.carousel.bourse.generate_carousel_texts_service import generate_carousel_text_for_item, generate_image_prompt_for_item
+    from services.carousel.bourse.carousel_image_service import generate_and_save_carousel_image
     supabase = get_supabase()
     
-    # Traitement cover (position 0)
-    if item.get("is_cover"):
-        source = item.get("source_item") or {}
-        source_title = source.get("title", "")
-        source_content = source.get("content", "")
-        
-        st.session_state.debug_logs.append("━━━ SLIDE DE COUVERTURE (position 0) ━━━")
-        st.session_state.debug_logs.append(f"  Source: {source_title[:40]}...")
-        
-        try:
-            cover_upsert = upsert_carousel_bourse_cover(source)
-            if cover_upsert.get("status") != "success":
-                raise Exception(cover_upsert.get("message", "Erreur cover DB"))
-            cover_id = cover_upsert.get("id")
-            
-            prompt_result = generate_image_prompt_for_item(source_title, source_content, prompt_type="sunset")
-            if prompt_result.get("status") != "success":
-                raise Exception(prompt_result.get("message", "Prompt cover KO"))
-            
-            supabase.table("carousel_bourse").update({
-                "prompt_image_1": prompt_result.get("image_prompt")
-            }).eq("id", cover_id).execute()
-            
-            img_result = generate_and_save_carousel_image(prompt_result["image_prompt"], position=0, item_id=cover_id)
-            if img_result["status"] == "success":
-                model_used = img_result.get("model_used", "inconnu")
-                st.session_state.debug_logs.append(f"  ✅ Cover générée ({model_used})")
-            else:
-                st.session_state.debug_logs.append(f"  ⚠️ Cover échec : {img_result.get('message', '')[:50]}")
-        except Exception as e:
-            st.session_state.debug_logs.append(f"  ❌ ERREUR cover : {str(e)[:120]}")
-            st.session_state.generation_errors.append({
-                "id": "cover",
-                "position": 0,
-                "error": str(e)[:200]
-            })
-        
-        st.session_state.generation_done = st.session_state.get("generation_done", 0) + 1
-        st.session_state.generation_inflight_item = None
-        return
-    
-    item_id = item["id"]
-    position = item["position"]
     title = item.get("title", "")
     content = item.get("content", "")
     total_items = st.session_state.get("generation_total", 0)
@@ -708,6 +733,9 @@ def process_generation_queue():
             st.session_state.debug_logs.append("  ⚠️ Pas de prompt image valide")
         
         st.session_state.debug_logs.append(f"  ✔️ Item #{position} terminé")
+        # Reset du compteur d'erreurs en cas de succès
+        if item_id in st.session_state.generation_error_count:
+            st.session_state.generation_error_count[item_id] = 0
     
     except Exception as e:
         st.session_state.debug_logs.append(f"  ❌ ERREUR : {str(e)[:120]}")
@@ -716,8 +744,12 @@ def process_generation_queue():
             "position": position,
             "error": str(e)[:200]
         })
-    finally:
-        st.session_state.generation_inflight_item = None
+        # Incrémenter le compteur d'erreurs
+        st.session_state.generation_error_count[item_id] = error_count + 1
+        # Remettre l'item dans la queue si moins de 3 erreurs
+        if st.session_state.generation_error_count[item_id] < 3:
+            st.session_state.generation_queue.insert(0, item)
+            st.session_state.debug_logs.append(f"  🔄 Item remis en queue (tentative {st.session_state.generation_error_count[item_id]}/3)")
     
     # Incrémenter le compteur de traitement
     st.session_state.generation_done = st.session_state.get("generation_done", 0) + 1

@@ -28,6 +28,29 @@ CAROUSEL_IMAGE_DIR = os.path.join(
 STORAGE_BUCKET = "carousel-bourse"
 
 
+def list_image_files():
+    """Liste les fichiers présents dans le bucket carousel-bourse."""
+    try:
+        supabase = get_supabase()
+        items = supabase.storage.from_(STORAGE_BUCKET).list()
+        return {item['name'] for item in items} if items else set()
+    except Exception:
+        return set()
+
+
+def clear_image_files() -> bool:
+    """Supprime tous les fichiers du bucket carousel-bourse."""
+    try:
+        supabase = get_supabase()
+        files = list_image_files()
+        if not files:
+            return True
+        supabase.storage.from_(STORAGE_BUCKET).remove(list(files))
+        return True
+    except Exception:
+        return False
+
+
 def _append_model_to_url(public_url: str, model_tag: str) -> str:
     """Ajoute ?model=... à une URL (ou l'upsert si déjà présent)."""
     if not public_url or not model_tag:
