@@ -95,12 +95,16 @@ def _sorted_slide_files() -> list[tuple[str, str]]:
         return []
 
     def _key(name: str) -> tuple[int, str]:
-        match = re.search(r"slide[_\s-]?(\d+)", name, re.IGNORECASE)
-        num = int(match.group(1)) if match else 999
+        num = _slide_number_from_name(name)
         return (num, name)
 
     files.sort(key=_key)
     return [(name, os.path.join(ASSETS_DIR, name)) for name in files]
+
+
+def _slide_number_from_name(name: str) -> int:
+    match = re.search(r"slide[_\s-]?(\d+)", name, re.IGNORECASE)
+    return int(match.group(1)) if match else 999
 
 
 def _format_french_date(dt: datetime | None = None) -> str:
@@ -502,8 +506,15 @@ def _render_slide_bytes(filename: str, path: str) -> bytes:
 
 
 def build_weekly_exports(slide_paths: list[tuple[str, str]]) -> dict[str, object]:
+    sorted_paths = sorted(
+        slide_paths,
+        key=lambda item: _slide_number_from_name(item[0]),
+    )
+    max_num = max((_slide_number_from_name(name) for name, _ in sorted_paths), default=0)
+    num_width = max(2, len(str(max_num))) if max_num > 0 else 2
+
     slides = []
-    for filename, path in slide_paths:
+    for filename, path in sorted_paths:
         try:
             slide_bytes = _render_slide_bytes(filename, path)
             slides.append((filename, slide_bytes))
@@ -514,7 +525,12 @@ def build_weekly_exports(slide_paths: list[tuple[str, str]]) -> dict[str, object
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
         for filename, data in slides:
-            zf.writestr(filename, data)
+            slide_num = _slide_number_from_name(filename)
+            if slide_num != 999:
+                zip_name = f"slide_{slide_num:0{num_width}d}.png"
+            else:
+                zip_name = filename
+            zf.writestr(zip_name, data)
     zip_buffer.seek(0)
 
     # PDF
