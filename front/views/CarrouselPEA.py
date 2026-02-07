@@ -752,6 +752,9 @@ def process_generation_queue():
         
         # IMPORTANT : Retirer l'item de la queue SEULEMENT après succès complet
         st.session_state.generation_queue.pop(0)
+        
+        # Incrémenter le compteur SEULEMENT si item retiré
+        st.session_state.generation_done = st.session_state.get("generation_done", 0) + 1
     
     except Exception as e:
         st.session_state.debug_logs.append(f"  ❌ ERREUR : {str(e)[:120]}")
@@ -768,9 +771,8 @@ def process_generation_queue():
         else:
             st.session_state.debug_logs.append(f"  ⚠️ Item skip après 3 erreurs")
             st.session_state.generation_queue.pop(0)
-    
-    # Incrémenter le compteur de traitement
-    st.session_state.generation_done = st.session_state.get("generation_done", 0) + 1
+            # Incrémenter le compteur SEULEMENT si item retiré (skip)
+            st.session_state.generation_done = st.session_state.get("generation_done", 0) + 1
     
     # Si fin de file, finaliser
     if not st.session_state.generation_queue:
