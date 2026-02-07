@@ -453,96 +453,26 @@ def build_carousel_exports(items_sorted):
 
 
 def send_to_carousel():
-    """Démarre une génération robuste via file d'attente (1 item par run)."""
-    # Initialiser les logs de debug
-    if "debug_logs" not in st.session_state:
-        st.session_state.debug_logs = []
-    st.session_state.debug_logs = []  # Reset
-    st.session_state.debug_logs.append("🚀 Début send_to_carousel()")
+    """Lance la génération en threading (version simple et robuste)."""
+    from services.carousel.eco.eco_carousel_job import get_eco_carousel_job
     
-    # SÉCURITÉ : éviter double exécution
-    if st.session_state.get("generation_in_progress", False):
-        st.session_state.debug_logs.append("⚠️ Génération déjà en cours, arrêt")
+    # Sécurité : éviter double lancement
+    job = get_eco_carousel_job()
+    if job.state == "running":
+        st.warning("⚠️ Une génération est déjà en cours")
         return
     
-    # Sécurité : initialiser si absent
+    # Sécurité : vérifier qu'il y a des items sélectionnés
     if "eco_selected_items" not in st.session_state:
         st.session_state.eco_selected_items = []
     
-    st.session_state.debug_logs.append(f"📊 Items sélectionnés : {len(st.session_state.eco_selected_items)}")
+    if not st.session_state.eco_selected_items:
+        st.warning("⚠️ Aucun item sélectionné")
+        return
     
-    try:
-        # Étape 1 : Insertion des items (positions 1 à N)
-        st.session_state.debug_logs.append("📤 Début insertion en DB...")
-        result = insert_items_to_carousel_eco(st.session_state.eco_selected_items)
-            
-        if result["status"] != "success":
-            st.session_state.debug_logs.append(f"❌ Erreur insertion : {result.get('message', 'inconnue')}")
-            return
-        
-        st.session_state.debug_logs.append(f"✅ Insertion OK : {result.get('inserted', 0)} items")
-        
-        # Étape 2 : Créer la cover (position 0) basée sur l'item 1
-        st.session_state.debug_logs.append("📥 Récupération items depuis DB...")
-        carousel_data = get_carousel_eco_items()
-        
-        if carousel_data["status"] != "success" or carousel_data["count"] == 0:
-            st.session_state.debug_logs.append("❌ Erreur récupération ou 0 items")
-            return
-        
-        items = carousel_data["items"]
-        
-        st.session_state.debug_logs.append(f"✅ Récupérés : {len(items)} items")
-        
-        # Créer la cover (position 0) basée sur le premier item
-        st.session_state.debug_logs.append("🎨 Création de la cover (position 0)...")
-        first_item = items[0]
-        cover_result = upsert_carousel_eco_cover({
-            "item_id": first_item["item_id"],
-            "title": first_item["title"],
-            "content": first_item["content"],
-            "score_global": first_item["score_global"],
-            "tags": first_item["tags"],
-            "labels": first_item["labels"]
-        })
-        
-        if cover_result.get("status") == "success":
-            st.session_state.debug_logs.append("✅ Cover créée (position 0)")
-        else:
-            st.session_state.debug_logs.append(f"⚠️ Erreur cover : {cover_result.get('message', '')}")
-        
-        # Étape 3 : Nettoyer tous les caches et storage
-        st.session_state.debug_logs.append("🧹 Nettoyage des caches...")
-        
-        # Nettoyer slides
-        if clear_slide_files():
-            st.session_state.debug_logs.append("  ✅ Slides nettoyées")
-        
-        # Nettoyer session_state
-        st.session_state.slide_previews = {}
-        st.session_state.carousel_images = {}
-        st.session_state.carousel_image_models = {}
-        
-        # Étape 4 : Récupérer tous les items (incluant la cover position 0)
-        carousel_data = get_carousel_eco_items()
-        all_items = carousel_data["items"]
-        
-        # Initialiser la file d'attente avec TOUS les items (cover + items normaux)
-        st.session_state.generation_in_progress = True
-        st.session_state.generation_active = True
-        st.session_state.generation_queue = all_items  # Cover (0) + items (1-N)
-        st.session_state.generation_total = len(all_items)
-        st.session_state.generation_done = 0
-        st.session_state.generation_errors = []
-        st.session_state.generation_error_count = {}  # Compteur d'erreurs par item
-        st.session_state.debug_logs.append(f"🔒 Verrou activé + {len(all_items)} items en file d'attente")
-        
-    except Exception as e:
-        # Libérer les verrous en cas d'erreur critique
-        st.session_state.generation_in_progress = False
-        st.session_state.generation_active = False
-        st.session_state.debug_logs.append(f"❌ ERREUR CRITIQUE : {str(e)[:200]}")
-        st.error(f"Erreur critique : {str(e)[:200]}")
+    # Lancer le job
+    job.start(st.session_state.eco_selected_items)
+    st.rerun()
 
 
 def _finalize_generation():
@@ -944,8 +874,68 @@ if st.session_state.get("trigger_generation", False):
     st.rerun()
 
 
-# DÉSACTIVÉ : Le système de queue automatique causait des boucles infinies
-# TODO: Refaire en système simple avec boucle for
+# ======================================================
+# AFFICHAGE PROGRESSION GÉNÉRATION (Threading)
+# ======================================================
+
+from services.carousel.eco.eco_carousel_job import get_eco_carousel_job
+
+job = get_eco_carousel_job()
+status = job.get_status()
+
+if status["state"] == "running":
+    st.divider()
+    st.markdown("### ⚙️ Génération en cours...")
+    
+    # Progress bar
+    if status["total"] > 0:
+        progress = status["current"] / status["total"]
+        st.progress(progress)
+        st.caption(f"📊 {status['current']}/{status['total']} items")
+    
+    # Dernière action
+    if status["last_log"]:
+        st.info(status["last_log"])
+    
+    # Item en cours
+    if status["current_item_title"]:
+        st.caption(f"📰 {status['current_item_title']}")
+    
+    # Erreurs
+    if status["errors"]:
+        with st.expander(f"⚠️ Erreurs ({len(status['errors'])})", expanded=False):
+            for err in status["errors"][-5:]:
+                st.warning(err)
+    
+    # Bouton stop
+    if st.button("⏹️ Arrêter la génération", type="secondary"):
+        job.stop()
+        st.rerun()
+    
+    # Auto-refresh toutes les 2 secondes
+    time.sleep(2)
+    st.rerun()
+
+elif status["state"] == "completed":
+    st.success(f"✅ Génération terminée ! {status['processed']} items traités")
+    if status["errors"]:
+        st.warning(f"⚠️ {len(status['errors'])} erreurs")
+        with st.expander("Voir les erreurs", expanded=False):
+            for err in status["errors"]:
+                st.caption(err)
+    # Reset sélection
+    st.session_state.eco_selected_items = []
+    st.session_state.eco_initialized = False
+
+elif status["state"] == "failed":
+    st.error("❌ Génération échouée")
+    if status["errors"]:
+        with st.expander("Voir les erreurs", expanded=True):
+            for err in status["errors"]:
+                st.caption(err)
+
+elif status["state"] == "stopped":
+    st.warning("⏹️ Génération arrêtée")
 
 
 # ======================================================
