@@ -323,7 +323,10 @@ class EcoCarouselJob:
     
     def _generate_caption(self) -> None:
         """Génère automatiquement la caption Instagram."""
-        from services.carousel.eco.generate_carousel_caption_service import generate_caption_from_items
+        from services.carousel.eco.generate_carousel_caption_service import (
+            generate_caption_from_items,
+            upload_caption_text,
+        )
         
         supabase = get_supabase()
         
@@ -342,18 +345,35 @@ class EcoCarouselJob:
                 self._log("  ⚠️ Pas d'items pour la caption")
                 return
             
-            # Générer la caption
+            # Générer le texte de la caption
+            self._log("  📝 Génération du texte de la caption...")
             result = generate_caption_from_items(items_for_caption)
             
-            if result.get("status") == "success":
-                self._log("  ✅ Caption Instagram générée")
-            else:
+            if result.get("status") != "success":
                 error_msg = result.get("message", "Erreur inconnue")
-                self._log(f"  ⚠️ Caption échec : {error_msg[:50]}")
+                self._log(f"  ❌ Génération caption KO : {error_msg[:80]}")
+                self.errors.append(f"Caption génération : {error_msg[:80]}")
+                return
+            
+            caption = result["caption"]
+            self._log(f"  ✅ Texte caption généré ({len(caption)} chars)")
+            
+            # Upload avec retry logic
+            self._log("  📤 Upload de la caption vers Storage...")
+            upload_result = upload_caption_text(caption)
+            
+            if upload_result.get("status") != "success":
+                error_msg = upload_result.get("message", "Erreur inconnue")
+                self._log(f"  ❌ Upload caption KO : {error_msg[:80]}")
+                self.errors.append(f"Caption upload : {error_msg[:80]}")
+                return
+            
+            self._log("  ✅ Caption Instagram générée et uploadée")
         
         except Exception as e:
             error_msg = f"Erreur caption : {str(e)[:100]}"
-            self._log(f"  ⚠️ {error_msg}")
+            self._log(f"  ❌ {error_msg}")
+            self.errors.append(error_msg)
 
 
 # Instance globale
