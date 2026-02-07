@@ -577,6 +577,12 @@ def process_generation_queue():
         return
     
     queue = st.session_state.get("generation_queue", [])
+
+    inflight_item = st.session_state.get("generation_inflight_item")
+    if inflight_item:
+        st.session_state.debug_logs.append("⚠️ Item en cours détecté, remise en file")
+        queue.insert(0, inflight_item)
+        st.session_state.generation_inflight_item = None
     
     if not queue:
         st.session_state.debug_logs.append("🔚 File d'attente vide")
@@ -586,6 +592,7 @@ def process_generation_queue():
     # Prendre le prochain item
     item = queue.pop(0)
     st.session_state.generation_queue = queue
+    st.session_state.generation_inflight_item = item
     
     # Import des fonctions
     from services.carousel.bourse.generate_carousel_texts_service import generate_carousel_text_for_item, generate_image_prompt_for_item
@@ -629,6 +636,7 @@ def process_generation_queue():
             })
         
         st.session_state.generation_done = st.session_state.get("generation_done", 0) + 1
+        st.session_state.generation_inflight_item = None
         return
     
     item_id = item["id"]
@@ -708,6 +716,8 @@ def process_generation_queue():
             "position": position,
             "error": str(e)[:200]
         })
+    finally:
+        st.session_state.generation_inflight_item = None
     
     # Incrémenter le compteur de traitement
     st.session_state.generation_done = st.session_state.get("generation_done", 0) + 1
