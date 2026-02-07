@@ -52,6 +52,7 @@ SLIDE2_TITLE_ASSET = os.path.join(ASSETS_DIR, "Top_10_usa.png")
 SLIDE2_TITLE_ASSET_TOP = 310
 SLIDE3_TITLE_ASSET = os.path.join(ASSETS_DIR, "Flop_10_eur.png")
 SLIDE3_TITLE_ASSET_TOP = 310
+SLIDE3_USA_TITLE_ASSET = os.path.join(ASSETS_DIR, "Flop_10_usa.png")
 SLIDE4_TITLE_ASSET = os.path.join(ASSETS_DIR, "Top_10_fr.png")
 SLIDE4_TITLE_ASSET_TOP = 310
 SLIDE5_TITLE_ASSET = os.path.join(ASSETS_DIR, "Flop_10_fr.png")
@@ -160,6 +161,16 @@ def _get_top10_weekly_us() -> list[dict]:
         data = get_top_flop_weekly("US", limit=10)
         if data.get("status") == "success":
             return data.get("top", []) or []
+        return []
+    except Exception:
+        return []
+
+
+def _get_flop10_weekly_us() -> list[dict]:
+    try:
+        data = get_top_flop_weekly("US", limit=10)
+        if data.get("status") == "success":
+            return data.get("flop", []) or []
         return []
     except Exception:
         return []
@@ -355,10 +366,17 @@ def _render_slide_bytes(filename: str, path: str) -> bytes:
         )
     elif slide_number == 3:
         draw = ImageDraw.Draw(img)
-        if os.path.exists(SLIDE3_TITLE_ASSET):
-            title_asset = Image.open(SLIDE3_TITLE_ASSET).convert("RGBA")
+        if os.path.exists(SLIDE3_USA_TITLE_ASSET):
+            title_asset = Image.open(SLIDE3_USA_TITLE_ASSET).convert("RGBA")
             img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE3_TITLE_ASSET_TOP))
-        _render_close_table(draw, img.size[0], img.size[1], _get_flop10_weekly_eu())
+        _render_close_table(
+            draw,
+            img.size[0],
+            img.size[1],
+            _get_flop10_weekly_us(),
+            close_label="Close",
+            format_close=_format_usd
+        )
     elif slide_number == 4:
         draw = ImageDraw.Draw(img)
         if os.path.exists(SLIDE4_TITLE_ASSET):
