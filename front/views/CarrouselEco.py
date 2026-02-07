@@ -932,9 +932,24 @@ elif status["state"] == "completed":
         with st.expander("Voir les erreurs", expanded=False):
             for err in status["errors"]:
                 st.caption(err)
-    
-    # Bouton pour recommencer
-    if st.button("🔄 Nouvelle génération", type="primary", use_container_width=True):
+
+elif status["state"] == "failed":
+    st.error("❌ Génération échouée")
+    if status["errors"]:
+        with st.expander("Voir les erreurs", expanded=True):
+            for err in status["errors"]:
+                st.caption(err)
+
+elif status["state"] == "stopped":
+    st.warning("⏹️ Génération arrêtée")
+
+
+# ======================================================
+# BOUTON NOUVELLE GÉNÉRATION (toujours visible en haut)
+# ======================================================
+if status["state"] in ["completed", "failed", "stopped"]:
+    st.divider()
+    if st.button("🔄 Nouvelle génération", type="primary", use_container_width=True, key="new_gen_top"):
         # Reset du job
         job.state = "idle"
         job.current = 0
@@ -945,36 +960,7 @@ elif status["state"] == "completed":
         st.session_state.eco_selected_items = []
         st.session_state.eco_initialized = False
         st.rerun()
-
-elif status["state"] == "failed":
-    st.error("❌ Génération échouée")
-    if status["errors"]:
-        with st.expander("Voir les erreurs", expanded=True):
-            for err in status["errors"]:
-                st.caption(err)
-    
-    # Bouton pour réessayer
-    if st.button("🔄 Réessayer", type="primary", use_container_width=True):
-        job.state = "idle"
-        job.current = 0
-        job.processed = 0
-        job.errors = []
-        job.last_log = ""
-        st.rerun()
-
-elif status["state"] == "stopped":
-    st.warning("⏹️ Génération arrêtée")
-    
-    # Bouton pour recommencer
-    if st.button("🔄 Recommencer", type="primary", use_container_width=True):
-        job.state = "idle"
-        job.current = 0
-        job.processed = 0
-        job.errors = []
-        job.last_log = ""
-        st.session_state.eco_selected_items = []
-        st.session_state.eco_initialized = False
-        st.rerun()
+    st.divider()
 
 
 # ======================================================
