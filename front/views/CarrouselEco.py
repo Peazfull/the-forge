@@ -490,9 +490,9 @@ def send_to_carousel():
     # Initialiser la file d'attente
     st.session_state.generation_in_progress = True
     st.session_state.generation_active = True
-    # Ajouter une pseudo-tâche cover à la fin (basée sur l'item #1)
+    # Ajouter une pseudo-tâche cover au début (basée sur l'item #1)
     cover_task = {"is_cover": True, "source_item": items[0]} if items else None
-    queue = items + ([cover_task] if cover_task else [])
+    queue = ([cover_task] if cover_task else []) + items
     
     st.session_state.generation_queue = queue
     st.session_state.generation_total = len(queue)
