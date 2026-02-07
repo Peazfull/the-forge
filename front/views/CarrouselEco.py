@@ -455,50 +455,78 @@ def send_to_carousel():
     
     st.session_state.debug_logs.append(f"📊 Items sélectionnés : {len(st.session_state.eco_selected_items)}")
     
-    # Étape 1 : Insertion
-    st.session_state.debug_logs.append("📤 Début insertion en DB...")
-    result = insert_items_to_carousel_eco(st.session_state.eco_selected_items)
+    try:
+        # Étape 1 : Insertion des items (positions 1 à N)
+        st.session_state.debug_logs.append("📤 Début insertion en DB...")
+        result = insert_items_to_carousel_eco(st.session_state.eco_selected_items)
+            
+        if result["status"] != "success":
+            st.session_state.debug_logs.append(f"❌ Erreur insertion : {result.get('message', 'inconnue')}")
+            return
         
-    if result["status"] != "success":
-        st.session_state.debug_logs.append(f"❌ Erreur insertion : {result.get('message', 'inconnue')}")
-        return
-    
-    st.session_state.debug_logs.append(f"✅ Insertion OK : {result.get('inserted', 0)} items")
-    
-    # Étape 2 : Récupérer les items insérés
-    st.session_state.debug_logs.append("📥 Récupération items depuis DB...")
-    carousel_data = get_carousel_eco_items()
-    
-    if carousel_data["status"] != "success" or carousel_data["count"] == 0:
-        st.session_state.debug_logs.append("❌ Erreur récupération ou 0 items")
-        return
-    
-    items = carousel_data["items"]
-    total_items = len(items)
-    
-    st.session_state.debug_logs.append(f"✅ Récupérés : {total_items} items")
-    st.session_state.debug_logs.append(f"📋 IDs : {[item['id'] for item in items]}")
-    st.session_state.debug_logs.append(f"📋 Positions : {[item['position'] for item in items]}")
-    
-    # Purger les slides storage pour éviter l'affichage d'anciens visuels
-    if clear_slide_files():
-        st.session_state.debug_logs.append("🧹 Slides storage nettoyées (eco)")
-    else:
-        st.session_state.debug_logs.append("⚠️ Impossible de nettoyer les slides storage (eco)")
-    st.session_state.slide_previews = {}
-
-    # Initialiser la file d'attente
-    st.session_state.generation_in_progress = True
-    st.session_state.generation_active = True
-    # Ajouter une pseudo-tâche cover au début (basée sur l'item #1)
-    cover_task = {"is_cover": True, "source_item": items[0]} if items else None
-    queue = ([cover_task] if cover_task else []) + items
-    
-    st.session_state.generation_queue = queue
-    st.session_state.generation_total = len(queue)
-    st.session_state.generation_done = 0
-    st.session_state.generation_errors = []
-    st.session_state.debug_logs.append("🔒 Verrou activé + file d'attente initialisée")
+        st.session_state.debug_logs.append(f"✅ Insertion OK : {result.get('inserted', 0)} items")
+        
+        # Étape 2 : Créer la cover (position 0) basée sur l'item 1
+        st.session_state.debug_logs.append("📥 Récupération items depuis DB...")
+        carousel_data = get_carousel_eco_items()
+        
+        if carousel_data["status"] != "success" or carousel_data["count"] == 0:
+            st.session_state.debug_logs.append("❌ Erreur récupération ou 0 items")
+            return
+        
+        items = carousel_data["items"]
+        
+        st.session_state.debug_logs.append(f"✅ Récupérés : {len(items)} items")
+        
+        # Créer la cover (position 0) basée sur le premier item
+        st.session_state.debug_logs.append("🎨 Création de la cover (position 0)...")
+        first_item = items[0]
+        cover_result = upsert_carousel_eco_cover({
+            "item_id": first_item["item_id"],
+            "title": first_item["title"],
+            "content": first_item["content"],
+            "score_global": first_item["score_global"],
+            "tags": first_item["tags"],
+            "labels": first_item["labels"]
+        })
+        
+        if cover_result.get("status") == "success":
+            st.session_state.debug_logs.append("✅ Cover créée (position 0)")
+        else:
+            st.session_state.debug_logs.append(f"⚠️ Erreur cover : {cover_result.get('message', '')}")
+        
+        # Étape 3 : Nettoyer tous les caches et storage
+        st.session_state.debug_logs.append("🧹 Nettoyage des caches...")
+        
+        # Nettoyer slides
+        if clear_slide_files():
+            st.session_state.debug_logs.append("  ✅ Slides nettoyées")
+        
+        # Nettoyer session_state
+        st.session_state.slide_previews = {}
+        st.session_state.carousel_images = {}
+        st.session_state.carousel_image_models = {}
+        
+        # Étape 4 : Récupérer tous les items (incluant la cover position 0)
+        carousel_data = get_carousel_eco_items()
+        all_items = carousel_data["items"]
+        
+        # Initialiser la file d'attente avec TOUS les items (cover + items normaux)
+        st.session_state.generation_in_progress = True
+        st.session_state.generation_active = True
+        st.session_state.generation_queue = all_items  # Cover (0) + items (1-N)
+        st.session_state.generation_total = len(all_items)
+        st.session_state.generation_done = 0
+        st.session_state.generation_errors = []
+        st.session_state.generation_error_count = {}  # Compteur d'erreurs par item
+        st.session_state.debug_logs.append(f"🔒 Verrou activé + {len(all_items)} items en file d'attente")
+        
+    except Exception as e:
+        # Libérer les verrous en cas d'erreur critique
+        st.session_state.generation_in_progress = False
+        st.session_state.generation_active = False
+        st.session_state.debug_logs.append(f"❌ ERREUR CRITIQUE : {str(e)[:200]}")
+        st.error(f"Erreur critique : {str(e)[:200]}")
 
 
 def _finalize_generation():
@@ -518,7 +546,15 @@ def _finalize_generation():
     # Libérer verrous
     st.session_state.generation_in_progress = False
     st.session_state.generation_active = False
+    st.session_state.generation_inflight_item = None
+    st.session_state.generation_error_count = {}
     st.session_state.debug_logs.append("🔓 Verrou libéré")
+    
+    # Nettoyer tous les caches (important pour éviter confusion entre générations)
+    st.session_state.carousel_images = {}
+    st.session_state.carousel_image_models = {}
+    st.session_state.slide_previews = {}
+    st.session_state.debug_logs.append("🧹 Caches nettoyés")
     
     # Générer automatiquement la caption Instagram
     try:
@@ -544,7 +580,7 @@ def _finalize_generation():
     # Demander un rerun après la génération
     st.session_state.should_rerun_after_generation = True
     st.session_state.debug_logs.append("🔄 Rerun demandé")
-    st.session_state.debug_logs.append("✅ Fin send_to_carousel()")
+    st.session_state.debug_logs.append("✅ Génération terminée")
 
 
 def process_generation_queue():
@@ -553,13 +589,8 @@ def process_generation_queue():
         return
     
     queue = st.session_state.get("generation_queue", [])
-
-    inflight_item = st.session_state.get("generation_inflight_item")
-    if inflight_item:
-        st.session_state.debug_logs.append("⚠️ Item en cours détecté, remise en file")
-        queue.insert(0, inflight_item)
-        st.session_state.generation_inflight_item = None
     
+    # Vérifier si la file est vide
     if not queue:
         st.session_state.debug_logs.append("🔚 File d'attente vide")
         _finalize_generation()
@@ -568,52 +599,10 @@ def process_generation_queue():
     # Prendre le prochain item
     item = queue.pop(0)
     st.session_state.generation_queue = queue
-    st.session_state.generation_inflight_item = item
     
     # Import des fonctions
     from services.carousel.eco.generate_carousel_texts_service import generate_carousel_text_for_item, generate_image_prompt_for_item
     supabase = get_supabase()
-    
-    # Traitement cover (position 0)
-    if item.get("is_cover"):
-        source = item.get("source_item") or {}
-        source_title = source.get("title", "")
-        source_content = source.get("content", "")
-        
-        st.session_state.debug_logs.append("━━━ SLIDE DE COUVERTURE (position 0) ━━━")
-        st.session_state.debug_logs.append(f"  Source: {source_title[:40]}...")
-        
-        try:
-            cover_upsert = upsert_carousel_eco_cover(source)
-            if cover_upsert.get("status") != "success":
-                raise Exception(cover_upsert.get("message", "Erreur cover DB"))
-            cover_id = cover_upsert.get("id")
-            
-            prompt_result = generate_image_prompt_for_item(source_title, source_content, prompt_type="sunset")
-            if prompt_result.get("status") != "success":
-                raise Exception(prompt_result.get("message", "Prompt cover KO"))
-            
-            supabase.table("carousel_eco").update({
-                "prompt_image_1": prompt_result.get("image_prompt")
-            }).eq("id", cover_id).execute()
-            
-            img_result = generate_and_save_carousel_image(prompt_result["image_prompt"], position=0, item_id=cover_id)
-            if img_result["status"] == "success":
-                model_used = img_result.get("model_used", "inconnu")
-                st.session_state.debug_logs.append(f"  ✅ Cover générée ({model_used})")
-            else:
-                st.session_state.debug_logs.append(f"  ⚠️ Cover échec : {img_result.get('message', '')[:50]}")
-        except Exception as e:
-            st.session_state.debug_logs.append(f"  ❌ ERREUR cover : {str(e)[:120]}")
-            st.session_state.generation_errors.append({
-                "id": "cover",
-                "position": 0,
-                "error": str(e)[:200]
-            })
-        
-        st.session_state.generation_done = st.session_state.get("generation_done", 0) + 1
-        st.session_state.generation_inflight_item = None
-        return
     
     item_id = item["id"]
     position = item["position"]
@@ -622,78 +611,131 @@ def process_generation_queue():
     total_items = st.session_state.get("generation_total", 0)
     current_idx = st.session_state.get("generation_done", 0) + 1
     
-    st.session_state.debug_logs.append(f"━━━ ITEM #{position} (iteration {current_idx}/{total_items}) ━━━")
+    # Initialiser le compteur d'erreurs pour cet item si absent
+    if "generation_error_count" not in st.session_state:
+        st.session_state.generation_error_count = {}
+    
+    error_count = st.session_state.generation_error_count.get(item_id, 0)
+    
+    # Si l'item a déjà échoué 3 fois, on le skip
+    if error_count >= 3:
+        st.session_state.debug_logs.append(f"━━━ ITEM #{position} SKIP (3 échecs consécutifs) ━━━")
+        st.session_state.generation_done += 1
+        # Passer à l'item suivant
+        if not st.session_state.generation_queue:
+            _finalize_generation()
+        return
+    
+    if position == 0:
+        st.session_state.debug_logs.append(f"━━━ COVER (position 0) · {current_idx}/{total_items} ━━━")
+    else:
+        st.session_state.debug_logs.append(f"━━━ ITEM #{position} · {current_idx}/{total_items} ━━━")
+    
     st.session_state.debug_logs.append(f"  ID: {item_id}")
     st.session_state.debug_logs.append(f"  Titre: {title[:40]}...")
     
     try:
-        # Générer textes
-        st.session_state.debug_logs.append("  ⏳ Génération textes...")
-        text_result = generate_carousel_text_for_item(title, content)
-        
-        if text_result.get("status") != "success":
-            raise Exception(f"Génération textes KO: {text_result.get('message', '')[:100]}")
-        
-        st.session_state.debug_logs.append("  ✅ Textes générés")
-        
-        # Générer prompts images
-        st.session_state.debug_logs.append("  ⏳ Génération prompts images...")
-        prompt_1_result = generate_image_prompt_for_item(title, content, prompt_type="sunset")
-        prompt_2_result = generate_image_prompt_for_item(title, content, prompt_type="studio")
-        st.session_state.debug_logs.append("  ✅ Prompts images générés")
-        
-        # Sauvegarder en DB
-        st.session_state.debug_logs.append("  💾 Sauvegarde en DB...")
-        supabase.table("carousel_eco").update({
-            "title_carou": text_result["title_carou"],
-            "content_carou": text_result["content_carou"],
-            "prompt_image_1": prompt_1_result.get("image_prompt"),
-            "prompt_image_2": prompt_2_result.get("image_prompt")
-        }).eq("id", item_id).execute()
-        st.session_state.debug_logs.append("  ✅ Sauvegarde DB OK")
-        
-        # Générer image
-        if prompt_1_result.get("status") == "success":
-            st.session_state.debug_logs.append("  🎨 Génération image...")
-            img_result = generate_and_save_carousel_image(prompt_1_result["image_prompt"], position, item_id=item_id)
+        # TRAITEMENT SPÉCIAL POUR LA COVER (position 0)
+        if position == 0:
+            # Cover : seulement générer le prompt image + image (pas de textes)
+            st.session_state.debug_logs.append("  ⏳ Génération prompt image cover...")
+            prompt_result = generate_image_prompt_for_item(title, content, prompt_type="sunset")
+            
+            if prompt_result.get("status") != "success":
+                raise Exception(f"Prompt cover KO: {prompt_result.get('message', '')[:100]}")
+            
+            st.session_state.debug_logs.append("  ✅ Prompt image généré")
+            
+            # Sauvegarder le prompt en DB
+            supabase.table("carousel_eco").update({
+                "prompt_image_1": prompt_result.get("image_prompt")
+            }).eq("id", item_id).execute()
+            
+            # Générer l'image
+            st.session_state.debug_logs.append("  🎨 Génération image cover...")
+            img_result = generate_and_save_carousel_image(prompt_result["image_prompt"], position=0, item_id=item_id)
             
             if img_result["status"] == "success":
                 model_used = img_result.get("model_used", "inconnu")
-                st.session_state.debug_logs.append(f"  ✅ Image générée ({model_used})")
+                st.session_state.debug_logs.append(f"  ✅ Cover générée ({model_used})")
                 if img_result.get("tried_fallback"):
-                    st.session_state.debug_logs.append("  📌 Source modèle: GPT Image 1.5 (fallback)")
+                    st.session_state.debug_logs.append("  📌 Fallback GPT Image 1.5")
                 else:
-                    st.session_state.debug_logs.append("  📌 Source modèle: Nano Banana Pro (Gemini)")
-                if img_result.get("tried_fallback"):
-                    gemini_settings = img_result.get("gemini_settings") or {}
-                    timeout = gemini_settings.get("timeout", "n/a")
-                    retries = gemini_settings.get("max_retries", "n/a")
-                    st.session_state.debug_logs.append(
-                        f"  ⚠️ Fallback GPT Image 1.5 (timeout Gemini: {timeout}s, retries: {retries})"
-                    )
-                # Stocker le modèle utilisé pour affichage
-                if "carousel_image_models" not in st.session_state:
-                    st.session_state.carousel_image_models = {}
-                st.session_state.carousel_image_models[position] = {
-                    "model": model_used,
-                    "tried_fallback": img_result.get("tried_fallback", False)
-                }
+                    st.session_state.debug_logs.append("  📌 Nano Banana Pro (Gemini)")
             else:
-                st.session_state.debug_logs.append(f"  ⚠️ Image échec : {img_result.get('message', '')[:50]}")
-        else:
-            st.session_state.debug_logs.append("  ⚠️ Pas de prompt image valide")
+                st.session_state.debug_logs.append(f"  ⚠️ Image cover échec : {img_result.get('message', '')[:50]}")
         
-        st.session_state.debug_logs.append(f"  ✔️ Item #{position} terminé")
+        # TRAITEMENT NORMAL POUR LES ITEMS (positions 1-N)
+        else:
+            # 1. Générer textes (title_carou + content_carou)
+            st.session_state.debug_logs.append("  ⏳ Génération textes...")
+            text_result = generate_carousel_text_for_item(title, content)
+            
+            if text_result.get("status") != "success":
+                raise Exception(f"Textes KO: {text_result.get('message', '')[:100]}")
+            
+            st.session_state.debug_logs.append("  ✅ Textes générés")
+            
+            # 2. Générer prompts images (2 variations)
+            st.session_state.debug_logs.append("  ⏳ Génération prompts images...")
+            prompt_1_result = generate_image_prompt_for_item(title, content, prompt_type="sunset")
+            prompt_2_result = generate_image_prompt_for_item(title, content, prompt_type="studio")
+            st.session_state.debug_logs.append("  ✅ Prompts images générés")
+            
+            # 3. Sauvegarder en DB
+            st.session_state.debug_logs.append("  💾 Sauvegarde en DB...")
+            supabase.table("carousel_eco").update({
+                "title_carou": text_result["title_carou"],
+                "content_carou": text_result["content_carou"],
+                "prompt_image_1": prompt_1_result.get("image_prompt"),
+                "prompt_image_2": prompt_2_result.get("image_prompt")
+            }).eq("id", item_id).execute()
+            st.session_state.debug_logs.append("  ✅ Sauvegarde DB OK")
+            
+            # 4. Générer l'image (avec prompt 1)
+            if prompt_1_result.get("status") == "success":
+                st.session_state.debug_logs.append("  🎨 Génération image...")
+                img_result = generate_and_save_carousel_image(prompt_1_result["image_prompt"], position, item_id=item_id)
+                
+                if img_result["status"] == "success":
+                    model_used = img_result.get("model_used", "inconnu")
+                    st.session_state.debug_logs.append(f"  ✅ Image générée ({model_used})")
+                    if img_result.get("tried_fallback"):
+                        st.session_state.debug_logs.append("  📌 Fallback GPT Image 1.5")
+                    else:
+                        st.session_state.debug_logs.append("  📌 Nano Banana Pro (Gemini)")
+                    
+                    # Stocker le modèle utilisé pour affichage
+                    if "carousel_image_models" not in st.session_state:
+                        st.session_state.carousel_image_models = {}
+                    st.session_state.carousel_image_models[position] = {
+                        "model": model_used,
+                        "tried_fallback": img_result.get("tried_fallback", False)
+                    }
+                else:
+                    st.session_state.debug_logs.append(f"  ⚠️ Image échec : {img_result.get('message', '')[:50]}")
+            else:
+                st.session_state.debug_logs.append("  ⚠️ Pas de prompt image valide")
+        
+        st.session_state.debug_logs.append(f"  ✔️ Position {position} terminée")
+        
+        # Reset compteur d'erreurs si succès
+        st.session_state.generation_error_count[item_id] = 0
     
     except Exception as e:
+        # Incrémenter le compteur d'erreurs
+        st.session_state.generation_error_count[item_id] = error_count + 1
+        
         st.session_state.debug_logs.append(f"  ❌ ERREUR : {str(e)[:120]}")
         st.session_state.generation_errors.append({
             "id": item_id,
             "position": position,
             "error": str(e)[:200]
         })
-    finally:
-        st.session_state.generation_inflight_item = None
+        
+        # Si c'est la 3e erreur, on skip définitivement
+        if st.session_state.generation_error_count[item_id] >= 3:
+            st.session_state.debug_logs.append(f"  ⚠️ Item sera skip au prochain passage (3 erreurs)")
     
     # Incrémenter le compteur de traitement
     st.session_state.generation_done = st.session_state.get("generation_done", 0) + 1
