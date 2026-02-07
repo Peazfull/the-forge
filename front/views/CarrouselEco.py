@@ -944,17 +944,8 @@ if st.session_state.get("trigger_generation", False):
     st.rerun()
 
 
-# Traitement séquentiel (1 item par run)
-if st.session_state.get("generation_active", False):
-    with st.spinner("⚙️ Génération en cours (item par item)..."):
-        process_generation_queue()
-    
-    # Continuer tant qu'il reste des items
-    if st.session_state.get("generation_active", False):
-        st.rerun()
-    elif st.session_state.get("should_rerun_after_generation", False):
-        st.session_state.should_rerun_after_generation = False
-        st.rerun()
+# DÉSACTIVÉ : Le système de queue automatique causait des boucles infinies
+# TODO: Refaire en système simple avec boucle for
 
 
 # ======================================================
