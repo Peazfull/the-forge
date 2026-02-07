@@ -17,7 +17,6 @@ from services.marketbrewery.market_brewery_service import (
 from services.marketbrewery.listes_market import (
     EU_TOP_200,
     FR_SBF_120,
-    EU_INDICES,
     COMMODITIES_MAJOR,
     EU_FX_PAIRS,
     CRYPTO_MAJOR,
@@ -199,9 +198,9 @@ def _get_top10_weekly_fr() -> list[dict]:
 
 def _get_indices_weekly_eu() -> list[dict]:
     try:
-        data = get_weekly_performances(EU_INDICES)
+        data = get_top_flop_weekly("INDICES", limit=5)
         if data.get("status") == "success":
-            return (data.get("items", []) or [])[:5]
+            return data.get("top", []) or []
         return []
     except Exception:
         return []
@@ -209,13 +208,9 @@ def _get_indices_weekly_eu() -> list[dict]:
 
 def _get_indices_weekly_eu_flop() -> list[dict]:
     try:
-        data = get_weekly_performances(EU_INDICES)
+        data = get_top_flop_weekly("INDICES", limit=5)
         if data.get("status") == "success":
-            items = data.get("items", []) or []
-            if not items:
-                return []
-            items_sorted = sorted(items, key=lambda x: x.get("pct_change", 0))
-            return items_sorted[:5]
+            return data.get("flop", []) or []
         return []
     except Exception:
         return []
