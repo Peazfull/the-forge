@@ -580,6 +580,10 @@ def send_to_carousel():
         st.session_state.generation_active = False
         st.session_state.debug_logs.append(f"❌ ERREUR CRITIQUE : {str(e)[:200]}")
         st.error(f"Erreur critique : {str(e)[:200]}")
+        return
+    
+    # IMPORTANT : Lancer le traitement de la queue
+    st.rerun()
 
 
 def _finalize_generation():

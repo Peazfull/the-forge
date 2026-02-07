@@ -1,11 +1,11 @@
 PROMPT_GENERATE_IMAGE_PROMPT_VARIANT = """
-Tu vas recevoir un TITRE et un CONTENU d’actualité économique, politique ou institutionnelle.
+Tu vas recevoir un TITRE et un CONTENU d'actualité économique, politique ou institutionnelle.
 
 Ta mission est de générer UNIQUEMENT le PROMPT FINAL
-destiné à une IA de génération d’images.
-Tu ne génères PAS l’image.
+destiné à une IA de génération d'images.
+Tu ne génères PAS l'image.
 
-Le prompt doit illustrer l’ACTU MAJEURE,
+Le prompt doit illustrer l'ACTU MAJEURE,
 en respectant strictement les contraintes visuelles ci-dessous.
 
 ────────────────────────
@@ -13,7 +13,7 @@ ACTU MAJEURE (OBLIGATOIRE)
 ────────────────────────
 
 À partir du titre et du contenu :
-- identifie l’ACTU MAJEURE qui porte l’information centrale
+- identifie l'ACTU MAJEURE qui porte l'information centrale
 - conserve le contexte, mais hiérarchise clairement
 
 Sélectionne LE SUJET VISUEL CENTRAL :
@@ -21,16 +21,16 @@ Sélectionne LE SUJET VISUEL CENTRAL :
 - PERSONNALITÉ PUBLIQUE
 - LIEU / ÉVÉNEMENT ÉCONOMIQUE OU INSTITUTIONNEL
 
-L’image doit illustrer :
-→ l'entreprise, l’acteur ou le lieu qui porte l’action principale
+L'image doit illustrer :
+→ l'entreprise, l'acteur ou le lieu qui porte l'action principale
 
 ────────────────────────
 RÈGLE VISUELLE MAJEURE (NON NÉGOCIABLE)
 ────────────────────────
 
-L’ACTION VISUELLE PRINCIPALE
+L'ACTION VISUELLE PRINCIPALE
 DOIT OBLIGATOIREMENT ÊTRE SITUÉE
-DANS LA MOITIÉ HAUTE DE L’IMAGE.
+DANS LA MOITIÉ HAUTE DE L'IMAGE.
 
 La MOITIÉ BASSE doit rester calme,
 propre,
@@ -46,14 +46,15 @@ RÈGLES STRICTES PAR TYPE DE SUJET
 SI LE SUJET EST UNE ENTREPRISE :
 - LE LOGO OFFICIEL EST OBLIGATOIRE (très important)
 - Image INVALIDE sans logo officiel visible
-- Logo authentique, lisible, intégré naturellement
+- Logo authentique, RÉEL, lisible, intégré naturellement dans un contexte photographique réaliste
 - Contexte : façade, siège, environnement professionnel réel
 
 SI LE SUJET EST UNE PERSONNALITÉ PUBLIQUE :
-- Uniquement personnalité publique connue
+- Uniquement personnalité publique connue ET SEULEMENT si elle est le CŒUR de l'actualité
 - Contexte OBLIGATOIRE :
   conférence officielle, intervention publique ou déplacement institutionnel
 - Posture calme, neutre, maîtrisée
+- Style PHOTO DE PRESSE RÉELLE
 
 SI LE SUJET EST UN LIEU / ÉVÉNEMENT :
 - Éléments de reconnaissance OBLIGATOIRES (très important) :
@@ -61,17 +62,31 @@ SI LE SUJET EST UN LIEU / ÉVÉNEMENT :
 - Contexte institutionnel clair et crédible
 
 ────────────────────────
+INTERDICTIONS CRITIQUES ⛔
+────────────────────────
+
+🚫 AUCUN écran affichant des graphiques, données, charts
+🚫 AUCUN graphique de trading, courbe boursière, infographie
+🚫 AUCUN dashboard, tableau de bord, visualisation de données
+🚫 AUCUN élément CGI, illustration, dessin, style artistique
+🚫 AUCUN texte visible (titres, labels, légendes)
+🚫 AUCUN watermark, logo média, overlay
+
+→ L'image doit montrer UNIQUEMENT des éléments physiques et réels du monde réel
+
+────────────────────────
 DIRECTION ARTISTIQUE (OBLIGATOIRE)
 ────────────────────────
 
 STYLE :
-- Ultra-realistic editorial press photograph
+- Ultra-realistic editorial PRESS PHOTOGRAPH (PHOTO DE PRESSE RÉELLE)
 - Photojournalisme économique
-- Photo de presse realiste, authentique, credible
+- Photo de presse réaliste, authentique, crédible
+- IMITATION PHOTO DE PRESSE
 - Aucun style illustratif, artistique ou CGI
 
 PALETTE COULEURS OBLIGATOIRE :
-- Stuning bright sky with sunset stylized sky colors: cyan blue, Green fluo, magenta tones
+- Stunning bright sky with sunset stylized sky colors: cyan blue, Green fluo, magenta tones
 - Dominante : cyan blue, orange, magenta tones
 - Accents lumineux subtils et élégants
 
@@ -84,7 +99,7 @@ COMPOSITION & TECHNIQUE
 - Perspective naturelle et équilibrée
 - Fond propre, non distrayant
 
-Inclure explicitement :
+Inclure explicitement dans le prompt que tu génères :
 - 8K render
 - professional photojournalism style
 - natural or high-end studio lighting
@@ -92,19 +107,23 @@ Inclure explicitement :
 - subtle natural sensor grain
 - no text in image
 
+ET ces NEGATIVE PROMPTS obligatoires :
 - ABSOLUTELY NO TEXT in image (no titles, no labels, no captions)
+- NO SCREENS showing data/graphics (no digital displays with charts or visualizations)
+- NO CHARTS, NO INFOGRAPHICS, NO DASHBOARDS (no bar graphs, line graphs, or statistical displays)
 - No fictional elements or overlays (no trading charts, no UI screens, no data graphics)
 - No surreal or impossible elements (must be realistic in the real world)
+- The image must show ONLY physical, real-world elements
 - no watermark
 - no media logo
 - no captions
 - no overlays
 
 ────────────────────────
-EXEMPLE D’OUTPUT ATTENDU (RÉFÉRENCE)
+EXEMPLE D'OUTPUT ATTENDU (RÉFÉRENCE)
 ────────────────────────
 
-Ultra-realistic editorial press photograph, 8K render, professional photojournalism style.
+Ultra-realistic editorial PRESS PHOTOGRAPH, 8K render, professional photojournalism style.
 
 SUBJECT (MANDATORY)
 France as the single central subject, illustrated through a PUBLIC HEALTH AND FOOD SAFETY INSTITUTIONAL CONTEXT.
@@ -131,6 +150,7 @@ ART DIRECTION (MANDATORY)
 Sunset stylized sky with dominant cyan blue, Green fluo, orange, and magenta tones.
 Stunning sunset.
 Atmosphere premium, stunning.
+PRESS PHOTO realistic style.
 
 TECHNICAL REQUIREMENTS (MANDATORY)
 Natural or high-end studio lighting.
@@ -140,6 +160,11 @@ No text in image (important)
 No watermark.
 No media logo.
 No captions or overlays.
+
+NEGATIVE PROMPTS (CRITICAL):
+NO digital screens displaying charts or data visualizations.
+NO bar graphs, line graphs, or statistical displays.
+The image must show ONLY physical, real-world elements photographed in a press context.
 
 ────────────────────────
 FORMAT DE SORTIE (OBLIGATOIRE)
