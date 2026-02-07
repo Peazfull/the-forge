@@ -440,271 +440,27 @@ def build_carousel_exports(items_sorted):
 
 
 def send_to_carousel():
-    """Démarre une génération robuste via file d'attente (1 item par run)."""
-    # Initialiser les logs de debug
-    if "debug_logs" not in st.session_state:
-        st.session_state.debug_logs = []
-    st.session_state.debug_logs = []  # Reset
-    st.session_state.debug_logs.append("🚀 Début send_to_carousel()")
+    """Lance la génération en threading (version simple et robuste)."""
+    from services.carousel.crypto.crypto_carousel_job import get_crypto_carousel_job
     
-    # SÉCURITÉ : éviter double exécution
-    if st.session_state.get("generation_in_progress", False):
-        st.session_state.debug_logs.append("⚠️ Génération déjà en cours, arrêt")
+    job = get_crypto_carousel_job()
+    if job.state == "running":
+        st.warning("⚠️ Une génération est déjà en cours")
         return
     
-    # Sécurité : initialiser si absent
-    if "crypto_selected_items" not in st.session_state:
-        st.session_state.crypto_selected_items = []
-    
-    st.session_state.debug_logs.append(f"📊 Items sélectionnés : {len(st.session_state.crypto_selected_items)}")
-    
-    # Étape 1 : Insertion
-    st.session_state.debug_logs.append("📤 Début insertion en DB...")
-    result = insert_items_to_carousel_crypto(st.session_state.crypto_selected_items)
-        
-    if result["status"] != "success":
-        st.session_state.debug_logs.append(f"❌ Erreur insertion : {result.get('message', 'inconnue')}")
-        return
-    
-    st.session_state.debug_logs.append(f"✅ Insertion OK : {result.get('inserted', 0)} items")
-    
-    # Étape 2 : Récupérer les items insérés
-    st.session_state.debug_logs.append("📥 Récupération items depuis DB...")
-    carousel_data = get_carousel_crypto_items()
-    
-    if carousel_data["status"] != "success" or carousel_data["count"] == 0:
-        st.session_state.debug_logs.append("❌ Erreur récupération ou 0 items")
-        return
-    
-    items = carousel_data["items"]
-    total_items = len(items)
-    
-    st.session_state.debug_logs.append(f"✅ Récupérés : {total_items} items")
-    st.session_state.debug_logs.append(f"📋 IDs : {[item['id'] for item in items]}")
-    st.session_state.debug_logs.append(f"📋 Positions : {[item['position'] for item in items]}")
-    
-    # Purger les slides storage pour éviter l'affichage d'anciens visuels
-    if clear_slide_files():
-        st.session_state.debug_logs.append("🧹 Slides storage nettoyées (crypto)")
-    else:
-        st.session_state.debug_logs.append("⚠️ Impossible de nettoyer les slides storage (crypto)")
+    # Nettoyer les caches avant de lancer une nouvelle génération
+    st.session_state.crypto_selected_items = st.session_state.get("crypto_selected_items", [])
+    st.session_state.carousel_images = {}
+    st.session_state.carousel_image_models = {}
     st.session_state.slide_previews = {}
-
-    # Initialiser la file d'attente
-    st.session_state.generation_in_progress = True
-    st.session_state.generation_active = True
-    # Ajouter une pseudo-tâche cover au début (basée sur l'item #1)
-    cover_task = {"is_cover": True, "source_item": items[0]} if items else None
-    queue = ([cover_task] if cover_task else []) + items
     
-    st.session_state.generation_queue = queue
-    st.session_state.generation_total = len(queue)
-    st.session_state.generation_done = 0
-    st.session_state.generation_errors = []
-    st.session_state.debug_logs.append("🔒 Verrou activé + file d'attente initialisée")
+    # Lancer le job en threading
+    job.start(st.session_state.crypto_selected_items)
+    st.rerun()
 
 
-def _finalize_generation():
-    """Nettoie la génération et reset l'état UI."""
-    # Reset sélection
-    st.session_state.crypto_selected_items = []
-    st.session_state.crypto_initialized = False
-    st.session_state.crypto_preview_mode = False
-    st.session_state.debug_logs.append("🧹 Reset sélection")
-    
-    # Incrémenter compteur pour refresh des inputs
-    if "carousel_generation_count" not in st.session_state:
-        st.session_state.carousel_generation_count = 0
-    st.session_state.carousel_generation_count += 1
-    st.session_state.debug_logs.append(f"🔢 Compteur incrémenté : {st.session_state.carousel_generation_count}")
-    
-    # Libérer verrous
-    st.session_state.generation_in_progress = False
-    st.session_state.generation_active = False
-    st.session_state.debug_logs.append("🔓 Verrou libéré")
-    
-    # Générer automatiquement la caption Instagram
-    try:
-        carousel_data = get_carousel_crypto_items()
-        if carousel_data["status"] == "success" and carousel_data["count"] > 0:
-            items_for_caption = [
-                item for item in carousel_data["items"]
-                if item.get("position") not in [0, 999]
-            ]
-            result = generate_caption_from_items(items_for_caption)
-            if result.get("status") == "success":
-                st.session_state.caption_text_area = result["caption"]
-                upload_result = upload_caption_text(st.session_state.caption_text_area)
-                if upload_result.get("status") == "success":
-                    st.session_state.debug_logs.append("📝 Caption Instagram générée automatiquement")
-                else:
-                    st.session_state.debug_logs.append(f"⚠️ Caption auto non stockée : {upload_result.get('message', '')[:120]}")
-            else:
-                st.session_state.debug_logs.append("⚠️ Caption auto échouée")
-    except Exception:
-        st.session_state.debug_logs.append("⚠️ Caption auto échouée")
-    
-    # Demander un rerun après la génération
-    st.session_state.should_rerun_after_generation = True
-    st.session_state.debug_logs.append("🔄 Rerun demandé")
-    st.session_state.debug_logs.append("✅ Fin send_to_carousel()")
-
-
-def process_generation_queue():
-    """Traite un item par run pour éviter le freeze/timeout."""
-    if not st.session_state.get("generation_active", False):
-        return
-    
-    queue = st.session_state.get("generation_queue", [])
-
-    inflight_item = st.session_state.get("generation_inflight_item")
-    if inflight_item:
-        st.session_state.debug_logs.append("⚠️ Item en cours détecté, remise en file")
-        queue.insert(0, inflight_item)
-        st.session_state.generation_inflight_item = None
-    
-    if not queue:
-        st.session_state.debug_logs.append("🔚 File d'attente vide")
-        _finalize_generation()
-        return
-    
-    # Prendre le prochain item
-    item = queue.pop(0)
-    st.session_state.generation_queue = queue
-    st.session_state.generation_inflight_item = item
-    
-    # Import des fonctions
-    from services.carousel.crypto.generate_carousel_texts_service import generate_carousel_text_for_item, generate_image_prompt_for_item
-    supabase = get_supabase()
-    
-    # Traitement cover (position 0)
-    if item.get("is_cover"):
-        source = item.get("source_item") or {}
-        source_title = source.get("title", "")
-        source_content = source.get("content", "")
-        
-        st.session_state.debug_logs.append("━━━ SLIDE DE COUVERTURE (position 0) ━━━")
-        st.session_state.debug_logs.append(f"  Source: {source_title[:40]}...")
-        
-        try:
-            cover_upsert = upsert_carousel_crypto_cover(source)
-            if cover_upsert.get("status") != "success":
-                raise Exception(cover_upsert.get("message", "Erreur cover DB"))
-            cover_id = cover_upsert.get("id")
-            
-            prompt_result = generate_image_prompt_for_item(source_title, source_content, prompt_type="sunset")
-            if prompt_result.get("status") != "success":
-                raise Exception(prompt_result.get("message", "Prompt cover KO"))
-            
-            supabase.table("carousel_crypto").update({
-                "prompt_image_1": prompt_result.get("image_prompt")
-            }).eq("id", cover_id).execute()
-            
-            img_result = generate_and_save_carousel_image(prompt_result["image_prompt"], position=0, item_id=cover_id)
-            if img_result["status"] == "success":
-                model_used = img_result.get("model_used", "inconnu")
-                st.session_state.debug_logs.append(f"  ✅ Cover générée ({model_used})")
-            else:
-                st.session_state.debug_logs.append(f"  ⚠️ Cover échec : {img_result.get('message', '')[:50]}")
-        except Exception as e:
-            st.session_state.debug_logs.append(f"  ❌ ERREUR cover : {str(e)[:120]}")
-            st.session_state.generation_errors.append({
-                "id": "cover",
-                "position": 0,
-                "error": str(e)[:200]
-            })
-        
-        st.session_state.generation_done = st.session_state.get("generation_done", 0) + 1
-        st.session_state.generation_inflight_item = None
-        return
-    
-    item_id = item["id"]
-    position = item["position"]
-    title = item.get("title", "")
-    content = item.get("content", "")
-    total_items = st.session_state.get("generation_total", 0)
-    current_idx = st.session_state.get("generation_done", 0) + 1
-    
-    st.session_state.debug_logs.append(f"━━━ ITEM #{position} (iteration {current_idx}/{total_items}) ━━━")
-    st.session_state.debug_logs.append(f"  ID: {item_id}")
-    st.session_state.debug_logs.append(f"  Titre: {title[:40]}...")
-    
-    try:
-        # Générer textes
-        st.session_state.debug_logs.append("  ⏳ Génération textes...")
-        text_result = generate_carousel_text_for_item(title, content)
-        
-        if text_result.get("status") != "success":
-            raise Exception(f"Génération textes KO: {text_result.get('message', '')[:100]}")
-        
-        st.session_state.debug_logs.append("  ✅ Textes générés")
-        
-        # Générer prompts images
-        st.session_state.debug_logs.append("  ⏳ Génération prompts images...")
-        prompt_1_result = generate_image_prompt_for_item(title, content, prompt_type="sunset")
-        prompt_2_result = generate_image_prompt_for_item(title, content, prompt_type="studio")
-        st.session_state.debug_logs.append("  ✅ Prompts images générés")
-        
-        # Sauvegarder en DB
-        st.session_state.debug_logs.append("  💾 Sauvegarde en DB...")
-        supabase.table("carousel_crypto").update({
-            "title_carou": text_result["title_carou"],
-            "content_carou": text_result["content_carou"],
-            "prompt_image_1": prompt_1_result.get("image_prompt"),
-            "prompt_image_2": prompt_2_result.get("image_prompt")
-        }).eq("id", item_id).execute()
-        st.session_state.debug_logs.append("  ✅ Sauvegarde DB OK")
-        
-        # Générer image
-        if prompt_1_result.get("status") == "success":
-            st.session_state.debug_logs.append("  🎨 Génération image...")
-            img_result = generate_and_save_carousel_image(prompt_1_result["image_prompt"], position, item_id=item_id)
-            
-            if img_result["status"] == "success":
-                model_used = img_result.get("model_used", "inconnu")
-                st.session_state.debug_logs.append(f"  ✅ Image générée ({model_used})")
-                if img_result.get("tried_fallback"):
-                    st.session_state.debug_logs.append("  📌 Source modèle: GPT Image 1.5 (fallback)")
-                else:
-                    st.session_state.debug_logs.append("  📌 Source modèle: Nano Banana Pro (Gemini)")
-                if img_result.get("tried_fallback"):
-                    gemini_settings = img_result.get("gemini_settings") or {}
-                    timeout = gemini_settings.get("timeout", "n/a")
-                    retries = gemini_settings.get("max_retries", "n/a")
-                    st.session_state.debug_logs.append(
-                        f"  ⚠️ Fallback GPT Image 1.5 (timeout Gemini: {timeout}s, retries: {retries})"
-                    )
-                # Stocker le modèle utilisé pour affichage
-                if "carousel_image_models" not in st.session_state:
-                    st.session_state.carousel_image_models = {}
-                st.session_state.carousel_image_models[position] = {
-                    "model": model_used,
-                    "tried_fallback": img_result.get("tried_fallback", False)
-                }
-            else:
-                st.session_state.debug_logs.append(f"  ⚠️ Image échec : {img_result.get('message', '')[:50]}")
-        else:
-            st.session_state.debug_logs.append("  ⚠️ Pas de prompt image valide")
-        
-        st.session_state.debug_logs.append(f"  ✔️ Item #{position} terminé")
-    
-    except Exception as e:
-        st.session_state.debug_logs.append(f"  ❌ ERREUR : {str(e)[:120]}")
-        st.session_state.generation_errors.append({
-            "id": item_id,
-            "position": position,
-            "error": str(e)[:200]
-        })
-    finally:
-        st.session_state.generation_inflight_item = None
-    
-    # Incrémenter le compteur de traitement
-    st.session_state.generation_done = st.session_state.get("generation_done", 0) + 1
-    
-    # Si fin de file, finaliser
-    if not st.session_state.generation_queue:
-        st.session_state.debug_logs.append("🔚 Fin de la file - tous les items traités")
-        _finalize_generation()
+# ANCIENNES FONCTIONS SUPPRIMÉES (_finalize_generation et process_generation_queue)
+# Remplacées par l'architecture threading (crypto_carousel_job.py)
 
 
 def toggle_preview_mode():
@@ -881,17 +637,95 @@ if st.session_state.get("trigger_generation", False):
     st.rerun()
 
 
-# Traitement séquentiel (1 item par run)
-if st.session_state.get("generation_active", False):
-    with st.spinner("⚙️ Génération en cours (item par item)..."):
-        process_generation_queue()
+# Traitement séquentiel REMPLACÉ PAR THREADING
+# ======================================================
+# THREADED GENERATION STATUS
+# ======================================================
+from services.carousel.crypto.crypto_carousel_job import get_crypto_carousel_job
+
+job = get_crypto_carousel_job()
+status = job.get_status()
+
+# Si la génération vient de se terminer, forcer un rerun pour afficher les previews
+if status.get("just_completed"):
+    job.just_completed = False  # Reset le flag
+    # Vider tous les caches pour forcer le rafraîchissement des previews
+    st.session_state.slide_previews = {}
+    st.session_state.carousel_images = {}
+    st.session_state.carousel_image_models = {}
+    st.session_state.crypto_selected_items = []
+    st.session_state.crypto_initialized = False
+    st.rerun()
+
+if status["state"] == "running":
+    st.divider()
+    st.markdown("### ⚙️ Génération en cours...")
     
-    # Continuer tant qu'il reste des items
-    if st.session_state.get("generation_active", False):
+    # Progress bar
+    if status["total"] > 0:
+        progress = status["current"] / status["total"]
+        st.progress(progress)
+        st.caption(f"📊 {status['current']}/{status['total']} items")
+    
+    # Dernière action
+    if status["last_log"]:
+        st.info(status["last_log"])
+    
+    # Item en cours
+    if status["current_item_title"]:
+        st.caption(f"📰 {status['current_item_title']}")
+    
+    # Erreurs
+    if status["errors"]:
+        with st.expander(f"⚠️ Erreurs ({len(status['errors'])})", expanded=False):
+            for err in status["errors"][-5:]:
+                st.warning(err)
+    
+    # Bouton stop
+    if st.button("⏹️ Arrêter la génération", type="secondary"):
+        job.stop()
         st.rerun()
-    elif st.session_state.get("should_rerun_after_generation", False):
-        st.session_state.should_rerun_after_generation = False
+    
+    # Auto-refresh toutes les 2 secondes
+    time.sleep(2)
+    st.rerun()
+
+elif status["state"] == "completed":
+    st.success(f"✅ Génération terminée ! {status['processed']} items traités")
+    if status["errors"]:
+        st.warning(f"⚠️ {len(status['errors'])} erreurs")
+        with st.expander("Voir les erreurs", expanded=False):
+            for err in status["errors"]:
+                st.caption(err)
+
+elif status["state"] == "failed":
+    st.error("❌ Génération échouée")
+    if status["errors"]:
+        with st.expander("Voir les erreurs", expanded=True):
+            for err in status["errors"]:
+                st.caption(err)
+
+elif status["state"] == "stopped":
+    st.warning("⏹️ Génération arrêtée")
+
+
+# ======================================================
+# BOUTON NOUVELLE GÉNÉRATION (toujours visible en haut)
+# ======================================================
+if status["state"] in ["completed", "failed", "stopped"]:
+    st.divider()
+    if st.button("🔄 Nouvelle génération", type="primary", use_container_width=True, key="new_gen_top"):
+        # Reset du job
+        job.state = "idle"
+        job.current = 0
+        job.processed = 0
+        job.errors = []
+        job.last_log = ""
+        # Reset de la sélection
+        st.session_state.crypto_selected_items = []
+        st.session_state.crypto_initialized = False
         st.rerun()
+    st.divider()
 
 
 # ======================================================
