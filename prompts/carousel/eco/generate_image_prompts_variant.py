@@ -44,16 +44,21 @@ RÈGLES STRICTES PAR TYPE DE SUJET
 ────────────────────────
 
 SI LE SUJET EST UNE ENTREPRISE :
-- LE LOGO OFFICIEL EST OBLIGATOIRE (très important)
+- LE LOGO OFFICIEL RÉEL EST OBLIGATOIRE (très important)
 - Image INVALIDE sans logo officiel visible
-- Logo authentique, lisible, intégré naturellement
-- Contexte : façade, siège, environnement professionnel réel
+- Logo authentique et réel (pas une invention), lisible, intégré naturellement
+- Contexte photographique réaliste : façade de bâtiment avec enseigne, siège social réel, environnement professionnel photographié
+- Le logo doit apparaître comme sur une vraie photo (enseigne, façade, signalétique)
+- INTERDIT : logos inventés, stylisés, flottants ou artificiels
 
 SI LE SUJET EST UNE PERSONNALITÉ PUBLIQUE :
-- Uniquement personnalité publique connue
-- Contexte OBLIGATOIRE :
-  conférence officielle, intervention publique ou déplacement institutionnel
-- Posture calme, neutre, maîtrisée
+- SEULEMENT si la personnalité est le CŒUR de l'actualité (pas juste mentionnée)
+- Uniquement personnalité publique réelle et très connue (PDG, ministre, président, etc.)
+- Contexte photo de presse OBLIGATOIRE :
+  conférence officielle, intervention publique, déplacement institutionnel
+- Posture calme, neutre, maîtrisée (pas de mise en scène dramatique)
+- Rendu photographique réaliste (comme une photo Reuters/AFP)
+- SI la personnalité n'est PAS le cœur de l'actu → utiliser le contexte entreprise/lieu à la place
 
 SI LE SUJET EST UN LIEU / ÉVÉNEMENT :
 - Éléments de reconnaissance OBLIGATOIRES (très important) :
@@ -64,11 +69,14 @@ SI LE SUJET EST UN LIEU / ÉVÉNEMENT :
 DIRECTION ARTISTIQUE (OBLIGATOIRE)
 ────────────────────────
 
-STYLE :
-- Ultra-realistic editorial press photograph
-- Photojournalisme économique
-- Photo de presse realiste, authentique, credible
-- Aucun style illustratif, artistique ou CGI
+STYLE (ULTRA-PRIORITAIRE) :
+- PHOTO DE PRESSE RÉELLE, pas une illustration
+- Photojournalisme économique professionnel
+- Rendu photographique 100% réaliste et authentique
+- ABSOLUMENT AUCUN élément irréel, fictif ou stylisé
+- INTERDIT : CGI, illustrations, dessins, graphiques, charts, infographies
+- INTERDIT : éléments fantastiques, surréalistes ou impossibles dans le monde réel
+- Le résultat doit ressembler à une photo prise par un photographe Reuters/AFP
 
 PALETTE COULEURS OBLIGATOIRE :
 - Stuning bright sky with sunset stylized sky colors: purple, Purple fluo, magenta tones
@@ -92,13 +100,15 @@ Inclure explicitement :
 - subtle natural sensor grain
 - no text in image
 
-- ABSOLUTELY NO TEXT in image (no titles, no labels, no captions)
-- No fictional elements or overlays (no trading charts, no UI screens, no data graphics)
-- No surreal or impossible elements (must be realistic in the real world)
-- no watermark
-- no media logo
-- no captions
-- no overlays
+INTERDICTIONS ABSOLUES (CRITICAL) :
+- ABSOLUTELY NO TEXT in image (no titles, no labels, no captions, no numbers overlay)
+- No fictional elements or overlays (no trading charts, no UI screens, no data graphics, no stock market curves)
+- No surreal or impossible elements (must be 100% realistic and photographable in the real world)
+- No stylized graphics, no diagrams, no infographics, no abstract visuals
+- No watermark, no media logo, no captions, no overlays, no UI elements
+- No artificial or fantasy elements that couldn't be photographed by a real photographer
+
+SI L'IA GÉNÈRE UN TEXTE, UN GRAPHIQUE OU UN ÉLÉMENT IRRÉEL → L'IMAGE EST INVALIDE
 
 ────────────────────────
 EXEMPLE D’OUTPUT ATTENDU (RÉFÉRENCE)

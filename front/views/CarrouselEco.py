@@ -184,12 +184,18 @@ if st.session_state.get("active_carousel") != "eco":
 col_debug, col_reset = st.columns([4, 1])
 
 with col_reset:
-    if st.session_state.get("generation_in_progress", False):
+    # Afficher le bouton débloquer SEULEMENT si génération bloquée (pas active mais verrou mis)
+    is_stuck = (
+        st.session_state.get("generation_in_progress", False) and 
+        not st.session_state.get("generation_active", False)
+    )
+    if is_stuck:
         st.error("⚠️ Verrou bloqué")
         if st.button("🔓 Débloquer", type="primary"):
             st.session_state.generation_in_progress = False
             st.session_state.generation_active = False
             st.session_state.generation_queue = []
+            st.session_state.generation_error_count = {}
             st.success("✅ Débloqué")
             st.rerun()
 
