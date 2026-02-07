@@ -933,7 +933,11 @@ with st.expander("📰 Bulletin Eco", expanded=False):
         st.warning("Aucun item ECO trouvé en DB")
     else:
         # Initialisation : cocher les 10 premiers par défaut (une seule fois)
-        if not st.session_state.eco_initialized and len(items) >= 10:
+        if (
+            not st.session_state.eco_initialized
+            and len(items) >= 10
+            and not st.session_state.eco_selected_items
+        ):
             st.session_state.eco_selected_items = [item["id"] for item in items[:10]]
             st.session_state.eco_initialized = True
         

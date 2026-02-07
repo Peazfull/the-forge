@@ -940,7 +940,11 @@ with st.expander("📰 Bulletin Crypto", expanded=False):
             st.session_state.crypto_initialized = False
         
         # Initialisation : cocher jusqu'à 10 premiers par défaut (une seule fois)
-        if not st.session_state.crypto_initialized and len(items) > 0:
+        if (
+            not st.session_state.crypto_initialized
+            and len(items) > 0
+            and not st.session_state.crypto_selected_items
+        ):
             st.session_state.crypto_selected_items = [item["id"] for item in items[:min(10, len(items))]]
             st.session_state.crypto_initialized = True
         
