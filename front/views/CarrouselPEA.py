@@ -184,16 +184,6 @@ if st.session_state.get("active_carousel") != "pea":
 col_debug, col_reset = st.columns([4, 1])
 
 with col_reset:
-    # Auto-reset si verrou actif mais plus de queue/activité
-    if st.session_state.get("generation_in_progress", False) and (
-        not st.session_state.get("generation_active", False)
-        or not st.session_state.get("generation_queue")
-    ):
-        st.session_state.generation_in_progress = False
-        st.session_state.generation_active = False
-        st.session_state.generation_queue = []
-        if "debug_logs" in st.session_state:
-            st.session_state.debug_logs.append("♻️ Verrou auto-réinitialisé (queue inactive)")
     if st.session_state.get("generation_in_progress", False):
         st.error("⚠️ Verrou bloqué")
         if st.button("🔓 Débloquer", type="primary"):

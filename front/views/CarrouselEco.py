@@ -184,16 +184,6 @@ if st.session_state.get("active_carousel") != "eco":
 col_debug, col_reset = st.columns([4, 1])
 
 with col_reset:
-    # Auto-reset si verrou actif mais plus de queue/activité
-    if st.session_state.get("generation_in_progress", False) and (
-        not st.session_state.get("generation_active", False)
-        or not st.session_state.get("generation_queue")
-    ):
-        st.session_state.generation_in_progress = False
-        st.session_state.generation_active = False
-        st.session_state.generation_queue = []
-        if "debug_logs" in st.session_state:
-            st.session_state.debug_logs.append("♻️ Verrou auto-réinitialisé (queue inactive)")
     if st.session_state.get("generation_in_progress", False):
         st.error("⚠️ Verrou bloqué")
         if st.button("🔓 Débloquer", type="primary"):
@@ -500,11 +490,8 @@ def send_to_carousel():
     # Initialiser la file d'attente
     st.session_state.generation_in_progress = True
     st.session_state.generation_active = True
-    # Ajouter une pseudo-tâche cover au début (basée sur le 1er item sélectionné)
-    items_by_id = {item.get("item_id") or item.get("id"): item for item in items}
-    first_selected_id = st.session_state.eco_selected_items[0] if st.session_state.eco_selected_items else None
-    cover_source = items_by_id.get(first_selected_id) if first_selected_id else (items[0] if items else None)
-    cover_task = {"is_cover": True, "source_item": cover_source} if cover_source else None
+    # Ajouter une pseudo-tâche cover au début (basée sur l'item #1)
+    cover_task = {"is_cover": True, "source_item": items[0]} if items else None
     queue = ([cover_task] if cover_task else []) + items
     
     st.session_state.generation_queue = queue
