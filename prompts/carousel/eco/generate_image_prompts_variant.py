@@ -67,6 +67,7 @@ DIRECTION ARTISTIQUE (OBLIGATOIRE)
 STYLE :
 - Ultra-realistic editorial press photograph
 - Photojournalisme économique
+- Photo de presse realiste, authentique, credible
 - Aucun style illustratif, artistique ou CGI
 
 PALETTE COULEURS OBLIGATOIRE :
@@ -90,6 +91,10 @@ Inclure explicitement :
 - realistic depth of field
 - subtle natural sensor grain
 - no text in image
+
+- ABSOLUTELY NO TEXT in image (no titles, no labels, no captions)
+- No fictional elements or overlays (no trading charts, no UI screens, no data graphics)
+- No surreal or impossible elements (must be realistic in the real world)
 - no watermark
 - no media logo
 - no captions
