@@ -517,15 +517,16 @@ def build_weekly_exports(slide_paths: list[tuple[str, str]]) -> dict[str, object
     for filename, path in sorted_paths:
         try:
             slide_bytes = _render_slide_bytes(filename, path)
-            slides.append((filename, slide_bytes))
+            slides.append((_slide_number_from_name(filename), filename, slide_bytes))
         except Exception:
             continue
+
+    slides.sort(key=lambda item: item[0])
 
     # ZIP
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
-        for filename, data in slides:
-            slide_num = _slide_number_from_name(filename)
+        for slide_num, filename, data in slides:
             if slide_num != 999:
                 zip_name = f"slide_{slide_num:0{num_width}d}.png"
             else:
@@ -535,7 +536,7 @@ def build_weekly_exports(slide_paths: list[tuple[str, str]]) -> dict[str, object
 
     # PDF
     images = []
-    for _, data in slides:
+    for _, _, data in slides:
         img = Image.open(io.BytesIO(data)).convert("RGB")
         images.append(img)
     pdf_buffer = io.BytesIO()
