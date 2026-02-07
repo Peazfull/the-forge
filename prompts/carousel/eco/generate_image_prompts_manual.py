@@ -100,15 +100,29 @@ Inclure explicitement :
 - subtle natural sensor grain
 - no text in image
 
-INTERDICTIONS ABSOLUES (CRITICAL) :
-- ABSOLUTELY NO TEXT in image (no titles, no labels, no captions, no numbers overlay)
-- No fictional elements or overlays (no trading charts, no UI screens, no data graphics, no stock market curves)
-- No surreal or impossible elements (must be 100% realistic and photographable in the real world)
-- No stylized graphics, no diagrams, no infographics, no abstract visuals
-- No watermark, no media logo, no captions, no overlays, no UI elements
-- No artificial or fantasy elements that couldn't be photographed by a real photographer
+────────────────────────
+INTERDICTIONS CRITIQUES (ABSOLUMENT OBLIGATOIRE À RESPECTER)
+────────────────────────
 
-SI L'IA GÉNÈRE UN TEXTE, UN GRAPHIQUE OU UN ÉLÉMENT IRRÉEL → L'IMAGE EST INVALIDE
+⚠️ CRITICAL : L'IMAGE DOIT ÊTRE UNE PHOTO PHOTOGRAPHIABLE PAR UN HUMAIN DANS LE MONDE RÉEL
+
+ABSOLUMENT INTERDIT (IMAGE INVALIDE SI PRÉSENT) :
+❌ NO TEXT whatsoever (no titles, no labels, no captions, no numbers, no legends, no annotations)
+❌ NO CHARTS (no bar charts, no line graphs, no pie charts, no data visualizations)
+❌ NO SCREENS showing data/graphics (no monitors displaying charts, no digital boards with statistics)
+❌ NO INFOGRAPHICS (no diagrams, no flowcharts, no illustrated data)
+❌ NO UI ELEMENTS (no interfaces, no dashboards, no control panels with data)
+❌ NO TRADING SCREENS (no stock tickers, no market data, no financial graphs)
+❌ NO OVERLAYS (no graphic overlays, no text boxes, no arrows, no highlights)
+❌ NO ARTIFICIAL ELEMENTS (no CGI, no 3D renders, no impossible physics)
+
+⚠️ EXEMPLES D'ÉLÉMENTS INTERDITS À MENTIONNER EXPLICITEMENT DANS LE PROMPT :
+- "NO digital screens showing charts or data visualizations"
+- "NO bar graphs, line graphs, or statistical displays in the image"
+- "NO infographics or data dashboards visible anywhere"
+- "The image must show ONLY physical, real-world elements that could be photographed"
+
+SI UN DE CES ÉLÉMENTS APPARAÎT → L'IMAGE EST INVALIDE ET DOIT ÊTRE REJETÉE
 
 ────────────────────────
 EXEMPLE D’OUTPUT ATTENDU (RÉFÉRENCE)
@@ -142,14 +156,22 @@ Sunset stylized sky with dominant purple, purple fluo, orange, and magenta tones
 Stunning sunset.
 Atmosphere premium, stunning.
 
+CRITICAL RESTRICTIONS (MANDATORY – MUST BE EXPLICITLY INCLUDED IN EVERY PROMPT)
+NO digital screens displaying charts, graphs, or data visualizations.
+NO bar charts, line graphs, pie charts, or statistical displays anywhere in the image.
+NO infographics, dashboards, or data presentations visible.
+NO text, numbers, labels, or captions of any kind.
+The image must show ONLY physical, real-world elements photographable by a press photographer.
+NO CGI, no 3D renders, no artificial overlays.
+
 TECHNICAL REQUIREMENTS (MANDATORY)
 Natural or high-end studio lighting.
 Realistic depth of field.
 Subtle natural sensor grain.
-No text in image (important)
+No text in image (critical)
 No watermark.
 No media logo.
-No captions or overlays.
+No captions or overlays of any kind.
 
 ────────────────────────
 FORMAT DE SORTIE (OBLIGATOIRE)
