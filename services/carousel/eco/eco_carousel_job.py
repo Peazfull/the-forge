@@ -27,6 +27,7 @@ class EcoCarouselJob:
         self.errors: List[str] = []
         self.last_log = ""
         self.current_item_title = ""
+        self.just_completed = False  # Flag pour notifier le frontend
         
         self._stop_event = threading.Event()
         self._thread: Optional[threading.Thread] = None
@@ -67,6 +68,7 @@ class EcoCarouselJob:
             "errors": self.errors,
             "last_log": self.last_log,
             "current_item_title": self.current_item_title,
+            "just_completed": self.just_completed,
         }
     
     def _log(self, message: str) -> None:
@@ -153,6 +155,7 @@ class EcoCarouselJob:
                 self.state = "stopped"
             else:
                 self.state = "completed"
+                self.just_completed = True  # Notifier le frontend
                 self._log(f"✅ Génération terminée ! {self.processed} items traités")
         
         except Exception as e:

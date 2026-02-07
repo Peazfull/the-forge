@@ -883,6 +883,11 @@ from services.carousel.eco.eco_carousel_job import get_eco_carousel_job
 job = get_eco_carousel_job()
 status = job.get_status()
 
+# Si la génération vient de se terminer, forcer un rerun pour afficher les previews
+if status.get("just_completed"):
+    job.just_completed = False  # Reset le flag
+    st.rerun()
+
 if status["state"] == "running":
     st.divider()
     st.markdown("### ⚙️ Génération en cours...")
