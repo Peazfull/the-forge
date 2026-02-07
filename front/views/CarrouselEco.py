@@ -886,6 +886,10 @@ status = job.get_status()
 # Si la génération vient de se terminer, forcer un rerun pour afficher les previews
 if status.get("just_completed"):
     job.just_completed = False  # Reset le flag
+    # Vider tous les caches pour forcer le rafraîchissement des previews
+    st.session_state.slide_previews = {}
+    st.session_state.carousel_images = {}
+    st.session_state.carousel_image_models = {}
     st.rerun()
 
 if status["state"] == "running":
