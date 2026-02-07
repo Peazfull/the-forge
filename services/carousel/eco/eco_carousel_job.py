@@ -154,6 +154,10 @@ class EcoCarouselJob:
             if self._stop_event.is_set():
                 self.state = "stopped"
             else:
+                # Générer les slides finales composites
+                self._log("🖼️ Génération des slides finales...")
+                self._generate_final_slides()
+                
                 self.state = "completed"
                 self.just_completed = True  # Notifier le frontend
                 self._log(f"✅ Génération terminée ! {self.processed} items traités")
@@ -243,6 +247,75 @@ class EcoCarouselJob:
                     raise Exception(f"Image échec : {img_result.get('message', '')}")
             else:
                 self._log(f"  ⚠️ Pas de prompt image valide")
+    
+    def _generate_final_slides(self) -> None:
+        """Génère les slides composites finales (image + texte + overlay)."""
+        import os
+        from services.carousel.eco.carousel_slide_service import (
+            generate_carousel_slide,
+            generate_cover_slide,
+            upload_slide_bytes,
+        )
+        from services.carousel.eco.carousel_image_service import read_carousel_image
+        
+        supabase = get_supabase()
+        
+        # Récupérer tous les items
+        carousel_data = supabase.table("carousel_eco").select("*").order("position").execute()
+        items = carousel_data.data if carousel_data.data else []
+        
+        for item in items:
+            position = item["position"]
+            item_id = item["id"]
+            
+            try:
+                if position == 0:
+                    # Cover
+                    image_url = item.get("image_url")
+                    image_bytes = None if image_url else read_carousel_image(position)
+                    
+                    if image_url or image_bytes:
+                        slide_bytes = generate_cover_slide(
+                            image_url=image_url,
+                            image_bytes=image_bytes
+                        )
+                        upload_slide_bytes(f"slide_{position}.png", slide_bytes)
+                        self._log(f"  ✅ Slide cover générée")
+                
+                else:
+                    # Items normaux
+                    title_carou = item.get("title_carou")
+                    content_carou = item.get("content_carou")
+                    image_url = item.get("image_url")
+                    image_bytes = None if image_url else read_carousel_image(position)
+                    
+                    if title_carou and content_carou and (image_url or image_bytes):
+                        slide_bytes = generate_carousel_slide(
+                            title=title_carou,
+                            content=content_carou,
+                            image_url=image_url,
+                            image_bytes=image_bytes
+                        )
+                        upload_slide_bytes(f"slide_{position}.png", slide_bytes)
+                        self._log(f"  ✅ Slide #{position} générée")
+            
+            except Exception as e:
+                error_msg = f"Erreur slide {position}: {str(e)[:100]}"
+                self.errors.append(error_msg)
+                self._log(f"  ⚠️ {error_msg}")
+        
+        # Upload outro
+        outro_path = os.path.join(
+            os.path.dirname(__file__),
+            "..", "..", "..", "front", "layout", "assets", "carousel", "eco", "outro.png"
+        )
+        if os.path.exists(outro_path):
+            try:
+                with open(outro_path, "rb") as f:
+                    upload_slide_bytes("slide_outro.png", f.read())
+                self._log("  ✅ Slide outro ajoutée")
+            except Exception:
+                pass
 
 
 # Instance globale
