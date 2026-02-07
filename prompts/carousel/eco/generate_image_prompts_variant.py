@@ -1,131 +1,153 @@
-PROMPT_GENERATE_IMAGE_PROMPT_VARIANT = """
-Tu vas recevoir un TITRE et un CONTENU d'actualité économique.
+PROMPT_GENERATE_IMAGE_PROMPT = """
+Tu vas recevoir un TITRE et un CONTENU d’actualité économique, politique ou institutionnelle.
 
-Ta mission est de GÉNÉRER UN PROMPT ALTERNATIF
-destiné à une IA de génération d'images,
-en respectant STRICTEMENT les règles éditoriales suivantes.
+Ta mission est de générer UNIQUEMENT le PROMPT FINAL
+destiné à une IA de génération d’images.
+Tu ne génères PAS l’image.
 
-Ce prompt est une VARIANTE VISUELLE
-du prompt principal,
-utilisée lorsque la première génération n'est pas satisfaisante.
-
-Tu ne dois PAS générer l'image.
-Tu dois uniquement générer le PROMPT FINAL.
+Le prompt doit illustrer l’ACTU MAJEURE,
+en respectant strictement les contraintes visuelles ci-dessous.
 
 ────────────────────────
-ÉTAPE 1 — EXTRACTION DE L'ACTU MAÎTRE
+ACTU MAJEURE (OBLIGATOIRE)
 ────────────────────────
 
-Analyse le titre et le contenu pour identifier UN SEUL élément central :
+À partir du titre et du contenu :
+- identifie l’ACTU MAJEURE qui porte l’information centrale
+- conserve le contexte, mais hiérarchise clairement
 
-- une PERSONNALITÉ PUBLIQUE
-- ou une ENTREPRISE
-- ou un ÉVÉNEMENT MAJEUR
+Sélectionne UN SEUL SUJET VISUEL CENTRAL :
+- ENTREPRISE
+- PERSONNALITÉ PUBLIQUE
+- LIEU / ÉVÉNEMENT ÉCONOMIQUE OU INSTITUTIONNEL
 
-Sélectionne uniquement l'acteur ou le sujet
-qui porte l'action principale de l'actualité.
-
-Ignore tout élément secondaire.
-
-────────────────────────
-ÉTAPE 2 — RÈGLES ÉDITORIALES INCHANGÉES
-────────────────────────
-
-L'image générée via ce prompt doit :
-
-- rester une illustration éditoriale économique
-- ne jamais être sensationnaliste
-- ne jamais exprimer colère, agressivité ou mépris
-- ne jamais rabaisser ou dénigrer
-- ne contenir AUCUN texte intégré
-
-L'image doit transmettre :
-→ stabilité
-→ crédibilité
-→ sérieux
-→ maîtrise
+L’image doit illustrer :
+→ l’acteur ou le lieu qui porte l’action principale
+→ jamais les réactions, conséquences ou commentaires secondaires
 
 ────────────────────────
-ÉTAPE 3 — RÈGLES DE CONTENU VISUEL (IDENTIQUES)
+RÈGLE VISUELLE MAJEURE (NON NÉGOCIABLE)
 ────────────────────────
 
-SI le sujet est une ENTREPRISE :
-- LOGO OBLIGATOIRE
-- logo officiel, lisible, intégré naturellement
-- aucune mise en scène négative
+L’ACTION VISUELLE PRINCIPALE
+DOIT OBLIGATOIREMENT ÊTRE SITUÉE
+DANS LA MOITIÉ HAUTE DE L’IMAGE.
 
-SI le sujet est une PERSONNALITÉ PUBLIQUE :
-- présence réaliste
-- posture calme et institutionnelle
-- contexte cohérent avec l'actualité
+La MOITIÉ BASSE doit rester calme,
+propre,
+sans élément fort,
+prévue pour accueillir du texte ajouté manuellement.
 
-SI le sujet est un ÉVÉNEMENT :
-- lieu identifiable
-- éléments institutionnels autorisés
-- aucun symbole dramatique ou conflictuel
+Aucun personnage secondaire visible.
+Autorisé uniquement :
+- silhouettes très lointaines et discrètes.
 
 ────────────────────────
-ÉTAPE 4 — DIRECTION ARTISTIQUE FORGE (VARIANTE)
+RÈGLES STRICTES PAR TYPE DE SUJET
 ────────────────────────
 
-Cette variante DOIT modifier la DA
-sans modifier le sens éditorial.
+SI LE SUJET EST UNE ENTREPRISE :
+- LE LOGO OFFICIEL EST OBLIGATOIRE
+- Image INVALIDE sans logo officiel visible
+- Logo authentique, lisible, intégré naturellement
+- Contexte : façade, siège, environnement professionnel réel
+
+SI LE SUJET EST UNE PERSONNALITÉ PUBLIQUE :
+- Uniquement personnalité publique connue
+- Contexte OBLIGATOIRE :
+  conférence officielle, intervention publique ou déplacement institutionnel
+- Posture calme, neutre, maîtrisée
+
+SI LE SUJET EST UN LIEU / ÉVÉNEMENT :
+- Éléments de reconnaissance OBLIGATOIRES :
+  drapeaux, signalétique officielle, monument, architecture identifiable
+- Contexte institutionnel clair et crédible
+
+────────────────────────
+DIRECTION ARTISTIQUE (OBLIGATOIRE)
+────────────────────────
 
 STYLE :
-- Ultra-realistic editorial studio photograph
-- Rendu photo premium, presse haut de gamme
-- Pas d'illustration, pas de CGI, pas de peinture
+- Ultra-realistic editorial press photograph
+- Photojournalisme économique
+- Aucun style illustratif, artistique ou CGI
 
-AMBIANCE & COULEURS (DIFFÉRENTE DU PROMPT 1) :
-- Studio sombre premium
-- Palette dominante :
-  vert bouteille / bleu nuit / anthracite
-- Accents lumineux très subtils :
-  reflets dorés ou ambrés
-- Atmosphère sobre, institutionnelle, très maîtrisée
-
-FOND :
-- Fond studio uni
-- Couleur profonde et homogène
-- Dégradé très léger autorisé
-- Aucune texture visible
-- Aucune distraction visuelle
-
-COMPOSITION :
-- Élément principal placé dans la MOITIÉ HAUTE de l'image
-- Cadrage centré ou légèrement décentré (équilibré)
-- Perspective naturelle
-- Bas de l'image volontairement sobre et vide
-  pour ajout manuel d'un titre
+PALETTE COULEURS OBLIGATOIRE :
+- Sunset stylized sky
+- Dominante : purple, orange, magenta tones
+- Accents lumineux subtils et élégants
 
 ────────────────────────
-ÉTAPE 5 — SPÉCIFICATIONS TECHNIQUES
+COMPOSITION & TECHNIQUE
 ────────────────────────
 
-Le prompt final doit inclure explicitement :
+- Sujet principal placé dans la MOITIÉ HAUTE
+- Cadrage centré ou quasi centré
+- Perspective naturelle et équilibrée
+- Fond propre, non distrayant
+
+Inclure explicitement :
 - 8K render
 - professional photojournalism style
-- high-end studio lighting
-- controlled highlights and shadows
+- natural or high-end studio lighting
 - realistic depth of field
-- subtle sensor grain
-- no text
+- subtle natural sensor grain
+- no text in image
 - no watermark
-- no media branding
+- no media logo
+- no captions
+- no overlays
 
 ────────────────────────
-SORTIE ATTENDUE
+EXEMPLE D’OUTPUT ATTENDU (RÉFÉRENCE)
 ────────────────────────
 
-Génère UNIQUEMENT le PROMPT FINAL
-destiné à l'IA de génération d'images.
+Ultra-realistic editorial press photograph, 8K render, professional photojournalism style.
 
-Aucune explication.
-Aucun commentaire.
-Aucune justification.
+SUBJECT (MANDATORY)
+Germany as the single central subject, illustrated through a clear INSTITUTIONAL DEFENSE CONTEXT.
+Focus on German defense policy and rearmament as the core action of the image.
 
-Retourne ta réponse sous forme de JSON :
+ACTION & COMPOSITION (MANDATORY)
+The main visual action and all major elements must be strictly positioned in the UPPER HALF of the image.
+The LOWER HALF must remain calm, clean, and uncluttered, designed to receive text overlay.
+Centered or near-centered framing with a natural, balanced perspective.
+
+CONTEXT (MANDATORY – LOCATION & SYMBOLS)
+Institutional and governmental setting linked to German defense spending.
+OBLIGATORY visual identifiers:
+- German flags (Bundesflagge)
+- Official government architecture such as the Bundestag building or a Bundeswehr institutional site
+- Clear, sober military-institutional environment
+No dramatic or conflict-driven imagery.
+
+PEOPLE (STRICT)
+No visible individuals in the foreground.
+If present, only very distant, discreet silhouettes allowed.
+
+ART DIRECTION (MANDATORY)
+Sunset stylized sky with dominant purple, orange, and magenta tones.
+Subtle, elegant light accents.
+Atmosphere premium, serious, credible, institutional.
+
+TECHNICAL REQUIREMENTS (MANDATORY)
+Natural or high-end studio lighting.
+Realistic depth of field.
+Subtle natural sensor grain.
+No text in image.
+No watermark.
+No media logo.
+No captions or overlays.
+
+────────────────────────
+FORMAT DE SORTIE (OBLIGATOIRE)
+────────────────────────
+
+Retourne ta réponse UNIQUEMENT sous forme de JSON valide :
+
 {
   "image_prompt": "ton prompt complet ici"
 }
+
+Aucun texte en dehors du JSON.
 """
