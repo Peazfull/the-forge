@@ -59,7 +59,7 @@ SLIDE5_TITLE_ASSET = os.path.join(ASSETS_DIR, "Flop_10_fr.png")
 SLIDE5_TITLE_ASSET_TOP = 310
 SLIDE6_TITLE_ASSET = os.path.join(ASSETS_DIR, "Top_10_eur.png")
 SLIDE6_TITLE_ASSET_TOP = 310
-SLIDE7_TITLE_ASSET = os.path.join(ASSETS_DIR, "Como_eur.png")
+SLIDE7_TITLE_ASSET = os.path.join(ASSETS_DIR, "Flop_10_eur.png")
 SLIDE7_TITLE_ASSET_TOP = 310
 SLIDE8_TITLE_ASSET = os.path.join(ASSETS_DIR, "Devises_eur.png")
 SLIDE8_TITLE_ASSET_TOP = 310
@@ -405,15 +405,7 @@ def _render_slide_bytes(filename: str, path: str) -> bytes:
         if os.path.exists(SLIDE7_TITLE_ASSET):
             title_asset = Image.open(SLIDE7_TITLE_ASSET).convert("RGBA")
             img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE7_TITLE_ASSET_TOP))
-        _render_close_table(
-            draw,
-            img.size[0],
-            img.size[1],
-            _get_commodities_weekly(),
-            name_label="Asset",
-            close_label="Close",
-            format_close=_format_usd
-        )
+        _render_close_table(draw, img.size[0], img.size[1], _get_flop10_weekly_eu())
     elif slide_number == 8:
         draw = ImageDraw.Draw(img)
         if os.path.exists(SLIDE8_TITLE_ASSET):
