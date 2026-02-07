@@ -1,5 +1,6 @@
 from typing import Dict, List
 import re
+import time
 import streamlit as st
 from openai import OpenAI
 
@@ -8,6 +9,8 @@ from prompts.carousel.bourse.generate_carousel_linkedin import PROMPT_GENERATE_L
 from db.supabase_client import get_supabase
 
 REQUEST_TIMEOUT = 30
+MAX_UPLOAD_RETRIES = 3
+RETRY_DELAY_SECONDS = 2
 
 CTA_LINE = "Rejoignez la liste d'attente pour notre future newsletter 100% gratuite (lien en bio)."
 CAPTION_BUCKET = "carousel-bourse-slides"
@@ -91,17 +94,27 @@ def _keep_single_leading_emoji_per_line(text: str) -> str:
 
 
 def upload_caption_text(text: str) -> Dict[str, object]:
-    """Upload la caption dans le bucket storage (upsert)."""
-    try:
-        supabase = get_supabase()
-        supabase.storage.from_(CAPTION_BUCKET).upload(
-            CAPTION_FILE,
-            text.encode("utf-8"),
-            file_options={"content-type": "text/plain; charset=utf-8", "upsert": "true"}
-        )
-        return {"status": "success"}
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
+    """Upload la caption dans le bucket storage (upsert) avec retry logic."""
+    last_error = None
+    
+    for attempt in range(1, MAX_UPLOAD_RETRIES + 1):
+        try:
+            supabase = get_supabase()
+            supabase.storage.from_(CAPTION_BUCKET).upload(
+                CAPTION_FILE,
+                text.encode("utf-8"),
+                file_options={"content-type": "text/plain; charset=utf-8", "upsert": "true"}
+            )
+            return {"status": "success"}
+        except Exception as e:
+            last_error = str(e)
+            # Si c'est une erreur 500/502 (timeout Cloudflare), on réessaye
+            if attempt < MAX_UPLOAD_RETRIES:
+                time.sleep(RETRY_DELAY_SECONDS)
+                continue
+    
+    # Si toutes les tentatives échouent
+    return {"status": "error", "message": f"Upload échec après {MAX_UPLOAD_RETRIES} tentatives: {last_error}"}
 
 
 def read_caption_text() -> str:
