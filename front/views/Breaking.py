@@ -14,6 +14,9 @@ from PIL import Image
 from db.supabase_client import get_supabase
 from prompts.breaking.generate_breaking_texts import PROMPT_GENERATE_BREAKING_TEXTS
 from prompts.breaking.generate_breaking_image_prompts import PROMPT_GENERATE_BREAKING_IMAGE_PROMPT
+from services.breaking.generate_breaking_image_prompts_manual_service import (
+    generate_breaking_image_prompt_manual,
+)
 from services.carousel.image_generation_service import generate_carousel_image
 from services.carousel.breaking.carousel_slide_service import generate_cover_slide, generate_carousel_slide
 from services.carousel.breaking.generate_breaking_caption_service import (
@@ -348,26 +351,41 @@ with col_img0:
             else:
                 st.error(result.get("message", "Erreur image 0"))
     with st.expander("✍️ Re-prompt image 0", expanded=False):
-        manual_prompt_0 = st.text_area("Prompt manuel 0", key="breaking_manual_prompt_0", height=80)
+        manual_prompt_0 = st.text_area("Recommandations manuelles 0", key="breaking_manual_prompt_0", height=80, 
+                                       placeholder="Ex: Mettre en avant le logo Apple, ambiance minimaliste, etc.")
         if st.button("🔄 Générer via prompt manuel 0", use_container_width=True):
             if not manual_prompt_0.strip():
-                st.warning("Prompt manuel vide.")
+                st.warning("Recommandations manuelles vides.")
             else:
-                state["prompt_image_0"] = manual_prompt_0
-                _save_breaking_state(state)
-                with st.spinner("Génération image 0..."):
-                    result = generate_carousel_image(manual_prompt_0)
-                if result.get("status") == "success":
-                    image_bytes = base64.b64decode(result["image_data"])
-                    url = _safe_upload_breaking_image(0, image_bytes)
-                    if url:
-                        state["image_url_0"] = _with_cache_buster(url, str(time.time()))
-                        _save_breaking_state(state)
-                        st.success("✅ Image 0 générée")
-                        _auto_generate_slides_if_ready(state, title, content)
-                        st.rerun()
+                # Générer le prompt structuré à partir des recommandations manuelles
+                with st.spinner("Génération du prompt structuré..."):
+                    prompt_result = generate_breaking_image_prompt_manual(
+                        title=title,
+                        content=content,
+                        manual_recommendations=manual_prompt_0
+                    )
+                
+                if prompt_result.get("status") == "success":
+                    final_prompt = prompt_result["image_prompt"]
+                    state["prompt_image_0"] = final_prompt
+                    _save_breaking_state(state)
+                    
+                    with st.spinner("Génération image 0..."):
+                        result = generate_carousel_image(final_prompt)
+                    
+                    if result.get("status") == "success":
+                        image_bytes = base64.b64decode(result["image_data"])
+                        url = _safe_upload_breaking_image(0, image_bytes)
+                        if url:
+                            state["image_url_0"] = _with_cache_buster(url, str(time.time()))
+                            _save_breaking_state(state)
+                            st.success("✅ Image 0 générée")
+                            _auto_generate_slides_if_ready(state, title, content)
+                            st.rerun()
+                    else:
+                        st.error(result.get("message", "Erreur image 0"))
                 else:
-                    st.error(result.get("message", "Erreur image 0"))
+                    st.error(f"Erreur génération prompt: {prompt_result.get('message', 'Erreur inconnue')}")
     uploaded_0 = st.file_uploader("Charger une image 0", type=["png", "jpg", "jpeg"], key="breaking_upload_0")
     if uploaded_0 is not None:
         image_bytes = uploaded_0.read()
@@ -410,26 +428,41 @@ with col_img1:
             else:
                 st.error(result.get("message", "Erreur image 1"))
     with st.expander("✍️ Re-prompt image 1", expanded=False):
-        manual_prompt_1 = st.text_area("Prompt manuel 1", key="breaking_manual_prompt_1", height=80)
+        manual_prompt_1 = st.text_area("Recommandations manuelles 1", key="breaking_manual_prompt_1", height=80,
+                                       placeholder="Ex: Focus sur le PDG, contexte conférence de presse, etc.")
         if st.button("🔄 Générer via prompt manuel 1", use_container_width=True):
             if not manual_prompt_1.strip():
-                st.warning("Prompt manuel vide.")
+                st.warning("Recommandations manuelles vides.")
             else:
-                state["prompt_image_1"] = manual_prompt_1
-                _save_breaking_state(state)
-                with st.spinner("Génération image 1..."):
-                    result = generate_carousel_image(manual_prompt_1)
-                if result.get("status") == "success":
-                    image_bytes = base64.b64decode(result["image_data"])
-                    url = _safe_upload_breaking_image(1, image_bytes)
-                    if url:
-                        state["image_url_1"] = _with_cache_buster(url, str(time.time()))
-                        _save_breaking_state(state)
-                        st.success("✅ Image 1 générée")
-                        _auto_generate_slides_if_ready(state, title, content)
-                        st.rerun()
+                # Générer le prompt structuré à partir des recommandations manuelles
+                with st.spinner("Génération du prompt structuré..."):
+                    prompt_result = generate_breaking_image_prompt_manual(
+                        title=title,
+                        content=content,
+                        manual_recommendations=manual_prompt_1
+                    )
+                
+                if prompt_result.get("status") == "success":
+                    final_prompt = prompt_result["image_prompt"]
+                    state["prompt_image_1"] = final_prompt
+                    _save_breaking_state(state)
+                    
+                    with st.spinner("Génération image 1..."):
+                        result = generate_carousel_image(final_prompt)
+                    
+                    if result.get("status") == "success":
+                        image_bytes = base64.b64decode(result["image_data"])
+                        url = _safe_upload_breaking_image(1, image_bytes)
+                        if url:
+                            state["image_url_1"] = _with_cache_buster(url, str(time.time()))
+                            _save_breaking_state(state)
+                            st.success("✅ Image 1 générée")
+                            _auto_generate_slides_if_ready(state, title, content)
+                            st.rerun()
+                    else:
+                        st.error(result.get("message", "Erreur image 1"))
                 else:
-                    st.error(result.get("message", "Erreur image 1"))
+                    st.error(f"Erreur génération prompt: {prompt_result.get('message', 'Erreur inconnue')}")
     uploaded_1 = st.file_uploader("Charger une image 1", type=["png", "jpg", "jpeg"], key="breaking_upload_1")
     if uploaded_1 is not None:
         image_bytes = uploaded_1.read()
