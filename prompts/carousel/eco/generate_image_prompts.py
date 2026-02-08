@@ -30,11 +30,7 @@ RÈGLE VISUELLE MAJEURE (NON NÉGOCIABLE)
 
 L’ACTION VISUELLE PRINCIPALE
 DOIT OBLIGATOIREMENT ÊTRE SITUÉE
-DANS LA MOITIÉ HAUTE DE L’IMAGE.
-
-La MOITIÉ BASSE doit rester calme,
-propre,
-sans élément fort,
+DANS LA MOITIÉ HAUTE DE L’IMAGE COMME UN PHOTO EN PERSPECTIVE
 
 Personnages secondaires autorisés uniquement :
 - silhouettes très lointaines et discrètes.
@@ -44,10 +40,10 @@ RÈGLES STRICTES PAR TYPE DE SUJET
 ────────────────────────
 
 SI LE SUJET EST UNE ENTREPRISE :
-- LE LOGO OFFICIEL RÉEL EST OBLIGATOIRE (très important)
+- LE LOGO OFFICIEL RÉEL EN ACTION EST OBLIGATOIRE SUR LA PHOTOGRAHIE (très important, exemple sur le building du siège social)
 - Image INVALIDE sans logo officiel visible
 - Logo authentique et réel (pas une invention), lisible, intégré naturellement
-- Contexte photographique réaliste : façade de bâtiment avec enseigne, siège social réel, environnement professionnel photographié
+- Contexte photographique réaliste : façade de bâtiment avec enseigne, siège social réel, environnement professionnel photographié en extérieur
 - Le logo doit apparaître comme sur une vraie photo (enseigne, façade, signalétique)
 - INTERDIT : logos inventés, stylisés, flottants ou artificiels
 
@@ -58,9 +54,9 @@ SI LE SUJET EST UNE PERSONNALITÉ PUBLIQUE :
   conférence officielle, intervention publique, déplacement institutionnel
 - Posture calme, neutre, maîtrisée (pas de mise en scène dramatique)
 - Rendu photographique réaliste (comme une photo Reuters/AFP)
-- SI la personnalité n'est PAS le cœur de l'actu → utiliser le contexte entreprise/lieu à la place
+- SI la personnalité n'est PAS le cœur de l'actu → utiliser le contexte entreprise/évenement lieu,  à la place
 
-SI LE SUJET EST UN LIEU / ÉVÉNEMENT :
+SI LE SUJET EST UNE ACTUALLITE GEOPOLITIQUE:
 - Éléments de reconnaissance OBLIGATOIRES (très important) :
   drapeaux, signalétique officielle, monument, architecture identifiable
 - Contexte institutionnel clair et crédible
@@ -71,16 +67,16 @@ DIRECTION ARTISTIQUE (OBLIGATOIRE)
 
 STYLE (ULTRA-PRIORITAIRE) :
 - PHOTO DE PRESSE RÉELLE, pas une illustration
-- Photojournalisme économique professionnel
-- Rendu photographique 100% réaliste et authentique
+- Photojournalisme économique professionnel mais style publicité. 
+- Rendu photographique 100% réaliste style média kit, photo du pub. 
 - ABSOLUMENT AUCUN élément irréel, fictif ou stylisé
 - INTERDIT : CGI, illustrations, dessins, graphiques, charts, infographies
 - INTERDIT : éléments fantastiques, surréalistes ou impossibles dans le monde réel
 - Le résultat doit ressembler à une photo prise par un photographe Reuters/AFP
 
-PALETTE COULEURS OBLIGATOIRE :
-- Stuning bright sky with sunset stylized sky colors: purple, Purple fluo, magenta tones
-- Dominante : purple, orange, magenta tones
+PALETTE COULEURS OBLIGATOIRE (très important car DA sur projet :
+- Stuning bright sky with sunset stylized sky colors: purple, Purple fluo, orange tones
+- Dominante : purple, fluo purple,  orange tones
 - Accents lumineux subtils et élégants
 
 ────────────────────────
@@ -88,9 +84,7 @@ COMPOSITION & TECHNIQUE
 ────────────────────────
 
 - Sujet principal placé dans la MOITIÉ HAUTE
-- Cadrage centré ou quasi centré
 - Perspective naturelle et équilibrée
-- Fond propre, non distrayant
 
 Inclure explicitement :
 - 8K render
@@ -128,7 +122,7 @@ SI UN DE CES ÉLÉMENTS APPARAÎT → L'IMAGE EST INVALIDE ET DOIT ÊTRE REJETÉ
 EXEMPLE D'OUTPUT ATTENDU (RÉFÉRENCE)
 ────────────────────────
 
-Ultra-realistic editorial press photograph, 8K render, professional photojournalism style.
+Ultra-realistic editorial press photograph, 8K render, professional photojournalism style but advertising photoshoot quality. 
 
 SUBJECT (MANDATORY)
 France as the single central subject, illustrated through a PUBLIC HEALTH AND FOOD SAFETY INSTITUTIONAL CONTEXT.
@@ -136,8 +130,6 @@ The image must represent the strengthening of sanitary regulations for infant mi
 
 ACTION & COMPOSITION (MANDATORY)
 The main visual action and all major elements must be strictly positioned in the UPPER HALF of the image.
-The LOWER HALF must remain calm, clean, and uncluttered, designed to receive text overlay.
-Centered or near-centered framing with a natural, balanced perspective.
 
 CONTEXT (MANDATORY – LOCATION & SYMBOLS)
 Institutional and regulatory setting linked to French public health and food safety authorities.
@@ -147,12 +139,9 @@ OBLIGATORY visual identifiers:
 - Clean, sterile, professional environment suggesting health regulation and safety
 No product marketing, no brands, no emotional symbolism.
 
-PEOPLE (STRICT)
-No visible individuals in the foreground.
-If present, only very distant, discreet silhouettes allowed.
 
 ART DIRECTION (MANDATORY)
-Sunset stylized sky with dominant purple, purple fluo, orange, and magenta tones.
+Sunset stylized sky with dominant purple, purple fluo, and orange tones.
 Stunning sunset.
 Atmosphere premium, stunning.
 
@@ -161,7 +150,7 @@ NO digital screens displaying charts, graphs, or data visualizations.
 NO bar charts, line graphs, pie charts, or statistical displays anywhere in the image.
 NO infographics, dashboards, or data presentations visible.
 NO text, numbers, labels, or captions of any kind.
-The image must show ONLY physical, real-world elements photographable by a press photographer.
+The image must show ONLY physical, real-world elements photographable by a press or public photoshoot photographer.
 NO CGI, no 3D renders, no artificial overlays.
 
 TECHNICAL REQUIREMENTS (MANDATORY)
