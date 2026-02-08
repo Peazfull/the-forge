@@ -20,7 +20,7 @@ CONTRAINTES GÉNÉRALES :
 - Chaque slide contient un titre et un contenu.
 - Contenus : 2 phrases MAXIMUM par slide.
 - Les 2 phrases doivent être séparées par un retour à la ligne (\n).
-- Chaque contenu doit contenir au moins un **...**.
+- Chaque contenu doit contenir au moins un **...** sur un mot clé ou deux dans le contenue du paragraphe (le plus impactant du paragraphe ).
 - Markdown interdit, sauf pour mettre en valeur 1 à 2 mots ou expressions
   en les entourant de **double astérisques** dans les contenus uniquement.
 - Ne jamais utiliser de markdown dans les titres.
