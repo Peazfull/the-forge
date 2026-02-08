@@ -287,8 +287,8 @@ def generate_cover_slide(
     date_w = draw.textlength(date_str, font=date_font)
     date_h = int(DATE_FONT_SIZE * 1.2)
     
-    # Date positionnée à 730px du haut
-    date_y = 730
+    # Date positionnée à 680px du haut
+    date_y = 680
     
     # Logo positionné AU-DESSUS de la date avec un gap de 12px
     # Logo se termine à (date_y - DATE_TOP_GAP)
