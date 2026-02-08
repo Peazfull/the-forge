@@ -77,18 +77,55 @@ SI LE SUJET EST UN LIEU / ÉVÉNEMENT :
 - Contexte institutionnel clair et crédible
 
 ────────────────────────
-INTERDICTIONS CRITIQUES ⛔
+INTERDICTIONS CRITIQUES ⛔ (ULTRA-PRIORITAIRE)
 ────────────────────────
 
-🚫 AUCUN écran affichant des graphiques, données, charts
-🚫 AUCUN graphique de trading, courbe boursière, infographie
-🚫 AUCUN dashboard, tableau de bord, visualisation de données
-🚫 AUCUN élément CGI, illustration, dessin, style artistique
-🚫 AUCUN texte visible (titres, labels, légendes)
-🚫 AUCUN watermark, logo média, overlay
-🚫 AUCUNE division horizontale (pas deux images empilées)
+⚠️ CES INTERDICTIONS SONT ABSOLUES ET NON NÉGOCIABLES ⚠️
 
-→ L'image doit montrer UNIQUEMENT des éléments physiques et réels du monde réel
+🚫 AUCUN TEXTE VISIBLE (ABSOLUMENT INTERDIT) :
+   - NO stock tickers (CAC 40, EUR/USD, etc.)
+   - NO financial data displays
+   - NO text banners or overlays
+   - NO percentage changes (-4.8%, +2.5%, etc.)
+   - NO company names in text form
+   - NO currency pairs displayed as text
+   - NO numeric data visible
+   - NO titles, labels, captions, subtitles
+
+🚫 AUCUN ÉCRAN OU AFFICHAGE DIGITAL :
+   - NO LED displays showing market data
+   - NO digital screens with financial information
+   - NO ticker tape displays
+   - NO electronic boards showing stock prices
+   - NO TV screens showing news or data
+   - NO monitors displaying charts or numbers
+
+🚫 AUCUN GRAPHIQUE OU VISUALISATION DE DONNÉES :
+   - NO trading charts
+   - NO line graphs or bar charts
+   - NO candlestick charts
+   - NO infographics
+   - NO dashboards
+   - NO data visualizations of any kind
+
+🚫 AUCUN OVERLAY OU ÉLÉMENT SUPERPOSÉ :
+   - NO transparent text overlays
+   - NO graphic overlays
+   - NO watermarks
+   - NO media logos
+   - NO UI elements
+   - NO fictional additions
+
+🚫 AUCUN ÉLÉMENT NON-RÉALISTE :
+   - NO CGI elements
+   - NO illustrations or drawings
+   - NO artistic interpretations
+   - NO surreal or impossible elements
+   - NO split compositions (two images merged)
+
+→ L'image doit montrer UNIQUEMENT une photographie authentique d'éléments physiques réels
+→ SEUL le logo officiel de l'entreprise (sur bâtiment/façade) est autorisé comme élément textuel
+→ AUCUNE autre forme de texte, chiffre, ou données n'est acceptable
 
 ────────────────────────
 DIRECTION ARTISTIQUE (OBLIGATOIRE)
@@ -140,18 +177,29 @@ Inclure explicitement dans le prompt que tu génères :
 - subtle natural sensor grain
 - no text in image
 
-ET ces NEGATIVE PROMPTS obligatoires :
-- ABSOLUTELY NO TEXT in image (no titles, no labels, no captions)
+ET ces NEGATIVE PROMPTS obligatoires (TRÈS IMPORTANT - À RÉPÉTER PLUSIEURS FOIS) :
+- ABSOLUTELY NO TEXT in image
+- NO TEXT OF ANY KIND (no titles, no labels, no captions, no subtitles, no letters, no words, no numbers)
+- NO STOCK TICKERS (no "CAC 40", no "EUR/USD", no "CRÉDIT AGRICOLE", no "-4.8%", no "+2.5%")
+- NO FINANCIAL DATA TEXT (no percentage changes, no stock prices, no currency pairs as text)
+- NO LED DISPLAYS or digital ticker banners showing market information
 - NO SCREENS showing data/graphics (no digital displays with charts or visualizations)
-- NO CHARTS, NO INFOGRAPHICS, NO DASHBOARDS (no bar graphs, line graphs, or statistical displays)
-- No fictional elements or overlays (no trading charts, no UI screens, no data graphics)
-- No surreal or impossible elements (must be realistic in the real world)
+- NO CHARTS, NO INFOGRAPHICS, NO DASHBOARDS (no bar graphs, line graphs, candlestick charts, or statistical displays)
+- NO TRADING CHARTS or financial visualizations
+- NO fictional elements or overlays (no trading charts, no UI screens, no data graphics)
+- NO transparent text overlays with company names or financial data
+- NO electronic boards showing stock market information
+- NO TV screens or monitors displaying news or data
+- NO surreal or impossible elements (must be realistic in the real world)
 - NO split composition or two separate images merged together
-- The image must show ONLY physical, real-world elements
+- The image must show ONLY physical, real-world architectural elements and natural environment
+- The ONLY text allowed is the official company logo on the building facade (nothing else)
 - no watermark
 - no media logo
 - no captions
 - no overlays
+- no data displays
+- clean photograph without any text additions
 
 ────────────────────────
 EXEMPLE D'OUTPUT ATTENDU
@@ -163,7 +211,7 @@ ACTU : "Nvidia espère finaliser une licence pour exporter des puces IA vers la 
 
 → IMAGE PROMPT GÉNÉRÉ :
 
-"Ultra-realistic editorial press photograph of Nvidia headquarters building, low-angle shot, camera positioned at ground level pointing upward, single continuous photograph, the official Nvidia logo prominently displayed on the building facade in the upper third of the image, modern corporate architecture with clean glass and steel surfaces, natural perspective with key elements in upper third, the foreground shows natural ground pavement and building base, stunning bright sky with sunset stylized sky colors in purple, magenta and orange tones creating a dramatic yet professional atmosphere, professional photojournalism style, 16:9 aspect ratio, 8K render, natural lighting, realistic depth of field, subtle natural sensor grain, no text in image. ABSOLUTELY NO TEXT in image (no titles, no labels, no captions), NO SCREENS showing data/graphics, NO CHARTS, NO INFOGRAPHICS, NO DASHBOARDS, no fictional elements or overlays, NO split composition or two separate images merged together, the image must show ONLY physical real-world elements, no watermark, no media logo, no captions, no overlays."
+"Ultra-realistic editorial press photograph of Nvidia headquarters building, low-angle shot, camera positioned at ground level pointing upward, single continuous photograph, the official Nvidia logo prominently displayed on the building facade in the upper third of the image, modern corporate architecture with clean glass and steel surfaces, natural perspective with key elements in upper third, the foreground shows natural ground pavement and building base, stunning bright sky with sunset stylized sky colors in purple, magenta and orange tones creating a dramatic yet professional atmosphere, professional photojournalism style, 16:9 aspect ratio, 8K render, natural lighting, realistic depth of field, subtle natural sensor grain, clean photograph without any text additions. ABSOLUTELY NO TEXT in image, NO TEXT OF ANY KIND (no titles, no labels, no captions, no subtitles, no letters, no words, no numbers), NO STOCK TICKERS (no 'CAC 40', no 'EUR/USD', no 'CRÉDIT AGRICOLE', no '-4.8%', no '+2.5%'), NO FINANCIAL DATA TEXT (no percentage changes, no stock prices, no currency pairs as text), NO LED DISPLAYS or digital ticker banners showing market information, NO SCREENS showing data/graphics (no digital displays with charts or visualizations), NO CHARTS, NO INFOGRAPHICS, NO DASHBOARDS (no bar graphs, line graphs, candlestick charts, or statistical displays), NO TRADING CHARTS or financial visualizations, no fictional elements or overlays (no trading charts, no UI screens, no data graphics), NO transparent text overlays with company names or financial data, NO electronic boards showing stock market information, NO TV screens or monitors displaying news or data, no surreal or impossible elements, NO split composition or two separate images merged together, the image must show ONLY physical real-world architectural elements and natural environment, the ONLY text allowed is the official company logo on the building facade (nothing else), no watermark, no media logo, no captions, no overlays, no data displays, clean photograph without any text additions."
 
 ────────────────────────
 FORMAT DE SORTIE (OBLIGATOIRE)
