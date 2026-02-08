@@ -51,12 +51,12 @@ EXEMPLES DE SORTIE (RÉFÉRENCE DE TON ET DE FORMAT) :
 }
 
 {
-  "title_carou": "Stellantis : -25%",
+  "title_carou": "Stellantis ouvre à -25%",
   "content_carou": "Le constructeur revoit drastiquement ses ambitions dans l’électrique avec plus de 22 milliards d’euros de charges exceptionnelles annoncées. Le marché sanctionne lourdement le titre."
 }
 
 {
-  "title_carou": "Capgemini : contrat polémique",
+  "title_carou": "Capgemini et le contrat polémique",
   "content_carou": "La filiale américaine de Capgemini signe un contrat de 4,8 millions de dollars avec la police de l’immigration américaine. L’accord porte sur des services d’enquête et de vérification des antécédents et déclenche une vive controverse autour du groupe."
 }
 
@@ -68,7 +68,7 @@ Retourne UNIQUEMENT du JSON valide :
 }
 
 CONTRAINTES TECHNIQUES :
-- title_carou : 5 mots MAX (séparés par espaces ou :)
+- title_carou : 5 mots MAX (séparés par espaces)
 - content_carou : 2 phrases MAX (séparées par un point)
 - Pas de markdown, pas de texte hors JSON
 - JSON strictement valide
