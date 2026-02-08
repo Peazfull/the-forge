@@ -83,7 +83,7 @@ PALETTE COULEURS OBLIGATOIRE (très important car DA sur projet :
 COMPOSITION & TECHNIQUE
 ────────────────────────
 
-- Sujet principal placé dans la MOITIÉ HAUTE
+- Sujet principal que ce soit logo sur batiment, personnalité, lieu avec signes reconnaissables important,  placé dans la MOITIÉ HAUTE (ULTRA IMPORTANT)
 - Perspective naturelle et équilibrée
 
 Inclure explicitement :
@@ -129,7 +129,8 @@ France as the single central subject, illustrated through a PUBLIC HEALTH AND FO
 The image must represent the strengthening of sanitary regulations for infant milk in France, not the product itself.
 
 ACTION & COMPOSITION (MANDATORY)
-The main visual action and all major elements must be strictly positioned in the UPPER HALF of the image.
+The main visual action and all major elements must be strictly positioned in the UPPER HALF of the overall image context. Very important. 
+The rest of the image in the lower half is the continuity of the upper half, it must be clean, uncluttered, 
 
 CONTEXT (MANDATORY – LOCATION & SYMBOLS)
 Institutional and regulatory setting linked to French public health and food safety authorities.
