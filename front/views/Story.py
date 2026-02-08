@@ -345,6 +345,19 @@ if st.button("💾 Sauvegarder textes", use_container_width=True):
     _save_story_state(state)
     st.success("✅ Textes sauvegardés")
 
+if st.button("🔄 Regénérer les prompts images", use_container_width=True):
+    if not state.get("slide1_title") or not state.get("slide1_content"):
+        st.warning("⚠️ Génère d'abord les textes ou saisis un titre et contenu pour Slide 1.")
+    else:
+        with st.spinner("Régénération des prompts images..."):
+            p = generate_story_image_prompt(state["slide1_title"], state["slide1_content"])
+            prompt = p.get("image_prompt", "")
+            for idx in range(1, 5):
+                state[f"prompt_image_{idx}"] = prompt
+            _save_story_state(state)
+        st.success("✅ Prompts images régénérés avec le nouveau système !")
+        st.rerun()
+
 with st.expander("✍️ Prompts images (éditables)", expanded=False):
     p1 = st.text_area("Prompt image 1", value=state.get("prompt_image_1", ""), height=100)
     p2 = st.text_area("Prompt image 2", value=state.get("prompt_image_2", ""), height=100)
