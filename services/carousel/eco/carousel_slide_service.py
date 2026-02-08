@@ -287,16 +287,19 @@ def generate_cover_slide(
     date_w = draw.textlength(date_str, font=date_font)
     date_h = int(DATE_FONT_SIZE * 1.2)
     
-    # Position du logo à 620px du haut
-    start_y = 620
-    cover_x = (CANVAS_SIZE[0] - cover_logo.size[0]) // 2 if cover_logo_height else 0
-    
-    if cover_logo_height:
-        canvas.alpha_composite(cover_logo, (cover_x, start_y))
-    
-    # Date à 730px du haut
-    date_x = (CANVAS_SIZE[0] - int(date_w)) // 2
+    # Date positionnée à 730px du haut
     date_y = 730
+    
+    # Logo positionné AU-DESSUS de la date avec un gap de 12px
+    # Logo se termine à (date_y - DATE_TOP_GAP)
+    # Logo commence à (date_y - DATE_TOP_GAP - cover_logo_height)
+    if cover_logo_height:
+        logo_y = date_y - DATE_TOP_GAP - cover_logo_height
+        cover_x = (CANVAS_SIZE[0] - cover_logo.size[0]) // 2
+        canvas.alpha_composite(cover_logo, (cover_x, logo_y))
+    
+    # Date
+    date_x = (CANVAS_SIZE[0] - int(date_w)) // 2
     draw.text((date_x, date_y), date_str, font=date_font, fill="white")
     
     # Swipe (cover)
