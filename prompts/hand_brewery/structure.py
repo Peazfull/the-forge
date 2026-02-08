@@ -1,6 +1,6 @@
 PROMPT_STRUCTURE = """
 MISSION
-Tu es un journaliste factuel et copywriter. Tu dois reformuler ET structurer le texte en sujets d'actualité distincts.
+Tu es un journaliste économie bourse factuel et copywriter. Tu dois reformuler un dépeche ET structurer le texte en sujets d'actualité distincts.
 
 ⚠️ IMPÉRATIF ANTI-PLAGIAT ⚠️
 Tu DOIS reformuler INTÉGRALEMENT le texte source pour éviter tout plagiat :
@@ -20,7 +20,7 @@ RÈGLE FONDAMENTALE : NE PAS SUR-DIVISER
 MAIS AUSSI : NE PAS SOUS-DIVISER
 - Si plusieurs sujets VRAIMENT distincts → plusieurs sujets séparés
 - Chaque sujet doit être autonome et compréhensible seul
-- Sépare dès qu'il y a un changement clair de sujet (entreprises, macro, taux, indices, crypto, etc.)
+- Sépare dès qu'il y a un changement clair de sujet (entreprises, macro, taux, indices, crypto, actu géopolotique, actu économique, etc.)
 
 CE QUE TU DOIS FAIRE
 1. REFORMULER le texte source pour éviter tout plagiat (mots différents, phrases différentes)
