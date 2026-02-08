@@ -125,9 +125,9 @@ def _sync_doss_texts(
 ) -> None:
     state["slide1_title"] = slide1_title
     state["slide1_content"] = slide1_content
-    state["slide2_content"] = _strip_fixed_title_prefix(slide2_content, "ON VOUS EXPLIQUE")
-    state["slide3_content"] = _strip_fixed_title_prefix(slide3_content, "DE PLUS")
-    state["slide4_content"] = _strip_fixed_title_prefix(slide4_content, "EN GROS")
+    state["slide2_content"] = _strip_fixed_title_prefix(slide2_content, "DANS LES FAITS")
+    state["slide3_content"] = _strip_fixed_title_prefix(slide3_content, "CE QU'IL FAUT SAVOIR")
+    state["slide4_content"] = _strip_fixed_title_prefix(slide4_content, "CE QUE ÇA CHANGE")
 
 
 def _upload_doss_image(position: int, image_bytes: bytes) -> Optional[str]:
@@ -239,9 +239,9 @@ def _generate_doss_slides(state: Dict[str, object]) -> None:
 
     slide_data = [
         (1, "slide_1.png", state.get("slide1_title", ""), state.get("slide1_content", ""), state.get("image_url_1")),
-        (2, "slide_2.png", "ON VOUS EXPLIQUE", state.get("slide2_content", ""), state.get("image_url_2")),
-        (3, "slide_3.png", "DE PLUS", state.get("slide3_content", ""), state.get("image_url_3")),
-        (4, "slide_4.png", "EN GROS", state.get("slide4_content", ""), state.get("image_url_4")),
+        (2, "slide_2.png", "DANS LES FAITS", state.get("slide2_content", ""), state.get("image_url_2")),
+        (3, "slide_3.png", "CE QU'IL FAUT SAVOIR", state.get("slide3_content", ""), state.get("image_url_3")),
+        (4, "slide_4.png", "CE QUE ÇA CHANGE", state.get("slide4_content", ""), state.get("image_url_4")),
     ]
 
     with st.spinner("Génération des slides..."):
@@ -274,13 +274,13 @@ if st.button("✨ Générer titres + contenus", use_container_width=True):
             state["slide1_title"] = data.get("slide1_title", "")
             state["slide1_content"] = _ensure_highlight(data.get("slide1_content", ""))
             state["slide2_content"] = _strip_fixed_title_prefix(
-                _ensure_highlight(data.get("slide2_content", "")), "ON VOUS EXPLIQUE"
+                _ensure_highlight(data.get("slide2_content", "")), "DANS LES FAITS"
             )
             state["slide3_content"] = _strip_fixed_title_prefix(
-                _ensure_highlight(data.get("slide3_content", "")), "DE PLUS"
+                _ensure_highlight(data.get("slide3_content", "")), "CE QU'IL FAUT SAVOIR"
             )
             state["slide4_content"] = _strip_fixed_title_prefix(
-                _ensure_highlight(data.get("slide4_content", "")), "EN GROS"
+                _ensure_highlight(data.get("slide4_content", "")), "CE QUE ÇA CHANGE"
             )
             _save_doss_state(state)
             st.success("✅ Textes générés")
@@ -300,17 +300,17 @@ slide1_title = st.text_input("Slide 1 · Titre clickbait", value=state.get("slid
 slide1_content = st.text_area("Slide 1 · Content", value=state.get("slide1_content", ""), height=120)
 slide2_content = st.text_area(
     "Slide 2 · Content (On vous explique)",
-    value=_strip_fixed_title_prefix(state.get("slide2_content", ""), "ON VOUS EXPLIQUE"),
+    value=_strip_fixed_title_prefix(state.get("slide2_content", ""), "DANS LES FAITS"),
     height=120
 )
 slide3_content = st.text_area(
     "Slide 3 · Content (De plus)",
-    value=_strip_fixed_title_prefix(state.get("slide3_content", ""), "DE PLUS"),
+    value=_strip_fixed_title_prefix(state.get("slide3_content", ""), "CE QU'IL FAUT SAVOIR"),
     height=120
 )
 slide4_content = st.text_area(
     "Slide 4 · Content (En gros)",
-    value=_strip_fixed_title_prefix(state.get("slide4_content", ""), "EN GROS"),
+    value=_strip_fixed_title_prefix(state.get("slide4_content", ""), "CE QUE ÇA CHANGE"),
     height=120
 )
 
@@ -347,6 +347,19 @@ if st.button("💾 Sauvegarder textes", use_container_width=True):
     )
     _save_doss_state(state)
     st.success("✅ Textes sauvegardés")
+
+if st.button("🔄 Regénérer les prompts images", use_container_width=True):
+    if not state.get("slide1_title") or not state.get("slide1_content"):
+        st.warning("⚠️ Génère d'abord les textes ou saisis un titre et contenu pour Slide 1.")
+    else:
+        with st.spinner("Régénération des prompts images..."):
+            p = generate_doss_image_prompt(state["slide1_title"], state["slide1_content"])
+            prompt = p.get("image_prompt", "")
+            for idx in range(1, 5):
+                state[f"prompt_image_{idx}"] = prompt
+            _save_doss_state(state)
+        st.success("✅ Prompts images régénérés avec le nouveau système !")
+        st.rerun()
 
 with st.expander("✍️ Prompts images (éditables)", expanded=False):
     p1 = st.text_area("Prompt image 1", value=state.get("prompt_image_1", ""), height=100)
@@ -388,9 +401,9 @@ if st.button("🚀 Générer images + slides", use_container_width=True):
     _save_doss_state(state)
     slides = [
         (1, slide1_title, slide1_content),
-        (2, "ON VOUS EXPLIQUE", slide2_content),
-        (3, "DE PLUS", slide3_content),
-        (4, "EN GROS", slide4_content),
+        (2, "DANS LES FAITS", slide2_content),
+        (3, "CE QU'IL FAUT SAVOIR", slide3_content),
+        (4, "CE QUE ÇA CHANGE", slide4_content),
     ]
     with st.spinner("Génération des images..."):
         for idx, title, content in slides:
@@ -418,9 +431,9 @@ if st.button("🚀 Générer images + slides", use_container_width=True):
 
 image_cards = [
     (1, "Slide 1", slide1_title, slide1_content),
-    (2, "Slide 2", "ON VOUS EXPLIQUE", slide2_content),
-    (3, "Slide 3", "DE PLUS", slide3_content),
-    (4, "Slide 4", "EN GROS", slide4_content),
+    (2, "Slide 2", "DANS LES FAITS", slide2_content),
+    (3, "Slide 3", "CE QU'IL FAUT SAVOIR", slide3_content),
+    (4, "Slide 4", "CE QUE ÇA CHANGE", slide4_content),
 ]
 
 for row_idx in range(0, len(image_cards), 2):
