@@ -102,8 +102,8 @@ STYLE :
 - Aucun style illustratif, artistique ou CGI
 
 PALETTE COULEURS OBLIGATOIRE (très important car DA sur projet) :
-- Stunning bright sky with sunset stylized sky colors: magenta, carmen, orange tones
-- Dominante : magenta, carmen, orange tones
+- Stunning bright sky with sunset stylized sky colors: magenta, carmen, orange and yellow tones
+- Dominante : magenta, carmen, orange, yellow tones
 - Accents lumineux subtils et élégants
 
 ────────────────────────
