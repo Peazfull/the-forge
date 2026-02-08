@@ -25,75 +25,44 @@ L'image doit illustrer :
 → l'entreprise, l'acteur ou le lieu qui porte l'action principale
 
 ────────────────────────
-⛔ INTERDICTIONS ABSOLUES (À LIRE EN PREMIER) ⛔
-────────────────────────
-
-❌ INTERDIT DE GÉNÉRER :
-- "stock market screen showing..."
-- "LED display with financial data..."
-- "digital ticker showing stock prices..."
-- "electronic board displaying market information..."
-- "chart showing decline/growth..."
-- "graph illustrating performance..."
-- "data visualization of..."
-- "trading screen with..."
-- ANY mention of charts, graphs, screens, displays, data visualizations
-
-✅ CE QU'ON VEUT :
-- "corporate building with official logo on facade..."
-- "headquarters exterior with company signage..."
-- "business facility photographed from low angle..."
-- "architectural shot of corporate headquarters..."
-
-────────────────────────
 RÈGLE VISUELLE MAJEURE (NON NÉGOCIABLE)
 ────────────────────────
 
 ⚠️ COMPOSITION VERTICALE OBLIGATOIRE (ULTRA-CRITIQUE) :
 
-L'image doit être UNE SEULE ET UNIQUE PHOTOGRAPHIE COHÉRENTE D'UN BÂTIMENT.
+L'image doit être UNE SEULE ET UNIQUE PHOTOGRAPHIE COHÉRENTE.
 INTERDIT ABSOLU : diviser l'image en deux parties distinctes (haut/bas).
 
 PERSPECTIVE OBLIGATOIRE :
 - Photo prise en CONTRE-PLONGÉE (low-angle shot, vue d'en bas vers le haut)
 - Le photographe est positionné au sol ou en position basse
-- L'appareil photo est orienté vers le HAUT VERS LE BÂTIMENT
+- L'appareil photo est orienté vers le HAUT
 - Cette perspective naturelle place automatiquement les éléments importants dans le tiers supérieur
 
-PLACEMENT DES ÉLÉMENTS CLÉS DANS LE TIERS SUPÉRIEUR :
-⚠️ ATTENTION : "tiers supérieur" signifie :
-✅ Logo officiel sur la FAÇADE DU BÂTIMENT
-✅ Signalétique architecturale du siège social
-✅ Architecture du bâtiment avec branding visible
-❌ PAS un écran LED avec données boursières
-❌ PAS un ticker électronique
-❌ PAS un panneau d'affichage digital
+PLACEMENT DES ÉLÉMENTS CLÉS :
+- Logo sur bâtiment, personnalité, ou lieu → positionnés dans le TIERS SUPÉRIEUR de l'image
+- Résultat naturel de la prise de vue en contre-plongée
+- Le reste de l'image (partie basse) = continuité naturelle de la même scène (sol, base du bâtiment, environnement proche)
 
 UNITÉ VISUELLE OBLIGATOIRE :
-- UNE SEULE photo continue d'un bâtiment, pas deux images collées
+- UNE SEULE photo continue, pas deux images collées
 - Perspective et lumière cohérentes sur toute la hauteur
 - Transition fluide du bas vers le haut de l'image
 
-La PARTIE BASSE doit rester calme, propre, sans élément fort :
-- Sol, pavement, base du bâtiment
-- PAS de personnages au premier plan (flous ou nets)
-- Seulement silhouettes très lointaines et discrètes si nécessaire
+La PARTIE BASSE doit rester calme, propre, sans élément fort,
+
+Personnages secondaires autorisés uniquement :
+- silhouettes très lointaines et discrètes.
 
 ────────────────────────
 RÈGLES STRICTES PAR TYPE DE SUJET
 ────────────────────────
 
 SI LE SUJET EST UNE ENTREPRISE :
-- LE LOGO OFFICIEL SUR LA FAÇADE DU BÂTIMENT EST OBLIGATOIRE (très important)
-- Image INVALIDE sans logo officiel visible SUR LE BÂTIMENT
-- Logo authentique, RÉEL, lisible, intégré naturellement sur l'ARCHITECTURE du bâtiment
-- Contexte : FAÇADE du siège social, EXTÉRIEUR du bâtiment, environnement professionnel réel
-- ❌ PAS un écran LED/digital montrant le nom de l'entreprise
-- ❌ PAS un ticker électronique avec le cours de l'action
-- ✅ OUI le logo officiel fixé/peint/gravé sur la FAÇADE physique du bâtiment
-
-EXEMPLE VALIDE : "Tesla headquarters building with official Tesla 'T' logo mounted on the building facade"
-EXEMPLE INVALIDE : "LED screen displaying 'TESLA' stock price and chart"
+- LE LOGO OFFICIEL EST OBLIGATOIRE (très important)
+- Image INVALIDE sans logo officiel visible
+- Logo authentique, RÉEL, lisible, intégré naturellement dans un contexte photographique réaliste
+- Contexte : façade, siège, environnement professionnel réel
 
 SI LE SUJET EST UNE PERSONNALITÉ PUBLIQUE :
 - Uniquement personnalité publique connue ET SEULEMENT si elle est le CŒUR de l'actualité
@@ -101,7 +70,6 @@ SI LE SUJET EST UNE PERSONNALITÉ PUBLIQUE :
   conférence officielle, intervention publique ou déplacement institutionnel
 - Posture calme, neutre, maîtrisée
 - Style PHOTO DE PRESSE RÉELLE
-- ❌ PAS de personnages marchant au premier plan (comme dans l'image interdite)
 
 SI LE SUJET EST UN LIEU / ÉVÉNEMENT :
 - Éléments de reconnaissance OBLIGATOIRES (très important) :
@@ -109,36 +77,19 @@ SI LE SUJET EST UN LIEU / ÉVÉNEMENT :
 - Contexte institutionnel clair et crédible
 
 ────────────────────────
-INTERDICTIONS CRITIQUES ⛔ (EXEMPLES CONCRETS)
+INTERDICTIONS CRITIQUES ⛔
 ────────────────────────
 
-CES PROMPTS SONT INTERDITS (NE JAMAIS GÉNÉRER) :
-❌ "LED display showing 'CRÉDIT AGRICOLE €8.95 (-12.4%)'"
-❌ "stock market screen with declining chart"
-❌ "digital ticker displaying financial data"
-❌ "electronic board showing stock prices"
-❌ "the action of the chart decline occupies the upper half"
-❌ "graph illustrating stock performance"
-❌ "people walking in business attire in the foreground"
-❌ "businessmen in sharp focus at ground level"
+🚫 AUCUN écran affichant des graphiques, données, charts
+🚫 AUCUN LED display, ticker électronique, panneau digital boursier
+🚫 AUCUN graphique de trading, courbe boursière, infographie
+🚫 AUCUN dashboard, tableau de bord, visualisation de données
+🚫 AUCUN élément CGI, illustration, dessin, style artistique
+🚫 AUCUN texte visible (titres, labels, légendes, chiffres, pourcentages)
+🚫 AUCUN watermark, logo média, overlay
+🚫 AUCUN personnage au premier plan (ni net, ni flou)
 
-CES PROMPTS SONT VALIDES (TOUJOURS GÉNÉRER COMME ÇA) :
-✅ "corporate headquarters building with official logo on facade"
-✅ "low-angle shot of Tesla headquarters, official 'T' logo visible on building"
-✅ "Crédit Agricole headquarters exterior, official 'CA' logo on building facade"
-✅ "architectural shot of corporate building, logo integrated into building design"
-✅ "empty ground-level foreground, distant silhouettes only if necessary"
-
-🚫 INTERDICTIONS ABSOLUES :
-- AUCUN écran LED/digital affichant des données (prix, pourcentages, graphiques)
-- AUCUN graphique de trading, courbe boursière, infographie
-- AUCUN dashboard, tableau de bord, visualisation de données
-- AUCUN ticker électronique avec cours d'actions
-- AUCUN texte flottant (noms d'entreprises, chiffres, pourcentages)
-- AUCUN personnage net au premier plan
-- AUCUN élément CGI, illustration, dessin
-
-→ L'image doit montrer UNIQUEMENT un BÂTIMENT réel photographié en contre-plongée
+→ L'image doit montrer UNIQUEMENT des éléments physiques et réels du monde réel
 
 ────────────────────────
 DIRECTION ARTISTIQUE (OBLIGATOIRE)
@@ -177,113 +128,101 @@ COHÉRENCE VISUELLE :
 - Cadrage centré ou quasi centré
 - Fond propre, non distrayant
 
-Inclure explicitement dans le prompt que tu génères (DÉBUT DU PROMPT) :
-- "corporate headquarters building exterior"
+Inclure explicitement dans le prompt que tu génères :
 - "low-angle shot" ou "contre-plongée"
-- "camera positioned at ground level pointing upward toward the building"
-- "single continuous photograph of the building"
-- "official company logo on building facade" (PAS "LED display" ou "digital screen")
-- "natural perspective with building and logo in upper third"
-- "empty foreground" ou "no people in foreground"
+- "camera positioned at ground level pointing upward"
+- "single continuous photograph"
+- "natural perspective with key elements in upper third"
 - 8K render
 - professional photojournalism style
 - natural or high-end studio lighting
 - realistic depth of field
 - subtle natural sensor grain
+- no text in image
 
-ET ces NEGATIVE PROMPTS obligatoires (FIN DU PROMPT - RÉPÉTER 2 FOIS) :
-PREMIÈRE FOIS :
-- ABSOLUTELY NO LED displays or digital screens
-- NO stock market tickers showing prices
-- NO electronic boards with financial data  
-- NO charts or graphs (no "chart showing decline", no "graph illustrating")
-- NO data visualizations of any kind
-- NO text overlays with stock prices or percentages
-- NO people walking in business attire in foreground
-- NO businessmen or businesswomen in sharp focus
-- physical building architecture only
-- architectural logo signage only
-- empty ground-level foreground
-
-DEUXIÈME FOIS (RENFORCEMENT) :
-- NO digital screens, NO LED displays, NO stock tickers, NO financial data displays
-- NO charts, NO graphs, NO data visualizations, NO electronic boards
-- NO "action of chart decline", NO "stock performance visualization"
-- NO text, NO numbers, NO percentages, NO stock prices visible
-- NO people in foreground (sharp or blurred), NO business attire visible
-- physical corporate building only, logo integrated into building facade only
-- completely empty foreground preferred
-- no watermark, no media logo, no captions, no overlays
+ET ces NEGATIVE PROMPTS obligatoires :
+- ABSOLUTELY NO TEXT in image (no titles, no labels, no captions)
+- NO LED DISPLAYS or digital ticker banners (no stock market screens)
+- NO SCREENS showing data/graphics (no digital displays with charts or visualizations)
+- NO CHARTS, NO INFOGRAPHICS, NO DASHBOARDS (no bar graphs, line graphs, or statistical displays)
+- No fictional elements or overlays (no trading charts, no UI screens, no data graphics)
+- NO people in foreground (no businessmen, no business attire, empty foreground only)
+- No surreal or impossible elements (must be realistic in the real world)
+- The image must show ONLY physical, real-world elements
+- no watermark
+- no media logo
+- no captions
+- no overlays
 
 ────────────────────────
-EXEMPLE D'OUTPUT ATTENDU (RÉFÉRENCE CRITIQUE)
+EXEMPLE D'OUTPUT ATTENDU (RÉFÉRENCE)
 ────────────────────────
 
 Ultra-realistic editorial PRESS PHOTOGRAPH, 8K render, professional photojournalism style.
 
-⚠️ CRITICAL: This example shows EXACTLY what to generate and what NOT to generate.
-
 SUBJECT (MANDATORY)
-Tesla headquarters building as the single central subject.
-The image represents the company through their PHYSICAL BUILDING, not through screens or data displays.
-Example context: "Tesla announces record quarterly deliveries" → show the Tesla BUILDING, NOT a stock chart.
+Tesla as the single central subject, illustrated through their corporate headquarters and brand identity.
+The image must represent a specific business event: quarterly earnings announcement, production milestone, market expansion, or strategic partnership.
+Example context: "Tesla announces record quarterly deliveries" or "Tesla opens new Gigafactory in Europe".
 
 ACTION & COMPOSITION (MANDATORY)
-LOW-ANGLE SHOT (contre-plongée) – camera positioned at ground level, pointing upward toward the BUILDING.
-The UPPER THIRD contains: the building facade with the official Tesla logo.
-The LOWER THIRD contains: ground pavement, building base, empty foreground.
-❌ FORBIDDEN: "The upper third contains a LED screen showing Tesla stock price dropping"
-✅ CORRECT: "The upper third shows the Tesla headquarters building with official 'T' logo on the facade"
-
-CRITICAL: This must be ONE single continuous photograph of a BUILDING.
-NOT a photograph of people + a screen showing data.
+LOW-ANGLE SHOT (contre-plongée) – camera positioned at ground level, pointing upward toward the building.
+This natural perspective places the main visual action and all major elements in the UPPER THIRD of the image.
+The lower portion of the image shows the natural ground-level environment (pavement, entrance area, immediate surroundings).
+CRITICAL: This must be ONE single continuous photograph, NOT two separate images.
 Seamless visual unity from bottom to top, consistent lighting and perspective throughout.
-The lower third remains clean, uncluttered, with NO people in sharp focus.
+The lower third remains clean, uncluttered, and flows naturally from the upper composition.
+Centered or near-centered framing with natural, balanced perspective.
 
-CONTEXT (MANDATORY – PHYSICAL BUILDING ONLY)
-Tesla headquarters, Gigafactory, or corporate facility BUILDING.
+CONTEXT (MANDATORY – CORPORATE ENVIRONMENT)
+Tesla headquarters, Gigafactory, or corporate facility.
 OBLIGATORY visual identifiers:
-- Authentic TESLA logo mounted/displayed on the BUILDING FACADE (physical signage on architecture)
-- Modern automotive/technology facility BUILDING architecture
-- Professional business environment photographed from EXTERIOR
-❌ FORBIDDEN: "LED display showing 'TESLA' and stock chart"
-✅ CORRECT: "Tesla 'T' logo integrated into building facade design"
-
-The logo must appear as ARCHITECTURAL BRANDING on the building,
-NOT as an electronic display or screen.
+- Authentic TESLA logo prominently displayed on the building facade (official signage, official Tesla "T" logo)
+- Modern automotive/technology facility or corporate building architecture
+- Professional business environment photographed from exterior
+- Clean, premium corporate aesthetic suggesting innovation and market leadership
+The logo must appear as it would in real financial press photography covering Tesla earnings or announcements (Bloomberg, Reuters, Financial Times).
 
 PEOPLE (STRICT)
-❌ ABSOLUTELY NO people walking in business attire in the foreground
-❌ NO businessmen/businesswomen in sharp focus at ground level
-❌ NO "people crossing in front of the building"
-✅ ONLY: very distant, barely visible silhouettes if absolutely necessary (optional)
-✅ PREFERRED: completely empty foreground
+No visible individuals in the foreground.
+If present, only very distant, discreet silhouettes allowed.
 
 ART DIRECTION (MANDATORY)
 Sunset stylized sky with dominant purple, orange, and magenta tones.
-Stunning sunset backdrop behind the corporate BUILDING (not behind a screen).
+Stunning sunset backdrop behind the corporate building.
 Atmosphere premium, stunning, financial and aspirational.
-PRESS PHOTO realistic style of a BUILDING (not of a data display).
+PRESS PHOTO realistic style (financial journalism quality).
 
-CRITICAL RESTRICTIONS (MANDATORY – REPEAT IN PROMPT)
-❌ DO NOT GENERATE: "LED screen displaying Tesla stock declining"
-❌ DO NOT GENERATE: "digital ticker showing 'TESLA -5.2%'"
-❌ DO NOT GENERATE: "chart showing stock market performance in upper half"
-❌ DO NOT GENERATE: "people in business suits walking in foreground"
-✅ GENERATE: "Tesla headquarters building, low-angle shot, official logo on building facade"
-✅ GENERATE: "architectural photography of corporate building exterior"
-✅ GENERATE: "empty ground-level foreground, building rises toward upper third"
+CRITICAL RESTRICTIONS (MANDATORY – MUST BE EXPLICITLY INCLUDED IN EVERY PROMPT)
+Low-angle shot (contre-plongée) with camera at ground level.
+Single continuous photograph, NOT two separate images or split composition.
+NO digital screens displaying charts, graphs, or data visualizations.
+NO LED displays showing stock prices, tickers, or financial data.
+NO bar charts, line graphs, pie charts, or statistical displays anywhere in the image.
+NO stock market tickers, trading screens, or financial dashboards visible.
+NO infographics, dashboards, or data presentations visible.
+NO horizontal division or top/bottom split – must be one unified scene.
+NO text, numbers, labels, or captions of any kind.
+NO people walking in foreground (empty foreground only).
+The image must show ONLY physical, real-world elements photographable by a financial press photographer.
+NO CGI, no 3D renders, no artificial overlays.
+Seamless visual flow with consistent perspective and lighting throughout.
 
-NO digital screens, NO data displays, NO stock tickers, NO graphs, NO charts.
-NO people in foreground (sharp or blurred).
-ONLY physical building architecture with official logo.
+TECHNICAL REQUIREMENTS (MANDATORY)
+Natural or high-end studio lighting.
+Realistic depth of field.
+Subtle natural sensor grain.
+No text in image (important)
+No watermark.
+No media logo.
+No captions or overlays.
 
-NEGATIVE PROMPTS (CRITICAL - MUST INCLUDE):
-NO LED displays, NO digital screens, NO stock market tickers, NO financial data displays,
-NO charts, NO graphs, NO data visualizations, NO electronic boards,
-NO text overlays, NO percentage numbers, NO stock prices,
-NO people walking in foreground, NO businessmen, NO businesswomen,
-physical building architecture only, architectural signage only, empty foreground.
+NEGATIVE PROMPTS (CRITICAL):
+NO LED displays or digital ticker banners.
+NO digital screens displaying charts or data visualizations.
+NO bar graphs, line graphs, or statistical displays.
+NO people in foreground.
+The image must show ONLY physical, real-world elements photographed in a press context.
 
 ────────────────────────
 FORMAT DE SORTIE (OBLIGATOIRE)
