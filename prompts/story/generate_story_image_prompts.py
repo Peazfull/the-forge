@@ -1,25 +1,25 @@
 PROMPT_GENERATE_STORY_IMAGE_PROMPT = """
-Tu vas recevoir un TITRE et un CONTENU d'actualité pour une Story Instagram.
+Tu vas recevoir un TITRE et un CONTENU d'actualité économique, politique ou institutionnelle.
 
 Ta mission est de générer UNIQUEMENT le PROMPT FINAL
 destiné à une IA de génération d'images.
 Tu ne génères PAS l'image.
 
-Le prompt doit illustrer l'ACTUALITÉ,
+Le prompt doit illustrer l'ACTU MAJEURE,
 en respectant strictement les contraintes visuelles ci-dessous.
 
 ────────────────────────
-ACTUALITÉ (OBLIGATOIRE)
+ACTU MAJEURE (OBLIGATOIRE)
 ────────────────────────
 
 À partir du titre et du contenu :
-- identifie l'ACTUALITÉ qui porte l'information centrale
+- identifie l'ACTU MAJEURE qui porte l'information centrale
 - conserve le contexte, mais hiérarchise clairement
 
 Sélectionne LE SUJET VISUEL CENTRAL :
 - ENTREPRISE
 - PERSONNALITÉ PUBLIQUE
-- LIEU / ÉVÉNEMENT MAJEUR
+- LIEU / ÉVÉNEMENT ÉCONOMIQUE OU INSTITUTIONNEL
 
 L'image doit illustrer :
 → l'entreprise, l'acteur ou le lieu qui porte l'action principale
@@ -77,55 +77,17 @@ SI LE SUJET EST UN LIEU / ÉVÉNEMENT :
 - Contexte institutionnel clair et crédible
 
 ────────────────────────
-INTERDICTIONS CRITIQUES ⛔ (ULTRA-PRIORITAIRE)
+INTERDICTIONS CRITIQUES ⛔
 ────────────────────────
 
-⚠️ CES INTERDICTIONS SONT ABSOLUES ET NON NÉGOCIABLES ⚠️
+🚫 AUCUN écran affichant des graphiques, données, charts
+🚫 AUCUN graphique de trading, courbe boursière, infographie
+🚫 AUCUN dashboard, tableau de bord, visualisation de données
+🚫 AUCUN élément CGI, illustration, dessin, style artistique
+🚫 AUCUN texte visible (titres, labels, légendes)
+🚫 AUCUN watermark, logo média, overlay
 
-🚫 AUCUN TEXTE VISIBLE (ABSOLUMENT INTERDIT) :
-   - NO stock tickers (CAC 40, EUR/USD, etc.)
-   - NO financial data displays
-   - NO text banners or overlays
-   - NO percentage changes (-4.8%, +2.5%, etc.)
-   - NO company names in text form
-   - NO currency pairs displayed as text
-   - NO numeric data visible
-   - NO titles, labels, captions, subtitles
-
-🚫 AUCUN ÉCRAN OU AFFICHAGE DIGITAL :
-   - NO LED displays showing market data
-   - NO digital screens with financial information
-   - NO ticker tape displays
-   - NO electronic boards showing stock prices
-   - NO TV screens showing news or data
-   - NO monitors displaying charts or numbers
-
-🚫 AUCUN GRAPHIQUE OU VISUALISATION DE DONNÉES :
-   - NO trading charts
-   - NO line graphs or bar charts
-   - NO candlestick charts
-   - NO infographics
-   - NO dashboards
-   - NO data visualizations of any kind
-
-🚫 AUCUN OVERLAY OU ÉLÉMENT SUPERPOSÉ :
-   - NO transparent text overlays
-   - NO graphic overlays
-   - NO watermarks
-   - NO media logos
-   - NO UI elements
-   - NO fictional additions
-
-🚫 AUCUN ÉLÉMENT NON-RÉALISTE :
-   - NO CGI elements
-   - NO illustrations or drawings
-   - NO artistic interpretations
-   - NO surreal or impossible elements
-   - NO split compositions (two images merged)
-
-→ L'image doit montrer UNIQUEMENT une photographie authentique d'éléments physiques réels
-→ SEUL le logo officiel de l'entreprise (sur bâtiment/façade) est autorisé comme élément textuel
-→ AUCUNE autre forme de texte, chiffre, ou données n'est acceptable
+→ L'image doit montrer UNIQUEMENT des éléments physiques et réels du monde réel
 
 ────────────────────────
 DIRECTION ARTISTIQUE (OBLIGATOIRE)
@@ -133,14 +95,14 @@ DIRECTION ARTISTIQUE (OBLIGATOIRE)
 
 STYLE :
 - Ultra-realistic editorial PRESS PHOTOGRAPH (PHOTO DE PRESSE RÉELLE)
-- Photojournalisme breaking news
+- Photojournalisme économique
 - Photo de presse réaliste, authentique, crédible
 - IMITATION PHOTO DE PRESSE
 - Aucun style illustratif, artistique ou CGI
 
 PALETTE COULEURS OBLIGATOIRE (très important car DA sur projet) :
-- Stunning bright sky with sunset stylized sky colors: purple, magenta and orange tones
-- Dominante : purple, magenta, orange tones
+- Stunning bright sky with sunset stylized sky colors: purple, orange and magenta tones
+- Dominante : purple, orange, magenta tones
 - Accents lumineux subtils et élégants
 
 ────────────────────────
@@ -169,7 +131,6 @@ Inclure explicitement dans le prompt que tu génères :
 - "camera positioned at ground level pointing upward"
 - "single continuous photograph"
 - "natural perspective with key elements in upper third"
-- 16:9 aspect ratio (horizontal)
 - 8K render
 - professional photojournalism style
 - natural or high-end studio lighting
@@ -177,41 +138,83 @@ Inclure explicitement dans le prompt que tu génères :
 - subtle natural sensor grain
 - no text in image
 
-ET ces NEGATIVE PROMPTS obligatoires (TRÈS IMPORTANT - À RÉPÉTER PLUSIEURS FOIS) :
-- ABSOLUTELY NO TEXT in image
-- NO TEXT OF ANY KIND (no titles, no labels, no captions, no subtitles, no letters, no words, no numbers)
-- NO STOCK TICKERS (no "CAC 40", no "EUR/USD", no "CRÉDIT AGRICOLE", no "-4.8%", no "+2.5%")
-- NO FINANCIAL DATA TEXT (no percentage changes, no stock prices, no currency pairs as text)
-- NO LED DISPLAYS or digital ticker banners showing market information
+ET ces NEGATIVE PROMPTS obligatoires :
+- ABSOLUTELY NO TEXT in image (no titles, no labels, no captions)
 - NO SCREENS showing data/graphics (no digital displays with charts or visualizations)
-- NO CHARTS, NO INFOGRAPHICS, NO DASHBOARDS (no bar graphs, line graphs, candlestick charts, or statistical displays)
-- NO TRADING CHARTS or financial visualizations
-- NO fictional elements or overlays (no trading charts, no UI screens, no data graphics)
-- NO transparent text overlays with company names or financial data
-- NO electronic boards showing stock market information
-- NO TV screens or monitors displaying news or data
-- NO surreal or impossible elements (must be realistic in the real world)
-- NO split composition or two separate images merged together
-- The image must show ONLY physical, real-world architectural elements and natural environment
-- The ONLY text allowed is the official company logo on the building facade (nothing else)
+- NO CHARTS, NO INFOGRAPHICS, NO DASHBOARDS (no bar graphs, line graphs, or statistical displays)
+- No fictional elements or overlays (no trading charts, no UI screens, no data graphics)
+- No surreal or impossible elements (must be realistic in the real world)
+- The image must show ONLY physical, real-world elements
 - no watermark
 - no media logo
 - no captions
 - no overlays
-- no data displays
-- clean photograph without any text additions
 
 ────────────────────────
-EXEMPLE D'OUTPUT ATTENDU
+EXEMPLE D'OUTPUT ATTENDU (RÉFÉRENCE)
 ────────────────────────
 
-ACTU : "Nvidia espère finaliser une licence pour exporter des puces IA vers la Chine"
+Ultra-realistic editorial PRESS PHOTOGRAPH, 8K render, professional photojournalism style.
 
-→ SUJET CENTRAL : Nvidia (entreprise)
+SUBJECT (MANDATORY)
+Tesla as the single central subject, illustrated through their corporate headquarters and brand identity.
+The image must represent a specific business event: quarterly earnings announcement, production milestone, market expansion, or strategic partnership.
+Example context: "Tesla announces record quarterly deliveries" or "Tesla opens new Gigafactory in Europe".
 
-→ IMAGE PROMPT GÉNÉRÉ :
+ACTION & COMPOSITION (MANDATORY)
+LOW-ANGLE SHOT (contre-plongée) – camera positioned at ground level, pointing upward toward the building.
+This natural perspective places the main visual action and all major elements in the UPPER THIRD of the image.
+The lower portion of the image shows the natural ground-level environment (pavement, entrance area, immediate surroundings).
+CRITICAL: This must be ONE single continuous photograph, NOT two separate images.
+Seamless visual unity from bottom to top, consistent lighting and perspective throughout.
+The lower third remains clean, uncluttered, and flows naturally from the upper composition.
+Centered or near-centered framing with natural, balanced perspective.
 
-"Ultra-realistic editorial press photograph of Nvidia headquarters building, low-angle shot, camera positioned at ground level pointing upward, single continuous photograph, the official Nvidia logo prominently displayed on the building facade in the upper third of the image, modern corporate architecture with clean glass and steel surfaces, natural perspective with key elements in upper third, the foreground shows natural ground pavement and building base, stunning bright sky with sunset stylized sky colors in purple, magenta and orange tones creating a dramatic yet professional atmosphere, professional photojournalism style, 16:9 aspect ratio, 8K render, natural lighting, realistic depth of field, subtle natural sensor grain, clean photograph without any text additions. ABSOLUTELY NO TEXT in image, NO TEXT OF ANY KIND (no titles, no labels, no captions, no subtitles, no letters, no words, no numbers), NO STOCK TICKERS (no 'CAC 40', no 'EUR/USD', no 'CRÉDIT AGRICOLE', no '-4.8%', no '+2.5%'), NO FINANCIAL DATA TEXT (no percentage changes, no stock prices, no currency pairs as text), NO LED DISPLAYS or digital ticker banners showing market information, NO SCREENS showing data/graphics (no digital displays with charts or visualizations), NO CHARTS, NO INFOGRAPHICS, NO DASHBOARDS (no bar graphs, line graphs, candlestick charts, or statistical displays), NO TRADING CHARTS or financial visualizations, no fictional elements or overlays (no trading charts, no UI screens, no data graphics), NO transparent text overlays with company names or financial data, NO electronic boards showing stock market information, NO TV screens or monitors displaying news or data, no surreal or impossible elements, NO split composition or two separate images merged together, the image must show ONLY physical real-world architectural elements and natural environment, the ONLY text allowed is the official company logo on the building facade (nothing else), no watermark, no media logo, no captions, no overlays, no data displays, clean photograph without any text additions."
+CONTEXT (MANDATORY – CORPORATE ENVIRONMENT)
+Tesla headquarters, Gigafactory, or corporate facility.
+OBLIGATORY visual identifiers:
+- Authentic TESLA logo prominently displayed on the building facade (official signage, official Tesla "T" logo)
+- Modern automotive/technology facility or corporate building architecture
+- Professional business environment photographed from exterior
+- Clean, premium corporate aesthetic suggesting innovation and market leadership
+The logo must appear as it would in real financial press photography covering Tesla earnings or announcements (Bloomberg, Reuters, Financial Times).
+
+PEOPLE (STRICT)
+No visible individuals in the foreground.
+If present, only very distant, discreet silhouettes allowed.
+
+ART DIRECTION (MANDATORY)
+Sunset stylized sky with dominant purple, orange, and magenta tones.
+Stunning sunset backdrop behind the corporate building.
+Atmosphere premium, stunning, financial and aspirational.
+PRESS PHOTO realistic style (financial journalism quality).
+
+CRITICAL RESTRICTIONS (MANDATORY – MUST BE EXPLICITLY INCLUDED IN EVERY PROMPT)
+Low-angle shot (contre-plongée) with camera at ground level.
+Single continuous photograph, NOT two separate images or split composition.
+NO digital screens displaying charts, graphs, or data visualizations.
+NO bar charts, line graphs, pie charts, or statistical displays anywhere in the image.
+NO stock market tickers, trading screens, or financial dashboards visible.
+NO infographics, dashboards, or data presentations visible.
+NO horizontal division or top/bottom split – must be one unified scene.
+NO text, numbers, labels, or captions of any kind.
+The image must show ONLY physical, real-world elements photographable by a financial press photographer.
+NO CGI, no 3D renders, no artificial overlays.
+Seamless visual flow with consistent perspective and lighting throughout.
+
+TECHNICAL REQUIREMENTS (MANDATORY)
+Natural or high-end studio lighting.
+Realistic depth of field.
+Subtle natural sensor grain.
+No text in image (important)
+No watermark.
+No media logo.
+No captions or overlays.
+
+NEGATIVE PROMPTS (CRITICAL):
+NO digital screens displaying charts or data visualizations.
+NO bar graphs, line graphs, or statistical displays.
+The image must show ONLY physical, real-world elements photographed in a press context.
 
 ────────────────────────
 FORMAT DE SORTIE (OBLIGATOIRE)
