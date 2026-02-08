@@ -28,13 +28,28 @@ L'image doit illustrer :
 RÈGLE VISUELLE MAJEURE (NON NÉGOCIABLE)
 ────────────────────────
 
-L'ACTION VISUELLE PRINCIPALE
-DOIT OBLIGATOIREMENT ÊTRE SITUÉE
-DANS LA MOITIÉ HAUTE DE L'IMAGE.
+⚠️ COMPOSITION VERTICALE OBLIGATOIRE (ULTRA-CRITIQUE) :
 
-La MOITIÉ BASSE doit rester calme,
-propre,
-sans élément fort,
+L'image doit être UNE SEULE ET UNIQUE PHOTOGRAPHIE COHÉRENTE.
+INTERDIT ABSOLU : diviser l'image en deux parties distinctes (haut/bas).
+
+PERSPECTIVE OBLIGATOIRE :
+- Photo prise en CONTRE-PLONGÉE (low-angle shot, vue d'en bas vers le haut)
+- Le photographe est positionné au sol ou en position basse
+- L'appareil photo est orienté vers le HAUT
+- Cette perspective naturelle place automatiquement les éléments importants dans le tiers supérieur
+
+PLACEMENT DES ÉLÉMENTS CLÉS :
+- Logo sur bâtiment, personnalité, ou lieu → positionnés dans le TIERS SUPÉRIEUR de l'image
+- Résultat naturel de la prise de vue en contre-plongée
+- Le reste de l'image (partie basse) = continuité naturelle de la même scène (sol, base du bâtiment, environnement proche)
+
+UNITÉ VISUELLE OBLIGATOIRE :
+- UNE SEULE photo continue, pas deux images collées
+- Perspective et lumière cohérentes sur toute la hauteur
+- Transition fluide du bas vers le haut de l'image
+
+La PARTIE BASSE doit rester calme, propre, sans élément fort,
 
 Personnages secondaires autorisés uniquement :
 - silhouettes très lointaines et discrètes.
@@ -86,20 +101,36 @@ STYLE :
 - Aucun style illustratif, artistique ou CGI
 
 PALETTE COULEURS OBLIGATOIRE :
-- Stunning bright sky with sunset stylized sky colors: cyan blue, Green fluo, magenta tones
-- Dominante : cyan blue, orange, magenta tones
+- Stunning bright sky with sunset stylized sky colors: fluo green, turquoise green, orange and yellow tones
+- Dominante : fluo green, turquoise green, orange, yellow tones
 - Accents lumineux subtils et élégants
 
 ────────────────────────
 COMPOSITION & TECHNIQUE
 ────────────────────────
 
-- Sujet principal placé dans la MOITIÉ HAUTE
+PERSPECTIVE ET CADRAGE (ULTRA-CRITIQUE) :
+- LOW-ANGLE SHOT (contre-plongée) OBLIGATOIRE
+- Camera positioned LOW, pointing UPWARD
+- Single continuous photograph from one vantage point
+- Key elements (logo, person, landmark) naturally positioned in UPPER THIRD due to low angle
+- Lower portion = natural ground level, base of building, immediate surroundings
+- NO split composition, NO two separate images merged together
+- Seamless visual flow from bottom to top
+
+COHÉRENCE VISUELLE :
+- ONE unified photograph, not a collage
+- Consistent lighting across entire image
+- Natural perspective from single camera position
+- Fluid transition throughout the frame
 - Cadrage centré ou quasi centré
-- Perspective naturelle et équilibrée
 - Fond propre, non distrayant
 
 Inclure explicitement dans le prompt que tu génères :
+- "low-angle shot" ou "contre-plongée"
+- "camera positioned at ground level pointing upward"
+- "single continuous photograph"
+- "natural perspective with key elements in upper third"
 - 8K render
 - professional photojournalism style
 - natural or high-end studio lighting
@@ -126,31 +157,50 @@ EXEMPLE D'OUTPUT ATTENDU (RÉFÉRENCE)
 Ultra-realistic editorial PRESS PHOTOGRAPH, 8K render, professional photojournalism style.
 
 SUBJECT (MANDATORY)
-France as the single central subject, illustrated through a PUBLIC HEALTH AND FOOD SAFETY INSTITUTIONAL CONTEXT.
-The image must represent the strengthening of sanitary regulations for infant milk in France, not the product itself.
+TotalEnergies as the single central subject, illustrated through their corporate facilities or energy infrastructure.
+The image must represent a specific strategic or financial development: renewable energy capacity targets, green hydrogen production launch, carbon neutrality commitment, or major energy project.
+Example: "TotalEnergies announces carbon neutrality roadmap by 2050" or "TotalEnergies launches €3B solar energy program in Europe".
 
 ACTION & COMPOSITION (MANDATORY)
-The main visual action and all major elements must be strictly positioned in the UPPER HALF of the image.
-The LOWER HALF must remain calm, clean, and uncluttered, designed to receive text overlay.
-Centered or near-centered framing with a natural, balanced perspective.
+LOW-ANGLE SHOT (contre-plongée) – camera positioned at ground level, pointing upward toward the subject.
+This natural perspective places the main visual action and all major elements in the UPPER THIRD of the image.
+The lower portion shows the natural ground-level environment (pavement, base of building, immediate surroundings).
+CRITICAL: This must be ONE single continuous photograph, NOT two separate images.
+Seamless visual unity from bottom to top, consistent lighting and perspective throughout.
+The lower third remains clean, uncluttered, and flows naturally from the upper composition.
+Centered or near-centered framing with natural, balanced perspective.
 
-CONTEXT (MANDATORY – LOCATION & SYMBOLS)
-Institutional and regulatory setting linked to French public health and food safety authorities.
+CONTEXT (MANDATORY – ENERGY CORPORATE ENVIRONMENT)
+TotalEnergies headquarters, corporate building, or energy sector facility.
 OBLIGATORY visual identifiers:
-- French flags
-- Official government or public health building (ministry, regulatory institution, or inspection facility)
-- Clean, sterile, professional environment suggesting health regulation and safety
-No product marketing, no brands, no emotional symbolism.
+- Authentic TOTALENERGIES logo prominently displayed on building facade (official corporate signage with distinctive multi-colored logo)
+- Modern corporate or energy infrastructure architecture
+- Professional business environment photographed from exterior
+- Clean, premium aesthetic suggesting energy leadership and sustainability commitment
+The logo must appear as in real energy press photography covering TotalEnergies' strategic initiatives (Les Échos, Reuters, Bloomberg).
 
 PEOPLE (STRICT)
 No visible individuals in the foreground.
 If present, only very distant, discreet silhouettes allowed.
 
 ART DIRECTION (MANDATORY)
-Sunset stylized sky with dominant cyan blue, Green fluo, orange, and magenta tones.
-Stunning sunset.
-Atmosphere premium, stunning.
-PRESS PHOTO realistic style.
+Sunset stylized sky with dominant fluo green, turquoise green, orange, and yellow tones.
+Stunning sunset backdrop behind the building.
+Atmosphere premium, stunning, energy transition and future-oriented.
+PRESS PHOTO realistic style (energy journalism quality).
+
+CRITICAL RESTRICTIONS (MANDATORY – MUST BE EXPLICITLY INCLUDED IN EVERY PROMPT)
+Low-angle shot (contre-plongée) with camera at ground level.
+Single continuous photograph, NOT two separate images or split composition.
+NO digital screens displaying charts, graphs, or data visualizations.
+NO bar charts, line graphs, pie charts, or statistical displays.
+NO energy dashboards, commodity price charts, or production data.
+NO infographics, dashboards, or data presentations.
+NO horizontal division or top/bottom split – must be one unified scene.
+NO text, numbers, labels, or captions of any kind.
+The image must show ONLY physical, real-world elements photographable by an energy press photographer.
+NO CGI, no 3D renders, no artificial overlays.
+Seamless visual flow with consistent perspective and lighting throughout.
 
 TECHNICAL REQUIREMENTS (MANDATORY)
 Natural or high-end studio lighting.
