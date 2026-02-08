@@ -302,6 +302,49 @@ def model_to_tag(model_name: str) -> str:
     return "unknown"
 
 
+def load_slides_from_storage():
+    """Charge les slides existantes depuis Supabase Storage au lieu de les régénérer."""
+    carousel_data = get_carousel_eco_items()
+    if carousel_data["status"] != "success" or carousel_data["count"] == 0:
+        return {"status": "error", "message": "Aucun item"}
+    
+    if "slide_previews" not in st.session_state:
+        st.session_state.slide_previews = {}
+    
+    supabase = get_supabase()
+    loaded = 0
+    errors = 0
+    
+    items_sorted = sorted(
+        carousel_data["items"],
+        key=lambda i: (0 if i.get("position") == 0 else 1, i.get("position", 999))
+    )
+    
+    for item in items_sorted:
+        item_id = item["id"]
+        position = item["position"]
+        filename = f"slide_{position}.png"
+        
+        try:
+            # Télécharger la slide depuis Supabase Storage
+            response = supabase.storage.from_("carousel-eco-slides").download(filename)
+            if response:
+                st.session_state.slide_previews[item_id] = {
+                    "key": f"storage_{position}",
+                    "bytes": response
+                }
+                loaded += 1
+        except Exception:
+            errors += 1
+    
+    return {
+        "status": "success" if loaded > 0 else "error",
+        "loaded": loaded,
+        "errors": errors,
+        "message": f"{loaded} slides chargées depuis le storage"
+    }
+
+
 def generate_all_slide_previews():
     """Génère toutes les slides et les met en cache session_state."""
     carousel_data = get_carousel_eco_items()
@@ -1520,6 +1563,23 @@ with st.expander("🖼️ Preview Slides", expanded=False):
     elif carousel_data["count"] == 0:
         st.info("Aucun item · Envoyez d'abord des items depuis 'Bulletin Eco'")
     else:
+        # Chargement automatique depuis le storage au premier affichage
+        if "slide_previews" not in st.session_state or not st.session_state.slide_previews:
+            with st.spinner("Chargement des slides depuis le storage..."):
+                load_result = load_slides_from_storage()
+                if load_result.get("status") == "success":
+                    st.success(f"✅ {load_result.get('loaded', 0)} slides chargées")
+        
+        # Bouton manuel pour recharger
+        if st.button("🔄 Recharger les slides depuis le storage", use_container_width=True):
+            with st.spinner("Rechargement..."):
+                load_result = load_slides_from_storage()
+                if load_result.get("status") == "success":
+                    st.success(f"✅ {load_result.get('loaded', 0)} slides rechargées")
+                    st.rerun()
+                else:
+                    st.error("❌ Aucune slide trouvée dans le storage")
+        
         if "slide_previews" not in st.session_state:
             st.session_state.slide_previews = {}
         
