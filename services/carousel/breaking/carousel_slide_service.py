@@ -22,7 +22,7 @@ ASSETS_DIR = os.path.join(
 CANVAS_SIZE = (1080, 1080)
 LOGO_SIZE = (200, 65)
 LOGO_TOP = 15
-TITLE_BG_TOP_FROM_BOTTOM = 460  # px depuis le bas
+TITLE_BG_TOP_FROM_BOTTOM = 490  # px depuis le bas (590px du haut)
 TITLE_BG_SIDE_MARGIN = 50
 SWIPE_MARGIN = 20
 SWIPE_SIZE = (56, 29)
@@ -279,14 +279,16 @@ def generate_cover_slide(
     title_line_height = int(title_font.size * 1.2)
     title_block_height = title_line_height * len(title_lines)
 
-    total_h = cover_logo_height + DATE_TOP_GAP + title_block_height
-    start_y = (CANVAS_SIZE[1] - total_h) // 2 + 200
-    cover_x = (CANVAS_SIZE[0] - cover_logo.size[0]) // 2 if cover_logo_height else 0
-
+    # Titre positionné à 680px du haut
+    title_y = 680
+    
+    # Logo positionné AU-DESSUS du titre avec un gap de 12px
     if cover_logo_height:
-        canvas.alpha_composite(cover_logo, (cover_x, start_y))
+        logo_y = title_y - DATE_TOP_GAP - cover_logo_height
+        cover_x = (CANVAS_SIZE[0] - cover_logo.size[0]) // 2
+        canvas.alpha_composite(cover_logo, (cover_x, logo_y))
 
-    title_y = start_y + cover_logo_height + DATE_TOP_GAP
+    # Affichage du titre
     for line in title_lines:
         line_w = draw.textlength(line, font=title_font)
         line_x = (CANVAS_SIZE[0] - int(line_w)) // 2

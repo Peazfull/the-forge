@@ -25,7 +25,7 @@ SLIDES_BUCKET = "carousel-pea-slides"
 CANVAS_SIZE = (1080, 1080)
 LOGO_SIZE = (200, 65)
 LOGO_TOP = 15
-TITLE_BG_TOP_FROM_BOTTOM = 460  # px depuis le bas
+TITLE_BG_TOP_FROM_BOTTOM = 490  # px depuis le bas (590px du haut)
 TITLE_BG_SIDE_MARGIN = 50
 SWIPE_MARGIN = 20
 SWIPE_SIZE = (56, 29)
@@ -287,16 +287,17 @@ def generate_cover_slide(
     date_w = draw.textlength(date_str, font=date_font)
     date_h = int(DATE_FONT_SIZE * 1.2)
     
-    # Centre verticalement le bloc logo + date, puis descendre de 150px
-    total_h = cover_logo_height + DATE_TOP_GAP + date_h
-    start_y = (CANVAS_SIZE[1] - total_h) // 2 + 150
-    cover_x = (CANVAS_SIZE[0] - cover_logo.size[0]) // 2 if cover_logo_height else 0
+    # Date positionnée à 680px du haut
+    date_y = 680
     
+    # Logo positionné AU-DESSUS de la date avec un gap de 12px
     if cover_logo_height:
-        canvas.alpha_composite(cover_logo, (cover_x, start_y))
+        logo_y = date_y - DATE_TOP_GAP - cover_logo_height
+        cover_x = (CANVAS_SIZE[0] - cover_logo.size[0]) // 2
+        canvas.alpha_composite(cover_logo, (cover_x, logo_y))
     
+    # Date
     date_x = (CANVAS_SIZE[0] - int(date_w)) // 2
-    date_y = start_y + cover_logo_height + DATE_TOP_GAP
     draw.text((date_x, date_y), date_str, font=date_font, fill="white")
     
     # Swipe (cover)
