@@ -331,8 +331,13 @@ def upload_slide_bytes(filename: str, image_bytes: bytes) -> Optional[str]:
 
 
 def get_slide_public_url(filename: str) -> str:
+    """Retourne l'URL publique avec un cache buster pour forcer le refresh."""
+    import time
     supabase = get_supabase()
-    return supabase.storage.from_(SLIDES_BUCKET).get_public_url(filename)
+    base_url = supabase.storage.from_(SLIDES_BUCKET).get_public_url(filename)
+    # Ajouter un timestamp pour éviter le cache navigateur
+    separator = "&" if "?" in base_url else "?"
+    return f"{base_url}{separator}t={int(time.time())}"
 
 
 def list_slide_files() -> Set[str]:
