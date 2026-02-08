@@ -264,6 +264,8 @@ if st.button("✨ Générer titre + contenu", use_container_width=True):
             # Générer les slides automatiquement si images OK
             if state.get("image_url_0") and state.get("image_url_1"):
                 _generate_breaking_slides(state, state["title_carou"], state["content_carou"])
+                st.session_state["breaking_slides_cache_buster"] = str(time.time())
+                st.rerun()
 
 st.markdown("### Résumé Breaking (éditable)")
 title = st.text_input("Titre (clickbait)", value=state.get("title_carou", ""))
