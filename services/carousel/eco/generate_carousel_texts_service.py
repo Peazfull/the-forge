@@ -1,5 +1,6 @@
 import json
 import streamlit as st
+import time
 from openai import OpenAI
 from typing import Dict, List
 from db.supabase_client import get_supabase
@@ -9,7 +10,8 @@ from prompts.carousel.eco.generate_image_prompts_variant import PROMPT_GENERATE_
 
 
 REQUEST_TIMEOUT = 30  # Réduit à 30s pour éviter freeze long
-MAX_RETRIES = 1  # 1 seul retry pour aller plus vite
+MAX_RETRIES = 3  # 3 retries pour gérer le rate limiting
+RETRY_DELAY = 10  # Délai entre les retries (secondes)
 
 
 def generate_image_prompt_for_item(title: str, content: str, prompt_type: str = "sunset") -> Dict[str, object]:
@@ -50,7 +52,7 @@ def generate_image_prompt_for_item(title: str, content: str, prompt_type: str = 
             system_prompt = PROMPT_GENERATE_IMAGE_PROMPT
             temperature = 0.6
         
-        # Retry logic
+        # Retry logic avec délai progressif pour gérer le rate limiting
         for attempt in range(MAX_RETRIES):
             try:
                 response = client.chat.completions.create(
@@ -70,7 +72,14 @@ def generate_image_prompt_for_item(title: str, content: str, prompt_type: str = 
                 break
                 
             except Exception as e:
-                if attempt < MAX_RETRIES - 1:
+                error_msg = str(e)
+                # Si c'est une erreur 429 (rate limit) et qu'il reste des tentatives
+                if "429" in error_msg and attempt < MAX_RETRIES - 1:
+                    delay = RETRY_DELAY * (attempt + 1)  # Délai progressif
+                    time.sleep(delay)
+                    continue
+                elif attempt < MAX_RETRIES - 1:
+                    time.sleep(2)  # Petit délai pour les autres erreurs
                     continue
                 else:
                     raise e
@@ -133,7 +142,7 @@ def generate_carousel_text_for_item(title: str, content: str) -> Dict[str, objec
         # Construire l'input
         user_input = f"TITRE: {title}\n\nCONTENT: {content}"
         
-        # Retry logic
+        # Retry logic avec délai progressif pour gérer le rate limiting
         for attempt in range(MAX_RETRIES):
             try:
                 response = client.chat.completions.create(
@@ -153,7 +162,14 @@ def generate_carousel_text_for_item(title: str, content: str) -> Dict[str, objec
                 break
                 
             except Exception as e:
-                if attempt < MAX_RETRIES - 1:
+                error_msg = str(e)
+                # Si c'est une erreur 429 (rate limit) et qu'il reste des tentatives
+                if "429" in error_msg and attempt < MAX_RETRIES - 1:
+                    delay = RETRY_DELAY * (attempt + 1)  # Délai progressif
+                    time.sleep(delay)
+                    continue
+                elif attempt < MAX_RETRIES - 1:
+                    time.sleep(2)  # Petit délai pour les autres erreurs
                     continue
                 else:
                     raise e

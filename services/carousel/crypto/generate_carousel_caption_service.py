@@ -10,7 +10,9 @@ from db.supabase_client import get_supabase
 
 REQUEST_TIMEOUT = 30
 MAX_UPLOAD_RETRIES = 3
+MAX_API_RETRIES = 3  # Retry pour les appels API OpenAI
 RETRY_DELAY_SECONDS = 2
+API_RETRY_DELAY = 10  # Délai pour le rate limiting
 
 CTA_LINE = "Rejoignez la liste d'attente pour notre future newsletter 100% gratuite (lien en bio)."
 CAPTION_BUCKET = "carousel-crypto-slides"
@@ -35,16 +37,33 @@ def generate_caption_from_items(items: List[Dict[str, object]]) -> Dict[str, obj
     
     try:
         client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": PROMPT_GENERATE_CAROUSEL_CAPTION},
-                {"role": "user", "content": user_input}
-            ],
-            temperature=0.7,
-            timeout=REQUEST_TIMEOUT
-        )
-        caption = (response.choices[0].message.content or "").strip()
+        
+        # Retry logic avec délai progressif pour gérer le rate limiting
+        for attempt in range(MAX_API_RETRIES):
+            try:
+                response = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {"role": "system", "content": PROMPT_GENERATE_CAROUSEL_CAPTION},
+                        {"role": "user", "content": user_input}
+                    ],
+                    temperature=0.7,
+                    timeout=REQUEST_TIMEOUT
+                )
+                caption = (response.choices[0].message.content or "").strip()
+                break
+                
+            except Exception as e:
+                error_msg = str(e)
+                if "429" in error_msg and attempt < MAX_API_RETRIES - 1:
+                    delay = API_RETRY_DELAY * (attempt + 1)
+                    time.sleep(delay)
+                    continue
+                elif attempt < MAX_API_RETRIES - 1:
+                    time.sleep(2)
+                    continue
+                else:
+                    raise e
         
         caption = sanitize_caption(caption)
         
