@@ -7,7 +7,7 @@ Contraintes :
 - Pas de copier‑coller, tout doit être reformulé.
 - Ton neutre, crédible, professionnel.
 - Pas d'emojis, pas de markdown.
-- Le titre doit être court, impactant, maximum 6 mots.
+- Le titre doit être impactant, entre 10 et 14 mots.
 - Le contenu doit faire 2 à 3 phrases, maximum 300 caractères.
 - Pas de citation directe.
 - Pas de données inventées.
