@@ -70,7 +70,17 @@ st.markdown(
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
     :root {
+        /* Couleurs boutons - Style clair */
+        --button-primary: #ffffff;
+        --button-border: #5E17EB;
+        --button-text: #1f2937;
+        --button-hover: #f5f3ff;
+        
+        /* Couleurs accents (progress bars, badges, borders) - Violet */
         --accent: #5E17EB;
+        --accent-light: #ede9fe;
+        
+        /* Couleurs grises */
         --gray-50: #f9fafb;
         --gray-100: #f3f4f6;
         --gray-200: #e5e7eb;
@@ -161,18 +171,18 @@ st.markdown(
         font-size: 0.7rem;
         font-weight: 600;
         text-transform: uppercase;
-        background: #eff6ff;
+        background: var(--accent-light);
         color: var(--accent);
-        border: 1px solid #bfdbfe;
+        border: 1px solid var(--accent);
     }
 
     .status-success,
     .status-running,
     .status-warning,
     .status-error {
-        background: #eff6ff;
+        background: var(--accent-light);
         color: var(--accent);
-        border: 1px solid #bfdbfe;
+        border: 1px solid var(--accent);
     }
 
     .stProgress > div > div > div {
@@ -180,12 +190,20 @@ st.markdown(
     }
 
     .stButton > button {
-        background: var(--accent) !important;
-        color: #fff !important;
-        border: none !important;
+        background: var(--button-primary) !important;
+        color: var(--button-text) !important;
+        border: 2px solid var(--button-border) !important;
         border-radius: 8px !important;
         font-weight: 600 !important;
-        transition: opacity 0.2s !important;
+        transition: all 0.2s !important;
+    }
+    
+    .stButton > button:hover {
+        background: var(--button-hover) !important;
+        border-color: var(--accent) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(94, 23, 235, 0.15) !important;
+    }
     }
 
     .stButton > button:hover {
