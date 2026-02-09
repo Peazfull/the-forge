@@ -4,6 +4,8 @@ from db.supabase_client import get_supabase
 from services.raw_storage.brew_items_read import get_brew_items_stats
 from services.raw_storage.brew_items_erase import brew_items_erase
 from services.nl_brewery.nl_brewery_service import run_full_nl_brewery
+from services.enrichment.enrichment_service import enrich_single_item
+from services.scoring.scoring_service import fetch_items_to_score, score_single_item
 from services.news_brewery.mega_job import MegaJobConfig, get_mega_job
 from services.news_brewery.sources_registry import collect_mega_urls
 import os
@@ -28,6 +30,21 @@ def format_duration(seconds: Optional[float]) -> str:
     if minutes:
         return f"{minutes}m {secs:02d}s"
     return f"{secs}s"
+
+
+def fetch_ministry_enrich_items() -> list:
+    try:
+        supabase = get_supabase()
+        response = (
+            supabase.table("brew_items")
+            .select("id, title, content")
+            .is_("labels", "null")
+            .is_("tags", "null")
+            .execute()
+        )
+        return response.data or []
+    except Exception:
+        return []
 
 
 # ======================================================
@@ -241,6 +258,75 @@ else:
         st.error("❌ Mega Job échoué")
     elif mega_status.get("state") == "stopped":
         st.warning("⏹️ Mega Job arrêté")
+
+    st.divider()
+
+    # ---------- THE MINISTRY QUICK RUN ----------
+    st.write("🏛️ The Ministry — Exécution rapide")
+    st.caption("Enrich (sans tag/label) puis score (sans score).")
+
+    if st.button("🏛️ Lancer The Ministry", use_container_width=True, type="primary"):
+        # Enrich
+        enrich_progress = st.progress(0)
+        enrich_status = st.empty()
+        enrich_items = fetch_ministry_enrich_items()
+        enrich_total = len(enrich_items)
+        enrich_success = 0
+        enrich_errors = 0
+
+        if enrich_total == 0:
+            enrich_status.info("Aucun item à enrichir (tags/labels déjà présents).")
+            enrich_progress.progress(1.0)
+        else:
+            for idx, item in enumerate(enrich_items, start=1):
+                enrich_status.text(f"Enrich {idx}/{enrich_total} · {item.get('title','')[:60]}")
+                result = enrich_single_item(
+                    item.get("id"),
+                    item.get("title", ""),
+                    item.get("content", "")
+                )
+                if result.get("status") == "success":
+                    enrich_success += 1
+                else:
+                    enrich_errors += 1
+                enrich_progress.progress(idx / enrich_total)
+
+        # Score
+        score_progress = st.progress(0)
+        score_status = st.empty()
+        score_items = fetch_items_to_score(limit=None, force_all=False)
+        score_total = len(score_items)
+        score_success = 0
+        score_errors = 0
+
+        if score_total == 0:
+            score_status.info("Aucun item à scorer (déjà scoré ou non enrichi).")
+            score_progress.progress(1.0)
+        else:
+            for idx, item in enumerate(score_items, start=1):
+                score_status.text(f"Score {idx}/{score_total} · {item.get('title','')[:60]}")
+                result = score_single_item(
+                    item.get("id"),
+                    item.get("title", ""),
+                    item.get("content", ""),
+                    item.get("tags"),
+                    item.get("labels"),
+                    item.get("entities"),
+                    item.get("source_type"),
+                )
+                if result.get("status") == "success":
+                    score_success += 1
+                else:
+                    score_errors += 1
+                score_progress.progress(idx / score_total)
+
+        st.success(
+            "✅ The Ministry terminé · "
+            f"Enrich {enrich_success}/{enrich_total} · "
+            f"Score {score_success}/{score_total}"
+        )
+        if enrich_errors or score_errors:
+            st.warning(f"⚠️ Erreurs enrich: {enrich_errors} · score: {score_errors}")
 
     # ---------- GIF ----------
     col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 1])
