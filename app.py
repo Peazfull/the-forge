@@ -180,21 +180,23 @@ st.markdown(
     .section-header {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        margin: 1.5rem 0 0.75rem 0;
-        padding-bottom: 0.5rem;
-        border-bottom: 1px solid var(--gray-200);
+        gap: 0.4rem;
+        margin: 1rem 0 0.5rem 0;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid #10b981;
     }
     
     .section-icon {
-        font-size: 1.25rem;
+        font-size: 0.9rem;
     }
     
     .section-title {
-        font-size: 1rem;
+        font-size: 0.85rem;
         font-weight: 600;
-        color: var(--gray-900);
+        color: #10b981;
         margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
     }
     
     /* Status Badges */
@@ -450,7 +452,6 @@ else:
                 <h3 class="control-card-title">NL Brewery</h3>
             </div>
             <p class="control-card-subtitle">Scrape newsletters 20h, pipeline IA, insertion DB</p>
-        </div>
         """, unsafe_allow_html=True)
         
         if st.button("🚀 Lancer NL Brewery", use_container_width=True, type="primary", key="nl_brewery_btn"):
@@ -483,6 +484,8 @@ else:
                 st.caption("⚠️ Erreurs :")
                 for err in errors[:5]:
                     st.write(f"• {err}")
+        
+        st.markdown("</div>", unsafe_allow_html=True)
     
     # ---------- MEGA JOB ----------
     with col_mega:
@@ -502,7 +505,6 @@ else:
             </div>
             <p class="control-card-subtitle">Multi-sources collecte automatique</p>
             <span class="status-badge status-{status_color}">{status_text}</span>
-        </div>
         """, unsafe_allow_html=True)
         
         col_mega_20h, col_mega_6h = st.columns(2)
@@ -539,6 +541,8 @@ else:
             progress = mega_status.get("current_index", 0) / max(mega_status.get("total", 1), 1)
             st.progress(progress)
             st.caption(f"📊 {mega_status.get('current_index', 0)}/{mega_status.get('total', 0)} · ✅ {mega_status.get('processed', 0)}")
+        
+        st.markdown("</div>", unsafe_allow_html=True)
     
     # ---------- THE MINISTRY ----------
     with col_ministry:
@@ -549,7 +553,6 @@ else:
                 <h3 class="control-card-title">The Ministry</h3>
             </div>
             <p class="control-card-subtitle">Enrich + Score automatique</p>
-        </div>
         """, unsafe_allow_html=True)
         
         if st.button("🏛️ Lancer Ministry", use_container_width=True, type="primary", key="ministry_btn"):
@@ -610,6 +613,8 @@ else:
             st.success(f"✅ Terminé · Enrich {enrich_success}/{enrich_total} · Score {score_success}/{score_total}")
             if enrich_errors or score_errors:
                 st.warning(f"⚠️ Erreurs: {enrich_errors + score_errors}")
+        
+        st.markdown("</div>", unsafe_allow_html=True)
 
     # ======================================================
     # ANALYTICS DASHBOARD
@@ -622,69 +627,46 @@ else:
     </div>
     """, unsafe_allow_html=True)
     
-    col_enrich, col_score = st.columns(2)
-
-    with col_enrich:
-        stats_enrich = get_enrichment_stats()
-        if stats_enrich.get("status") == "success":
-            by_tags = stats_enrich.get("by_tags", {})
-            
-            # Metrics principales
-            col1, col2 = st.columns(2)
-            with col1:
-                st.markdown(f"""
-                <div class="custom-metric">
-                    <div class="custom-metric-value">{stats_enrich.get("total_items", 0)}</div>
-                    <div class="custom-metric-label">Total</div>
-                </div>
-                """, unsafe_allow_html=True)
-            with col2:
-                st.markdown(f"""
-                <div class="custom-metric">
-                    <div class="custom-metric-value">{stats_enrich.get("enriched_items", 0)}</div>
-                    <div class="custom-metric-label">Enrichis</div>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            # Distribution par tags
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric("ECO", by_tags.get("ECO", 0), delta=None)
-            with col2:
-                st.metric("BOURSE", by_tags.get("BOURSE", 0), delta=None)
-            with col3:
-                st.metric("CRYPTO", by_tags.get("CRYPTO", 0), delta=None)
-        else:
-            st.error(stats_enrich.get("message", "Erreur stats enrich"))
-
-    with col_score:
-        stats_score = get_scoring_stats()
-        if stats_score.get("status") == "success":
-            # Metrics principales
-            col1, col2 = st.columns(2)
-            with col1:
-                st.markdown(f"""
-                <div class="custom-metric">
-                    <div class="custom-metric-value">{stats_score.get("scored_items", 0)}</div>
-                    <div class="custom-metric-label">Scorés</div>
-                </div>
-                """, unsafe_allow_html=True)
-            with col2:
-                st.markdown(f"""
-                <div class="custom-metric">
-                    <div class="custom-metric-value">{stats_score.get("average_score", 0)}</div>
-                    <div class="custom-metric-label">Score Moyen</div>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            # Stats supplémentaires
-            col1, col2 = st.columns(2)
-            with col1:
-                st.metric("Total", stats_score.get("total_items", 0))
-            with col2:
-                st.metric("Non scorés", stats_score.get("not_scored", 0))
-        else:
-            st.error(stats_score.get("message", "Erreur stats score"))
+    # Récupération des stats
+    stats_enrich = get_enrichment_stats()
+    stats_score = get_scoring_stats()
+    
+    # Layout en 4 colonnes pour les métriques principales
+    col1, col2, col3, col4 = st.columns(4)
+    
+    if stats_enrich.get("status") == "success":
+        by_tags = stats_enrich.get("by_tags", {})
+        
+        with col1:
+            st.metric("📦 Total", stats_enrich.get("total_items", 0))
+        with col2:
+            st.metric("🏷️ Enrichis", stats_enrich.get("enriched_items", 0))
+    else:
+        with col1:
+            st.metric("📦 Total", "—")
+        with col2:
+            st.metric("🏷️ Enrichis", "—")
+    
+    if stats_score.get("status") == "success":
+        with col3:
+            st.metric("⭐ Scorés", stats_score.get("scored_items", 0))
+        with col4:
+            st.metric("📊 Moyenne", f"{stats_score.get('average_score', 0)}")
+    else:
+        with col3:
+            st.metric("⭐ Scorés", "—")
+        with col4:
+            st.metric("📊 Moyenne", "—")
+    
+    # Distribution par catégories en 3 colonnes
+    if stats_enrich.get("status") == "success":
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("🌍 ECO", by_tags.get("ECO", 0))
+        with col2:
+            st.metric("📈 BOURSE", by_tags.get("BOURSE", 0))
+        with col3:
+            st.metric("₿ CRYPTO", by_tags.get("CRYPTO", 0))
 
     # ======================================================
     # BREW ITEMS PREVIEW & EDIT
