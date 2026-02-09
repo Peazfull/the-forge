@@ -92,22 +92,22 @@ st.markdown(
     /* Hero Section */
     .hero-container {
         text-align: center;
-        padding: 1rem 0 2rem 0;
+        padding: 0.5rem 0 1rem 0;
     }
     
     /* Stats Cards */
     .stat-card {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 16px;
-        padding: 1.5rem;
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
         color: white;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        transition: transform 0.2s;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        transition: transform 0.15s;
     }
     
     .stat-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
     }
     
     .stat-card-brewery {
@@ -123,76 +123,76 @@ st.markdown(
     }
     
     .stat-value {
-        font-size: 2.5rem;
-        font-weight: 800;
+        font-size: 1.75rem;
+        font-weight: 700;
         margin: 0;
         line-height: 1;
     }
     
     .stat-label {
-        font-size: 0.875rem;
+        font-size: 0.75rem;
         opacity: 0.9;
-        margin-top: 0.5rem;
+        margin-top: 0.35rem;
         font-weight: 500;
     }
     
     /* Control Panel Cards */
     .control-card {
         background: white;
-        border-radius: 12px;
-        padding: 1.5rem;
-        border: 2px solid var(--gray-200);
-        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-        transition: all 0.2s;
+        border-radius: 8px;
+        padding: 1rem;
+        border: 1px solid var(--gray-200);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        transition: all 0.15s;
         height: 100%;
     }
     
     .control-card:hover {
-        border-color: var(--primary);
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        border-color: var(--gray-300);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
     }
     
     .control-card-header {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
-        margin-bottom: 1rem;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
     }
     
     .control-card-icon {
-        font-size: 2rem;
+        font-size: 1.5rem;
     }
     
     .control-card-title {
-        font-size: 1.125rem;
-        font-weight: 700;
+        font-size: 1rem;
+        font-weight: 600;
         color: var(--gray-900);
         margin: 0;
     }
     
     .control-card-subtitle {
-        font-size: 0.875rem;
+        font-size: 0.75rem;
         color: var(--gray-600);
-        margin: 0.25rem 0 1rem 0;
+        margin: 0 0 0.75rem 0;
     }
     
     /* Section Headers */
     .section-header {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
-        margin: 2rem 0 1rem 0;
-        padding-bottom: 0.75rem;
-        border-bottom: 2px solid var(--gray-200);
+        gap: 0.5rem;
+        margin: 1.5rem 0 0.75rem 0;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--gray-200);
     }
     
     .section-icon {
-        font-size: 1.5rem;
+        font-size: 1.25rem;
     }
     
     .section-title {
-        font-size: 1.25rem;
-        font-weight: 700;
+        font-size: 1rem;
+        font-weight: 600;
         color: var(--gray-900);
         margin: 0;
     }
@@ -200,9 +200,9 @@ st.markdown(
     /* Status Badges */
     .status-badge {
         display: inline-block;
-        padding: 0.25rem 0.75rem;
+        padding: 0.15rem 0.5rem;
         border-radius: 9999px;
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         font-weight: 600;
         text-transform: uppercase;
     }
@@ -230,25 +230,25 @@ st.markdown(
     /* Custom Metrics */
     .custom-metric {
         background: var(--gray-50);
-        border-radius: 8px;
-        padding: 1rem;
+        border-radius: 6px;
+        padding: 0.75rem;
         text-align: center;
     }
     
     .custom-metric-value {
-        font-size: 1.875rem;
+        font-size: 1.5rem;
         font-weight: 700;
         color: var(--gray-900);
         margin: 0;
     }
     
     .custom-metric-label {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         color: var(--gray-600);
         text-transform: uppercase;
         font-weight: 600;
-        letter-spacing: 0.05em;
-        margin-top: 0.25rem;
+        letter-spacing: 0.03em;
+        margin-top: 0.2rem;
     }
     
     /* Progress Bar Custom */
@@ -270,7 +270,13 @@ st.markdown(
     
     /* Reduce top padding */
     .block-container {
-        padding-top: 1rem !important;
+        padding-top: 0.5rem !important;
+        padding-bottom: 1rem !important;
+    }
+    
+    /* Compact selectbox */
+    .stSelectbox label {
+        font-size: 0.8rem !important;
     }
     </style>
     """,
@@ -322,11 +328,9 @@ else:
     # HERO SECTION
     # ======================================================
     
-    st.markdown('<div class="hero-container">', unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        st.image("front/layout/assets/Theforge_logo.png", width=500)
-    st.markdown('</div>', unsafe_allow_html=True)
+        st.image("front/layout/assets/Theforge_logo.png", width=400)
     
     # Quick Stats Cards
     try:
@@ -377,19 +381,10 @@ else:
     except Exception as e:
         st.error(f"Erreur chargement stats : {str(e)}")
     
-    st.markdown("<br>", unsafe_allow_html=True)
-    
     # ======================================================
     # DATABASE STATUS
     # ======================================================
     
-    st.markdown("""
-    <div class="section-header">
-        <span class="section-icon">🗄️</span>
-        <h2 class="section-title">Base de données</h2>
-    </div>
-    """, unsafe_allow_html=True)
-
     st.markdown("""
     <div class="section-header">
         <span class="section-icon">🗄️</span>
@@ -432,10 +427,6 @@ else:
     except Exception as e:
         st.markdown('<span class="status-badge status-error">❌ ERREUR</span>', unsafe_allow_html=True)
         st.error(f"Connexion Supabase : {str(e)}")
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    st.markdown("<br>", unsafe_allow_html=True)
 
     # ======================================================
     # CONTROL PANEL - BREWERY & MINISTRY
@@ -620,10 +611,6 @@ else:
             if enrich_errors or score_errors:
                 st.warning(f"⚠️ Erreurs: {enrich_errors + score_errors}")
 
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
     # ======================================================
     # ANALYTICS DASHBOARD
     # ======================================================
@@ -642,15 +629,13 @@ else:
         if stats_enrich.get("status") == "success":
             by_tags = stats_enrich.get("by_tags", {})
             
-            st.markdown("#### 🏷️ Enrichment")
-            
             # Metrics principales
             col1, col2 = st.columns(2)
             with col1:
                 st.markdown(f"""
                 <div class="custom-metric">
                     <div class="custom-metric-value">{stats_enrich.get("total_items", 0)}</div>
-                    <div class="custom-metric-label">Total Items</div>
+                    <div class="custom-metric-label">Total</div>
                 </div>
                 """, unsafe_allow_html=True)
             with col2:
@@ -661,10 +646,7 @@ else:
                 </div>
                 """, unsafe_allow_html=True)
             
-            st.markdown("<br>", unsafe_allow_html=True)
-            
             # Distribution par tags
-            st.caption("Distribution par tags")
             col1, col2, col3 = st.columns(3)
             with col1:
                 st.metric("ECO", by_tags.get("ECO", 0), delta=None)
@@ -678,8 +660,6 @@ else:
     with col_score:
         stats_score = get_scoring_stats()
         if stats_score.get("status") == "success":
-            st.markdown("#### ⭐ Scoring")
-            
             # Metrics principales
             col1, col2 = st.columns(2)
             with col1:
@@ -697,8 +677,6 @@ else:
                 </div>
                 """, unsafe_allow_html=True)
             
-            st.markdown("<br>", unsafe_allow_html=True)
-            
             # Stats supplémentaires
             col1, col2 = st.columns(2)
             with col1:
@@ -708,10 +686,6 @@ else:
         else:
             st.error(stats_score.get("message", "Erreur stats score"))
 
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
     # ======================================================
     # BREW ITEMS PREVIEW & EDIT
     # ======================================================
@@ -719,11 +693,11 @@ else:
     st.markdown("""
     <div class="section-header">
         <span class="section-icon">🧾</span>
-        <h2 class="section-title">Brew Items — Preview & Édition</h2>
+        <h2 class="section-title">Brew Items</h2>
     </div>
     """, unsafe_allow_html=True)
     
-    st.caption("Filtrer par date, tag, label et modifier le score manuellement.")
+    st.caption("Filtrer et modifier les scores")
 
     col_tag, col_label, col_date, col_sort = st.columns(4)
     with col_tag:
@@ -803,7 +777,7 @@ else:
             df_table,
             use_container_width=True,
             hide_index=True,
-            height=450,
+            height=350,
             on_select="rerun",
             selection_mode="single-row",
         )
@@ -812,7 +786,6 @@ else:
             selected_idx = event.selection["rows"][0]
             selected_item = df.iloc[selected_idx]
 
-            st.markdown("<br>", unsafe_allow_html=True)
             st.markdown("""
             <div class="section-header">
                 <span class="section-icon">✏️</span>
@@ -846,7 +819,6 @@ else:
                         st.error(result.get("message", "Erreur DB"))
 
     # ---------- QUICK ACCESS ----------
-    st.markdown("<br><br>", unsafe_allow_html=True)
     st.markdown("""
     <div class="section-header">
         <span class="section-icon">🚀</span>
@@ -872,7 +844,6 @@ else:
             st.rerun()
 
     # ---------- GIF ----------
-    st.markdown("<br>", unsafe_allow_html=True)
     col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 1])
     with col3:
-        st.image("front/layout/assets/pixel_epee.gif", width=300)
+        st.image("front/layout/assets/pixel_epee.gif", width=250)
