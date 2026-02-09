@@ -305,7 +305,7 @@ else:
     
     st.markdown("""
     <div class="section-header">
-        <h3 class="section-title section-title--small">Base de données</h3>
+        <h5 class="section-title section-title--small">Base de données</h5>
     </div>
     """, unsafe_allow_html=True)
 
@@ -347,7 +347,7 @@ else:
     
     st.markdown("""
     <div class="section-header">
-        <h3 class="section-title section-title--small">Control Panel</h3>
+        <h5 class="section-title section-title--small">Control Panel</h5>
     </div>
     """, unsafe_allow_html=True)
     
@@ -358,9 +358,11 @@ else:
         st.markdown("""
         <div class="control-card">
             <div class="control-card-header">
-                <h4 class="control-card-title">NL Brewery</h4>
+                <h5 class="control-card-title">NL Brewery</h5>
             </div>
         """, unsafe_allow_html=True)
+
+        st.markdown('<span class="status-badge status-warning">IDLE</span>', unsafe_allow_html=True)
         
         if st.button("Lancer NL Brewery", use_container_width=True, type="primary", key="nl_brewery_btn"):
             progress_bar = st.progress(0)
@@ -408,7 +410,7 @@ else:
         st.markdown(f"""
         <div class="control-card">
             <div class="control-card-header">
-                <h4 class="control-card-title">Mega Job</h4>
+                <h5 class="control-card-title">Mega Job</h5>
             </div>
             <span class="status-badge status-{status_color}">{status_text}</span>
         """, unsafe_allow_html=True)
@@ -455,9 +457,11 @@ else:
         st.markdown("""
         <div class="control-card">
             <div class="control-card-header">
-                <h4 class="control-card-title">The Ministry</h4>
+                <h5 class="control-card-title">The Ministry</h5>
             </div>
         """, unsafe_allow_html=True)
+
+        st.markdown('<span class="status-badge status-warning">IDLE</span>', unsafe_allow_html=True)
         
         if st.button("Lancer Ministry", use_container_width=True, type="primary", key="ministry_btn"):
             # Enrich
@@ -526,7 +530,7 @@ else:
     
     st.markdown("""
     <div class="section-header">
-        <h2 class="section-title section-title--small">Analytics</h2>
+        <h5 class="section-title section-title--small">Analytics</h5>
     </div>
     """, unsafe_allow_html=True)
     
@@ -612,7 +616,7 @@ else:
     
     st.markdown("""
     <div class="section-header">
-        <h2 class="section-title">Brew Items</h2>
+        <h5 class="section-title">Brew Items</h5>
     </div>
     """, unsafe_allow_html=True)
     
@@ -707,7 +711,7 @@ else:
 
             st.markdown("""
             <div class="section-header">
-                <h2 class="section-title">Édition du score</h2>
+                <h5 class="section-title">Édition du score</h5>
             </div>
             """, unsafe_allow_html=True)
 
@@ -739,7 +743,7 @@ else:
     # ---------- QUICK ACCESS ----------
     st.markdown("""
     <div class="section-header">
-        <h2 class="section-title">Quick Access</h2>
+        <h5 class="section-title">Quick Access</h5>
     </div>
     """, unsafe_allow_html=True)
     
