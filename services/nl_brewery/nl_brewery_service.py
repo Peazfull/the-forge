@@ -1,4 +1,4 @@
-from typing import List, Dict, Set, Tuple, Optional
+from typing import List, Dict, Set, Tuple, Optional, Callable
 from db.supabase_client import get_supabase
 import time
 from services.nl_brewery.imap_client import check_connection, fetch_emails
@@ -8,6 +8,10 @@ from services.nl_brewery.process_newsletter import (
     clean_raw_text,
     structure_text,
     jsonfy_text,
+)
+from services.raw_storage.raw_news_service import (
+    enrich_raw_items,
+    insert_raw_news,
 )
 
 
@@ -339,6 +343,131 @@ def build_temp_newsletters(last_hours: int, max_emails: Optional[int] = None) ->
         "temp_text": temp_text,
         "errors": errors,
         "status_log": status_log,
+    }
+
+
+def run_full_nl_brewery(
+    last_hours: int,
+    max_emails: Optional[int] = None,
+    progress_cb: Optional[Callable[[Dict[str, object]], None]] = None,
+) -> Dict[str, object]:
+    start_time = time.time()
+    recipients = load_recipients()
+    emails = fetch_emails(last_hours, max_emails=max_emails)
+
+    unique_keys: Set[Tuple[str, str, str]] = set()
+    eligible_emails = []
+    for email_data in emails:
+        if not _match_recipient(email_data.get("to", ""), recipients):
+            continue
+        key = _dedupe_key(email_data)
+        if key in unique_keys:
+            continue
+        unique_keys.add(key)
+        eligible_emails.append(email_data)
+
+    total = len(eligible_emails)
+    if progress_cb:
+        progress_cb({
+            "stage": "prepare",
+            "current": 0,
+            "total": total,
+            "progress": 0,
+            "message": f"{total} newsletter(s) à traiter",
+        })
+
+    items = []
+    errors = []
+    timings = []
+
+    for idx, email_data in enumerate(eligible_emails, start=1):
+        step_start = time.time()
+        if progress_cb:
+            progress_cb({
+                "stage": "processing",
+                "current": idx,
+                "total": total,
+                "progress": (idx - 1) / total if total else 0,
+                "message": f"NL {idx}/{total} · traitement en cours",
+            })
+
+        body_text = (email_data.get("body_text") or "").strip()
+        if not body_text:
+            errors.append("Newsletter vide détectée.")
+            continue
+
+        result = process_newsletter(email_data)
+        if result.get("status") != "success":
+            errors.append(result.get("message", "Erreur newsletter"))
+            continue
+
+        created = 0
+        for item in result.get("items", []):
+            if not isinstance(item, dict):
+                continue
+            item["source_name"] = "Newsletter"
+            item["source_link"] = email_data.get("sender")
+            item["source_date"] = email_data.get("date")
+            item["source_raw"] = None
+            items.append(item)
+            created += 1
+
+        elapsed = time.time() - step_start
+        timings.append(elapsed)
+        avg_sec = sum(timings) / len(timings)
+        eta_sec = avg_sec * (total - idx)
+
+        if progress_cb:
+            progress_cb({
+                "stage": "processed",
+                "current": idx,
+                "total": total,
+                "progress": idx / total if total else 1,
+                "avg_sec": avg_sec,
+                "eta_sec": eta_sec,
+                "message": f"NL {idx}/{total} · OK ({created} item(s))",
+            })
+
+    if not items:
+        duration = time.time() - start_time
+        return {
+            "status": "error",
+            "message": "Aucun item généré.",
+            "email_count": len(emails),
+            "matched_count": total,
+            "inserted": 0,
+            "errors": errors,
+            "duration_sec": duration,
+        }
+
+    enriched_items = enrich_raw_items(
+        items,
+        flow="nl_brewery",
+        source_type="newsletter",
+        source_raw=None,
+    )
+    insert_result = insert_raw_news(enriched_items)
+    duration = time.time() - start_time
+
+    if insert_result.get("status") != "success":
+        return {
+            "status": "error",
+            "message": insert_result.get("message", "Erreur insertion DB"),
+            "email_count": len(emails),
+            "matched_count": total,
+            "inserted": 0,
+            "errors": errors,
+            "duration_sec": duration,
+        }
+
+    return {
+        "status": "success",
+        "message": "NL Brewery terminé",
+        "email_count": len(emails),
+        "matched_count": total,
+        "inserted": insert_result.get("inserted", 0),
+        "errors": errors,
+        "duration_sec": duration,
     }
 
 

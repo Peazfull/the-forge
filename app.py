@@ -3,6 +3,7 @@ from front.layout.sidebar import render_sidebar
 from db.supabase_client import get_supabase
 from services.raw_storage.brew_items_read import get_brew_items_stats
 from services.raw_storage.brew_items_erase import brew_items_erase
+from services.nl_brewery.nl_brewery_service import run_full_nl_brewery
 import os
 from datetime import datetime
 from typing import Optional
@@ -14,6 +15,16 @@ def format_datetime(dt_str: Optional[str]) -> str:
         return datetime.fromisoformat(dt_str).strftime("%d/%m/%Y · %H:%M")
     except Exception:
         return dt_str
+
+
+def format_duration(seconds: Optional[float]) -> str:
+    if seconds is None:
+        return "—"
+    total = max(0, int(seconds))
+    minutes, secs = divmod(total, 60)
+    if minutes:
+        return f"{minutes}m {secs:02d}s"
+    return f"{secs}s"
 
 
 # ======================================================
@@ -128,6 +139,41 @@ else:
         st.error(f"❌ Connexion Supabase : ERREUR ({str(e)})")
 
     st.divider()
+
+    # ---------- NL BREWERY QUICK RUN ----------
+    st.write("📨 NL Brewery — Exécution rapide")
+    st.caption("Scrape des newsletters des 20 dernières heures, pipeline IA complet, insertion DB.")
+
+    if st.button("🚀 Lancer NL Brewery", use_container_width=True, type="primary"):
+        progress_bar = st.progress(0)
+        status_line = st.empty()
+        eta_line = st.empty()
+
+        def _update_progress(payload: dict) -> None:
+            progress = payload.get("progress")
+            if progress is not None:
+                progress_bar.progress(min(max(progress, 0), 1))
+            message = payload.get("message")
+            if message:
+                status_line.write(message)
+            eta_sec = payload.get("eta_sec")
+            if eta_sec is not None:
+                eta_line.caption(f"Temps estimé restant : {format_duration(eta_sec)}")
+
+        with st.spinner("NL Brewery en cours…"):
+            result = run_full_nl_brewery(last_hours=20, progress_cb=_update_progress)
+
+        if result.get("status") == "success":
+            st.success(f"✅ NL Brewery terminé · {result.get('inserted', 0)} items insérés")
+        else:
+            st.error("❌ Erreur durant le process NL Brewery")
+            st.caption(result.get("message", "Erreur inconnue"))
+
+        errors = result.get("errors") or []
+        if errors:
+            st.caption("Erreurs détectées :")
+            for err in errors[:5]:
+                st.write(f"⚠️ {err}")
 
     # ---------- GIF ----------
     col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 1])
