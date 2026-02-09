@@ -7,7 +7,7 @@ Contraintes :
 - Pas de copier‑coller, tout doit être reformulé.
 - Ton neutre, crédible, professionnel.
 - Pas d'emojis, pas de markdown.
-- Le titre doit être impactant, entre 10 et 14 mots.
+- Le titre doit être impactant et développé, entre 10 et 14 mots. (exemple : "Hoskinson annonce 3 milliards de pertes et réduits ses prévisions pour 2026)
 - Le contenu doit faire 2 à 3 phrases, maximum 300 caractères.
 - Pas de citation directe.
 - Pas de données inventées.
