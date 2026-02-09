@@ -155,9 +155,8 @@ def generate_carousel_slide(
     logo_path = os.path.join(ASSETS_DIR, "Logo.png")
     if os.path.exists(logo_path):
         logo = Image.open(logo_path).convert("RGBA")
-        logo_size = (LOGO_SIZE[0] * 2, LOGO_SIZE[1] * 2)
-        logo = logo.resize(logo_size, Image.LANCZOS)
-        logo_x = (CANVAS_SIZE[0] - logo_size[0]) // 2
+        logo = logo.resize(LOGO_SIZE, Image.LANCZOS)
+        logo_x = (CANVAS_SIZE[0] - LOGO_SIZE[0]) // 2
         canvas.alpha_composite(logo, (logo_x, LOGO_TOP))
 
     title_bg_path = os.path.join(ASSETS_DIR, "Title_bg_breaking.png")
@@ -249,8 +248,9 @@ def generate_cover_slide(
     logo_path = os.path.join(ASSETS_DIR, "Logo.png")
     if os.path.exists(logo_path):
         logo = Image.open(logo_path).convert("RGBA")
-        logo = logo.resize(LOGO_SIZE, Image.LANCZOS)
-        logo_x = (CANVAS_SIZE[0] - LOGO_SIZE[0]) // 2
+        logo_size = (LOGO_SIZE[0] * 2, LOGO_SIZE[1] * 2)  # 400×130 sur slide 0
+        logo = logo.resize(logo_size, Image.LANCZOS)
+        logo_x = (CANVAS_SIZE[0] - logo_size[0]) // 2
         canvas.alpha_composite(logo, (logo_x, LOGO_TOP))
 
     cover_logo_path = os.path.join(ASSETS_DIR, "Breaking_logo.png")
