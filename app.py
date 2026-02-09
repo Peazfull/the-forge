@@ -305,7 +305,7 @@ else:
     
     st.markdown("""
     <div class="section-header">
-        <h2 class="section-title section-title--small">Base de données</h2>
+        <h3 class="section-title section-title--small">Base de données</h3>
     </div>
     """, unsafe_allow_html=True)
 
@@ -347,7 +347,7 @@ else:
     
     st.markdown("""
     <div class="section-header">
-        <h2 class="section-title section-title--small">Control Panel</h2>
+        <h3 class="section-title section-title--small">Control Panel</h3>
     </div>
     """, unsafe_allow_html=True)
     
@@ -358,7 +358,7 @@ else:
         st.markdown("""
         <div class="control-card">
             <div class="control-card-header">
-                <h3 class="control-card-title">NL Brewery</h3>
+                <h4 class="control-card-title">NL Brewery</h4>
             </div>
         """, unsafe_allow_html=True)
         
@@ -408,7 +408,7 @@ else:
         st.markdown(f"""
         <div class="control-card">
             <div class="control-card-header">
-                <h3 class="control-card-title">Mega Job</h3>
+                <h4 class="control-card-title">Mega Job</h4>
             </div>
             <span class="status-badge status-{status_color}">{status_text}</span>
         """, unsafe_allow_html=True)
@@ -455,7 +455,7 @@ else:
         st.markdown("""
         <div class="control-card">
             <div class="control-card-header">
-                <h3 class="control-card-title">The Ministry</h3>
+                <h4 class="control-card-title">The Ministry</h4>
             </div>
         """, unsafe_allow_html=True)
         
