@@ -101,8 +101,8 @@ STYLE :
 - Aucun style illustratif, artistique ou CGI
 
 PALETTE COULEURS OBLIGATOIRE (très important car DA sur projet) :
-- Stunning bright sky with sunset stylized sky colors: turquoise green, fluo green, orange and yellow tones
-- Dominante : turquoise green, fluo green orange, yellow tones
+- Stunning bright sky with sunset stylized sky colors: fluo green, cyan blue, orange light and coral
+- Dominante : fluo green, cyan blue, orange light, coral
 - Accents lumineux subtils et élégants
 
 ────────────────────────
@@ -184,7 +184,7 @@ No visible individuals in the foreground.
 If present, only very distant, discreet silhouettes allowed.
 
 ART DIRECTION (MANDATORY)
-Sunset stylized sky with dominant turquoise green, fluo green, orange, and yellow tones.
+Sunset stylized sky with dominant fluo green, cyan blue, orange light, and coral tones.
 Stunning sunset backdrop behind the building.
 Atmosphere premium, stunning, energy sector and forward-looking.
 PRESS PHOTO realistic style (energy/financial journalism quality).
