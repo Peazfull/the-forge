@@ -4,9 +4,10 @@ from db.supabase_client import get_supabase
 from services.raw_storage.brew_items_read import get_brew_items_stats
 from services.raw_storage.brew_items_erase import brew_items_erase
 from services.nl_brewery.nl_brewery_service import run_full_nl_brewery
-from services.enrichment.enrichment_service import enrich_single_item
+from services.enrichment.enrichment_service import enrich_single_item, get_enrichment_stats
 from services.scoring.scoring_service import fetch_items_to_score, score_single_item
 from services.scoring.update_score import update_item_score
+from services.scoring.scoring_service import get_scoring_stats
 from services.news_brewery.mega_job import MegaJobConfig, get_mega_job
 from services.news_brewery.sources_registry import collect_mega_urls
 import os
@@ -331,11 +332,51 @@ else:
 
     st.divider()
 
+    # ---------- THE MINISTRY DASHBOARD ----------
+    st.write("📊 The Ministry — Dashboard")
+    col_enrich, col_score = st.columns(2)
+
+    with col_enrich:
+        stats_enrich = get_enrichment_stats()
+        if stats_enrich.get("status") == "success":
+            by_tags = stats_enrich.get("by_tags", {})
+            st.caption("Enrich")
+            cols = st.columns(4)
+            with cols[0]:
+                st.metric("Total", stats_enrich.get("total_items", 0))
+            with cols[1]:
+                st.metric("Enrichis", stats_enrich.get("enriched_items", 0))
+            with cols[2]:
+                st.metric("Eco", by_tags.get("ECO", 0))
+            with cols[3]:
+                st.metric("Bourse", by_tags.get("BOURSE", 0))
+            st.caption(f"Crypto: {by_tags.get('CRYPTO', 0)}")
+        else:
+            st.error(stats_enrich.get("message", "Erreur stats enrich"))
+
+    with col_score:
+        stats_score = get_scoring_stats()
+        if stats_score.get("status") == "success":
+            st.caption("Score")
+            cols = st.columns(4)
+            with cols[0]:
+                st.metric("Total", stats_score.get("total_items", 0))
+            with cols[1]:
+                st.metric("Scorés", stats_score.get("scored_items", 0))
+            with cols[2]:
+                st.metric("Non scorés", stats_score.get("not_scored", 0))
+            with cols[3]:
+                st.metric("Moyenne", stats_score.get("average_score", 0))
+        else:
+            st.error(stats_score.get("message", "Erreur stats score"))
+
+    st.divider()
+
     # ---------- BREW ITEMS PREVIEW & EDIT ----------
     st.write("🧾 Brew Items — Preview & Édition")
     st.caption("Filtrer par date, tag, label et modifier le score manuellement.")
 
-    col_tag, col_label, col_date = st.columns(3)
+    col_tag, col_label, col_date, col_sort = st.columns(4)
     with col_tag:
         filter_tag = st.selectbox(
             "Tag",
@@ -360,12 +401,20 @@ else:
             label_visibility="collapsed",
             placeholder="Date",
         )
+    with col_sort:
+        filter_sort = st.selectbox(
+            "Tri",
+            options=["Score ↓", "Date ↓"],
+            index=0,
+            label_visibility="collapsed",
+            placeholder="Tri",
+        )
 
     try:
         supabase = get_supabase()
         query = supabase.table("brew_items").select(
             "id, title, content, tags, labels, score_global, processed_at"
-        ).order("processed_at", desc=True)
+        )
 
         if filter_tag != "Tous":
             query = query.eq("tags", filter_tag)
@@ -374,6 +423,12 @@ else:
         if filter_date == "Dernières 24h":
             since = (datetime.utcnow() - timedelta(hours=24)).isoformat()
             query = query.gte("processed_at", since)
+
+        if filter_sort == "Score ↓":
+            query = query.order("score_global", desc=True)
+            query = query.order("processed_at", desc=True)
+        else:
+            query = query.order("processed_at", desc=True)
 
         response = query.execute()
         items = response.data or []
