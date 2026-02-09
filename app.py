@@ -187,12 +187,19 @@ else:
     mega_job = get_mega_job()
     mega_status = mega_job.get_status()
 
-    if st.button("🚀 Lancer Mega Job", use_container_width=True, type="primary"):
+    col_mega_20h, col_mega_6h = st.columns(2)
+    with col_mega_20h:
+        launch_20h = st.button("🚀 Lancer Mega Job (20h)", use_container_width=True, type="primary")
+    with col_mega_6h:
+        launch_6h = st.button("⚡ Lancer Mega Job (6h)", use_container_width=True)
+
+    if launch_20h or launch_6h:
         if mega_status.get("state") == "running":
             st.warning("Mega Job déjà en cours.")
         else:
+            hours = 6 if launch_6h else 20
             with st.spinner("Collecte des URLs en cours…"):
-                urls, statuses = collect_mega_urls(mega_hours=20)
+                urls, statuses = collect_mega_urls(mega_hours=hours)
             if not urls:
                 st.warning("Aucune URL trouvée.")
             else:
@@ -204,7 +211,7 @@ else:
                 )
                 mega_job.set_config(config)
                 mega_job.start_auto_scraping(urls)
-                st.success(f"✅ Mega Job lancé · {len(urls)} URL(s)")
+                st.success(f"✅ Mega Job lancé ({hours}h) · {len(urls)} URL(s)")
                 st.rerun()
 
     if mega_status.get("state") == "running":
