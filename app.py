@@ -355,14 +355,13 @@ else:
     
     # ---------- NL BREWERY ----------
     with col_nl:
+        st.markdown('<span class="status-badge status-warning">IDLE</span>', unsafe_allow_html=True)
         st.markdown("""
         <div class="control-card">
             <div class="control-card-header">
                 <h5 class="control-card-title">NL Brewery</h5>
             </div>
         """, unsafe_allow_html=True)
-
-        st.markdown('<span class="status-badge status-warning">IDLE</span>', unsafe_allow_html=True)
         
         if st.button("Lancer NL Brewery", use_container_width=True, type="primary", key="nl_brewery_btn"):
             progress_bar = st.progress(0)
@@ -407,12 +406,12 @@ else:
         )
         status_text = mega_status.get("state", "idle").upper()
         
+        st.markdown(f'<span class="status-badge status-{status_color}">{status_text}</span>', unsafe_allow_html=True)
         st.markdown(f"""
         <div class="control-card">
             <div class="control-card-header">
                 <h5 class="control-card-title">Mega Job</h5>
             </div>
-            <span class="status-badge status-{status_color}">{status_text}</span>
         """, unsafe_allow_html=True)
         
         col_mega_20h, col_mega_6h = st.columns(2)
@@ -454,14 +453,13 @@ else:
     
     # ---------- THE MINISTRY ----------
     with col_ministry:
+        st.markdown('<span class="status-badge status-warning">IDLE</span>', unsafe_allow_html=True)
         st.markdown("""
         <div class="control-card">
             <div class="control-card-header">
                 <h5 class="control-card-title">The Ministry</h5>
             </div>
         """, unsafe_allow_html=True)
-
-        st.markdown('<span class="status-badge status-warning">IDLE</span>', unsafe_allow_html=True)
         
         if st.button("Lancer Ministry", use_container_width=True, type="primary", key="ministry_btn"):
             # Enrich
@@ -585,9 +583,26 @@ else:
         </div>
         """, unsafe_allow_html=True)
     
-    # Distribution par catégories en 3 colonnes
+    # Distribution par catégories
     if stats_enrich.get("status") == "success":
-        col1, col2, col3 = st.columns(3)
+        bourse_total = by_tags.get("BOURSE", 0)
+        bourse_pea = 0
+        try:
+            supabase = get_supabase()
+            bourse_pea_resp = (
+                supabase.table("brew_items")
+                .select("id", count="exact")
+                .eq("tags", "BOURSE")
+                .eq("labels", "PEA")
+                .execute()
+            )
+            bourse_pea = bourse_pea_resp.count or 0
+        except Exception:
+            bourse_pea = 0
+
+        bourse_no_pea = max(bourse_total - bourse_pea, 0)
+
+        col1, col2, col3, col4 = st.columns(4)
         with col1:
             st.markdown(f"""
             <div class="stat-card">
@@ -598,11 +613,18 @@ else:
         with col2:
             st.markdown(f"""
             <div class="stat-card">
-                <div class="stat-value">{by_tags.get("BOURSE", 0)}</div>
+                <div class="stat-value">{bourse_no_pea}</div>
                 <div class="stat-label">BOURSE</div>
             </div>
             """, unsafe_allow_html=True)
         with col3:
+            st.markdown(f"""
+            <div class="stat-card">
+                <div class="stat-value">{bourse_pea}</div>
+                <div class="stat-label">PEA</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with col4:
             st.markdown(f"""
             <div class="stat-card">
                 <div class="stat-value">{by_tags.get("CRYPTO", 0)}</div>
@@ -739,30 +761,6 @@ else:
                         st.rerun()
                     else:
                         st.error(result.get("message", "Erreur DB"))
-
-    # ---------- QUICK ACCESS ----------
-    st.markdown("""
-    <div class="section-header">
-        <h5 class="section-title">Quick Access</h5>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        if st.button("The Brewery", use_container_width=True):
-            st.session_state.current_page = "front/views/NewsBrewery"
-            st.rerun()
-    
-    with col2:
-        if st.button("The Ministry", use_container_width=True):
-            st.session_state.current_page = "front/views/EnrichBrewery"
-            st.rerun()
-    
-    with col3:
-        if st.button("The Artist", use_container_width=True):
-            st.session_state.current_page = "front/views/CarrouselEco"
-            st.rerun()
 
     # ---------- GIF ----------
     col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 1])
