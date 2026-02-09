@@ -448,6 +448,8 @@ else:
             progress = mega_status.get("current_index", 0) / max(mega_status.get("total", 1), 1)
             st.progress(progress)
             st.caption(f"📊 {mega_status.get('current_index', 0)}/{mega_status.get('total', 0)} · ✅ {mega_status.get('processed', 0)}")
+            time.sleep(1)
+            st.rerun()
         
         st.markdown("</div>", unsafe_allow_html=True)
     
@@ -665,7 +667,7 @@ else:
         filter_date = st.selectbox(
             "Date",
             options=["Toutes", "Dernières 24h"],
-            index=0,
+            index=1,
             label_visibility="collapsed",
             placeholder="Date",
         )
@@ -715,8 +717,8 @@ else:
         df["content_short"] = df["content"].fillna("").str[:100] + "..."
         df["score_display"] = df["score_global"].fillna("—")
 
-        df_table = df[["title_short", "content_short", "tags", "labels", "score_display"]]
-        df_table.columns = ["Titre", "Contenu", "Tag", "Label", "Score"]
+        df_table = df[["title_short", "content_short", "tags", "score_display"]]
+        df_table.columns = ["Titre", "Contenu", "Tag", "Score"]
 
         event = st.dataframe(
             df_table,
