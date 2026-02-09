@@ -6,11 +6,12 @@ from services.raw_storage.brew_items_erase import brew_items_erase
 from services.nl_brewery.nl_brewery_service import run_full_nl_brewery
 from services.enrichment.enrichment_service import enrich_single_item
 from services.scoring.scoring_service import fetch_items_to_score, score_single_item
+from services.scoring.update_score import update_item_score
 from services.news_brewery.mega_job import MegaJobConfig, get_mega_job
 from services.news_brewery.sources_registry import collect_mega_urls
 import os
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 
 def format_datetime(dt_str: Optional[str]) -> str:
@@ -327,6 +328,113 @@ else:
         )
         if enrich_errors or score_errors:
             st.warning(f"⚠️ Erreurs enrich: {enrich_errors} · score: {score_errors}")
+
+    st.divider()
+
+    # ---------- BREW ITEMS PREVIEW & EDIT ----------
+    st.write("🧾 Brew Items — Preview & Édition")
+    st.caption("Filtrer par date, tag, label et modifier le score manuellement.")
+
+    col_tag, col_label, col_date = st.columns(3)
+    with col_tag:
+        filter_tag = st.selectbox(
+            "Tag",
+            options=["Tous", "ECO", "BOURSE", "CRYPTO"],
+            index=0,
+            label_visibility="collapsed",
+            placeholder="Tag",
+        )
+    with col_label:
+        filter_label = st.selectbox(
+            "Label",
+            options=["Tous", "Eco-Geopol", "Indices", "PEA", "Action", "Commodités", "Crypto"],
+            index=0,
+            label_visibility="collapsed",
+            placeholder="Label",
+        )
+    with col_date:
+        filter_date = st.selectbox(
+            "Date",
+            options=["Toutes", "Dernières 24h"],
+            index=0,
+            label_visibility="collapsed",
+            placeholder="Date",
+        )
+
+    try:
+        supabase = get_supabase()
+        query = supabase.table("brew_items").select(
+            "id, title, content, tags, labels, score_global, processed_at"
+        ).order("processed_at", desc=True)
+
+        if filter_tag != "Tous":
+            query = query.eq("tags", filter_tag)
+        if filter_label != "Tous":
+            query = query.eq("labels", filter_label)
+        if filter_date == "Dernières 24h":
+            since = (datetime.utcnow() - timedelta(hours=24)).isoformat()
+            query = query.gte("processed_at", since)
+
+        response = query.execute()
+        items = response.data or []
+    except Exception as e:
+        items = []
+        st.error(f"Erreur DB : {str(e)}")
+
+    if not items:
+        st.caption("Aucun item trouvé avec ces filtres.")
+    else:
+        import pandas as pd
+
+        df = pd.DataFrame(items)
+        df = df.reset_index(drop=True)
+        df["title_short"] = df["title"].fillna("").str[:50] + "..."
+        df["content_short"] = df["content"].fillna("").str[:80] + "..."
+        df["score_display"] = df["score_global"].fillna("—")
+
+        df_table = df[["title_short", "content_short", "tags", "labels", "score_display"]]
+        df_table.columns = ["Titre", "Contenu", "Tag", "Label", "Score"]
+
+        event = st.dataframe(
+            df_table,
+            use_container_width=True,
+            hide_index=True,
+            height=450,
+            on_select="rerun",
+            selection_mode="single-row",
+        )
+
+        if event.selection and "rows" in event.selection and len(event.selection["rows"]) > 0:
+            selected_idx = event.selection["rows"][0]
+            selected_item = df.iloc[selected_idx]
+
+            st.markdown("")
+            st.markdown("#### ✏️ Édition du score")
+
+            col_left, col_right = st.columns([2, 1])
+            with col_left:
+                st.markdown(f"**{selected_item['title']}**")
+                st.markdown(selected_item["content"])
+                st.caption(f"Tag: {selected_item.get('tags') or '—'} · Label: {selected_item.get('labels') or '—'}")
+                st.caption(f"Date: {format_datetime(selected_item.get('processed_at'))}")
+
+            with col_right:
+                current_score = selected_item.get("score_global")
+                score_value = st.number_input(
+                    "Score",
+                    min_value=0,
+                    max_value=100,
+                    value=int(current_score) if isinstance(current_score, (int, float)) else 0,
+                    step=1,
+                    key=f"home_score_{selected_item['id']}",
+                )
+                if st.button("✅ Enregistrer le score", use_container_width=True):
+                    result = update_item_score(selected_item["id"], int(score_value))
+                    if result.get("status") == "success":
+                        st.success(result.get("message", "Score mis à jour"))
+                        st.rerun()
+                    else:
+                        st.error(result.get("message", "Erreur DB"))
 
     # ---------- GIF ----------
     col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 1])
