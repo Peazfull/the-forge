@@ -68,19 +68,9 @@ st.markdown(
     """
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-    
-    /* Global */
-    html, body, [class*="css"] {
-        font-family: 'Inter', sans-serif;
-    }
-    
-    /* Variables */
+
     :root {
-        --primary: #FF6B35;
-        --secondary: #004E89;
-        --success: #10b981;
-        --warning: #f59e0b;
-        --danger: #ef4444;
+        --accent: #0ea5e9;
         --gray-50: #f9fafb;
         --gray-100: #f3f4f6;
         --gray-200: #e5e7eb;
@@ -88,118 +78,78 @@ st.markdown(
         --gray-700: #374151;
         --gray-900: #111827;
     }
-    
-    /* Hero Section */
-    .hero-container {
-        text-align: center;
-        padding: 0.5rem 0 1rem 0;
+
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
     }
-    
-    /* Stats Cards */
+
+    .block-container {
+        padding-top: 0.5rem !important;
+        padding-bottom: 1rem !important;
+    }
+
+    .section-header {
+        margin: 1rem 0 0.75rem 0;
+        padding-bottom: 0.4rem;
+        border-bottom: 1px solid var(--gray-200);
+    }
+
+    .section-title {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--gray-700);
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
     .stat-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 10px;
-        padding: 0.75rem 1rem;
-        color: white;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
-        transition: transform 0.15s;
+        background: #fff;
+        border: 1px solid var(--gray-200);
+        border-left: 3px solid var(--accent);
+        border-radius: 8px;
+        padding: 0.7rem 0.9rem;
     }
-    
-    .stat-card:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
-    }
-    
-    .stat-card-brewery {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    }
-    
-    .stat-card-ministry {
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    }
-    
-    .stat-card-artist {
-        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-    }
-    
+
     .stat-value {
-        font-size: 1.75rem;
+        font-size: 1.35rem;
         font-weight: 700;
+        color: var(--gray-900);
         margin: 0;
         line-height: 1;
     }
-    
+
     .stat-label {
         font-size: 0.75rem;
-        opacity: 0.9;
+        color: var(--gray-600);
         margin-top: 0.35rem;
-        font-weight: 500;
     }
-    
-    /* Control Panel Cards */
+
     .control-card {
-        background: white;
+        background: #fff;
         border-radius: 8px;
-        padding: 1rem;
+        padding: 0.9rem;
         border: 1px solid var(--gray-200);
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-        transition: all 0.15s;
         height: 100%;
     }
-    
-    .control-card:hover {
-        border-color: var(--gray-300);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
-    }
-    
+
     .control-card-header {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.35rem;
     }
-    
-    .control-card-icon {
-        font-size: 1.5rem;
-    }
-    
+
     .control-card-title {
-        font-size: 1rem;
+        font-size: 0.95rem;
         font-weight: 600;
         color: var(--gray-900);
         margin: 0;
     }
-    
+
     .control-card-subtitle {
         font-size: 0.75rem;
         color: var(--gray-600);
         margin: 0 0 0.75rem 0;
     }
-    
-    /* Section Headers */
-    .section-header {
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
-        margin: 1rem 0 0.5rem 0;
-        padding-bottom: 0.4rem;
-        border-bottom: 2px solid #10b981;
-    }
-    
-    .section-icon {
-        font-size: 0.9rem;
-    }
-    
-    .section-title {
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: #10b981;
-        margin: 0;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-    
-    /* Status Badges */
+
     .status-badge {
         display: inline-block;
         padding: 0.15rem 0.5rem;
@@ -207,78 +157,40 @@ st.markdown(
         font-size: 0.7rem;
         font-weight: 600;
         text-transform: uppercase;
+        background: #eff6ff;
+        color: var(--accent);
+        border: 1px solid #bfdbfe;
     }
-    
-    .status-success {
-        background: #d1fae5;
-        color: #065f46;
-    }
-    
-    .status-running {
-        background: #dbeafe;
-        color: #1e40af;
-    }
-    
-    .status-warning {
-        background: #fef3c7;
-        color: #92400e;
-    }
-    
+
+    .status-success,
+    .status-running,
+    .status-warning,
     .status-error {
-        background: #fee2e2;
-        color: #991b1b;
+        background: #eff6ff;
+        color: var(--accent);
+        border: 1px solid #bfdbfe;
     }
-    
-    /* Custom Metrics */
-    .custom-metric {
-        background: var(--gray-50);
-        border-radius: 6px;
-        padding: 0.75rem;
-        text-align: center;
-    }
-    
-    .custom-metric-value {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--gray-900);
-        margin: 0;
-    }
-    
-    .custom-metric-label {
-        font-size: 0.7rem;
-        color: var(--gray-600);
-        text-transform: uppercase;
-        font-weight: 600;
-        letter-spacing: 0.03em;
-        margin-top: 0.2rem;
-    }
-    
-    /* Progress Bar Custom */
+
     .stProgress > div > div > div {
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        background: var(--accent);
     }
-    
-    /* Buttons Enhancement */
+
     .stButton > button {
+        background: var(--accent) !important;
+        color: #fff !important;
+        border: none !important;
         border-radius: 8px !important;
         font-weight: 600 !important;
-        transition: all 0.2s !important;
+        transition: opacity 0.2s !important;
     }
-    
+
     .stButton > button:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        opacity: 0.92;
     }
-    
-    /* Reduce top padding */
-    .block-container {
-        padding-top: 0.5rem !important;
-        padding-bottom: 1rem !important;
-    }
-    
-    /* Compact selectbox */
+
     .stSelectbox label {
         font-size: 0.8rem !important;
+        color: var(--gray-600);
     }
     </style>
     """,
@@ -351,32 +263,32 @@ else:
             st.markdown(f"""
             <div class="stat-card">
                 <div class="stat-value">{total_items}</div>
-                <div class="stat-label">📰 Bulletins collectés</div>
+                <div class="stat-label">Bulletins</div>
             </div>
             """, unsafe_allow_html=True)
         
         with col2:
             st.markdown(f"""
-            <div class="stat-card stat-card-brewery">
+            <div class="stat-card">
                 <div class="stat-value">{enriched_items}</div>
-                <div class="stat-label">🏷️ Items enrichis</div>
+                <div class="stat-label">Enrichis</div>
             </div>
             """, unsafe_allow_html=True)
         
         with col3:
             st.markdown(f"""
-            <div class="stat-card stat-card-ministry">
+            <div class="stat-card">
                 <div class="stat-value">{scored_items}</div>
-                <div class="stat-label">⭐ Items scorés</div>
+                <div class="stat-label">Scorés</div>
             </div>
             """, unsafe_allow_html=True)
         
         with col4:
             avg_score = score_stats.get("average_score", 0) if score_stats.get("status") == "success" else 0
             st.markdown(f"""
-            <div class="stat-card stat-card-artist">
+            <div class="stat-card">
                 <div class="stat-value">{avg_score}</div>
-                <div class="stat-label">📊 Score moyen</div>
+                <div class="stat-label">Score moyen</div>
             </div>
             """, unsafe_allow_html=True)
     
@@ -389,7 +301,6 @@ else:
     
     st.markdown("""
     <div class="section-header">
-        <span class="section-icon">🗄️</span>
         <h2 class="section-title">Base de données</h2>
     </div>
     """, unsafe_allow_html=True)
@@ -404,14 +315,14 @@ else:
 
         with col_status:
             if "error" in stats:
-                st.markdown('<span class="status-badge status-error">❌ ERREUR</span>', unsafe_allow_html=True)
+                st.markdown('<span class="status-badge status-error">Erreur</span>', unsafe_allow_html=True)
                 st.error(f"Erreur DB : {stats['error']}")
             else:
                 if stats["count"] == 0:
-                    st.markdown('<span class="status-badge status-success">✅ CONNECTÉ</span>', unsafe_allow_html=True)
+                    st.markdown('<span class="status-badge status-success">Connecté</span>', unsafe_allow_html=True)
                     st.info("Aucun bulletin en base")
                 else:
-                    st.markdown('<span class="status-badge status-success">✅ CONNECTÉ</span>', unsafe_allow_html=True)
+                    st.markdown('<span class="status-badge status-success">Connecté</span>', unsafe_allow_html=True)
                     st.success(
                         f"{stats['count']} bulletins · {format_datetime(stats['min_date'])} → {format_datetime(stats['max_date'])}"
                     )
@@ -436,7 +347,6 @@ else:
     
     st.markdown("""
     <div class="section-header">
-        <span class="section-icon">🎛️</span>
         <h2 class="section-title">Control Panel</h2>
     </div>
     """, unsafe_allow_html=True)
@@ -448,13 +358,12 @@ else:
         st.markdown("""
         <div class="control-card">
             <div class="control-card-header">
-                <span class="control-card-icon">📨</span>
                 <h3 class="control-card-title">NL Brewery</h3>
             </div>
             <p class="control-card-subtitle">Scrape newsletters 20h, pipeline IA, insertion DB</p>
         """, unsafe_allow_html=True)
         
-        if st.button("🚀 Lancer NL Brewery", use_container_width=True, type="primary", key="nl_brewery_btn"):
+        if st.button("Lancer NL Brewery", use_container_width=True, type="primary", key="nl_brewery_btn"):
             progress_bar = st.progress(0)
             status_line = st.empty()
             eta_line = st.empty()
@@ -500,7 +409,6 @@ else:
         st.markdown(f"""
         <div class="control-card">
             <div class="control-card-header">
-                <span class="control-card-icon">🧭</span>
                 <h3 class="control-card-title">Mega Job</h3>
             </div>
             <p class="control-card-subtitle">Multi-sources collecte automatique</p>
@@ -549,13 +457,12 @@ else:
         st.markdown("""
         <div class="control-card">
             <div class="control-card-header">
-                <span class="control-card-icon">🏛️</span>
                 <h3 class="control-card-title">The Ministry</h3>
             </div>
-            <p class="control-card-subtitle">Enrich + Score automatique</p>
+            <p class="control-card-subtitle">Enrich + Score automatique, Actualisation BD</p>
         """, unsafe_allow_html=True)
         
-        if st.button("🏛️ Lancer Ministry", use_container_width=True, type="primary", key="ministry_btn"):
+        if st.button("Lancer Ministry", use_container_width=True, type="primary", key="ministry_btn"):
             # Enrich
             enrich_progress = st.progress(0)
             enrich_status = st.empty()
@@ -622,8 +529,7 @@ else:
     
     st.markdown("""
     <div class="section-header">
-        <span class="section-icon">📊</span>
-        <h2 class="section-title">Analytics Dashboard</h2>
+        <h2 class="section-title">Analytics</h2>
     </div>
     """, unsafe_allow_html=True)
     
@@ -638,35 +544,35 @@ else:
         by_tags = stats_enrich.get("by_tags", {})
         
         with col1:
-            st.metric("📦 Total", stats_enrich.get("total_items", 0))
+            st.metric("Total", stats_enrich.get("total_items", 0))
         with col2:
-            st.metric("🏷️ Enrichis", stats_enrich.get("enriched_items", 0))
+            st.metric("Enrichis", stats_enrich.get("enriched_items", 0))
     else:
         with col1:
-            st.metric("📦 Total", "—")
+            st.metric("Total", "—")
         with col2:
-            st.metric("🏷️ Enrichis", "—")
+            st.metric("Enrichis", "—")
     
     if stats_score.get("status") == "success":
         with col3:
-            st.metric("⭐ Scorés", stats_score.get("scored_items", 0))
+            st.metric("Scorés", stats_score.get("scored_items", 0))
         with col4:
-            st.metric("📊 Moyenne", f"{stats_score.get('average_score', 0)}")
+            st.metric("Moyenne", f"{stats_score.get('average_score', 0)}")
     else:
         with col3:
-            st.metric("⭐ Scorés", "—")
+            st.metric("Scorés", "—")
         with col4:
-            st.metric("📊 Moyenne", "—")
+            st.metric("Moyenne", "—")
     
     # Distribution par catégories en 3 colonnes
     if stats_enrich.get("status") == "success":
         col1, col2, col3 = st.columns(3)
         with col1:
-            st.metric("🌍 ECO", by_tags.get("ECO", 0))
+            st.metric("ECO", by_tags.get("ECO", 0))
         with col2:
-            st.metric("📈 BOURSE", by_tags.get("BOURSE", 0))
+            st.metric("BOURSE", by_tags.get("BOURSE", 0))
         with col3:
-            st.metric("₿ CRYPTO", by_tags.get("CRYPTO", 0))
+            st.metric("CRYPTO", by_tags.get("CRYPTO", 0))
 
     # ======================================================
     # BREW ITEMS PREVIEW & EDIT
@@ -674,7 +580,6 @@ else:
     
     st.markdown("""
     <div class="section-header">
-        <span class="section-icon">🧾</span>
         <h2 class="section-title">Brew Items</h2>
     </div>
     """, unsafe_allow_html=True)
@@ -753,7 +658,7 @@ else:
         df["score_display"] = df["score_global"].fillna("—")
 
         df_table = df[["title_short", "content_short", "tags", "labels", "score_display"]]
-        df_table.columns = ["📰 Titre", "📝 Contenu", "🏷️ Tag", "🔖 Label", "⭐ Score"]
+        df_table.columns = ["Titre", "Contenu", "Tag", "Label", "Score"]
 
         event = st.dataframe(
             df_table,
@@ -770,7 +675,6 @@ else:
 
             st.markdown("""
             <div class="section-header">
-                <span class="section-icon">✏️</span>
                 <h2 class="section-title">Édition du score</h2>
             </div>
             """, unsafe_allow_html=True)
@@ -779,8 +683,8 @@ else:
             with col_left:
                 st.markdown(f"**{selected_item['title']}**")
                 st.markdown(selected_item["content"])
-                st.caption(f"🏷️ Tag: {selected_item.get('tags') or '—'} · 🔖 Label: {selected_item.get('labels') or '—'}")
-                st.caption(f"📅 Date: {format_datetime(selected_item.get('processed_at'))}")
+                st.caption(f"Tag: {selected_item.get('tags') or '—'} · Label: {selected_item.get('labels') or '—'}")
+                st.caption(f"Date: {format_datetime(selected_item.get('processed_at'))}")
 
             with col_right:
                 current_score = selected_item.get("score_global")
@@ -803,7 +707,6 @@ else:
     # ---------- QUICK ACCESS ----------
     st.markdown("""
     <div class="section-header">
-        <span class="section-icon">🚀</span>
         <h2 class="section-title">Quick Access</h2>
     </div>
     """, unsafe_allow_html=True)
@@ -811,17 +714,17 @@ else:
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        if st.button("🍺 The Brewery", use_container_width=True):
+        if st.button("The Brewery", use_container_width=True):
             st.session_state.current_page = "front/views/NewsBrewery"
             st.rerun()
     
     with col2:
-        if st.button("🏛️ The Ministry", use_container_width=True):
+        if st.button("The Ministry", use_container_width=True):
             st.session_state.current_page = "front/views/EnrichBrewery"
             st.rerun()
     
     with col3:
-        if st.button("🎨 The Artist", use_container_width=True):
+        if st.button("The Artist", use_container_width=True):
             st.session_state.current_page = "front/views/CarrouselEco"
             st.rerun()
 
