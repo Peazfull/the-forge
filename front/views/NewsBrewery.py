@@ -9,39 +9,12 @@ import time
 import streamlit as st
 
 # Imports des composants réutilisables
-from front.components.news_source import NewsSourceConfig, NewsSourceRenderer
+from front.components.news_source import NewsSourceRenderer
 
 # Imports des services
-from services.news_brewery.bfm_bourse_job import JobConfig, get_bfm_job
-from services.news_brewery.beincrypto_job import JobConfig as BeInJobConfig, get_beincrypto_job
-from services.news_brewery.boursedirect_job import JobConfig as BourseDirectJobConfig, get_boursedirect_job
-from services.news_brewery.boursedirect_indices_job import (
-    JobConfig as BourseDirectIndicesJobConfig,
-    get_boursedirect_indices_job,
-)
-from services.news_brewery.boursier_economie_job import (
-    JobConfig as BoursierEconomieJobConfig,
-    get_boursier_economie_job,
-)
-from services.news_brewery.boursier_macroeconomie_job import (
-    JobConfig as BoursierMacroeconomieJobConfig,
-    get_boursier_macroeconomie_job,
-)
-from services.news_brewery.boursier_france_job import (
-    JobConfig as BoursierFranceJobConfig,
-    get_boursier_france_job,
-)
 from services.news_brewery.mega_job import MegaJobConfig, get_mega_job
-from services.news_brewery.rss_utils import (
-    fetch_beincrypto_dom_items,
-    fetch_boursedirect_dom_items,
-    fetch_boursier_dom_items,
-    fetch_boursier_macroeconomie_dom_items,
-    fetch_boursier_france_dom_items,
-    fetch_dom_items,
-    fetch_rss_items,
-    merge_article_items,
-)
+from services.news_brewery.rss_utils import merge_article_items
+from services.news_brewery.sources_registry import get_news_sources
 from services.raw_storage.raw_news_service import fetch_raw_news
 
 
@@ -60,119 +33,7 @@ st.divider()
 # Définition de toutes les sources en un seul endroit
 # Ajouter une source = ajouter une entrée ici (10 lignes au lieu de 400 !)
 
-SOURCES = [
-    NewsSourceConfig(
-        key="news",  # Garde "news" au lieu de "bfm" pour compatibilité state
-        label="BFM Bourse",
-        icon="📈",
-        entry_url="https://www.tradingsat.com/actualites/",
-        rss_feed_url="https://www.tradingsat.com/rssfeed.php",
-        fetch_dom_items=fetch_dom_items,
-        fetch_rss_items=fetch_rss_items,
-        job_factory=get_bfm_job,
-        job_config_class=JobConfig,
-        supports_scroll=True,
-        supports_headless=True,
-        supports_captcha_pause=True,
-        supports_firecrawl=True,  # JobConfig attend use_firecrawl (même si fetch_dom_items ne le supporte pas)
-    ),
-    
-    NewsSourceConfig(
-        key="bein",
-        label="BeInCrypto",
-        icon="₿",
-        entry_url="https://fr.beincrypto.com/",
-        rss_feed_url="https://fr.beincrypto.com/feed/",
-        fetch_dom_items=fetch_beincrypto_dom_items,
-        fetch_rss_items=fetch_rss_items,
-        job_factory=get_beincrypto_job,
-        job_config_class=BeInJobConfig,
-        supports_scroll=False,        # Pas de scroll
-        supports_headless=False,      # Pas de headless
-        supports_captcha_pause=False, # Pas de captcha pause
-        supports_firecrawl=True,
-    ),
-    
-    NewsSourceConfig(
-        key="boursedirect",
-        label="Bourse Direct",
-        icon="💼",
-        entry_url="https://www.boursedirect.fr/fr/actualites/categorie/marches",
-        rss_feed_url="https://www.boursedirect.fr/fr/actualites/categorie/marches",
-        fetch_dom_items=fetch_boursedirect_dom_items,
-        fetch_rss_items=fetch_rss_items,
-        job_factory=get_boursedirect_job,
-        job_config_class=BourseDirectJobConfig,
-        supports_scroll=False,
-        supports_headless=False,
-        supports_captcha_pause=False,
-        supports_firecrawl=True,
-    ),
-    
-    NewsSourceConfig(
-        key="boursedirect_indices",
-        label="Bourse Direct Indices",
-        icon="📊",
-        entry_url="https://www.boursedirect.fr/fr/actualites/categorie/indices",
-        rss_feed_url="https://www.boursedirect.fr/fr/actualites/categorie/indices",
-        fetch_dom_items=fetch_boursedirect_dom_items,
-        fetch_rss_items=fetch_rss_items,
-        job_factory=get_boursedirect_indices_job,
-        job_config_class=BourseDirectIndicesJobConfig,
-        supports_scroll=False,
-        supports_headless=False,
-        supports_captcha_pause=False,
-        supports_firecrawl=True,
-    ),
-    
-    NewsSourceConfig(
-        key="boursier_economie",
-        label="Boursier Économie",
-        icon="💰",
-        entry_url="https://www.boursier.com/actualites/economie",
-        rss_feed_url="https://www.boursier.com/actualites/economie",
-        fetch_dom_items=fetch_boursier_dom_items,
-        fetch_rss_items=fetch_rss_items,
-        job_factory=get_boursier_economie_job,
-        job_config_class=BoursierEconomieJobConfig,
-        supports_scroll=False,
-        supports_headless=False,
-        supports_captcha_pause=False,
-        supports_firecrawl=True,
-    ),
-    
-    NewsSourceConfig(
-        key="boursier_macroeconomie",
-        label="Boursier Macroéconomie",
-        icon="🌍",
-        entry_url="https://www.boursier.com/actualites/macroeconomie",
-        rss_feed_url="https://www.boursier.com/actualites/macroeconomie",
-        fetch_dom_items=fetch_boursier_macroeconomie_dom_items,
-        fetch_rss_items=fetch_rss_items,
-        job_factory=get_boursier_macroeconomie_job,
-        job_config_class=BoursierMacroeconomieJobConfig,
-        supports_scroll=False,
-        supports_headless=False,
-        supports_captcha_pause=False,
-        supports_firecrawl=True,
-    ),
-    
-    NewsSourceConfig(
-        key="boursier_france",
-        label="Boursier France",
-        icon="🇫🇷",
-        entry_url="https://www.boursier.com/actualites/france",
-        rss_feed_url="https://www.boursier.com/actualites/france",
-        fetch_dom_items=fetch_boursier_france_dom_items,
-        fetch_rss_items=fetch_rss_items,
-        job_factory=get_boursier_france_job,
-        job_config_class=BoursierFranceJobConfig,
-        supports_scroll=False,
-        supports_headless=False,
-        supports_captcha_pause=False,
-        supports_firecrawl=True,
-    ),
-]
+SOURCES = get_news_sources()
 
 # Créer un mapping pour accès rapide
 SOURCES_MAP = {src.key: src for src in SOURCES}

@@ -4,7 +4,10 @@ from db.supabase_client import get_supabase
 from services.raw_storage.brew_items_read import get_brew_items_stats
 from services.raw_storage.brew_items_erase import brew_items_erase
 from services.nl_brewery.nl_brewery_service import run_full_nl_brewery
+from services.news_brewery.mega_job import MegaJobConfig, get_mega_job
+from services.news_brewery.sources_registry import collect_mega_urls
 import os
+import time
 from datetime import datetime
 from typing import Optional
 
@@ -174,6 +177,60 @@ else:
             st.caption("Erreurs détectées :")
             for err in errors[:5]:
                 st.write(f"⚠️ {err}")
+
+    st.divider()
+
+    # ---------- MEGA JOB QUICK RUN ----------
+    st.write("🧭 Mega Job — Exécution rapide")
+    st.caption("Collecte toutes les sources, 20 dernières heures, insertion automatique en DB.")
+
+    mega_job = get_mega_job()
+    mega_status = mega_job.get_status()
+
+    if st.button("🚀 Lancer Mega Job", use_container_width=True, type="primary"):
+        if mega_status.get("state") == "running":
+            st.warning("Mega Job déjà en cours.")
+        else:
+            with st.spinner("Collecte des URLs en cours…"):
+                urls, statuses = collect_mega_urls(mega_hours=20)
+            if not urls:
+                st.warning("Aucune URL trouvée.")
+            else:
+                config = MegaJobConfig(
+                    source_name="Mega Job Multi-Sources",
+                    source_link="",
+                    remove_buffer_after_success=False,
+                    dry_run=False,
+                )
+                mega_job.set_config(config)
+                mega_job.start_auto_scraping(urls)
+                st.success(f"✅ Mega Job lancé · {len(urls)} URL(s)")
+                st.rerun()
+
+    if mega_status.get("state") == "running":
+        st.divider()
+        progress = mega_status.get("current_index", 0) / max(mega_status.get("total", 1), 1)
+        st.progress(progress)
+        st.caption(f"📊 Progression : {mega_status.get('current_index', 0)}/{mega_status.get('total', 0)} URLs")
+        st.caption(f"✅ Traités : {mega_status.get('processed', 0)} · ⏭️ Ignorés : {mega_status.get('skipped', 0)}")
+
+        if mega_status.get("last_log"):
+            st.info(mega_status.get("last_log"))
+
+        if mega_status.get("errors"):
+            with st.expander(f"⚠️ Erreurs ({len(mega_status.get('errors'))})", expanded=False):
+                for err in mega_status.get("errors")[-10:]:
+                    st.warning(err)
+
+        time.sleep(1)
+        st.rerun()
+
+    elif mega_status.get("state") == "completed":
+        st.success(f"✅ Mega Job terminé · {mega_status.get('processed', 0)} articles traités")
+    elif mega_status.get("state") == "failed":
+        st.error("❌ Mega Job échoué")
+    elif mega_status.get("state") == "stopped":
+        st.warning("⏹️ Mega Job arrêté")
 
     # ---------- GIF ----------
     col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 1])
