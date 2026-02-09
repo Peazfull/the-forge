@@ -70,7 +70,7 @@ st.markdown(
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
     :root {
-        --accent: #0ea5e9;
+        --accent: #5E17EB;
         --gray-50: #f9fafb;
         --gray-100: #f3f4f6;
         --gray-200: #e5e7eb;
@@ -101,6 +101,10 @@ st.markdown(
         margin: 0;
         text-transform: uppercase;
         letter-spacing: 0.08em;
+    }
+
+    .section-title--small {
+        font-size: 0.65rem;
     }
 
     .stat-card {
@@ -301,11 +305,9 @@ else:
     
     st.markdown("""
     <div class="section-header">
-        <h2 class="section-title">Base de données</h2>
+        <h2 class="section-title section-title--small">Base de données</h2>
     </div>
     """, unsafe_allow_html=True)
-
-    col_status, col_clear = st.columns([3, 1])
 
     try:
         supabase = get_supabase()
@@ -313,29 +315,27 @@ else:
 
         stats = get_brew_items_stats()
 
-        with col_status:
-            if "error" in stats:
-                st.markdown('<span class="status-badge status-error">Erreur</span>', unsafe_allow_html=True)
-                st.error(f"Erreur DB : {stats['error']}")
+        if "error" in stats:
+            st.markdown('<span class="status-badge status-error">Erreur</span>', unsafe_allow_html=True)
+            st.error(f"Erreur DB : {stats['error']}")
+        else:
+            if stats["count"] == 0:
+                st.markdown('<span class="status-badge status-success">Connecté</span>', unsafe_allow_html=True)
+                st.info("Aucun bulletin en base")
             else:
-                if stats["count"] == 0:
-                    st.markdown('<span class="status-badge status-success">Connecté</span>', unsafe_allow_html=True)
-                    st.info("Aucun bulletin en base")
-                else:
-                    st.markdown('<span class="status-badge status-success">Connecté</span>', unsafe_allow_html=True)
-                    st.success(
-                        f"{stats['count']} bulletins · {format_datetime(stats['min_date'])} → {format_datetime(stats['max_date'])}"
-                    )
+                st.markdown('<span class="status-badge status-success">Connecté</span>', unsafe_allow_html=True)
+                st.success(
+                    f"{stats['count']} bulletins · {format_datetime(stats['min_date'])} → {format_datetime(stats['max_date'])}"
+                )
 
-        with col_clear:
-            if st.button("🧹 Clear DB", use_container_width=True):
-                result = brew_items_erase()
+        if st.button("Clear DB", use_container_width=False):
+            result = brew_items_erase()
 
-                if result["status"] == "success":
-                    st.success(f"DB nettoyée · {result['deleted']} éléments supprimés")
-                    st.rerun()
-                else:
-                    st.error(f"Erreur suppression : {result.get('message')}")
+            if result["status"] == "success":
+                st.success(f"DB nettoyée · {result['deleted']} éléments supprimés")
+                st.rerun()
+            else:
+                st.error(f"Erreur suppression : {result.get('message')}")
 
     except Exception as e:
         st.markdown('<span class="status-badge status-error">❌ ERREUR</span>', unsafe_allow_html=True)
@@ -347,7 +347,7 @@ else:
     
     st.markdown("""
     <div class="section-header">
-        <h2 class="section-title">Control Panel</h2>
+        <h2 class="section-title section-title--small">Control Panel</h2>
     </div>
     """, unsafe_allow_html=True)
     
@@ -360,7 +360,6 @@ else:
             <div class="control-card-header">
                 <h3 class="control-card-title">NL Brewery</h3>
             </div>
-            <p class="control-card-subtitle">Scrape newsletters 20h, pipeline IA, insertion DB</p>
         """, unsafe_allow_html=True)
         
         if st.button("Lancer NL Brewery", use_container_width=True, type="primary", key="nl_brewery_btn"):
@@ -411,7 +410,6 @@ else:
             <div class="control-card-header">
                 <h3 class="control-card-title">Mega Job</h3>
             </div>
-            <p class="control-card-subtitle">Multi-sources collecte automatique</p>
             <span class="status-badge status-{status_color}">{status_text}</span>
         """, unsafe_allow_html=True)
         
@@ -459,7 +457,6 @@ else:
             <div class="control-card-header">
                 <h3 class="control-card-title">The Ministry</h3>
             </div>
-            <p class="control-card-subtitle">Enrich + Score automatique, Actualisation BD</p>
         """, unsafe_allow_html=True)
         
         if st.button("Lancer Ministry", use_container_width=True, type="primary", key="ministry_btn"):
@@ -529,7 +526,7 @@ else:
     
     st.markdown("""
     <div class="section-header">
-        <h2 class="section-title">Analytics</h2>
+        <h2 class="section-title section-title--small">Analytics</h2>
     </div>
     """, unsafe_allow_html=True)
     
@@ -539,40 +536,75 @@ else:
     
     # Layout en 4 colonnes pour les métriques principales
     col1, col2, col3, col4 = st.columns(4)
-    
     if stats_enrich.get("status") == "success":
         by_tags = stats_enrich.get("by_tags", {})
-        
-        with col1:
-            st.metric("Total", stats_enrich.get("total_items", 0))
-        with col2:
-            st.metric("Enrichis", stats_enrich.get("enriched_items", 0))
+        total_items = stats_enrich.get("total_items", 0)
+        enriched_items = stats_enrich.get("enriched_items", 0)
     else:
-        with col1:
-            st.metric("Total", "—")
-        with col2:
-            st.metric("Enrichis", "—")
-    
+        by_tags = {}
+        total_items = "—"
+        enriched_items = "—"
+
     if stats_score.get("status") == "success":
-        with col3:
-            st.metric("Scorés", stats_score.get("scored_items", 0))
-        with col4:
-            st.metric("Moyenne", f"{stats_score.get('average_score', 0)}")
+        scored_items = stats_score.get("scored_items", 0)
+        average_score = stats_score.get("average_score", 0)
     else:
-        with col3:
-            st.metric("Scorés", "—")
-        with col4:
-            st.metric("Moyenne", "—")
+        scored_items = "—"
+        average_score = "—"
+
+    with col1:
+        st.markdown(f"""
+        <div class="stat-card">
+            <div class="stat-value">{total_items}</div>
+            <div class="stat-label">Total</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col2:
+        st.markdown(f"""
+        <div class="stat-card">
+            <div class="stat-value">{enriched_items}</div>
+            <div class="stat-label">Enrichis</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col3:
+        st.markdown(f"""
+        <div class="stat-card">
+            <div class="stat-value">{scored_items}</div>
+            <div class="stat-label">Scorés</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col4:
+        st.markdown(f"""
+        <div class="stat-card">
+            <div class="stat-value">{average_score}</div>
+            <div class="stat-label">Moyenne</div>
+        </div>
+        """, unsafe_allow_html=True)
     
     # Distribution par catégories en 3 colonnes
     if stats_enrich.get("status") == "success":
         col1, col2, col3 = st.columns(3)
         with col1:
-            st.metric("ECO", by_tags.get("ECO", 0))
+            st.markdown(f"""
+            <div class="stat-card">
+                <div class="stat-value">{by_tags.get("ECO", 0)}</div>
+                <div class="stat-label">ECO</div>
+            </div>
+            """, unsafe_allow_html=True)
         with col2:
-            st.metric("BOURSE", by_tags.get("BOURSE", 0))
+            st.markdown(f"""
+            <div class="stat-card">
+                <div class="stat-value">{by_tags.get("BOURSE", 0)}</div>
+                <div class="stat-label">BOURSE</div>
+            </div>
+            """, unsafe_allow_html=True)
         with col3:
-            st.metric("CRYPTO", by_tags.get("CRYPTO", 0))
+            st.markdown(f"""
+            <div class="stat-card">
+                <div class="stat-value">{by_tags.get("CRYPTO", 0)}</div>
+                <div class="stat-label">CRYPTO</div>
+            </div>
+            """, unsafe_allow_html=True)
 
     # ======================================================
     # BREW ITEMS PREVIEW & EDIT
