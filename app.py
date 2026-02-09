@@ -216,6 +216,9 @@ else:
 
     if mega_status.get("state") == "running":
         st.divider()
+        if st.button("⏹️ Stop Mega Job", use_container_width=True):
+            mega_job.stop()
+            st.rerun()
         progress = mega_status.get("current_index", 0) / max(mega_status.get("total", 1), 1)
         st.progress(progress)
         st.caption(f"📊 Progression : {mega_status.get('current_index', 0)}/{mega_status.get('total', 0)} URLs")
