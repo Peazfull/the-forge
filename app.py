@@ -70,11 +70,10 @@ st.markdown(
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
     :root {
-        /* Couleurs boutons - Style clair */
-        --button-primary: #ffffff;
-        --button-border: #5E17EB;
+        /* Couleurs boutons - Style clair sans border */
+        --button-primary: #fffdf4;
         --button-text: #1f2937;
-        --button-hover: #f5f3ff;
+        --button-hover: #fef9e7;
         
         /* Couleurs accents (progress bars, badges, borders) - Violet */
         --accent: #5E17EB;
@@ -192,17 +191,17 @@ st.markdown(
     .stButton > button {
         background: var(--button-primary) !important;
         color: var(--button-text) !important;
-        border: 2px solid var(--button-border) !important;
+        border: none !important;
         border-radius: 8px !important;
         font-weight: 600 !important;
         transition: all 0.2s !important;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
     }
     
     .stButton > button:hover {
         background: var(--button-hover) !important;
-        border-color: var(--accent) !important;
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(94, 23, 235, 0.15) !important;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08) !important;
     }
     }
 
