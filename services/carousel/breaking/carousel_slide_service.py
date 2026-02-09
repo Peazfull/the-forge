@@ -279,8 +279,8 @@ def generate_cover_slide(
     title_line_height = int(title_font.size * 1.2)
     title_block_height = title_line_height * len(title_lines)
 
-    # Titre positionné à 680px du haut
-    title_y = 680
+    # Titre positionné à 600px du haut (remonté de 80px)
+    title_y = 600
     
     # Logo positionné AU-DESSUS du titre avec un gap de 12px
     if cover_logo_height:
