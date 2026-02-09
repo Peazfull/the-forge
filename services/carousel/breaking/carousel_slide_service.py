@@ -33,7 +33,7 @@ TITLE_COVER_SIDE_MARGIN = 120
 CONTENT_TOP_GAP = 20
 CONTENT_BOTTOM_MARGIN = 20
 DATE_FONT_SIZE = 38
-COVER_LOGO_WIDTH = 760
+COVER_LOGO_WIDTH = 584  # Réduit de 760 (divisé par 1.3)
 DATE_TOP_GAP = 12
 
 # Polices (fallback sur PIL par défaut si fichier absent)
