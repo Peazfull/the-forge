@@ -97,26 +97,35 @@ class EcoCarouselJob:
             self.processed = 0
             self.errors = []
             
-            # Protection : vérifier que les items sont valides
-            if not self._items or not isinstance(self._items, list):
-                raise Exception("Items invalides")
-            
-            self.total = len(self._items) + 1  # items + cover
-            
-            # Étape 1 : Insertion items
+            # Étape 1 : Insertion items (accepte des IDs)
             self._log("📥 Insertion des items sélectionnés...")
             result = insert_items_to_carousel_eco(self._items)
             if result.get("status") != "success":
                 raise Exception(f"Erreur insertion : {result.get('message', '')}")
             self._log(f"✅ {len(self._items)} items insérés")
             
-            # Étape 2 : Génération textes carrousel (séquentiel car dépend de l'ordre)
+            # Étape 2 : Récupérer les items depuis la DB (objets complets)
+            self._log("📦 Récupération items depuis DB...")
+            carousel_data = get_carousel_eco_items()
+            
+            if not isinstance(carousel_data, dict):
+                raise Exception(f"carousel_data invalide (type: {type(carousel_data)})")
+            
+            if carousel_data.get("status") != "success":
+                raise Exception(f"Erreur get_items: {carousel_data.get('message', 'Erreur inconnue')}")
+            
+            all_items = carousel_data.get("items", [])
+            if not all_items:
+                raise Exception("Aucun item récupéré")
+            
+            self._log(f"✅ {len(all_items)} items récupérés")
+            self.total = len(all_items)
+            
+            # Étape 3 : Génération textes carrousel (séquentiel)
             self._log("✍️ Génération textes carrousel...")
             
             try:
-                supabase = get_supabase()
-                carousel_items = supabase.table("carousel_eco").select("*").order("position").execute().data or []
-                content_items = [item for item in carousel_items if item.get("position", -1) > 0]
+                content_items = [item for item in all_items if item.get("position", -1) > 0]
                 
                 for item in content_items:
                     if self._stop_event.is_set():
@@ -130,6 +139,7 @@ class EcoCarouselJob:
                     text_result = generate_carousel_text_for_item(title, content)
                     
                     if text_result.get("status") == "success":
+                        supabase = get_supabase()
                         supabase.table("carousel_eco").update({
                             "title_carou": text_result.get("title_carou"),
                             "content_carou": text_result.get("content_carou")
@@ -140,13 +150,10 @@ class EcoCarouselJob:
             except Exception as e:
                 raise Exception(f"Erreur génération textes: {str(e)}")
             
-            # Étape 3 : Génération cover
-            if not self._items or len(self._items) == 0:
-                raise Exception("Aucun item à traiter")
-            
-            first_item = self._items[0]
-            if not isinstance(first_item, dict):
-                raise Exception(f"Item invalide (type: {type(first_item)})")
+            # Étape 4 : Génération cover
+            first_item = all_items[0] if all_items else None
+            if not first_item:
+                raise Exception("Aucun premier item")
             
             cover_result = upsert_carousel_eco_cover({
                 "title": first_item.get("title", ""),
@@ -159,26 +166,9 @@ class EcoCarouselJob:
                 raise Exception(f"Erreur cover : {cover_result.get('message', '')}")
             self._log("✅ Cover créée")
             
-            # Étape 4 : Nettoyer caches
+            # Étape 5 : Nettoyer caches
             self._log("🧹 Nettoyage caches...")
             clear_slide_files()
-            
-            # Étape 5 : Récupérer tous les items
-            self._log("📦 Récupération items...")
-            carousel_data = get_carousel_eco_items()
-            
-            # Debug : vérifier le type
-            if not isinstance(carousel_data, dict):
-                raise Exception(f"carousel_data invalide (type: {type(carousel_data)})")
-            
-            if carousel_data.get("status") != "success":
-                raise Exception(f"Erreur get_items: {carousel_data.get('message', 'Erreur inconnue')}")
-            
-            all_items = carousel_data.get("items", [])
-            if not all_items:
-                raise Exception("Aucun item récupéré")
-            
-            self._log(f"✅ {len(all_items)} items récupérés")
             
             # Étape 6 : GÉNÉRATION PROMPTS IMAGES EN PARALLÈLE ⚡
             self._log("🎨 Génération prompts images (parallèle)...")
