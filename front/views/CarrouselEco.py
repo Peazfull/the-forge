@@ -406,7 +406,7 @@ def generate_all_slide_previews():
     # Upload outro
     outro_path = os.path.join(
         os.path.dirname(__file__),
-        "..", "layout", "assets", "carousel", "eco", "outro.png"
+        "..", "layout", "assets", "carousel", "eco", "outro_eco.png"
     )
     if os.path.exists(outro_path):
         with open(outro_path, "rb") as f:
@@ -453,7 +453,7 @@ def build_carousel_exports(items_sorted):
     # Ajouter outro à la fin
     outro_path = os.path.join(
         os.path.dirname(__file__),
-        "..", "layout", "assets", "carousel", "eco", "outro.png"
+        "..", "layout", "assets", "carousel", "eco", "outro_eco.png"
     )
     if st.session_state.get("slide_selected_outro", True) and os.path.exists(outro_path):
         with open(outro_path, "rb") as f:
