@@ -634,18 +634,23 @@ def generate_slides_parallel(items: List[Dict]) -> Dict[str, object]:
         content = item.get("content_carou") or item.get("content", "")
         
         try:
-            # Lire l'image depuis storage
-            image_result = read_carousel_image(item_id)
+            # Lire l'image depuis Supabase Storage (carousel-eco bucket)
+            supabase = get_supabase()
+            storage_path = f"{item_id}.png"
             
-            if image_result.get("status") != "success":
-                return {
-                    "item_id": item_id,
-                    "position": position,
-                    "status": "error",
-                    "message": "Image non trouvée"
-                }
-            
-            image_bytes = image_result.get("image_bytes")
+            try:
+                image_bytes = supabase.storage.from_("carousel-eco").download(storage_path)
+            except Exception:
+                # Fallback : essayer depuis session_state/disque
+                image_result = read_carousel_image(position)
+                if not image_result:
+                    return {
+                        "item_id": item_id,
+                        "position": position,
+                        "status": "error",
+                        "message": "Image non trouvée"
+                    }
+                image_bytes = image_result
             
             # Générer la slide
             if position == 0:
