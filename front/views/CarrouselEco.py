@@ -1644,14 +1644,14 @@ with st.expander("🖼️ Preview Slides", expanded=False):
                 if item_id == "outro":
                     outro_path = os.path.join(
                         os.path.dirname(__file__),
-                        "..", "layout", "assets", "carousel", "eco", "outro.png"
+                        "..", "layout", "assets", "carousel", "eco", "outro_eco.png"
                     )
                     if "slide_outro.png" in stored_files:
                         st.image(get_slide_public_url("slide_outro.png"), use_container_width=True)
                     elif os.path.exists(outro_path):
                         st.image(outro_path, use_container_width=True)
                     else:
-                        st.warning("outro.png introuvable")
+                        st.warning("outro_eco.png introuvable")
                     continue
                 
                 # Si la slide est déjà en storage, on l'affiche direct
