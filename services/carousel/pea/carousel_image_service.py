@@ -149,13 +149,15 @@ def save_image_base64(image_base64: str, position: int) -> Dict[str, object]:
         }
 
 
-def generate_and_save_carousel_image(prompt: str, position: int, item_id: Optional[str] = None) -> Dict[str, object]:
+def generate_and_save_carousel_image(prompt: str, position: int, item_id: Optional[str] = None, aspect_ratio: str = "1:1") -> Dict[str, object]:
     """
     Génère une image avec un prompt et la sauvegarde sur disque
     
     Args:
         prompt: Le prompt de génération d'image
         position: Position dans le carousel (1-10)
+        item_id: ID de l'item dans la DB (optionnel)
+        aspect_ratio: Ratio d'aspect de l'image ("1:1", "5:4", "16:9", "9:16")
         
     Returns:
         {
@@ -167,8 +169,8 @@ def generate_and_save_carousel_image(prompt: str, position: int, item_id: Option
             "message": str
         }
     """
-    # Générer l'image
-    result = generate_carousel_image(prompt)
+    # Générer l'image avec l'aspect ratio spécifié
+    result = generate_carousel_image(prompt, aspect_ratio=aspect_ratio)
     
     if result["status"] != "success":
         return result
@@ -196,6 +198,20 @@ def generate_and_save_carousel_image(prompt: str, position: int, item_id: Option
         
         image_url = _append_model_to_url(image_url, model_tag)
         save_image_to_pea(item_id, image_url)
+        
+        # NOUVEAU : Upload AUSSI avec item_id.png pour la parallélisation
+        # Cela permet à generate_slides_parallel de retrouver l'image
+        try:
+            image_bytes = base64.b64decode(result["image_data"])
+            supabase = get_supabase()
+            STORAGE_BUCKET = "carousel-pea"
+            supabase.storage.from_(STORAGE_BUCKET).upload(
+                f"{item_id}.png",
+                image_bytes,
+                file_options={"content-type": "image/png", "upsert": True}
+            )
+        except Exception:
+            pass  # Non bloquant si l'upload échoue
     
     return {
         "status": "success",

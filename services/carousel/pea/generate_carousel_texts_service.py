@@ -364,3 +364,84 @@ def update_carousel_text(item_id: str, field: str, value: str) -> Dict[str, obje
             "status": "error",
             "message": f"Erreur DB: {str(e)}"
         }
+
+
+# ═════════════════════════════════════════════════════════════════════════
+# GÉNÉRATION PARALLÈLE DES PROMPTS IMAGES
+# ═════════════════════════════════════════════════════════════════════════
+
+def generate_all_image_prompts_parallel(all_items: List[Dict], prompt_type: str = "sunset", progress_callback=None) -> Dict:
+    """
+    Génère tous les prompts images en parallèle (8 threads max).
+    
+    Args:
+        all_items: Liste des items à traiter
+        prompt_type: "sunset" ou "studio"
+        progress_callback: Fonction callback(item_id, position, success) pour progression
+    
+    Returns:
+        {
+            "status": "success" | "partial" | "error",
+            "total": int,
+            "success": int,
+            "errors": int,
+            "details": [...]
+        }
+    """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    
+    MAX_WORKERS = 8
+    success_count = 0
+    error_count = 0
+    results = []
+    
+    def generate_one_prompt(item):
+        """Génère un prompt pour un seul item."""
+        item_id = item.get("id")
+        position = item.get("position")
+        title = item.get("title", "")
+        content = item.get("content", "")
+        
+        try:
+            result = generate_image_prompt_for_item(title, content, prompt_type=prompt_type)
+            
+            if result.get("status") == "success":
+                # Sauvegarder en DB
+                supabase = get_supabase()
+                supabase.table("carousel_pea").update({
+                    "prompt_image_1": result.get("image_prompt")
+                }).eq("id", item_id).execute()
+                
+                if progress_callback:
+                    progress_callback(item_id, position, True)
+                
+                return {"success": True, "item_id": item_id, "position": position}
+            else:
+                if progress_callback:
+                    progress_callback(item_id, position, False)
+                return {"success": False, "item_id": item_id, "position": position, "message": result.get("message", "Erreur inconnue")}
+                
+        except Exception as e:
+            if progress_callback:
+                progress_callback(item_id, position, False)
+            return {"success": False, "item_id": item_id, "position": position, "message": str(e)}
+    
+    # Exécution parallèle
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        futures = {executor.submit(generate_one_prompt, item): item for item in all_items}
+        
+        for future in as_completed(futures):
+            result = future.result()
+            results.append(result)
+            if result["success"]:
+                success_count += 1
+            else:
+                error_count += 1
+    
+    return {
+        "status": "success" if error_count == 0 else "partial" if success_count > 0 else "error",
+        "total": len(all_items),
+        "success": success_count,
+        "errors": error_count,
+        "details": results
+    }
