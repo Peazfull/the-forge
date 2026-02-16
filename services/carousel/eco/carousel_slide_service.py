@@ -314,23 +314,23 @@ def generate_cover_slide(
         # Pas de scale, utiliser la taille originale de l'asset
         canvas.alpha_composite(cover_logo, (45, 168))
     
-    # Date - 55px sous le logo, 50px left, taille 60, letter spacing -1%
+    # Date - 51px sous le logo, 50px left, taille 60, letter spacing -1%
     date_str = _format_french_date()
     date_font_size = 60
     date_font = _load_font(FONT_CONTENT_PATH, date_font_size, weight=CONTENT_FONT_WEIGHT)
     
-    # Position : 168px (logo top) + hauteur du logo + 55px
-    date_y = 168 + cover_logo_height + 55
+    # Position : 168px (logo top) + hauteur du logo + 51px
+    date_y = 168 + cover_logo_height + 51
     date_x = 50
     
     # Letter spacing -1% (approximé à -0.6px pour font 60)
     letter_spacing = int(date_font_size * -0.01)
     draw.text((date_x, date_y), date_str, font=date_font, fill="#363636", spacing=letter_spacing)
     
-    # Calcul hauteur de la date pour centrage du Swipe
+    # Calcul hauteur de la date pour positionnement du Swipe
     date_height = int(date_font_size * 1.2)
     
-    # Swipe (cover) - 84px de large, aligné verticalement avec le centre de la date, à droite avec 50px margin
+    # Swipe (cover) - 84px de large, centré avec la date + 5px vers le bas, à droite avec 50px margin
     swipe_path = os.path.join(ASSETS_DIR, "Swipe.png")
     if os.path.exists(swipe_path):
         swipe = Image.open(swipe_path).convert("RGBA")
@@ -342,8 +342,8 @@ def generate_cover_slide(
         swipe = swipe.resize((target_width, target_height), Image.LANCZOS)
         # Position X : à droite avec 50px de margin
         swipe_x = CANVAS_SIZE[0] - swipe.size[0] - 50
-        # Position Y : centré avec la date
-        swipe_y = date_y + (date_height - swipe.size[1]) // 2
+        # Position Y : centré avec la date + 5px vers le bas
+        swipe_y = date_y + (date_height - swipe.size[1]) // 2 + 5
         canvas.alpha_composite(swipe, (swipe_x, swipe_y))
     
     output = BytesIO()
