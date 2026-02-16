@@ -32,6 +32,7 @@ SI ENTREPRISE :
   • Tech → siège moderne verre/aciers
   • Automobile → siège + véhicule récent identifiable
   • Finance → tour institutionnelle type quartier d’affaires
+  • etc... soit intelligent là dessus 
 
 SI PERSONNALITÉ PUBLIQUE :
 

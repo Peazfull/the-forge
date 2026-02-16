@@ -30,8 +30,10 @@ SI ENTREPRISE :
 - Building adapté à l'activité :
   • Luxe → architecture parisienne élégante
   • Tech → siège moderne verre/aciers
-  • Automobile → siège + véhicule récent identifiable
+  • Automobile → siège + véhicule récent identifiable devant
   • Finance → tour institutionnelle type quartier d'affaires
+  • etc... soit intelligent là dessus 
+
 
 SI PERSONNALITÉ PUBLIQUE :
 
