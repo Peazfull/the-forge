@@ -199,6 +199,19 @@ def generate_and_save_carousel_image(prompt: str, position: int, item_id: Option
         
         image_url = _append_model_to_url(image_url, model_tag)
         save_image_to_bourse(item_id, image_url)
+        
+        # NOUVEAU : Upload AUSSI avec item_id.png pour la parallélisation
+        # Cela permet à generate_slides_parallel de retrouver l'image
+        try:
+            image_bytes = base64.b64decode(result["image_data"])
+            supabase = get_supabase()
+            supabase.storage.from_(STORAGE_BUCKET).upload(
+                f"{item_id}.png",
+                image_bytes,
+                file_options={"content-type": "image/png", "upsert": True}
+            )
+        except Exception:
+            pass  # Non bloquant si l'upload échoue
     
     return {
         "status": "success",
