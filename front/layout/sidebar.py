@@ -42,6 +42,8 @@ def render_sidebar():
         with st.expander("🎨 The Artist", expanded=False):
             if st.button("🌍 Carrousel Eco", key="carrousel_eco", use_container_width=True):
                 st.session_state.current_page = "front/views/CarrouselEco"
+            if st.button("🧪 Eco Slides", key="eco_slides", use_container_width=True):
+                st.session_state.current_page = "front/views/EcoSlides"
             if st.button("📊 Carrousel Bourse", key="carrousel_bourse", use_container_width=True):
                 st.session_state.current_page = "front/views/CarrouselBourse"
             if st.button("🇫🇷 Carrousel PEA", key="carrousel_pea", use_container_width=True):
