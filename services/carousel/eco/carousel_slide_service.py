@@ -172,12 +172,12 @@ def generate_carousel_slide(
         logo_x = (CANVAS_SIZE[0] - LOGO_SIZE[0]) // 2
         canvas.alpha_composite(logo, (logo_x, LOGO_TOP))
 
-    # swipe_eco.png - 35px au-dessus de l'image, aligné à droite avec 50px de marge
+    # swipe_eco.png - 30px au-dessus de l'image, aligné à droite avec 50px de marge
     swipe_eco_path = os.path.join(ASSETS_DIR, "swipe_eco.png")
     if os.path.exists(swipe_eco_path):
         swipe_eco = Image.open(swipe_eco_path).convert("RGBA")
-        # Position: 35px au-dessus de l'image (image commence à image_y_position = 486)
-        swipe_eco_y = image_y_position - 35 - swipe_eco.size[1]
+        # Position: 30px au-dessus de l'image (image commence à image_y_position = 486)
+        swipe_eco_y = image_y_position - 30 - swipe_eco.size[1]
         swipe_eco_x = CANVAS_SIZE[0] - swipe_eco.size[0] - 50
         canvas.alpha_composite(swipe_eco, (swipe_eco_x, swipe_eco_y))
 
