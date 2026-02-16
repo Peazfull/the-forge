@@ -312,7 +312,7 @@ class EcoCarouselJob:
         # Upload outro
         outro_path = os.path.join(
             os.path.dirname(__file__),
-            "..", "..", "..", "front", "layout", "assets", "carousel", "eco", "outro.png"
+            "..", "..", "..", "front", "layout", "assets", "carousel", "eco", "outro_eco.png"
         )
         if os.path.exists(outro_path):
             try:
