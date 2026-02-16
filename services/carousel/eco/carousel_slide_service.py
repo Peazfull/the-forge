@@ -46,8 +46,8 @@ FONT_DATE_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")  # Date slide 
 TITLE_FONT_WEIGHT = 700  # Bold
 CONTENT_FONT_WEIGHT = 500  # Medium
 DATE_FONT_WEIGHT = 600  # SemiBold
-TITLE_FONT_SIZE = 48
-CONTENT_FONT_SIZE = 40
+TITLE_FONT_SIZE = 46
+CONTENT_FONT_SIZE = 39
 
 
 def _load_font(path: str, size: int, weight: int | None = None) -> ImageFont.ImageFont:
