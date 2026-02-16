@@ -187,7 +187,7 @@ The lighting features a strong stylized sunset atmosphere using the official flu
 
 The upper area transitions gradually into a soft warm off-white tone close to hex F5F6F1, resembling natural sky luminosity. No haze, no artificial gradient block, no horizontal division. The architecture remains detailed up to the upper frame.
 
-Premium, minimal editorial mood. Realistic camera perspective, subtle film grain. No text, no numbers, no UI. 8K quality."
+Premium, minimal editorial mood . Realistic camera perspective, subtle film grain. No text, no numbers, no UI. 8K quality."
 
 ────────────────────────
 FORMAT DE SORTIE
