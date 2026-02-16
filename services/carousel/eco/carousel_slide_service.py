@@ -191,7 +191,7 @@ def generate_carousel_slide(
         draw.text((LEFT_MARGIN, title_y), line, font=title_font, fill="white", spacing=title_letter_spacing)
         title_y += int(title_font.size * 1.2)
 
-    # Content text - Inter Medium 40, blanc, letter spacing +1%
+    # Content text - Inter Medium 40, noir, letter spacing +1%
     content_top = title_bg_top + title_bg_height + CONTENT_TOP_GAP
     content_max_height = CANVAS_SIZE[1] - content_top - CONTENT_BOTTOM_MARGIN
     content = _sentence_case(content)
@@ -204,7 +204,7 @@ def generate_carousel_slide(
     for line in content_lines:
         if y + line_height > CANVAS_SIZE[1] - CONTENT_BOTTOM_MARGIN:
             break
-        draw.text((LEFT_MARGIN, y), line, font=content_font, fill="white", spacing=content_letter_spacing)
+        draw.text((LEFT_MARGIN, y), line, font=content_font, fill="black", spacing=content_letter_spacing)
         y += line_height
 
     # Swipe
