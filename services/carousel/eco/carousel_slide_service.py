@@ -302,18 +302,12 @@ def generate_cover_slide(
         logo_x = (CANVAS_SIZE[0] - logo_size[0]) // 2
         canvas.alpha_composite(logo, (logo_x, 0))  # 0px du haut
     
-    # Logo slide 0 (plein centre)
-    cover_logo_path = os.path.join(ASSETS_DIR, "Logo_slide_0_eco.png")
+    # Logo slide 0 - "Le roll Économie" (300px top, 60px left)
+    cover_logo_path = os.path.join(ASSETS_DIR, "Logo_slide0.png")
     if os.path.exists(cover_logo_path):
         cover_logo = Image.open(cover_logo_path).convert("RGBA")
-        scale = (COVER_LOGO_WIDTH / cover_logo.size[0]) * 1.3
-        cover_logo = cover_logo.resize(
-            (int(cover_logo.size[0] * scale), int(cover_logo.size[1] * scale)),
-            Image.LANCZOS
-        )
-        cover_logo_height = cover_logo.size[1]
-    else:
-        cover_logo_height = 0
+        # Pas de scale, utiliser la taille originale de l'asset
+        canvas.alpha_composite(cover_logo, (60, 300))
     
     # Date
     date_str = _format_french_date()
@@ -324,15 +318,7 @@ def generate_cover_slide(
     # Date positionnée à 680px du haut
     date_y = 680
     
-    # Logo positionné AU-DESSUS de la date avec un gap de 12px
-    # Logo se termine à (date_y - DATE_TOP_GAP)
-    # Logo commence à (date_y - DATE_TOP_GAP - cover_logo_height)
-    if cover_logo_height:
-        logo_y = date_y - DATE_TOP_GAP - cover_logo_height
-        cover_x = (CANVAS_SIZE[0] - cover_logo.size[0]) // 2
-        canvas.alpha_composite(cover_logo, (cover_x, logo_y))
-    
-    # Date
+    # Date centrée
     date_x = (CANVAS_SIZE[0] - int(date_w)) // 2
     draw.text((date_x, date_y), date_str, font=date_font, fill="white")
     
