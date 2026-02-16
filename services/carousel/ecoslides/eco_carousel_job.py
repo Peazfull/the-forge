@@ -92,6 +92,7 @@ class EcoCarouselJob:
     def _run_optimized(self) -> None:
         """Exécution optimisée avec parallélisation (NOUVELLE VERSION)."""
         try:
+            self._log("⚡⚡⚡ MODE OPTIMISÉ ACTIVÉ - PARALLÉLISATION ⚡⚡⚡")
             self.state = "running"
             self.current = 0
             self.processed = 0
