@@ -175,6 +175,28 @@ def generate_and_save_carousel_image(prompt: str, position: int, item_id: Option
         
         image_url = _append_model_to_url(image_url, model_tag)
         save_image_to_carousel(item_id, image_url)
+        
+        # Upload AUSSI avec item_id.png ET image_{item_id}.png pour persistence
+        # Cela permet de retrouver l'image après reboot (comme Breaking)
+        try:
+            image_bytes = base64.b64decode(result["image_data"])
+            from db.supabase_client import get_supabase
+            supabase = get_supabase()
+            STORAGE_BUCKET = "carousel-eco"
+            # Upload 1: {item_id}.png (pour parallélisation)
+            supabase.storage.from_(STORAGE_BUCKET).upload(
+                f"{item_id}.png",
+                image_bytes,
+                file_options={"content-type": "image/png", "upsert": True}
+            )
+            # Upload 2: image_{item_id}.png (pour retrouver après reboot)
+            supabase.storage.from_(STORAGE_BUCKET).upload(
+                f"image_{item_id}.png",
+                image_bytes,
+                file_options={"content-type": "image/png", "upsert": True}
+            )
+        except Exception:
+            pass  # Non bloquant si l'upload échoue
     
     return {
         "status": "success",

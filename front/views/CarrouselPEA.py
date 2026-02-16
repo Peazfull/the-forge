@@ -321,7 +321,16 @@ def generate_all_slide_previews():
         title_carou = item.get("title_carou") or ""
         content_carou = item.get("content_carou") or ""
         image_url = item.get("image_url")
-        image_bytes = None if image_url else read_carousel_image(position)
+        
+        # Essayer de lire l'image depuis Supabase Storage en priorité (persistence)
+        image_bytes = None
+        if not image_url:
+            try:
+                supabase = get_supabase()
+                image_bytes = supabase.storage.from_("carousel-pea").download(f"image_{item_id}.png")
+            except Exception:
+                # Fallback sur le cache local
+                image_bytes = read_carousel_image(position)
         
         if position == 0 and (not image_url and not image_bytes):
             errors += 1
@@ -381,7 +390,16 @@ def build_carousel_exports(items_sorted):
         title_carou = item.get("title_carou") or ""
         content_carou = item.get("content_carou") or ""
         image_url = item.get("image_url")
-        image_bytes = None if image_url else read_carousel_image(position)
+        
+        # Essayer de lire l'image depuis Supabase Storage en priorité (persistence)
+        image_bytes = None
+        if not image_url:
+            try:
+                supabase = get_supabase()
+                image_bytes = supabase.storage.from_("carousel-pea").download(f"image_{item_id}.png")
+            except Exception:
+                # Fallback sur le cache local
+                image_bytes = read_carousel_image(position)
         
         if position == 0 and (not image_url and not image_bytes):
             continue
@@ -1314,7 +1332,16 @@ with st.expander("🖼️ Preview Slides", expanded=False):
             title_carou = item.get("title_carou") or ""
             content_carou = item.get("content_carou") or ""
             image_url = item.get("image_url")
-            image_bytes = None if image_url else read_carousel_image(position)
+            
+            # Essayer de lire l'image depuis Supabase Storage en priorité (persistence)
+            image_bytes = None
+            if not image_url and item_id != "outro":
+                try:
+                    supabase = get_supabase()
+                    image_bytes = supabase.storage.from_("carousel-pea").download(f"image_{item_id}.png")
+                except Exception:
+                    # Fallback sur le cache local
+                    image_bytes = read_carousel_image(position)
             
             if idx % 3 == 0:
                 cols = st.columns(3)
