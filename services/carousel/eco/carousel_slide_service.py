@@ -304,23 +304,25 @@ def generate_cover_slide(
     
     # Logo slide 0 - "Le roll Économie" (300px top, 60px left)
     cover_logo_path = os.path.join(ASSETS_DIR, "Logo_slide0.png")
+    cover_logo_height = 0
     if os.path.exists(cover_logo_path):
         cover_logo = Image.open(cover_logo_path).convert("RGBA")
+        cover_logo_height = cover_logo.size[1]
         # Pas de scale, utiliser la taille originale de l'asset
         canvas.alpha_composite(cover_logo, (60, 300))
     
-    # Date
+    # Date - 100px sous le logo, 60px left, taille 60, letter spacing -1%
     date_str = _format_french_date()
-    date_font = _load_font(FONT_CONTENT_PATH, DATE_FONT_SIZE, weight=CONTENT_FONT_WEIGHT)
-    date_w = draw.textlength(date_str, font=date_font)
-    date_h = int(DATE_FONT_SIZE * 1.2)
+    date_font_size = 60
+    date_font = _load_font(FONT_CONTENT_PATH, date_font_size, weight=CONTENT_FONT_WEIGHT)
     
-    # Date positionnée à 680px du haut
-    date_y = 680
+    # Position : 300px (logo top) + hauteur du logo + 100px
+    date_y = 300 + cover_logo_height + 100
+    date_x = 60
     
-    # Date centrée
-    date_x = (CANVAS_SIZE[0] - int(date_w)) // 2
-    draw.text((date_x, date_y), date_str, font=date_font, fill="white")
+    # Letter spacing -1% (approximé à -0.6px pour font 60)
+    letter_spacing = int(date_font_size * -0.01)
+    draw.text((date_x, date_y), date_str, font=date_font, fill="white", spacing=letter_spacing)
     
     # Swipe (cover)
     swipe_path = os.path.join(ASSETS_DIR, "Swipe.png")
