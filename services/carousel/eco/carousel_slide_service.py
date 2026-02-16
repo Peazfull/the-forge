@@ -40,12 +40,12 @@ COVER_LOGO_WIDTH = 760
 DATE_TOP_GAP = 12
 
 # Polices (fallback sur PIL par défaut si fichier absent)
-FONT_TITLE_PATH = os.path.join(ASSETS_DIR, "Manrope-Bold.ttf")
-FONT_CONTENT_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")
-TITLE_FONT_WEIGHT = 600
-CONTENT_FONT_WEIGHT = 600
-TITLE_FONT_SIZE = 40
-CONTENT_FONT_SIZE = 38
+FONT_TITLE_PATH = os.path.join(ASSETS_DIR, "Inter_18pt-Bold.ttf")
+FONT_CONTENT_PATH = os.path.join(ASSETS_DIR, "Inter_18pt-Medium.ttf")
+TITLE_FONT_WEIGHT = 700  # Bold
+CONTENT_FONT_WEIGHT = 500  # Medium
+TITLE_FONT_SIZE = 48
+CONTENT_FONT_SIZE = 40
 
 
 def _load_font(path: str, size: int, weight: int | None = None) -> ImageFont.ImageFont:
@@ -179,18 +179,19 @@ def generate_carousel_slide(
     else:
         title_bg_height = 0
 
-    # Title text
+    # Title text - Inter Bold 48, blanc, letter spacing -1%
     title_max_width = CANVAS_SIZE[0] - LEFT_MARGIN - RIGHT_MARGIN
     title_font, title_lines = _fit_text(
         draw, title, title_max_width, 80, start_size=TITLE_FONT_SIZE, font_path=FONT_TITLE_PATH, weight=TITLE_FONT_WEIGHT
     )
     title_block_height = int(title_font.size * 1.2) * len(title_lines[:2])
     title_y = title_bg_top + max(0, (title_bg_height - title_block_height) // 2) - 5
+    title_letter_spacing = int(title_font.size * -0.01)  # -1%
     for line in title_lines[:2]:
-        draw.text((LEFT_MARGIN, title_y), line, font=title_font, fill="white")
+        draw.text((LEFT_MARGIN, title_y), line, font=title_font, fill="white", spacing=title_letter_spacing)
         title_y += int(title_font.size * 1.2)
 
-    # Content text
+    # Content text - Inter Medium 40, blanc, letter spacing +1%
     content_top = title_bg_top + title_bg_height + CONTENT_TOP_GAP
     content_max_height = CANVAS_SIZE[1] - content_top - CONTENT_BOTTOM_MARGIN
     content = _sentence_case(content)
@@ -198,11 +199,12 @@ def generate_carousel_slide(
         draw, content, title_max_width, content_max_height, start_size=CONTENT_FONT_SIZE, font_path=FONT_CONTENT_PATH, weight=CONTENT_FONT_WEIGHT
     )
     line_height = int(content_font.size * 1.25)
+    content_letter_spacing = int(content_font.size * 0.01)  # +1%
     y = content_top
     for line in content_lines:
         if y + line_height > CANVAS_SIZE[1] - CONTENT_BOTTOM_MARGIN:
             break
-        draw.text((LEFT_MARGIN, y), line, font=content_font, fill="white")
+        draw.text((LEFT_MARGIN, y), line, font=content_font, fill="white", spacing=content_letter_spacing)
         y += line_height
 
     # Swipe
