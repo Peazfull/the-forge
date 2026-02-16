@@ -167,13 +167,14 @@ def generate_carousel_slide(
     # Overlay Slide0 - Force 1100x600 pour les slides 1-N
     # Les 10px de chaque côté seront clippés automatiquement par le canvas
     overlay_slide0_path = os.path.join(ASSETS_DIR, "Overlay_Slide0.png")
+    overlay_width = 1100
+    overlay_height = 600
+    overlay_x = -10  # Centré avec clipping
     if os.path.exists(overlay_slide0_path):
         overlay_slide0 = Image.open(overlay_slide0_path).convert("RGBA")
         # Forcer à 1100x600 (pas de ratio, taille fixe)
-        overlay_slide0 = overlay_slide0.resize((1100, 600), Image.LANCZOS)
-        # Centrer : (1080 - 1100) / 2 = -10px (déborde de 10px de chaque côté)
-        x_offset = (CANVAS_SIZE[0] - 1100) // 2
-        canvas.alpha_composite(overlay_slide0, (x_offset, 0))
+        overlay_slide0 = overlay_slide0.resize((overlay_width, overlay_height), Image.LANCZOS)
+        canvas.alpha_composite(overlay_slide0, (overlay_x, 0))
 
     draw = ImageDraw.Draw(canvas)
 
@@ -185,13 +186,15 @@ def generate_carousel_slide(
         logo_x = (CANVAS_SIZE[0] - LOGO_SIZE[0]) // 2
         canvas.alpha_composite(logo, (logo_x, LOGO_TOP))
 
-    # swipe_eco.png - 30px au-dessus de l'image, aligné à droite avec 50px de marge
+    # swipe_eco.png - En bas à droite de l'overlay : 50px du bas, 50px margin right
     swipe_eco_path = os.path.join(ASSETS_DIR, "swipe_eco.png")
     if os.path.exists(swipe_eco_path):
         swipe_eco = Image.open(swipe_eco_path).convert("RGBA")
-        # Position: 30px au-dessus de l'image (image commence à image_y_position = 486)
-        swipe_eco_y = image_y_position - 30 - swipe_eco.size[1]
-        swipe_eco_x = CANVAS_SIZE[0] - swipe_eco.size[0] - 50
+        # Position: 50px du bas de l'overlay (overlay fait 600px de haut)
+        swipe_eco_y = overlay_height - 50 - swipe_eco.size[1]
+        # Position X: 50px du bord droit de l'overlay (overlay_x = -10, largeur = 1100)
+        # Bord droit de l'overlay: -10 + 1100 = 1090
+        swipe_eco_x = overlay_x + overlay_width - 50 - swipe_eco.size[0]
         canvas.alpha_composite(swipe_eco, (swipe_eco_x, swipe_eco_y))
 
     # Title background - positionné à 92px du top (87 + 5px)
