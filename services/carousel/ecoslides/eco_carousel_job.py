@@ -174,14 +174,10 @@ class EcoCarouselJob:
             self._log("🎨 Génération prompts images (parallèle)...")
             self._log(f"📊 Debug: {len(all_items)} items à traiter")
             
-            # Filtrer seulement les items avec position > 0 (pas la cover)
-            content_items = [item for item in all_items if item.get("position", 0) > 0]
-            self._log(f"📊 Debug: {len(content_items)} items filtrés (position > 0)")
+            if not all_items:
+                raise Exception("Aucun item à traiter")
             
-            if not content_items:
-                raise Exception("Aucun item avec position > 0")
-            
-            prompts_result = generate_all_image_prompts_parallel(content_items, prompt_type="sunset")
+            prompts_result = generate_all_image_prompts_parallel(all_items, prompt_type="sunset")
             if prompts_result.get("status") == "error":
                 error_details = prompts_result.get("details", [])
                 first_error = error_details[0].get("message", "Inconnue") if error_details else "Aucun détail"
