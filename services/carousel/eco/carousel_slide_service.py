@@ -256,8 +256,10 @@ def generate_cover_slide(
     # Créer le canvas complet 1080×1350
     canvas = Image.new("RGBA", CANVAS_SIZE, (0, 0, 0, 255))
     
-    # 1. Coller l'image de fond en haut (position 0, 0)
-    canvas.paste(base_img, (0, 0))
+    # 1. Coller l'image de fond en BAS du canvas (bas de l'image aligné avec bas du canvas)
+    # Canvas height: 1350, Image height: 864 → Y position: 1350 - 864 = 486
+    image_y_position = CANVAS_SIZE[1] - COVER_IMAGE_SIZE[1]
+    canvas.paste(base_img, (0, image_y_position))
     
     # 2. Overlay Slide0 (1080×698) collé en haut, passe au-dessus de l'image
     overlay_slide0_path = os.path.join(ASSETS_DIR, "overlay_Slide0.png")
