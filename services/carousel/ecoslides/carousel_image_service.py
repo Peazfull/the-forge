@@ -21,7 +21,7 @@ MAX_RETRIES = 2
 # Chemin du dossier de sauvegarde des images
 CAROUSEL_IMAGE_DIR = os.path.join(
     os.path.dirname(__file__), 
-    "..", "..",
+    "..", "..", "..",
     "front", "layout", "assets", "carousel", "ecoslides"
 )
 
