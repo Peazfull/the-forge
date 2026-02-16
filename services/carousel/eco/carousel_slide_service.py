@@ -262,7 +262,7 @@ def generate_cover_slide(
     canvas.paste(base_img, (0, image_y_position))
     
     # 2. Overlay Slide0 (1080×698) collé en haut, passe au-dessus de l'image
-    overlay_slide0_path = os.path.join(ASSETS_DIR, "overlay_Slide0.png")
+    overlay_slide0_path = os.path.join(ASSETS_DIR, "Overlay_Slide0.png")
     if os.path.exists(overlay_slide0_path):
         overlay_slide0 = Image.open(overlay_slide0_path).convert("RGBA")
         # Redimensionner si nécessaire pour correspondre à la largeur
