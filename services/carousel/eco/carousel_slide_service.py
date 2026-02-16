@@ -172,9 +172,18 @@ def generate_carousel_slide(
         logo_x = (CANVAS_SIZE[0] - LOGO_SIZE[0]) // 2
         canvas.alpha_composite(logo, (logo_x, LOGO_TOP))
 
-    # Title background - positionné à 87px du top
+    # swipe_eco.png - 35px au-dessus de l'image, aligné à droite avec 42px de marge
+    swipe_eco_path = os.path.join(ASSETS_DIR, "swipe_eco.png")
+    if os.path.exists(swipe_eco_path):
+        swipe_eco = Image.open(swipe_eco_path).convert("RGBA")
+        # Position: 35px au-dessus de l'image (image commence à image_y_position = 486)
+        swipe_eco_y = image_y_position - 35 - swipe_eco.size[1]
+        swipe_eco_x = CANVAS_SIZE[0] - swipe_eco.size[0] - 42
+        canvas.alpha_composite(swipe_eco, (swipe_eco_x, swipe_eco_y))
+
+    # Title background - positionné à 92px du top (87 + 5px)
     title_bg_path = os.path.join(ASSETS_DIR, "Title_bg_eco.png")
-    title_bg_top = 87
+    title_bg_top = 92
     if os.path.exists(title_bg_path):
         title_bg = Image.open(title_bg_path).convert("RGBA")
         title_bg_width = CANVAS_SIZE[0] - (TITLE_BG_SIDE_MARGIN * 2)
