@@ -1825,34 +1825,47 @@ with st.expander("📝 Caption Instagram", expanded=False):
 # ======================================================
 
 st.markdown("#### Export Email")
-if st.button("✉️ Envoyer par email", use_container_width=True):
+if st.button("✉️ Envoyer par email", use_container_width=True, key="send_email_eco_btn"):
     try:
-        carousel_data = get_carousel_eco_items()
-        items_sorted = sorted(
-            carousel_data["items"],
-            key=lambda i: (0 if i.get("position") == 0 else 1, i.get("position", 999))
-        )
-        export_data = build_carousel_exports(items_sorted)
-        if export_data.get("count", 0) == 0:
-            st.warning("Aucune slide sélectionnée pour l'envoi.")
+        # Protection anti-double envoi : vérifier qu'on n'a pas envoyé dans les 3 dernières secondes
+        import time
+        current_time = time.time()
+        last_sent = st.session_state.get("last_email_sent_eco", 0)
+        
+        if current_time - last_sent < 3:
+            st.warning("⏳ Email déjà en cours d'envoi, patientez...")
         else:
-            date_str = datetime.now().strftime("%Y-%m-%d")
-            subject = f"Carrousel Eco - {date_str}"
-            caption_text = st.session_state.caption_text_area.strip() or read_caption_text()
-            body = caption_text or "Caption non disponible."
-            attachments = [
-                ("carousel_eco_slides.zip", export_data["zip"], "application/zip"),
-                ("carousel_eco_slides.pdf", export_data["pdf"], "application/pdf")
-            ]
-            send_email_with_attachments(
-                to_email="gaelpons@hotmail.com",
-                subject=subject,
-                body=body,
-                attachments=attachments
+            carousel_data = get_carousel_eco_items()
+            items_sorted = sorted(
+                carousel_data["items"],
+                key=lambda i: (0 if i.get("position") == 0 else 1, i.get("position", 999))
             )
-            st.success("✅ Email envoyé")
+            export_data = build_carousel_exports(items_sorted)
+            if export_data.get("count", 0) == 0:
+                st.warning("Aucune slide sélectionnée pour l'envoi.")
+            else:
+                date_str = datetime.now().strftime("%Y-%m-%d")
+                subject = f"Carrousel Eco - {date_str}"
+                caption_text = st.session_state.caption_text_area.strip() or read_caption_text()
+                body = caption_text or "Caption non disponible."
+                attachments = [
+                    ("carousel_eco_slides.zip", export_data["zip"], "application/zip"),
+                    ("carousel_eco_slides.pdf", export_data["pdf"], "application/pdf")
+                ]
+                
+                # Marquer l'envoi AVANT d'envoyer
+                st.session_state.last_email_sent_eco = current_time
+                
+                send_email_with_attachments(
+                    to_email="gaelpons@hotmail.com",
+                    subject=subject,
+                    body=body,
+                    attachments=attachments
+                )
+                st.success("✅ Email envoyé")
     except Exception as e:
         st.error(f"Erreur email : {str(e)[:120]}")
+
 
 with st.expander("💼 Post LinkedIn", expanded=False):
     carousel_data = get_carousel_eco_items()
