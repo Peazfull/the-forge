@@ -120,7 +120,9 @@ class EcoCarouselJob:
                 raise Exception("Aucun item récupéré")
             
             self._log(f"✅ {len(all_items)} items récupérés")
-            self.total = len(all_items)
+            
+            # Total = nombre d'items × 3 phases (prompts + images + slides)
+            self.total = len(all_items) * 3
             
             # Étape 3 : Génération textes carrousel (séquentiel)
             self._log("✍️ Génération textes carrousel...")
@@ -178,14 +180,11 @@ class EcoCarouselJob:
             if not all_items:
                 raise Exception("Aucun item à traiter")
             
-            # Callback pour mise à jour progression
-            completed_prompts = 0
+            # Callback pour mise à jour progression (incrémental global)
             def on_prompt_complete(item_id, position, success):
-                nonlocal completed_prompts
-                completed_prompts += 1
-                self.current = completed_prompts
+                self.current += 1
                 status_icon = "✅" if success else "❌"
-                self._log(f"  {status_icon} Prompt #{position} ({completed_prompts}/{len(all_items)})")
+                self._log(f"  {status_icon} Prompt #{position} ({self.current}/{self.total})")
             
             prompts_result = generate_all_image_prompts_parallel(all_items, prompt_type="sunset", progress_callback=on_prompt_complete)
             if prompts_result.get("status") == "error":
@@ -201,14 +200,11 @@ class EcoCarouselJob:
             # Étape 7 : GÉNÉRATION IMAGES EN PARALLÈLE ⚡
             self._log("🖼️ Génération images (parallèle)...")
             
-            # Callback pour mise à jour progression
-            completed_images = 0
+            # Callback pour mise à jour progression (incrémental global)
             def on_image_complete(item_id, position, success):
-                nonlocal completed_images
-                completed_images += 1
-                self.current = completed_images
+                self.current += 1
                 status_icon = "✅" if success else "❌"
-                self._log(f"  {status_icon} Image #{position} ({completed_images}/{len(all_items)})")
+                self._log(f"  {status_icon} Image #{position} ({self.current}/{self.total})")
             
             images_result = generate_images_parallel(all_items, aspect_ratio="5:4", progress_callback=on_image_complete)
             if images_result.get("status") == "error":
@@ -220,14 +216,11 @@ class EcoCarouselJob:
             # Étape 8 : GÉNÉRATION SLIDES EN PARALLÈLE ⚡
             self._log("🎞️ Génération slides (parallèle)...")
             
-            # Callback pour mise à jour progression
-            completed_slides = 0
+            # Callback pour mise à jour progression (incrémental global)
             def on_slide_complete(item_id, position, success):
-                nonlocal completed_slides
-                completed_slides += 1
-                self.current = completed_slides
+                self.current += 1
                 status_icon = "✅" if success else "❌"
-                self._log(f"  {status_icon} Slide #{position} ({completed_slides}/{len(all_items)})")
+                self._log(f"  {status_icon} Slide #{position} ({self.current}/{self.total})")
             
             slides_result = generate_slides_parallel(all_items, progress_callback=on_slide_complete)
             if slides_result.get("status") == "error":
