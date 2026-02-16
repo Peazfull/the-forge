@@ -255,8 +255,8 @@ def generate_cover_slide(
     # Redimensionner l'image de fond en 1080×864 (5:4)
     base_img = _cover_resize(base_img, COVER_IMAGE_SIZE)
     
-    # Créer le canvas complet 1080×1350
-    canvas = Image.new("RGBA", CANVAS_SIZE, (0, 0, 0, 255))
+    # Créer le canvas complet 1080×1350 avec fond #F4F4EB (beige/crème)
+    canvas = Image.new("RGBA", CANVAS_SIZE, (244, 244, 235, 255))  # #F4F4EB
     
     # 1. Coller l'image de fond en BAS du canvas (bas de l'image aligné avec bas du canvas)
     # Canvas height: 1350, Image height: 864 → Y position: 1350 - 864 = 486
