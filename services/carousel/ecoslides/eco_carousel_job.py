@@ -121,8 +121,7 @@ class EcoCarouselJob:
             
             self._log(f"✅ {len(all_items)} items récupérés")
             
-            # Total = nombre d'items × 3 phases (prompts + images + slides)
-            self.total = len(all_items) * 3
+            # Total sera recalculé après création de la cover (qui ajoute +1 item)
             
             # Étape 3 : Génération textes carrousel (séquentiel)
             self._log("✍️ Génération textes carrousel...")
@@ -172,6 +171,15 @@ class EcoCarouselJob:
             # Étape 5 : Nettoyer caches
             self._log("🧹 Nettoyage caches...")
             clear_slide_files()
+            
+            # Re-récupérer tous les items (maintenant avec la cover ajoutée)
+            carousel_data = get_carousel_eco_items()
+            all_items = carousel_data.get("items", [])
+            
+            # Calculer le total maintenant (avec cover incluse)
+            # Total = nombre d'items × 3 phases (prompts + images + slides)
+            self.total = len(all_items) * 3
+            self._log(f"📊 Total à générer : {len(all_items)} items × 3 phases = {self.total}")
             
             # Étape 6 : GÉNÉRATION PROMPTS IMAGES EN PARALLÈLE ⚡
             self._log("🎨 Génération prompts images (parallèle)...")
