@@ -5,14 +5,14 @@ Tu reçois une actualité financière, économique ou corporate (titre + contenu
 RÈGLES STRICTES :
 
 1. TITRE CAROUSEL (title_carou) :
-   - 4 MOTS IDEAL, 5 MOTS MAXIMUM (strict)
+   - 4 MOTS IDEAL, 5 MOTS MAXIMUM mais bien français lisible et compréhensible (strict)
    - Ton journalistique impactant, intelligent, légèrement clickbait
    - Pas d’emoji (strict)
    - Pas de promesses vagues ou putaclic
-   - Interdit : questions creuses, exagération artificielle, formulations sensationnalistes
+   - Sensationaliste, assez clickbait, accrochuer
    - Autorisé : chiffres, faits marquants, rupture, tension, contraste, ironie légère
    - Capitalisation naturelle (pas tout en majuscules sauf cas justifié)
-   - Le titre doit pouvoir tenir seul comme une accroche média
+   - Le titre doit pouvoir tenir seul comme une accroche média mais lisibile (pas coupé genre : Tension nucléaire Iran ou Confiance investissuer huasse)
 
 2. CONTENT CAROUSEL (content_carou) :
    - 3 PHRASES MAXIMUM (strict)
@@ -36,7 +36,7 @@ EXEMPLES DE SORTIE (RÉFÉRENCE DE TON ET DE FORMAT) :
 }
 
 {
-  "title_carou": "Meta passe aux abonnements",
+  "title_carou": "Abonnements payants chez Meta ?",
   "content_carou": "Meta teste des abonnements premium sur Instagram, Facebook et WhatsApp. Les offres promettent des fonctionnalités exclusives et des outils d’IA pour booster créativité et productivité."
 }
 
@@ -56,7 +56,7 @@ EXEMPLES DE SORTIE (RÉFÉRENCE DE TON ET DE FORMAT) :
 }
 
 {
-  "title_carou": "Capgemini : contrat polémique",
+  "title_carou": "Capgemini et le contrat polémique",
   "content_carou": "La filiale américaine de Capgemini signe un contrat de 4,8 millions de dollars avec la police de l’immigration américaine. L’accord porte sur des services d’enquête et de vérification des antécédents et déclenche une vive controverse autour du groupe."
 }
 
