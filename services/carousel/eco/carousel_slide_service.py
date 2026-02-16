@@ -305,29 +305,32 @@ def generate_cover_slide(
         logo_x = (CANVAS_SIZE[0] - logo_size[0]) // 2
         canvas.alpha_composite(logo, (logo_x, 0))  # 0px du haut
     
-    # Logo slide 0 - "Le roll Économie" (168px top, 60px left)
+    # Logo slide 0 - "Le roll Économie" (168px top, 45px left)
     cover_logo_path = os.path.join(ASSETS_DIR, "Logo_slide0.png")
     cover_logo_height = 0
     if os.path.exists(cover_logo_path):
         cover_logo = Image.open(cover_logo_path).convert("RGBA")
         cover_logo_height = cover_logo.size[1]
         # Pas de scale, utiliser la taille originale de l'asset
-        canvas.alpha_composite(cover_logo, (60, 168))
+        canvas.alpha_composite(cover_logo, (45, 168))
     
-    # Date - 65px sous le logo, 60px left, taille 60, letter spacing -1%
+    # Date - 65px sous le logo, 50px left, taille 60, letter spacing -1%
     date_str = _format_french_date()
     date_font_size = 60
     date_font = _load_font(FONT_CONTENT_PATH, date_font_size, weight=CONTENT_FONT_WEIGHT)
     
     # Position : 168px (logo top) + hauteur du logo + 65px
     date_y = 168 + cover_logo_height + 65
-    date_x = 60
+    date_x = 50
     
     # Letter spacing -1% (approximé à -0.6px pour font 60)
     letter_spacing = int(date_font_size * -0.01)
     draw.text((date_x, date_y), date_str, font=date_font, fill="#363636", spacing=letter_spacing)
     
-    # Swipe (cover)
+    # Calcul hauteur de la date pour centrage du Swipe
+    date_height = int(date_font_size * 1.2)
+    
+    # Swipe (cover) - aligné verticalement avec le centre de la date, à droite avec 50px margin
     swipe_path = os.path.join(ASSETS_DIR, "Swipe.png")
     if os.path.exists(swipe_path):
         swipe = Image.open(swipe_path).convert("RGBA")
@@ -335,9 +338,11 @@ def generate_cover_slide(
             (int(swipe.size[0] * COVER_SWIPE_SCALE), int(swipe.size[1] * COVER_SWIPE_SCALE)),
             Image.LANCZOS
         )
-        x = CANVAS_SIZE[0] - swipe.size[0] - SWIPE_MARGIN
-        y = CANVAS_SIZE[1] - swipe.size[1] - SWIPE_MARGIN
-        canvas.alpha_composite(swipe, (x, y))
+        # Position X : à droite avec 50px de margin
+        swipe_x = CANVAS_SIZE[0] - swipe.size[0] - 50
+        # Position Y : centré avec la date
+        swipe_y = date_y + (date_height - swipe.size[1]) // 2
+        canvas.alpha_composite(swipe, (swipe_x, swipe_y))
     
     output = BytesIO()
     canvas.convert("RGB").save(output, format="PNG")
