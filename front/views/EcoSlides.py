@@ -497,7 +497,7 @@ def build_carousel_exports(items_sorted):
 
 def send_to_carousel():
     """Lance la génération en threading (version simple et robuste)."""
-    from services.carousel.eco.eco_carousel_job import get_eco_carousel_job
+    from services.carousel.ecoslides.eco_carousel_job import get_eco_carousel_job
     
     # Sécurité : éviter double lancement
     job = get_eco_carousel_job()
@@ -921,7 +921,7 @@ if st.session_state.get("trigger_generation", False):
 # AFFICHAGE PROGRESSION GÉNÉRATION (Threading)
 # ======================================================
 
-from services.carousel.eco.eco_carousel_job import get_eco_carousel_job
+from services.carousel.ecoslides.eco_carousel_job import get_eco_carousel_job
 
 job = get_eco_carousel_job()
 status = job.get_status()
