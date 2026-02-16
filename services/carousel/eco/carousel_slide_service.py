@@ -287,12 +287,6 @@ def generate_cover_slide(
             )
         canvas.alpha_composite(top_bar, (0, 0))
     
-    # Overlay filtre principal
-    filter_path = os.path.join(ASSETS_DIR, "filter_main.png")
-    if os.path.exists(filter_path):
-        overlay = Image.open(filter_path).convert("RGBA")
-        canvas.alpha_composite(overlay)
-    
     draw = ImageDraw.Draw(canvas)
     
     # Logo principal (haut) - cover (scale x2) - collé en haut au centre (0px)
