@@ -330,14 +330,16 @@ def generate_cover_slide(
     # Calcul hauteur de la date pour centrage du Swipe
     date_height = int(date_font_size * 1.2)
     
-    # Swipe (cover) - aligné verticalement avec le centre de la date, à droite avec 50px margin
+    # Swipe (cover) - 84px de large, aligné verticalement avec le centre de la date, à droite avec 50px margin
     swipe_path = os.path.join(ASSETS_DIR, "Swipe.png")
     if os.path.exists(swipe_path):
         swipe = Image.open(swipe_path).convert("RGBA")
-        swipe = swipe.resize(
-            (int(swipe.size[0] * COVER_SWIPE_SCALE), int(swipe.size[1] * COVER_SWIPE_SCALE)),
-            Image.LANCZOS
-        )
+        # Forcer largeur à 84px, hauteur proportionnelle
+        original_width, original_height = swipe.size
+        target_width = 84
+        scale = target_width / original_width
+        target_height = int(original_height * scale)
+        swipe = swipe.resize((target_width, target_height), Image.LANCZOS)
         # Position X : à droite avec 50px de margin
         swipe_x = CANVAS_SIZE[0] - swipe.size[0] - 50
         # Position Y : centré avec la date
