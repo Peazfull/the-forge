@@ -500,7 +500,7 @@ class BourseCarouselJob:
                 self.errors.append(f"Slide {position} : {str(e)[:100]}")
         
         # Upload outro slide
-        outro_path = "layout/assets/carousel/bourse/outro.png"
+        outro_path = "front/layout/assets/carousel/bourse/outro_bourse.png"
         try:
             with open(f"/Users/gaelpons/Desktop/The Forge/{outro_path}", "rb") as f:
                 outro_bytes = f.read()
