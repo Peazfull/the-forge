@@ -964,8 +964,8 @@ if status["state"] == "running":
         job.stop()
         st.rerun()
     
-    # Auto-refresh toutes les 2 secondes
-    time.sleep(2)
+    # Auto-refresh toutes les 5 secondes (au lieu de 2)
+    time.sleep(5)
     st.rerun()
 
 elif status["state"] == "completed":

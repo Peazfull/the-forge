@@ -25,7 +25,7 @@ MAX_WORKERS_SLIDES = 8  # Parallélisation pour génération slides
 class EcoCarouselJob:
     """Job de génération de carrousel Eco en threading pour éviter les timeouts Streamlit."""
     
-    def __init__(self, use_optimized: bool = False):  # Désactivé par défaut pour debug
+    def __init__(self, use_optimized: bool = True):  # Activé par défaut pour EcoSlides
         self.state = "idle"  # idle, running, completed, failed, stopped
         self.current = 0
         self.total = 0
@@ -96,6 +96,11 @@ class EcoCarouselJob:
             self.current = 0
             self.processed = 0
             self.errors = []
+            
+            # Protection : vérifier que les items sont valides
+            if not self._items or not isinstance(self._items, list):
+                raise Exception("Items invalides")
+            
             self.total = len(self._items) + 1  # items + cover
             
             # Étape 1 : Insertion items
@@ -107,25 +112,33 @@ class EcoCarouselJob:
             
             # Étape 2 : Génération textes carrousel (séquentiel car dépend de l'ordre)
             self._log("✍️ Génération textes carrousel...")
-            supabase = get_supabase()
-            carousel_items = supabase.table("carousel_eco").select("*").order("position").execute().data or []
-            content_items = [item for item in carousel_items if item["position"] > 0]
             
-            for item in content_items:
-                if self._stop_event.is_set():
-                    break
+            try:
+                supabase = get_supabase()
+                carousel_items = supabase.table("carousel_eco").select("*").order("position").execute().data or []
+                content_items = [item for item in carousel_items if item.get("position", -1) > 0]
                 
-                title = item.get("title", "")
-                content = item.get("content", "")
-                text_result = generate_carousel_text_for_item(title, content)
+                for item in content_items:
+                    if self._stop_event.is_set():
+                        break
+                    
+                    if not isinstance(item, dict):
+                        continue
+                    
+                    title = item.get("title", "")
+                    content = item.get("content", "")
+                    text_result = generate_carousel_text_for_item(title, content)
+                    
+                    if text_result.get("status") == "success":
+                        supabase.table("carousel_eco").update({
+                            "title_carou": text_result.get("title_carou"),
+                            "content_carou": text_result.get("content_carou")
+                        }).eq("id", item["id"]).execute()
                 
-                if text_result.get("status") == "success":
-                    supabase.table("carousel_eco").update({
-                        "title_carou": text_result.get("title_carou"),
-                        "content_carou": text_result.get("content_carou")
-                    }).eq("id", item["id"]).execute()
-            
-            self._log("✅ Textes générés")
+                self._log("✅ Textes générés")
+                
+            except Exception as e:
+                raise Exception(f"Erreur génération textes: {str(e)}")
             
             # Étape 3 : Génération cover
             if not self._items or len(self._items) == 0:
