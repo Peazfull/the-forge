@@ -7,11 +7,13 @@ from db.supabase_client import get_supabase
 from prompts.carousel.eco.generate_carousel_texts import PROMPT_GENERATE_CAROUSEL_TEXTS
 from prompts.carousel.eco.generate_image_prompts import PROMPT_GENERATE_IMAGE_PROMPT
 from prompts.carousel.eco.generate_image_prompts_variant import PROMPT_GENERATE_IMAGE_PROMPT_VARIANT
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 REQUEST_TIMEOUT = 30  # Réduit à 30s pour éviter freeze long
 MAX_RETRIES = 3  # 3 retries pour gérer le rate limiting
 RETRY_DELAY = 10  # Délai entre les retries (secondes)
+MAX_WORKERS = 8  # Nombre de threads pour parallélisation
 
 
 def generate_image_prompt_for_item(title: str, content: str, prompt_type: str = "sunset") -> Dict[str, object]:
@@ -366,3 +368,105 @@ def update_carousel_text(item_id: str, field: str, value: str) -> Dict[str, obje
             "status": "error",
             "message": f"Erreur DB: {str(e)}"
         }
+
+
+def generate_all_image_prompts_parallel(items: List[Dict], prompt_type: str = "sunset", progress_callback=None) -> Dict[str, object]:
+    """
+    Génère tous les prompts images en parallèle (OPTIMISÉ).
+    
+    Args:
+        items: Liste des items avec id, title, content
+        prompt_type: Type de prompt ("sunset" ou "studio")
+        progress_callback: Fonction appelée à chaque item terminé (callback(item_id, position, success))
+    
+    Returns:
+        {
+            "status": "success" | "partial" | "error",
+            "total": int,
+            "success": int,
+            "errors": int,
+            "details": [...]
+        }
+    """
+    
+    def process_single_item(item):
+        """Process un item et retourne le résultat."""
+        item_id = item.get("id")
+        position = item.get("position", -1)
+        title = item.get("title", "")
+        content = item.get("content", "")
+        
+        # Générer le prompt image
+        result = generate_image_prompt_for_item(title, content, prompt_type)
+        
+        if result.get("status") == "success":
+            # Sauvegarder dans DB
+            try:
+                supabase = get_supabase()
+                supabase.table("carousel_eco").update({
+                    "prompt_image_1": result.get("image_prompt")
+                }).eq("id", item_id).execute()
+                
+                # Callback de progression
+                if progress_callback:
+                    progress_callback(item_id, position, True)
+                
+                return {
+                    "item_id": item_id,
+                    "position": position,
+                    "status": "success",
+                    "image_prompt": result.get("image_prompt")
+                }
+            except Exception as e:
+                if progress_callback:
+                    progress_callback(item_id, position, False)
+                return {
+                    "item_id": item_id,
+                    "position": position,
+                    "status": "error",
+                    "message": f"Erreur DB: {str(e)}"
+                }
+        else:
+            if progress_callback:
+                progress_callback(item_id, position, False)
+            return {
+                "item_id": item_id,
+                "position": position,
+                "status": "error",
+                "message": result.get("message", "Erreur inconnue")
+            }
+    
+    # Génération parallèle avec ThreadPoolExecutor
+    results = []
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        futures = {executor.submit(process_single_item, item): item for item in items}
+        
+        for future in as_completed(futures):
+            try:
+                result = future.result()
+                results.append(result)
+            except Exception as e:
+                results.append({
+                    "status": "error",
+                    "message": f"Thread error: {str(e)}"
+                })
+    
+    # Agréger les résultats
+    total = len(items)
+    success_count = sum(1 for r in results if r.get("status") == "success")
+    error_count = total - success_count
+    
+    if success_count == total:
+        status = "success"
+    elif success_count > 0:
+        status = "partial"
+    else:
+        status = "error"
+    
+    return {
+        "status": status,
+        "total": total,
+        "success": success_count,
+        "errors": error_count,
+        "details": results
+    }

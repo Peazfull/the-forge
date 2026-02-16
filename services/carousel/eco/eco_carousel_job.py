@@ -19,7 +19,7 @@ from services.carousel.eco.carousel_image_service import generate_and_save_carou
 class EcoCarouselJob:
     """Job de génération de carrousel Eco en threading pour éviter les timeouts Streamlit."""
     
-    def __init__(self):
+    def __init__(self, use_optimized: bool = True):
         self.state = "idle"  # idle, running, completed, failed, stopped
         self.current = 0
         self.total = 0
@@ -28,6 +28,7 @@ class EcoCarouselJob:
         self.last_log = ""
         self.current_item_title = ""
         self.just_completed = False  # Flag pour notifier le frontend
+        self.use_optimized = use_optimized  # Mode parallélisé activé par défaut
         
         self._stop_event = threading.Event()
         self._thread: Optional[threading.Thread] = None
@@ -76,6 +77,194 @@ class EcoCarouselJob:
         self.last_log = message
     
     def _run(self) -> None:
+        """Point d'entrée du thread - dispatche vers optimisé ou séquentiel."""
+        if self.use_optimized:
+            self._log("⚡⚡⚡ MODE OPTIMISÉ ACTIVÉ - PARALLÉLISATION ⚡⚡⚡")
+            self._run_optimized()
+        else:
+            self._log("⏱️ MODE SÉQUENTIEL")
+            self._run_sequential()
+    
+    def _run_optimized(self) -> None:
+        """Exécution optimisée avec parallélisation."""
+        try:
+            self.state = "running"
+            self.current = 0
+            self.processed = 0
+            self.errors = []
+            
+            # Étape 1 : Insertion items
+            self._log("📥 Insertion des items sélectionnés...")
+            result = insert_items_to_carousel_eco(self._items)
+            if result.get("status") != "success":
+                raise Exception(f"Erreur insertion : {result.get('message', '')}")
+            self._log(f"✅ {len(self._items)} items insérés")
+            
+            # Étape 2 : Récupérer les items depuis la DB
+            self._log("📦 Récupération items depuis DB...")
+            carousel_data = get_carousel_eco_items()
+            
+            if not isinstance(carousel_data, dict):
+                raise Exception(f"carousel_data invalide (type: {type(carousel_data)})")
+            
+            if carousel_data.get("status") != "success":
+                raise Exception(f"Erreur get_items: {carousel_data.get('message', 'Erreur inconnue')}")
+            
+            all_items = carousel_data.get("items", [])
+            if not all_items:
+                raise Exception("Aucun item récupéré")
+            
+            self._log(f"✅ {len(all_items)} items récupérés")
+            
+            # Étape 3 : Génération textes carrousel (séquentiel)
+            self._log("✍️ Génération textes carrousel...")
+            
+            try:
+                content_items = [item for item in all_items if item.get("position", -1) > 0]
+                
+                for item in content_items:
+                    if self._stop_event.is_set():
+                        break
+                    
+                    if not isinstance(item, dict):
+                        continue
+                    
+                    title = item.get("title", "")
+                    content = item.get("content", "")
+                    text_result = generate_carousel_text_for_item(title, content)
+                    
+                    if text_result.get("status") == "success":
+                        supabase = get_supabase()
+                        supabase.table("carousel_eco").update({
+                            "title_carou": text_result.get("title_carou"),
+                            "content_carou": text_result.get("content_carou")
+                        }).eq("id", item["id"]).execute()
+                
+                self._log("✅ Textes générés")
+                
+            except Exception as e:
+                raise Exception(f"Erreur génération textes: {str(e)}")
+            
+            # Étape 4 : Génération cover
+            first_item = all_items[0] if all_items else None
+            if not first_item:
+                raise Exception("Aucun premier item")
+            
+            cover_result = upsert_carousel_eco_cover({
+                "title": first_item.get("title", ""),
+                "content": first_item.get("content", ""),
+                "score_global": first_item.get("score_global", 0),
+                "tags": first_item.get("tags", ""),
+                "labels": first_item.get("labels", ""),
+            })
+            if cover_result.get("status") != "success":
+                raise Exception(f"Erreur cover : {cover_result.get('message', '')}")
+            self._log("✅ Cover créée")
+            
+            # Étape 5 : Nettoyer caches
+            self._log("🧹 Nettoyage caches...")
+            clear_slide_files()
+            
+            # Re-récupérer tous les items (maintenant avec la cover ajoutée)
+            carousel_data = get_carousel_eco_items()
+            all_items = carousel_data.get("items", [])
+            
+            # Calculer le total maintenant (avec cover incluse)
+            # Total = nombre d'items × 3 phases (prompts + images + slides)
+            self.total = len(all_items) * 3
+            self._log(f"📊 Total à générer : {len(all_items)} items × 3 phases = {self.total}")
+            
+            # Étape 6 : GÉNÉRATION PROMPTS IMAGES EN PARALLÈLE ⚡
+            self._log("🎨 Génération prompts images (parallèle)...")
+            self._log(f"📊 {len(all_items)} items à traiter")
+            
+            if not all_items:
+                raise Exception("Aucun item à traiter")
+            
+            # Callback pour mise à jour progression (incrémental global)
+            def on_prompt_complete(item_id, position, success):
+                self.current += 1
+                status_icon = "✅" if success else "❌"
+                self._log(f"  {status_icon} Prompt #{position} ({self.current}/{self.total})")
+            
+            # Import de la fonction parallèle
+            from services.carousel.eco.generate_carousel_texts_service import generate_all_image_prompts_parallel
+            
+            prompts_result = generate_all_image_prompts_parallel(all_items, prompt_type="sunset", progress_callback=on_prompt_complete)
+            if prompts_result.get("status") == "error":
+                error_details = prompts_result.get("details", [])
+                first_error = error_details[0].get("message", "Inconnue") if error_details else "Aucun détail"
+                raise Exception(f"Échec génération prompts images: {first_error}")
+            self._log(f"✅ {prompts_result.get('success')}/{prompts_result.get('total')} prompts générés")
+            
+            # Re-récupérer les items pour avoir les prompts fraîchement générés
+            carousel_data = get_carousel_eco_items()
+            all_items = carousel_data.get("items", [])
+            
+            # Étape 7 : GÉNÉRATION IMAGES EN PARALLÈLE ⚡
+            self._log("🖼️ Génération images (parallèle)...")
+            
+            # Callback pour mise à jour progression (incrémental global)
+            def on_image_complete(item_id, position, success):
+                self.current += 1
+                status_icon = "✅" if success else "❌"
+                self._log(f"  {status_icon} Image #{position} ({self.current}/{self.total})")
+            
+            # Import de la fonction parallèle
+            from services.carousel.eco.eco_carousel_job import generate_images_parallel
+            
+            images_result = generate_images_parallel(all_items, aspect_ratio="5:4", progress_callback=on_image_complete)
+            if images_result.get("status") == "error":
+                raise Exception("Échec génération images")
+            self._log(f"✅ {images_result.get('success')}/{images_result.get('total')} images générées")
+            
+            # Pas besoin de re-fetch : les slides lisent directement depuis Supabase Storage
+            
+            # Étape 8 : GÉNÉRATION SLIDES EN PARALLÈLE ⚡
+            self._log("🎞️ Génération slides (parallèle)...")
+            
+            # Callback pour mise à jour progression (incrémental global)
+            def on_slide_complete(item_id, position, success):
+                self.current += 1
+                status_icon = "✅" if success else "❌"
+                self._log(f"  {status_icon} Slide #{position} ({self.current}/{self.total})")
+            
+            # Import de la fonction parallèle
+            from services.carousel.eco.eco_carousel_job import generate_slides_parallel
+            
+            slides_result = generate_slides_parallel(all_items, progress_callback=on_slide_complete)
+            if slides_result.get("status") == "error":
+                raise Exception("Échec génération slides")
+            self._log(f"✅ {slides_result.get('success')}/{slides_result.get('total')} slides générées")
+            
+            # Étape 9 : Upload outro
+            self._log("📤 Upload outro...")
+            import os
+            outro_path = os.path.join(
+                os.path.dirname(__file__),
+                "..", "..", "..", "front", "layout", "assets", "carousel", "eco", "outro_eco.png"
+            )
+            if os.path.exists(outro_path):
+                from services.carousel.eco.carousel_slide_service import upload_slide_bytes
+                with open(outro_path, "rb") as f:
+                    upload_slide_bytes("slide_outro.png", f.read())
+            
+            # Étape 10 : Génération caption
+            self._log("📝 Génération caption...")
+            self._generate_caption()
+            
+            self.state = "completed"
+            self.just_completed = True
+            self.processed = len(all_items)
+            self._log(f"🎉 TERMINÉ ! {self.processed} items générés (optimisé)")
+            
+        except Exception as e:
+            self.state = "failed"
+            error_msg = f"Erreur critique : {str(e)[:200]}"
+            self.errors.append(error_msg)
+            self._log(f"❌ {error_msg}")
+    
+    def _run_sequential(self) -> None:
         """Boucle principale de génération (dans le thread)."""
         try:
             # Étape 1 : Insertion des items en DB
@@ -386,5 +575,241 @@ def get_eco_carousel_job() -> EcoCarouselJob:
     """Retourne l'instance globale du job."""
     global _eco_carousel_job
     if _eco_carousel_job is None:
-        _eco_carousel_job = EcoCarouselJob()
+        _eco_carousel_job = EcoCarouselJob(use_optimized=True)  # Mode optimisé par défaut
     return _eco_carousel_job
+
+
+def reset_eco_carousel_job() -> None:
+    """Reset le singleton (utile pour tests/debug)."""
+    global _eco_carousel_job
+    _eco_carousel_job = None
+
+
+#  ===== FONCTIONS PARALLÈLES =====
+
+MAX_WORKERS_IMAGES = 6  # Threads pour images
+MAX_WORKERS_SLIDES = 8  # Threads pour slides
+
+
+def generate_images_parallel(items: List[Dict], aspect_ratio: str = "5:4", progress_callback=None) -> Dict[str, object]:
+    """
+    Génère toutes les images en parallèle (OPTIMISÉ).
+    
+    Args:
+        items: Liste des items avec id, prompt_image_1
+        aspect_ratio: Ratio d'image (5:4, 16:9, etc.)
+        progress_callback: Fonction appelée à chaque item terminé
+    
+    Returns:
+        {
+            "status": "success" | "partial" | "error",
+            "total": int,
+            "success": int,
+            "errors": int,
+            "details": [...]
+        }
+    """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    
+    def process_single_image(item):
+        """Génère une image pour un item."""
+        item_id = item.get("id")
+        image_prompt = item.get("prompt_image_1", "")
+        position = item.get("position", 0)
+        
+        try:
+            # Arguments corrects : (prompt, position, item_id, aspect_ratio)
+            result = generate_and_save_carousel_image(
+                image_prompt,
+                position,
+                item_id=item_id,
+                aspect_ratio=aspect_ratio
+            )
+            
+            if result.get("status") == "success":
+                if progress_callback:
+                    progress_callback(item_id, position, True)
+                return {
+                    "item_id": item_id,
+                    "position": position,
+                    "status": "success",
+                    "image_url": result.get("image_url")
+                }
+            else:
+                if progress_callback:
+                    progress_callback(item_id, position, False)
+                return {
+                    "item_id": item_id,
+                    "position": position,
+                    "status": "error",
+                    "message": result.get("message", "Erreur inconnue")
+                }
+        except Exception as e:
+            if progress_callback:
+                progress_callback(item_id, position, False)
+            return {
+                "item_id": item_id,
+                "position": position,
+                "status": "error",
+                "message": f"Erreur: {str(e)}"
+            }
+    
+    # Génération parallèle
+    results = []
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS_IMAGES) as executor:
+        futures = {executor.submit(process_single_image, item): item for item in items}
+        
+        for future in as_completed(futures):
+            try:
+                result = future.result()
+                results.append(result)
+            except Exception as e:
+                results.append({
+                    "status": "error",
+                    "message": f"Thread error: {str(e)}"
+                })
+    
+    # Agréger
+    total = len(items)
+    success_count = sum(1 for r in results if r.get("status") == "success")
+    error_count = total - success_count
+    
+    if success_count == total:
+        status = "success"
+    elif success_count > 0:
+        status = "partial"
+    else:
+        status = "error"
+    
+    return {
+        "status": status,
+        "total": total,
+        "success": success_count,
+        "errors": error_count,
+        "details": results
+    }
+
+
+def generate_slides_parallel(items: List[Dict], progress_callback=None) -> Dict[str, object]:
+    """
+    Génère toutes les slides en parallèle (OPTIMISÉ).
+    
+    Args:
+        items: Liste des items avec id, title_carou, content_carou, etc.
+        progress_callback: Fonction appelée à chaque item terminé
+    
+    Returns:
+        {
+            "status": "success" | "partial" | "error",
+            "total": int,
+            "success": int,
+            "errors": int,
+            "details": [...]
+        }
+    """
+    import os
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    from services.carousel.eco.carousel_slide_service import (
+        generate_carousel_slide,
+        generate_cover_slide,
+        upload_slide_bytes,
+    )
+    from services.carousel.eco.carousel_image_service import read_carousel_image
+    
+    def process_single_slide(item):
+        """Génère une slide pour un item."""
+        item_id = item.get("id")
+        position = item.get("position", 0)
+        title = item.get("title_carou") or item.get("title", "")
+        content = item.get("content_carou") or item.get("content", "")
+        
+        try:
+            # Lire l'image depuis Supabase Storage (carousel-eco bucket)
+            supabase = get_supabase()
+            storage_path = f"{item_id}.png"
+            
+            try:
+                image_bytes = supabase.storage.from_("carousel-eco").download(storage_path)
+            except Exception:
+                # Fallback : essayer depuis session_state/disque
+                image_result = read_carousel_image(position)
+                if not image_result:
+                    if progress_callback:
+                        progress_callback(item_id, position, False)
+                    return {
+                        "item_id": item_id,
+                        "position": position,
+                        "status": "error",
+                        "message": "Image non trouvée"
+                    }
+                image_bytes = image_result
+            
+            # Générer la slide
+            if position == 0:
+                slide_bytes = generate_cover_slide(image_bytes=image_bytes)
+                slide_filename = "slide_0.png"
+            else:
+                slide_bytes = generate_carousel_slide(
+                    image_bytes=image_bytes,
+                    title=title,
+                    content=content
+                )
+                slide_filename = f"slide_{position}.png"
+            
+            # Upload
+            upload_slide_bytes(slide_filename, slide_bytes)
+            
+            if progress_callback:
+                progress_callback(item_id, position, True)
+            
+            return {
+                "item_id": item_id,
+                "position": position,
+                "status": "success",
+                "filename": slide_filename
+            }
+            
+        except Exception as e:
+            if progress_callback:
+                progress_callback(item_id, position, False)
+            return {
+                "item_id": item_id,
+                "position": position,
+                "status": "error",
+                "message": f"Erreur: {str(e)}"
+            }
+    
+    # Génération parallèle
+    results = []
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS_SLIDES) as executor:
+        futures = {executor.submit(process_single_slide, item): item for item in items}
+        
+        for future in as_completed(futures):
+            try:
+                result = future.result()
+                results.append(result)
+            except Exception as e:
+                results.append({
+                    "status": "error",
+                    "message": f"Thread error: {str(e)}"
+                })
+    
+    # Agréger
+    total = len(items)
+    success_count = sum(1 for r in results if r.get("status") == "success")
+    error_count = total - success_count
+    
+    if success_count == total:
+        status = "success"
+    elif success_count > 0:
+        status = "partial"
+    else:
+        status = "error"
+    
+    return {
+        "status": status,
+        "total": total,
+        "success": success_count,
+        "errors": error_count,
+        "details": results
+    }
