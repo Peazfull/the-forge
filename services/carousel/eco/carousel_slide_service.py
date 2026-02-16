@@ -23,6 +23,7 @@ ASSETS_DIR = os.path.join(
 SLIDES_BUCKET = "carousel-eco-slides"
 
 CANVAS_SIZE = (1080, 1350)
+COVER_IMAGE_SIZE = (1080, 864)  # Format 5:4 pour l'image de fond de la slide 0
 LOGO_SIZE = (200, 65)
 LOGO_TOP = 15
 TITLE_BG_TOP_FROM_BOTTOM = 490  # px depuis le bas (590px du haut)
@@ -239,6 +240,7 @@ def generate_cover_slide(
 ) -> bytes:
     """
     Génère la slide de couverture (position 0).
+    Image de fond en 5:4 (1080×864), canvas total 1080×1350.
     """
     if not image_url and not image_bytes:
         raise ValueError("Aucune image disponible pour la cover.")
@@ -248,8 +250,14 @@ def generate_cover_slide(
     else:
         base_img = _load_image_from_url(image_url)  # type: ignore[arg-type]
     
-    base_img = _cover_resize(base_img, CANVAS_SIZE)
-    canvas = base_img.copy()
+    # Redimensionner l'image de fond en 1080×864 (5:4)
+    base_img = _cover_resize(base_img, COVER_IMAGE_SIZE)
+    
+    # Créer le canvas complet 1080×1350
+    canvas = Image.new("RGBA", CANVAS_SIZE, (0, 0, 0, 255))
+    
+    # Coller l'image de fond en haut (position 0, 0)
+    canvas.paste(base_img, (0, 0))
     
     # Top bar collée en haut (0 margin)
     top_bar_path = os.path.join(ASSETS_DIR, "top_bar.png")
