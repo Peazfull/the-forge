@@ -238,11 +238,12 @@ class EcoCarouselJob:
             
             # Générer image
             if prompt_1_result.get("status") == "success":
-                self._log(f"  🎨 Génération image...")
+                self._log(f"  🎨 Génération image (5:4)...")
                 img_result = generate_and_save_carousel_image(
                     prompt_1_result["image_prompt"],
                     position,
-                    item_id=item_id
+                    item_id=item_id,
+                    aspect_ratio="5:4"  # Format 5:4 pour les slides 1-N (1080×864)
                 )
                 
                 if img_result["status"] == "success":

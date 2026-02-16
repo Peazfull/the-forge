@@ -139,6 +139,7 @@ def generate_carousel_slide(
 ) -> bytes:
     """
     Retourne un PNG (bytes) de la slide finale.
+    Canvas 1080×1350 avec fond #F4F4EB, image 5:4 (1080×864) collée en bas.
     """
     if not image_url and not image_bytes:
         raise ValueError("Aucune image disponible pour la slide.")
@@ -148,8 +149,18 @@ def generate_carousel_slide(
     else:
         base_img = _load_image_from_url(image_url)  # type: ignore[arg-type]
 
-    base_img = _cover_resize(base_img, CANVAS_SIZE)
-    canvas = base_img.copy()
+    # Redimensionner l'image de fond en 1080×864 (5:4)
+    base_img = _cover_resize(base_img, COVER_IMAGE_SIZE)
+    
+    # Créer le canvas complet 1080×1350 avec fond #F4F4EB (beige/crème)
+    canvas = Image.new("RGBA", CANVAS_SIZE, (244, 244, 235, 255))  # #F4F4EB
+    
+    # Coller l'image de fond en BAS du canvas (bas de l'image aligné avec bas du canvas)
+    # Canvas height: 1350, Image height: 864 → Y position: 1350 - 864 = 486
+    image_y_position = CANVAS_SIZE[1] - COVER_IMAGE_SIZE[1]
+    if base_img.mode != 'RGBA':
+        base_img = base_img.convert('RGBA')
+    canvas.alpha_composite(base_img, (0, image_y_position))
 
     # Overlay filtre principal
     filter_path = os.path.join(ASSETS_DIR, "filter_main.png")
