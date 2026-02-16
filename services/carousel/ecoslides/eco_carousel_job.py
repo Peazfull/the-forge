@@ -25,7 +25,7 @@ MAX_WORKERS_SLIDES = 8  # Parallélisation pour génération slides
 class EcoCarouselJob:
     """Job de génération de carrousel Eco en threading pour éviter les timeouts Streamlit."""
     
-    def __init__(self, use_optimized: bool = True):
+    def __init__(self, use_optimized: bool = False):  # Désactivé par défaut pour debug
         self.state = "idle"  # idle, running, completed, failed, stopped
         self.current = 0
         self.total = 0
@@ -128,13 +128,19 @@ class EcoCarouselJob:
             self._log("✅ Textes générés")
             
             # Étape 3 : Génération cover
-            first_item = self._items[0] if self._items else {}
+            if not self._items or len(self._items) == 0:
+                raise Exception("Aucun item à traiter")
+            
+            first_item = self._items[0]
+            if not isinstance(first_item, dict):
+                raise Exception(f"Item invalide (type: {type(first_item)})")
+            
             cover_result = upsert_carousel_eco_cover({
-                "title": first_item["title"],
-                "content": first_item["content"],
-                "score_global": first_item["score_global"],
-                "tags": first_item["tags"],
-                "labels": first_item["labels"],
+                "title": first_item.get("title", ""),
+                "content": first_item.get("content", ""),
+                "score_global": first_item.get("score_global", 0),
+                "tags": first_item.get("tags", ""),
+                "labels": first_item.get("labels", ""),
             })
             if cover_result.get("status") != "success":
                 raise Exception(f"Erreur cover : {cover_result.get('message', '')}")
@@ -145,8 +151,21 @@ class EcoCarouselJob:
             clear_slide_files()
             
             # Étape 5 : Récupérer tous les items
+            self._log("📦 Récupération items...")
             carousel_data = get_carousel_eco_items()
-            all_items = carousel_data["items"]
+            
+            # Debug : vérifier le type
+            if not isinstance(carousel_data, dict):
+                raise Exception(f"carousel_data invalide (type: {type(carousel_data)})")
+            
+            if carousel_data.get("status") != "success":
+                raise Exception(f"Erreur get_items: {carousel_data.get('message', 'Erreur inconnue')}")
+            
+            all_items = carousel_data.get("items", [])
+            if not all_items:
+                raise Exception("Aucun item récupéré")
+            
+            self._log(f"✅ {len(all_items)} items récupérés")
             
             # Étape 6 : GÉNÉRATION PROMPTS IMAGES EN PARALLÈLE ⚡
             self._log("🎨 Génération prompts images (parallèle)...")
