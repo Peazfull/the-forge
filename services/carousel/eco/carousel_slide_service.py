@@ -162,12 +162,6 @@ def generate_carousel_slide(
         base_img = base_img.convert('RGBA')
     canvas.alpha_composite(base_img, (0, image_y_position))
 
-    # Overlay filtre principal
-    filter_path = os.path.join(ASSETS_DIR, "filter_main.png")
-    if os.path.exists(filter_path):
-        overlay = Image.open(filter_path).convert("RGBA")
-        canvas.alpha_composite(overlay)
-
     draw = ImageDraw.Draw(canvas)
 
     # Logo
