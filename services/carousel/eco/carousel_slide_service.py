@@ -261,19 +261,21 @@ def generate_cover_slide(
     # 1. Coller l'image de fond en BAS du canvas (bas de l'image aligné avec bas du canvas)
     # Canvas height: 1350, Image height: 864 → Y position: 1350 - 864 = 486
     image_y_position = CANVAS_SIZE[1] - COVER_IMAGE_SIZE[1]
-    canvas.paste(base_img, (0, image_y_position))
+    # Convertir en RGBA pour alpha_composite
+    if base_img.mode != 'RGBA':
+        base_img = base_img.convert('RGBA')
+    canvas.alpha_composite(base_img, (0, image_y_position))
     
     # 2. Overlay Slide0 (1080×698) collé en haut, passe au-dessus de l'image
     overlay_slide0_path = os.path.join(ASSETS_DIR, "Overlay_Slide0.png")
     if os.path.exists(overlay_slide0_path):
         overlay_slide0 = Image.open(overlay_slide0_path).convert("RGBA")
-        # Redimensionner si nécessaire pour correspondre à la largeur
-        if overlay_slide0.size[0] != CANVAS_SIZE[0]:
-            scale = CANVAS_SIZE[0] / overlay_slide0.size[0]
-            overlay_slide0 = overlay_slide0.resize(
-                (int(overlay_slide0.size[0] * scale), int(overlay_slide0.size[1] * scale)),
-                Image.LANCZOS
-            )
+        # Forcer le redimensionnement à exactement 1080px de large
+        original_width, original_height = overlay_slide0.size
+        target_width = CANVAS_SIZE[0]  # 1080px
+        scale = target_width / original_width
+        target_height = int(original_height * scale)
+        overlay_slide0 = overlay_slide0.resize((target_width, target_height), Image.LANCZOS)
         canvas.alpha_composite(overlay_slide0, (0, 0))
     
     # 3. Top bar collée en haut, AU-DESSUS de l'overlay (0 margin)
