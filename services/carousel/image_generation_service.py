@@ -212,6 +212,7 @@ def generate_carousel_image(prompt: str, aspect_ratio: str = "1:1") -> Dict[str,
     
     gpt_size_map = {
         "1:1": "1024x1024",
+        "5:4": "1024x1024",  # GPT ne supporte pas 5:4, on utilise 1:1 puis resize en post-traitement
         "16:9": "1792x1024",
         "9:16": "1024x1792"
     }

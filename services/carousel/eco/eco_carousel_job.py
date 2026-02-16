@@ -196,11 +196,12 @@ class EcoCarouselJob:
             }).eq("id", item_id).execute()
             
             # Générer l'image
-            self._log(f"  🎨 Génération image cover...")
+            self._log(f"  🎨 Génération image cover (5:4)...")
             img_result = generate_and_save_carousel_image(
                 prompt_result["image_prompt"],
                 position=0,
-                item_id=item_id
+                item_id=item_id,
+                aspect_ratio="5:4"  # Format 5:4 pour la cover (1080×864)
             )
             
             if img_result["status"] == "success":
