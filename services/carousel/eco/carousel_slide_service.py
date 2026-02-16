@@ -42,8 +42,10 @@ DATE_TOP_GAP = 12
 # Polices (fallback sur PIL par défaut si fichier absent)
 FONT_TITLE_PATH = os.path.join(ASSETS_DIR, "Inter_18pt-Bold.ttf")
 FONT_CONTENT_PATH = os.path.join(ASSETS_DIR, "Inter_18pt-Medium.ttf")
+FONT_DATE_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")  # Date slide 0
 TITLE_FONT_WEIGHT = 700  # Bold
 CONTENT_FONT_WEIGHT = 500  # Medium
+DATE_FONT_WEIGHT = 600  # SemiBold
 TITLE_FONT_SIZE = 48
 CONTENT_FONT_SIZE = 40
 
@@ -333,7 +335,7 @@ def generate_cover_slide(
     # Date - 51px sous le logo, 50px left, taille 60, letter spacing -1%
     date_str = _format_french_date()
     date_font_size = 60
-    date_font = _load_font(FONT_CONTENT_PATH, date_font_size, weight=CONTENT_FONT_WEIGHT)
+    date_font = _load_font(FONT_DATE_PATH, date_font_size, weight=DATE_FONT_WEIGHT)
     
     # Position : 168px (logo top) + hauteur du logo + 51px
     date_y = 168 + cover_logo_height + 51
