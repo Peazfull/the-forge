@@ -513,9 +513,29 @@ def send_to_carousel():
         st.warning("⚠️ Aucun item sélectionné")
         return
     
-    # Lancer le job
-    job.start(st.session_state.eco_selected_items)
-    st.rerun()
+    # Récupérer les objets complets depuis la DB (pas juste les IDs !)
+    supabase = get_supabase()
+    selected_ids = st.session_state.eco_selected_items
+    
+    try:
+        response = supabase.table("brew_items").select("*").in_("id", selected_ids).execute()
+        items_from_db = response.data or []
+        
+        # Réordonner selon l'ordre de sélection
+        items_dict = {item["id"]: item for item in items_from_db}
+        selected_items = [items_dict[item_id] for item_id in selected_ids if item_id in items_dict]
+        
+        if not selected_items:
+            st.error("❌ Aucun item trouvé en DB")
+            return
+        
+        # Lancer le job avec les objets complets
+        job.start(selected_items)
+        st.rerun()
+        
+    except Exception as e:
+        st.error(f"❌ Erreur récupération items: {str(e)}")
+        return
 
 
 def _finalize_generation():
