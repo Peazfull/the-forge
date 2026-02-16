@@ -332,9 +332,9 @@ def generate_cover_slide(
         # Pas de scale, utiliser la taille originale de l'asset
         canvas.alpha_composite(cover_logo, (45, 168))
     
-    # Date - 51px sous le logo, 50px left, taille 60, letter spacing -1%
+    # Date - 51px sous le logo, 50px left, taille 68, letter spacing -1%
     date_str = _format_french_date()
-    date_font_size = 60
+    date_font_size = 68
     date_font = _load_font(FONT_DATE_PATH, date_font_size, weight=DATE_FONT_WEIGHT)
     
     # Position : 168px (logo top) + hauteur du logo + 51px
