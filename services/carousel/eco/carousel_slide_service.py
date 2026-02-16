@@ -221,17 +221,19 @@ def generate_carousel_slide(
 
 
 def _format_french_date(dt: Optional[datetime] = None) -> str:
-    """Format date en FR majuscules (ex: DU LUNDI 10 FEVRIER 2026)."""
+    """Format date en FR avec première lettre majuscule (ex: Du lundi 10 février 2026)."""
     if dt is None:
         dt = datetime.now()
-    days = ["LUNDI", "MARDI", "MERCREDI", "JEUDI", "VENDREDI", "SAMEDI", "DIMANCHE"]
+    days = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]
     months = [
-        "JANVIER", "FEVRIER", "MARS", "AVRIL", "MAI", "JUIN",
-        "JUILLET", "AOUT", "SEPTEMBRE", "OCTOBRE", "NOVEMBRE", "DECEMBRE"
+        "janvier", "février", "mars", "avril", "mai", "juin",
+        "juillet", "août", "septembre", "octobre", "novembre", "décembre"
     ]
     day = days[dt.weekday()]
     month = months[dt.month - 1]
-    return f"DU {day} {dt.day} {month} {dt.year}"
+    date_string = f"du {day} {dt.day} {month} {dt.year}"
+    # Première lettre en majuscule
+    return date_string[0].upper() + date_string[1:]
 
 
 def generate_cover_slide(
@@ -318,7 +320,7 @@ def generate_cover_slide(
     
     # Letter spacing -1% (approximé à -0.6px pour font 60)
     letter_spacing = int(date_font_size * -0.01)
-    draw.text((date_x, date_y), date_str, font=date_font, fill="white", spacing=letter_spacing)
+    draw.text((date_x, date_y), date_str, font=date_font, fill="#363636", spacing=letter_spacing)
     
     # Swipe (cover)
     swipe_path = os.path.join(ASSETS_DIR, "Swipe.png")
