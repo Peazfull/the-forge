@@ -266,17 +266,20 @@ def generate_cover_slide(
         base_img = base_img.convert('RGBA')
     canvas.alpha_composite(base_img, (0, image_y_position))
     
-    # 2. Overlay Slide0 (1080×698) collé en haut, passe au-dessus de l'image
+    # 2. Overlay Slide0 - Force 1090px de large pour couvrir les strokes/patterns
+    # Les 5px de chaque côté seront clippés automatiquement par le canvas
     overlay_slide0_path = os.path.join(ASSETS_DIR, "Overlay_Slide0.png")
     if os.path.exists(overlay_slide0_path):
         overlay_slide0 = Image.open(overlay_slide0_path).convert("RGBA")
-        # Forcer le redimensionnement à exactement 1080px de large
+        # Forcer le redimensionnement à 1090px de large (10px de plus que le canvas)
         original_width, original_height = overlay_slide0.size
-        target_width = CANVAS_SIZE[0]  # 1080px
+        target_width = 1090  # 10px de plus pour gérer les strokes/patterns
         scale = target_width / original_width
         target_height = int(original_height * scale)
         overlay_slide0 = overlay_slide0.resize((target_width, target_height), Image.LANCZOS)
-        canvas.alpha_composite(overlay_slide0, (0, 0))
+        # Centrer : (1080 - 1090) / 2 = -5px (déborde de 5px de chaque côté)
+        x_offset = (CANVAS_SIZE[0] - target_width) // 2
+        canvas.alpha_composite(overlay_slide0, (x_offset, 0))
     
     # 3. Top bar collée en haut, AU-DESSUS de l'overlay (0 margin)
     top_bar_path = os.path.join(ASSETS_DIR, "top_bar.png")
