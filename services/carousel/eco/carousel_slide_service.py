@@ -1,5 +1,5 @@
 """
-Génération des slides carousel (1080x1080) via Pillow.
+Génération des slides carousel (1080x1350) via Pillow.
 Stack: image de fond + filtre + logo + title_bg + texte + swipe.
 """
 
@@ -22,7 +22,7 @@ ASSETS_DIR = os.path.join(
 
 SLIDES_BUCKET = "carousel-eco-slides"
 
-CANVAS_SIZE = (1080, 1080)
+CANVAS_SIZE = (1080, 1350)
 LOGO_SIZE = (200, 65)
 LOGO_TOP = 15
 TITLE_BG_TOP_FROM_BOTTOM = 490  # px depuis le bas (590px du haut)
