@@ -215,9 +215,7 @@ class EcoCarouselJob:
                 raise Exception("Échec génération images")
             self._log(f"✅ {images_result.get('success')}/{images_result.get('total')} images générées")
             
-            # Re-récupérer les items pour avoir les images fraîchement générées
-            carousel_data = get_carousel_eco_items()
-            all_items = carousel_data.get("items", [])
+            # Pas besoin de re-fetch : les slides lisent directement depuis Supabase Storage
             
             # Étape 8 : GÉNÉRATION SLIDES EN PARALLÈLE ⚡
             self._log("🎞️ Génération slides (parallèle)...")
