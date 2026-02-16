@@ -17,7 +17,7 @@ from db.supabase_client import get_supabase
 ASSETS_DIR = os.path.join(
     os.path.dirname(__file__),
     "..", "..", "..",
-    "front", "layout", "assets", "carousel", "ecoslides"
+    "front", "layout", "assets", "carousel", "eco"
 )
 
 SLIDES_BUCKET = "carousel-eco-slides"

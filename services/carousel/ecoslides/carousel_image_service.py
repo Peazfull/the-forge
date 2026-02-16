@@ -22,7 +22,7 @@ MAX_RETRIES = 2
 CAROUSEL_IMAGE_DIR = os.path.join(
     os.path.dirname(__file__), 
     "..", "..", "..",
-    "front", "layout", "assets", "carousel", "ecoslides"
+    "front", "layout", "assets", "carousel", "eco"
 )
 
 STORAGE_BUCKET = "carousel-eco"
