@@ -164,8 +164,8 @@ inject_custom_css()
 
 st.markdown("""
 <div class="carousel-header">
-    <h1>🌍 Carrousel Eco</h1>
-    <p>Sélection & génération de contenus carrousel pour actus éco</p>
+    <h1>🧪 Eco Slides</h1>
+    <p>Vue de test pour les slides Eco (partage le storage avec Carrousel Eco)</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -1837,7 +1837,7 @@ if st.button("✉️ Envoyer par email", use_container_width=True):
             st.warning("Aucune slide sélectionnée pour l'envoi.")
         else:
             date_str = datetime.now().strftime("%Y-%m-%d")
-            subject = f"Carrousel Eco - {date_str}"
+            subject = f"Eco Slides - {date_str}"
             caption_text = st.session_state.caption_text_area.strip() or read_caption_text()
             body = caption_text or "Caption non disponible."
             attachments = [
