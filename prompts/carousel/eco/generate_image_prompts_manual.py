@@ -1,10 +1,13 @@
-PROMPT_GENERATE_IMAGE_PROMPT_MANUAL= """
-Tu vas recevoir un TITRE et un CONTENU d’actualité économique, politique ou institutionnelle avec mes recommandations manuelles de l'image attendu en plus. 
+PROMPT_GENERATE_IMAGE_PROMPT_MANUAL = """
+Tu vas recevoir un TITRE et un CONTENU d’actualité économique, politique ou institutionnelle,
+ainsi que mes recommandations manuelles concernant l’image attendue.
 
 Ta mission est de générer UNIQUEMENT le PROMPT FINAL destiné à une IA de génération d’images.
 Tu ne génères PAS l’image.
 
-Le prompt doit illustrer l’ACTU MAJEURE, en respectant strictement les règles suivantes.
+Le prompt doit illustrer l’ACTU MAJEURE en respectant strictement les règles suivantes,
+tout en intégrant intelligemment les indications manuelles si elles sont cohérentes
+avec les règles visuelles.
 
 ────────────────────────
 1️⃣ IDENTIFICATION DU SUJET CENTRAL
@@ -26,24 +29,26 @@ SI ENTREPRISE :
 
 - Logo officiel réel OBLIGATOIRE
 - Logo clair, net, identifiable en miniature
-- Logo intégré physiquement (enseigne, façade, signalétique réelle)
-- Building adapté à l’activité :
-• Luxe → architecture parisienne élégante
-• Tech → siège moderne verre/aciers
-• Automobile → siège + véhicule récent identifiable
-• Finance → tour institutionnelle type quartier d’affaires
+- Logo physiquement intégré (enseigne, façade, signalétique réelle)
+- Taille suffisante pour rester lisible en thumbnail
+- Architecture adaptée à l’activité :
+  • Luxe → haussmannien élégant
+  • Tech → siège moderne verre / acier
+  • Automobile → siège + véhicule récent identifiable
+  • Finance → tour institutionnelle type quartier d’affaires
 
 SI PERSONNALITÉ PUBLIQUE :
 
 - Uniquement si cœur de l’actu
-- Photo de presse en conférence ou intervention officielle
+- Contexte presse officiel (conférence, sommet, intervention)
 - Posture neutre, crédible
-- Drapeau ou symbole institutionnel si pertinent
+- Drapeau ou symbole institutionnel réel si pertinent
 
 SI ACTUALITÉ GÉOPOLITIQUE :
 
-- Drapeaux ou éléments architecturaux reconnaissables obligatoires
-- Contexte institutionnel réel et crédible
+- Drapeaux officiels réels obligatoires
+- Architecture institutionnelle identifiable
+- Contexte crédible et photographiable
 
 ────────────────────────
 3️⃣ DIRECTION ARTISTIQUE LIGHT MODE (OBLIGATOIRE)
@@ -52,10 +57,11 @@ SI ACTUALITÉ GÉOPOLITIQUE :
 STYLE :
 Ultra-realistic editorial press photograph.
 No illustration. No CGI. No digital art.
-Doit ressembler à une photo Reuters / AFP.
+Authentic Reuters / AFP quality.
 
-PALETTE (DA OFFICIELLE PROJET) :
-Lumière sunset stylisée réaliste avec reflets naturels :
+PALETTE OFFICIELLE PROJET (OBLIGATOIRE) :
+
+Lumière sunset stylisée réaliste avec reflets naturels visibles :
 
 - intense cyan blue
 - vivid magenta
@@ -63,24 +69,48 @@ Lumière sunset stylisée réaliste avec reflets naturels :
 - deep fluo green
 - warm glowing orange
 
-Les couleurs doivent apparaître comme des reflets naturels sur les surfaces (verre, métal, façade).
-Aucune forme abstraite. Aucun effet graphique.
+Ces couleurs doivent :
 
-TRANSITION HAUTE OBLIGATOIRE :
-L’image doit se terminer progressivement vers le haut en une teinte très claire,
-proche du hex #F8F9F4.
-Transition douce, naturelle, sans coupure horizontale.
-Pas de bloc vide artificiel.
-Composition équilibrée sur toute la hauteur.
+- être clairement visibles dans le ciel
+- se refléter naturellement sur verre, métal, façades, drapeaux
+- respecter la physique des matériaux
+- ne jamais ressembler à un filtre artificiel ou un effet graphique
+
+INTERDIT :
+- formes abstraites
+- halos artificiels
+- overlays
+- rendu "CGI sunset"
+
+────────────────────────
+TRANSITION HAUTE (VERSION CORRIGÉE)
+────────────────────────
+
+L’image doit se terminer progressivement vers le haut en une teinte claire
+proche du hex #F5F6F1.
+
+CRUCIAL :
+
+- Transition organique comme un ciel naturellement plus lumineux
+- Pas de voile blanc
+- Pas de fog
+- Pas de haze
+- Pas d’effet washed-out
+- Pas de couche opaque artificielle
+- Pas de bloc vide ajouté
+- Aucun cut horizontal visible
+- Le sujet reste net jusqu’au haut de l’image
+
+La luminosité augmente progressivement comme dans un ciel réel.
 
 ────────────────────────
 4️⃣ COMPOSITION TECHNIQUE
 ────────────────────────
 
-- Low-angle shot (contre-plongée)
+- Low-angle shot (contre-plongée) obligatoire
 - Une seule photographie continue
 - Perspective unique cohérente
-- Logo / personne / élément clé naturellement placé dans le tiers supérieur
+- Élément clé naturellement placé dans le tiers supérieur
 - Pas d’image divisée
 - Pas de collage
 
@@ -90,9 +120,11 @@ Inclure dans le prompt :
 - professional photojournalism style
 - realistic depth of field
 - subtle natural sensor grain
-- no text in image
-- no watermark
-- no media logo
+- Single continuous photograph from one camera position
+- No digital screens showing charts or data
+- No text or numbers
+- No watermark
+- No media logo
 
 ────────────────────────
 5️⃣ INTERDICTIONS ABSOLUES
@@ -113,36 +145,50 @@ INTERDIT :
 - Split image
 - Horizontal division
 
-Mentionner explicitement :
-“Single continuous photograph from one camera position”
-“No digital screens showing charts or data”
-“No text or numbers”
+────────────────────────
+EXEMPLES DE SORTIE ATTENDU
+────────────────────────
 
-_____________________________________________
-EXEMPLES DE SORTIE ATTENDU POUR T’INSPIRER
-———————————————————————————-
-Pour ENTREPRISE: 
+POUR ENTREPRISE :
+
 "Ultra-realistic editorial background image illustrating a major pharmaceutical business news story about a leadership transition at Sanofi. The scene must look like a real professional press photograph, not an illustration.
-The scene shows the Sanofi corporate headquarters building in a realistic and naturally balanced composition. The official Sanofi logo is fully visible on the building facade as a white illuminated sign (important), using the correct official logo design, integrated naturally into the architecture. The building must look completely real and credible, suitable for serious international financial and healthcare press coverage.
-The composition must feel harmonious and not bottom-heavy. The subject should occupy the frame in a natural photographic way, without being compressed toward the bottom. The perspective should resemble authentic editorial press photography
-The lighting in the scene features a strong, clearly defined stylized sunset gradient using the following vibrant fluo color palette: bright fluo green, intense cyan blue, vivid magenta, rich coral, and warm glowing orange. These colors must be luminous and clearly visible in the sky and subtly reflected on the building surfaces. The lighting should feel bold yet realistic, as if coming from a dramatic sunset atmosphere. No abstract shapes, no graphic overlays, no charts, no digital screens, no drawn elements. Only real-world elements enhanced by this precise fluo sunset lighting.
-The image should transition gradually and smoothly upward into a soft warm off-white tone close to hex F5F6F1. The upper area must feel light, airy, and clean, with a natural photographic gradient — not a hard separation and not an empty forced block. The transition must feel organic and visually balanced.
-Premium, minimal, airy, elegant mood with a modern healthcare and financial media energy. High-end professional press photography look, realistic camera perspective, natural depth of field, subtle film grain. The scene must feel factual, neutral and credible, suitable for serious international pharmaceutical news coverage. No text, no numbers, no buttons, no UI, no call to action, no watermark, no media logo. 8K quality, ultra clean, modern, professional editorial background image.
 
+The scene shows the Sanofi corporate headquarters building in a realistic and naturally balanced composition. The official Sanofi logo is clearly visible, physically mounted on the facade, properly scaled and readable in thumbnail format. The architecture must look completely real and credible, suitable for serious international financial and healthcare press coverage.
 
-POUR PERSONNALITE : 
-"Ultra-realistic editorial background image illustrating a French political news story about a potential parliamentary inquiry commission. The scene must look like a real professional press photograph, not an illustration.
-The scene shows Gabriel Attal clearly recognizable, speaking during an official political event or press statement, standing at a podium with microphones. His face and appearance must be realistic and faithful. The setting resembles the French National Assembly or a formal governmental venue. A French tricolor flag is visible in the scene as a geographic and political identifier. The environment must look completely real, serious, and credible, suitable for national political press coverage.
-The composition places Gabriel Attal in the lower part of the image, not too dominant, serving as a factual visual anchor for the news.
-The lighting in the lower part of the image features a stylized but realistic sunset atmosphere with strong fluo green, cyan blue, magenta, coral and orange light, as if coming from stage lighting and reflecting naturally on the institutional setting. No abstract shapes, no graphic overlays, no charts, no drawn elements, no symbolic illustrations. Only real-world elements with artistic colored lighting.
-The upper part of the image transitions into a very clean, bright, almost white background, creating a large empty space for text overlay (headline area). Smooth vertical transition from white (top) to the colorful stylized sunset lighting (bottom).
-Premium, minimal, airy, elegant mood with a modern political media energy. High-end professional press photography look, realistic camera perspective, natural depth of field, subtle film grain. The scene must feel factual, neutral and credible, suitable for serious political news coverage. No text, no slogans, no numbers, no buttons, no UI, no call to action, no watermark, no media logo. 8K quality, ultra clean, modern, professional editorial background image."
+The lighting features a strong stylized sunset atmosphere using the official fluo palette: intense cyan blue, vivid magenta, rich coral, deep fluo green and warm glowing orange. These colors must be clearly visible in the sky and naturally reflected on glass and structural surfaces. Reflections must feel physically plausible and integrated into real materials.
 
-POUR INFO GEOPLOITQUE EVENMENT , LIEU : 
-"Ultra-realistic editorial background image illustrating a major European economic news story about improving investor confidence in the euro zone. The scene must look like a real professional press photograph, not an illustration. The scene shows a recognizable European institutional setting placed in the lower part of the image (for example a modern European government or financial institution building in Brussels or Frankfurt). A European Union flag is clearly visible in the scene as a factual geographic and political identifier. The environment must look completely real and believable, like a serious financial press photo.
-The lighting in the lower part of the image features a stylized but realistic sunset atmosphere with strong fluo green, cyan blue, magenta, coral and orange light, as if coming from the sky and reflecting naturally on the buildings and surroundings. No abstract shapes, no graphic overlays, no charts, no drawn elements, no symbols. Only real-world elements with artistic colored lighting.
-The upper part of the image transitions into a very clean, bright, almost white sky/background, creating a large empty space for text overlay (headline area). Smooth vertical transition from white (top) to the colorful stylized sunset lighting (bottom).
-Premium, minimal, airy, elegant mood with a modern European financial media energy. High-end professional press photography look, realistic camera perspective, natural depth of field, subtle film grain. The scene must feel factual, credible, and suitable for serious economic and financial news coverage. No text, no numbers, no buttons, no UI, no call to action, no watermark, no media logo. 8K quality, ultra clean, modern, professional editorial background image."
+The image transitions gradually upward into a soft warm off-white tone close to hex F5F6F1. The transition must resemble natural sky luminosity — no haze, no fog, no artificial white overlay, no horizontal cut. The building remains sharp and detailed up to the upper frame.
+
+Premium, minimal editorial mood. Realistic depth of field, subtle film grain. No text, no numbers, no UI, no watermark. 8K quality."
+
+────────────────────────
+
+POUR PERSONNALITÉ :
+
+"Ultra-realistic editorial background image illustrating a French political news story about a potential parliamentary inquiry commission.
+
+The scene shows Gabriel Attal clearly recognizable, speaking during an official governmental event inside a credible institutional setting. A French national flag is physically present in the background.
+
+The lighting features the official stylized sunset palette: intense cyan blue, vivid magenta, rich coral, deep fluo green and warm glowing orange. These colors must appear in the sky and reflect naturally on surfaces and flags, without artificial glow or overlay.
+
+The image transitions upward into a soft bright off-white tone close to hex F5F6F1, like a naturally bright sky. No haze, no mist, no white veil. The subject remains detailed and realistic across the full height.
+
+Professional press photography look. No text, no numbers, no UI. 8K quality."
+
+────────────────────────
+
+POUR INFO GÉOPOLITIQUE / LIEU :
+
+"Ultra-realistic editorial background image illustrating a major European economic news story about improving investor confidence in the euro zone.
+
+The scene shows a recognizable European institutional building in Brussels or Frankfurt. A real European Union flag is clearly visible and physically mounted on a flagpole, large enough to remain identifiable in thumbnail format.
+
+The lighting features a strong stylized sunset atmosphere using the official fluo palette: intense cyan blue, vivid magenta, rich coral, deep fluo green and warm glowing orange. These colors must be clearly visible in the sky and naturally reflected on building surfaces and flag fabric. The reflections must feel physically accurate and realistic.
+
+The upper area transitions gradually into a soft warm off-white tone close to hex F5F6F1, resembling natural sky luminosity. No haze, no artificial gradient block, no horizontal division. The architecture remains detailed up to the upper frame.
+
+Premium, minimal editorial mood. Realistic camera perspective, subtle film grain. No text, no numbers, no UI. 8K quality."
+
 ────────────────────────
 FORMAT DE SORTIE
 ────────────────────────
@@ -150,7 +196,7 @@ FORMAT DE SORTIE
 Retourne UNIQUEMENT :
 
 {
-"image_prompt": "prompt complet ici"
+  "image_prompt": "prompt complet ici"
 }
 
 Aucun texte hors JSON.
