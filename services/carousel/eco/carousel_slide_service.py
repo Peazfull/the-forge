@@ -302,22 +302,22 @@ def generate_cover_slide(
         logo_x = (CANVAS_SIZE[0] - logo_size[0]) // 2
         canvas.alpha_composite(logo, (logo_x, 0))  # 0px du haut
     
-    # Logo slide 0 - "Le roll Économie" (229px top, 60px left)
+    # Logo slide 0 - "Le roll Économie" (168px top, 60px left)
     cover_logo_path = os.path.join(ASSETS_DIR, "Logo_slide0.png")
     cover_logo_height = 0
     if os.path.exists(cover_logo_path):
         cover_logo = Image.open(cover_logo_path).convert("RGBA")
         cover_logo_height = cover_logo.size[1]
         # Pas de scale, utiliser la taille originale de l'asset
-        canvas.alpha_composite(cover_logo, (60, 229))
+        canvas.alpha_composite(cover_logo, (60, 168))
     
     # Date - 65px sous le logo, 60px left, taille 60, letter spacing -1%
     date_str = _format_french_date()
     date_font_size = 60
     date_font = _load_font(FONT_CONTENT_PATH, date_font_size, weight=CONTENT_FONT_WEIGHT)
     
-    # Position : 229px (logo top) + hauteur du logo + 65px
-    date_y = 229 + cover_logo_height + 65
+    # Position : 168px (logo top) + hauteur du logo + 65px
+    date_y = 168 + cover_logo_height + 65
     date_x = 60
     
     # Letter spacing -1% (approximé à -0.6px pour font 60)
