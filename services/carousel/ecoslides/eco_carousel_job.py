@@ -609,10 +609,11 @@ def generate_images_parallel(items: List[Dict], aspect_ratio: str = "5:4", progr
         position = item.get("position", 0)
         
         try:
+            # Arguments corrects : (prompt, position, item_id, aspect_ratio)
             result = generate_and_save_carousel_image(
+                image_prompt,
+                position,
                 item_id=item_id,
-                image_prompt=image_prompt,
-                is_cover=(position == 0),
                 aspect_ratio=aspect_ratio
             )
             
