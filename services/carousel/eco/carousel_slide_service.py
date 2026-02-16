@@ -251,6 +251,19 @@ def generate_cover_slide(
     base_img = _cover_resize(base_img, CANVAS_SIZE)
     canvas = base_img.copy()
     
+    # Top bar collée en haut (0 margin)
+    top_bar_path = os.path.join(ASSETS_DIR, "top_bar.png")
+    if os.path.exists(top_bar_path):
+        top_bar = Image.open(top_bar_path).convert("RGBA")
+        # Redimensionner pour correspondre à la largeur du canvas si nécessaire
+        if top_bar.size[0] != CANVAS_SIZE[0]:
+            scale = CANVAS_SIZE[0] / top_bar.size[0]
+            top_bar = top_bar.resize(
+                (int(top_bar.size[0] * scale), int(top_bar.size[1] * scale)),
+                Image.LANCZOS
+            )
+        canvas.alpha_composite(top_bar, (0, 0))
+    
     # Overlay filtre principal
     filter_path = os.path.join(ASSETS_DIR, "filter_main.png")
     if os.path.exists(filter_path):
