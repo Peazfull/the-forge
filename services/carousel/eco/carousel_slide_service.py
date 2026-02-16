@@ -256,10 +256,23 @@ def generate_cover_slide(
     # Créer le canvas complet 1080×1350
     canvas = Image.new("RGBA", CANVAS_SIZE, (0, 0, 0, 255))
     
-    # Coller l'image de fond en haut (position 0, 0)
+    # 1. Coller l'image de fond en haut (position 0, 0)
     canvas.paste(base_img, (0, 0))
     
-    # Top bar collée en haut (0 margin)
+    # 2. Overlay Slide0 (1080×698) collé en haut, passe au-dessus de l'image
+    overlay_slide0_path = os.path.join(ASSETS_DIR, "overlay_Slide0.png")
+    if os.path.exists(overlay_slide0_path):
+        overlay_slide0 = Image.open(overlay_slide0_path).convert("RGBA")
+        # Redimensionner si nécessaire pour correspondre à la largeur
+        if overlay_slide0.size[0] != CANVAS_SIZE[0]:
+            scale = CANVAS_SIZE[0] / overlay_slide0.size[0]
+            overlay_slide0 = overlay_slide0.resize(
+                (int(overlay_slide0.size[0] * scale), int(overlay_slide0.size[1] * scale)),
+                Image.LANCZOS
+            )
+        canvas.alpha_composite(overlay_slide0, (0, 0))
+    
+    # 3. Top bar collée en haut, AU-DESSUS de l'overlay (0 margin)
     top_bar_path = os.path.join(ASSETS_DIR, "top_bar.png")
     if os.path.exists(top_bar_path):
         top_bar = Image.open(top_bar_path).convert("RGBA")
