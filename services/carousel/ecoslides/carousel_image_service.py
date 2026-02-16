@@ -11,7 +11,7 @@ from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 from openai import OpenAI
 from db.supabase_client import get_supabase
 from services.carousel.image_generation_service import generate_carousel_image, save_image_to_carousel
-from prompts.ecoslides.generate_image_prompts_manual import PROMPT_GENERATE_IMAGE_PROMPT_MANUAL
+from prompts.carousel.ecoslides.generate_image_prompts_manual import PROMPT_GENERATE_IMAGE_PROMPT_MANUAL
 import json
 
 
@@ -22,7 +22,7 @@ MAX_RETRIES = 2
 CAROUSEL_IMAGE_DIR = os.path.join(
     os.path.dirname(__file__), 
     "..", "..",
-    "front", "layout", "assets", "ecoslides"
+    "front", "layout", "assets", "carousel", "ecoslides"
 )
 
 STORAGE_BUCKET = "carousel-eco"

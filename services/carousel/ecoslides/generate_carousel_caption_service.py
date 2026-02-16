@@ -4,8 +4,8 @@ import time
 import streamlit as st
 from openai import OpenAI
 
-from prompts.ecoslides.generate_carousel_caption import PROMPT_GENERATE_CAROUSEL_CAPTION
-from prompts.ecoslides.generate_carousel_linkedin import PROMPT_GENERATE_LINKEDIN_POST
+from prompts.carousel.ecoslides.generate_carousel_caption import PROMPT_GENERATE_CAROUSEL_CAPTION
+from prompts.carousel.ecoslides.generate_carousel_linkedin import PROMPT_GENERATE_LINKEDIN_POST
 from db.supabase_client import get_supabase
 
 REQUEST_TIMEOUT = 30

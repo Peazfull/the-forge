@@ -3,17 +3,17 @@ import time
 from typing import List, Dict, Optional
 
 from db.supabase_client import get_supabase
-from services.ecoslides.carousel_eco_service import (
+from services.carousel.ecoslides.carousel_eco_service import (
     insert_items_to_carousel_eco,
     get_carousel_eco_items,
     upsert_carousel_eco_cover,
 )
-from services.ecoslides.carousel_slide_service import clear_slide_files
-from services.ecoslides.generate_carousel_texts_service import (
+from services.carousel.ecoslides.carousel_slide_service import clear_slide_files
+from services.carousel.ecoslides.generate_carousel_texts_service import (
     generate_carousel_text_for_item,
     generate_image_prompt_for_item,
 )
-from services.ecoslides.carousel_image_service import generate_and_save_carousel_image
+from services.carousel.ecoslides.carousel_image_service import generate_and_save_carousel_image
 
 
 class EcoCarouselJob:
@@ -257,12 +257,12 @@ class EcoCarouselJob:
     def _generate_final_slides(self) -> None:
         """Génère les slides composites finales (image + texte + overlay)."""
         import os
-        from services.ecoslides.carousel_slide_service import (
+        from services.carousel.ecoslides.carousel_slide_service import (
             generate_carousel_slide,
             generate_cover_slide,
             upload_slide_bytes,
         )
-        from services.ecoslides.carousel_image_service import read_carousel_image
+        from services.carousel.ecoslides.carousel_image_service import read_carousel_image
         
         supabase = get_supabase()
         
@@ -313,7 +313,7 @@ class EcoCarouselJob:
         # Upload outro
         outro_path = os.path.join(
             os.path.dirname(__file__),
-            "..", "..", "front", "layout", "assets", "ecoslides", "outro_eco.png"
+            "..", "..", "front", "layout", "assets", "carousel", "ecoslides", "outro_eco.png"
         )
         if os.path.exists(outro_path):
             try:
@@ -325,7 +325,7 @@ class EcoCarouselJob:
     
     def _generate_caption(self) -> None:
         """Génère automatiquement la caption Instagram."""
-        from services.ecoslides.generate_carousel_caption_service import (
+        from services.carousel.ecoslides.generate_carousel_caption_service import (
             generate_caption_from_items,
             upload_caption_text,
         )

@@ -9,9 +9,9 @@ from datetime import datetime, timedelta
 import streamlit.components.v1 as components
 from urllib.parse import urlparse, parse_qs
 from db.supabase_client import get_supabase
-from services.ecoslides.carousel_eco_service import insert_items_to_carousel_eco, get_carousel_eco_items, upsert_carousel_eco_cover
-from services.ecoslides.generate_carousel_texts_service import generate_all_carousel_texts, update_carousel_text
-from services.ecoslides.generate_carousel_caption_service import (
+from services.carousel.ecoslides.carousel_eco_service import insert_items_to_carousel_eco, get_carousel_eco_items, upsert_carousel_eco_cover
+from services.carousel.ecoslides.generate_carousel_texts_service import generate_all_carousel_texts, update_carousel_text
+from services.carousel.ecoslides.generate_carousel_caption_service import (
     generate_caption_from_items,
     upload_caption_text,
     read_caption_text,
@@ -20,7 +20,7 @@ from services.ecoslides.generate_carousel_caption_service import (
     read_linkedin_text
 )
 from services.carousel.image_generation_service import generate_carousel_image
-from services.ecoslides.carousel_image_service import (
+from services.carousel.ecoslides.carousel_image_service import (
     generate_and_save_carousel_image,
     generate_prompt_image_3,
     save_prompt_image_3_to_db,
@@ -28,7 +28,7 @@ from services.ecoslides.carousel_image_service import (
     save_image_base64
 )
 from services.carousel.image_generation_service import save_image_to_carousel
-from services.ecoslides.carousel_slide_service import (
+from services.carousel.ecoslides.carousel_slide_service import (
     generate_carousel_slide,
     generate_cover_slide,
     upload_slide_bytes,
