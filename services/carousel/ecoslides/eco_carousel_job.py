@@ -194,6 +194,10 @@ class EcoCarouselJob:
                 raise Exception(f"Échec génération prompts images: {first_error}")
             self._log(f"✅ {prompts_result.get('success')}/{prompts_result.get('total')} prompts générés")
             
+            # Re-récupérer les items pour avoir les prompts fraîchement générés
+            carousel_data = get_carousel_eco_items()
+            all_items = carousel_data.get("items", [])
+            
             # Étape 7 : GÉNÉRATION IMAGES EN PARALLÈLE ⚡
             self._log("🖼️ Génération images (parallèle)...")
             
@@ -210,6 +214,10 @@ class EcoCarouselJob:
             if images_result.get("status") == "error":
                 raise Exception("Échec génération images")
             self._log(f"✅ {images_result.get('success')}/{images_result.get('total')} images générées")
+            
+            # Re-récupérer les items pour avoir les images fraîchement générées
+            carousel_data = get_carousel_eco_items()
+            all_items = carousel_data.get("items", [])
             
             # Étape 8 : GÉNÉRATION SLIDES EN PARALLÈLE ⚡
             self._log("🎞️ Génération slides (parallèle)...")
