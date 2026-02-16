@@ -190,6 +190,10 @@ def generate_carousel_slide(
     swipe_eco_path = os.path.join(ASSETS_DIR, "swipe_eco.png")
     if os.path.exists(swipe_eco_path):
         swipe_eco = Image.open(swipe_eco_path).convert("RGBA")
+        # Augmenter la taille x1.2
+        new_width = int(swipe_eco.size[0] * 1.2)
+        new_height = int(swipe_eco.size[1] * 1.2)
+        swipe_eco = swipe_eco.resize((new_width, new_height), Image.LANCZOS)
         # Position: 50px du bas de l'overlay (overlay fait 600px de haut)
         swipe_eco_y = overlay_height - 50 - swipe_eco.size[1]
         # Position X: 50px du bord droit de l'overlay (overlay_x = -10, largeur = 1100)
