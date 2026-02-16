@@ -371,13 +371,14 @@ def update_carousel_text(item_id: str, field: str, value: str) -> Dict[str, obje
         }
 
 
-def generate_all_image_prompts_parallel(items: List[Dict], prompt_type: str = "sunset") -> Dict[str, object]:
+def generate_all_image_prompts_parallel(items: List[Dict], prompt_type: str = "sunset", progress_callback=None) -> Dict[str, object]:
     """
     Génère tous les prompts images en parallèle (OPTIMISÉ).
     
     Args:
         items: Liste des items avec id, title, content
         prompt_type: Type de prompt ("sunset" ou "studio")
+        progress_callback: Fonction appelée à chaque item terminé (callback(item_id, position, success))
     
     Returns:
         {
@@ -392,6 +393,7 @@ def generate_all_image_prompts_parallel(items: List[Dict], prompt_type: str = "s
     def process_single_item(item):
         """Process un item et retourne le résultat."""
         item_id = item.get("id")
+        position = item.get("position", -1)
         title = item.get("title", "")
         content = item.get("content", "")
         
@@ -403,23 +405,34 @@ def generate_all_image_prompts_parallel(items: List[Dict], prompt_type: str = "s
             try:
                 supabase = get_supabase()
                 supabase.table("carousel_eco").update({
-                    "image_prompt": result.get("image_prompt")
+                    "prompt_image_1": result.get("image_prompt")  # Fixé: prompt_image_1
                 }).eq("id", item_id).execute()
+                
+                # Callback de progression
+                if progress_callback:
+                    progress_callback(item_id, position, True)
                 
                 return {
                     "item_id": item_id,
+                    "position": position,
                     "status": "success",
                     "image_prompt": result.get("image_prompt")
                 }
             except Exception as e:
+                if progress_callback:
+                    progress_callback(item_id, position, False)
                 return {
                     "item_id": item_id,
+                    "position": position,
                     "status": "error",
                     "message": f"Erreur DB: {str(e)}"
                 }
         else:
+            if progress_callback:
+                progress_callback(item_id, position, False)
             return {
                 "item_id": item_id,
+                "position": position,
                 "status": "error",
                 "message": result.get("message", "Erreur inconnue")
             }

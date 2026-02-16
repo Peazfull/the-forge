@@ -173,12 +173,21 @@ class EcoCarouselJob:
             
             # Étape 6 : GÉNÉRATION PROMPTS IMAGES EN PARALLÈLE ⚡
             self._log("🎨 Génération prompts images (parallèle)...")
-            self._log(f"📊 Debug: {len(all_items)} items à traiter")
+            self._log(f"📊 {len(all_items)} items à traiter")
             
             if not all_items:
                 raise Exception("Aucun item à traiter")
             
-            prompts_result = generate_all_image_prompts_parallel(all_items, prompt_type="sunset")
+            # Callback pour mise à jour progression
+            completed_prompts = 0
+            def on_prompt_complete(item_id, position, success):
+                nonlocal completed_prompts
+                completed_prompts += 1
+                self.current = completed_prompts
+                status_icon = "✅" if success else "❌"
+                self._log(f"  {status_icon} Prompt #{position} ({completed_prompts}/{len(all_items)})")
+            
+            prompts_result = generate_all_image_prompts_parallel(all_items, prompt_type="sunset", progress_callback=on_prompt_complete)
             if prompts_result.get("status") == "error":
                 error_details = prompts_result.get("details", [])
                 first_error = error_details[0].get("message", "Inconnue") if error_details else "Aucun détail"
@@ -187,14 +196,34 @@ class EcoCarouselJob:
             
             # Étape 7 : GÉNÉRATION IMAGES EN PARALLÈLE ⚡
             self._log("🖼️ Génération images (parallèle)...")
-            images_result = generate_images_parallel(all_items, aspect_ratio="5:4")
+            
+            # Callback pour mise à jour progression
+            completed_images = 0
+            def on_image_complete(item_id, position, success):
+                nonlocal completed_images
+                completed_images += 1
+                self.current = completed_images
+                status_icon = "✅" if success else "❌"
+                self._log(f"  {status_icon} Image #{position} ({completed_images}/{len(all_items)})")
+            
+            images_result = generate_images_parallel(all_items, aspect_ratio="5:4", progress_callback=on_image_complete)
             if images_result.get("status") == "error":
                 raise Exception("Échec génération images")
             self._log(f"✅ {images_result.get('success')}/{images_result.get('total')} images générées")
             
             # Étape 8 : GÉNÉRATION SLIDES EN PARALLÈLE ⚡
             self._log("🎞️ Génération slides (parallèle)...")
-            slides_result = generate_slides_parallel(all_items)
+            
+            # Callback pour mise à jour progression
+            completed_slides = 0
+            def on_slide_complete(item_id, position, success):
+                nonlocal completed_slides
+                completed_slides += 1
+                self.current = completed_slides
+                status_icon = "✅" if success else "❌"
+                self._log(f"  {status_icon} Slide #{position} ({completed_slides}/{len(all_items)})")
+            
+            slides_result = generate_slides_parallel(all_items, progress_callback=on_slide_complete)
             if slides_result.get("status") == "error":
                 raise Exception("Échec génération slides")
             self._log(f"✅ {slides_result.get('success')}/{slides_result.get('total')} slides générées")
@@ -538,17 +567,24 @@ def get_eco_carousel_job() -> EcoCarouselJob:
     """Retourne l'instance globale du job."""
     global _eco_carousel_job
     if _eco_carousel_job is None:
-        _eco_carousel_job = EcoCarouselJob()
+        _eco_carousel_job = EcoCarouselJob(use_optimized=True)  # Forcer le mode optimisé
     return _eco_carousel_job
 
 
-def generate_images_parallel(items: List[Dict], aspect_ratio: str = "5:4") -> Dict[str, object]:
+def reset_eco_carousel_job() -> None:
+    """Reset le singleton (utile pour tests/debug)."""
+    global _eco_carousel_job
+    _eco_carousel_job = None
+
+
+def generate_images_parallel(items: List[Dict], aspect_ratio: str = "5:4", progress_callback=None) -> Dict[str, object]:
     """
     Génère toutes les images en parallèle (OPTIMISÉ).
     
     Args:
-        items: Liste des items avec id, image_prompt
+        items: Liste des items avec id, prompt_image_1
         aspect_ratio: Ratio d'image (5:4, 16:9, etc.)
+        progress_callback: Fonction appelée à chaque item terminé
     
     Returns:
         {
@@ -563,7 +599,7 @@ def generate_images_parallel(items: List[Dict], aspect_ratio: str = "5:4") -> Di
     def process_single_image(item):
         """Génère une image pour un item."""
         item_id = item.get("id")
-        image_prompt = item.get("image_prompt", "")
+        image_prompt = item.get("prompt_image_1", "")  # Fixé: prompt_image_1
         position = item.get("position", 0)
         
         try:
@@ -575,6 +611,8 @@ def generate_images_parallel(items: List[Dict], aspect_ratio: str = "5:4") -> Di
             )
             
             if result.get("status") == "success":
+                if progress_callback:
+                    progress_callback(item_id, position, True)
                 return {
                     "item_id": item_id,
                     "position": position,
@@ -582,6 +620,8 @@ def generate_images_parallel(items: List[Dict], aspect_ratio: str = "5:4") -> Di
                     "image_url": result.get("image_url")
                 }
             else:
+                if progress_callback:
+                    progress_callback(item_id, position, False)
                 return {
                     "item_id": item_id,
                     "position": position,
@@ -589,6 +629,8 @@ def generate_images_parallel(items: List[Dict], aspect_ratio: str = "5:4") -> Di
                     "message": result.get("message", "Erreur inconnue")
                 }
         except Exception as e:
+            if progress_callback:
+                progress_callback(item_id, position, False)
             return {
                 "item_id": item_id,
                 "position": position,
@@ -632,12 +674,13 @@ def generate_images_parallel(items: List[Dict], aspect_ratio: str = "5:4") -> Di
     }
 
 
-def generate_slides_parallel(items: List[Dict]) -> Dict[str, object]:
+def generate_slides_parallel(items: List[Dict], progress_callback=None) -> Dict[str, object]:
     """
     Génère toutes les slides en parallèle (OPTIMISÉ).
     
     Args:
         items: Liste des items avec id, title_carou, content_carou, etc.
+        progress_callback: Fonction appelée à chaque item terminé
     
     Returns:
         {
@@ -674,6 +717,8 @@ def generate_slides_parallel(items: List[Dict]) -> Dict[str, object]:
                 # Fallback : essayer depuis session_state/disque
                 image_result = read_carousel_image(position)
                 if not image_result:
+                    if progress_callback:
+                        progress_callback(item_id, position, False)
                     return {
                         "item_id": item_id,
                         "position": position,
@@ -697,6 +742,9 @@ def generate_slides_parallel(items: List[Dict]) -> Dict[str, object]:
             # Upload
             upload_slide_bytes(slide_filename, slide_bytes)
             
+            if progress_callback:
+                progress_callback(item_id, position, True)
+            
             return {
                 "item_id": item_id,
                 "position": position,
@@ -705,6 +753,8 @@ def generate_slides_parallel(items: List[Dict]) -> Dict[str, object]:
             }
             
         except Exception as e:
+            if progress_callback:
+                progress_callback(item_id, position, False)
             return {
                 "item_id": item_id,
                 "position": position,
