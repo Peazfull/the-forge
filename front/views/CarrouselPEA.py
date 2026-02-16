@@ -361,7 +361,7 @@ def generate_all_slide_previews():
     # Upload outro
     outro_path = os.path.join(
         os.path.dirname(__file__),
-        "..", "layout", "assets", "carousel", "pea", "outro.png"
+        "..", "layout", "assets", "carousel", "pea", "outro_pea.png"
     )
     if os.path.exists(outro_path):
         with open(outro_path, "rb") as f:
@@ -408,7 +408,7 @@ def build_carousel_exports(items_sorted):
     # Ajouter outro à la fin
     outro_path = os.path.join(
         os.path.dirname(__file__),
-        "..", "layout", "assets", "carousel", "pea", "outro.png"
+        "..", "layout", "assets", "carousel", "pea", "outro_pea.png"
     )
     if st.session_state.get("slide_selected_outro", True) and os.path.exists(outro_path):
         with open(outro_path, "rb") as f:
@@ -1359,14 +1359,14 @@ with st.expander("🖼️ Preview Slides", expanded=False):
                 if item_id == "outro":
                     outro_path = os.path.join(
                         os.path.dirname(__file__),
-                        "..", "layout", "assets", "carousel", "pea", "outro.png"
+                        "..", "layout", "assets", "carousel", "pea", "outro_pea.png"
                     )
                     if "slide_outro.png" in stored_files:
                         st.image(get_slide_public_url("slide_outro.png"), use_container_width=True)
                     elif os.path.exists(outro_path):
                         st.image(outro_path, use_container_width=True)
                     else:
-                        st.warning("outro.png introuvable")
+                        st.warning("outro_pea.png introuvable")
                     continue
                 
                 # Si la slide est déjà en storage, on l'affiche direct
