@@ -172,9 +172,9 @@ def generate_carousel_slide(
         logo_x = (CANVAS_SIZE[0] - LOGO_SIZE[0]) // 2
         canvas.alpha_composite(logo, (logo_x, LOGO_TOP))
 
-    # Title background
+    # Title background - positionné à 87px du top
     title_bg_path = os.path.join(ASSETS_DIR, "Title_bg_eco.png")
-    title_bg_top = CANVAS_SIZE[1] - TITLE_BG_TOP_FROM_BOTTOM
+    title_bg_top = 87
     if os.path.exists(title_bg_path):
         title_bg = Image.open(title_bg_path).convert("RGBA")
         title_bg_width = CANVAS_SIZE[0] - (TITLE_BG_SIDE_MARGIN * 2)
