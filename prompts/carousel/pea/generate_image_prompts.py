@@ -1,230 +1,187 @@
 PROMPT_GENERATE_IMAGE_PROMPT = """
 Tu vas recevoir un TITRE et un CONTENU d'actualité économique, politique ou institutionnelle.
 
-Ta mission est de générer UNIQUEMENT le PROMPT FINAL
-destiné à une IA de génération d'images.
+Ta mission est de générer UNIQUEMENT le PROMPT FINAL destiné à une IA de génération d'images.
 Tu ne génères PAS l'image.
 
-Le prompt doit illustrer l'ACTU MAJEURE,
-en respectant strictement les contraintes visuelles ci-dessous.
+Le prompt doit illustrer l'ACTU MAJEURE, en respectant strictement les règles suivantes.
 
 ────────────────────────
-ACTU MAJEURE (OBLIGATOIRE)
+1️⃣ IDENTIFICATION DU SUJET CENTRAL
 ────────────────────────
 
-À partir du titre et du contenu :
-- identifie l'ACTU MAJEURE qui porte l'information centrale
-- conserve le contexte, mais hiérarchise clairement
+Détermine le sujet visuel principal :
 
-Sélectionne LE SUJET VISUEL CENTRAL :
 - ENTREPRISE
 - PERSONNALITÉ PUBLIQUE
-- LIEU / ÉVÉNEMENT ÉCONOMIQUE OU INSTITUTIONNEL
+- LIEU / ÉVÉNEMENT GÉOPOLITIQUE OU INSTITUTIONNEL
 
-L'image doit illustrer :
-→ l'entreprise, l'acteur ou le lieu qui porte l'action principale
-
-────────────────────────
-RÈGLE VISUELLE MAJEURE (NON NÉGOCIABLE)
-────────────────────────
-
-⚠️ COMPOSITION VERTICALE OBLIGATOIRE (ULTRA-CRITIQUE) :
-
-L'image doit être UNE SEULE ET UNIQUE PHOTOGRAPHIE COHÉRENTE.
-INTERDIT ABSOLU : diviser l'image en deux parties distinctes (haut/bas).
-
-PERSPECTIVE OBLIGATOIRE :
-- Photo prise en CONTRE-PLONGÉE (low-angle shot, vue d'en bas vers le haut)
-- Le photographe est positionné au sol ou en position basse
-- L'appareil photo est orienté vers le HAUT
-- Cette perspective naturelle place automatiquement les éléments importants dans le tiers supérieur
-
-PLACEMENT DES ÉLÉMENTS CLÉS :
-- Logo sur bâtiment, personnalité, ou lieu → positionnés dans le TIERS SUPÉRIEUR de l'image
-- Résultat naturel de la prise de vue en contre-plongée
-- Le reste de l'image (partie basse) = continuité naturelle de la même scène (sol, base du bâtiment, environnement proche)
-
-UNITÉ VISUELLE OBLIGATOIRE :
-- UNE SEULE photo continue, pas deux images collées
-- Perspective et lumière cohérentes sur toute la hauteur
-- Transition fluide du bas vers le haut de l'image
-
-La PARTIE BASSE doit rester calme, propre, sans élément fort,
-
-Personnages secondaires autorisés uniquement :
-- silhouettes très lointaines et discrètes.
+L'image doit illustrer UNIQUEMENT le sujet central qui porte l'action principale.
 
 ────────────────────────
-RÈGLES STRICTES PAR TYPE DE SUJET
+2️⃣ RÈGLES STRICTES PAR TYPE DE SUJET
 ────────────────────────
 
-SI LE SUJET EST UNE ENTREPRISE :
-- LE LOGO OFFICIEL EST OBLIGATOIRE (très important)
-- Image INVALIDE sans logo officiel visible
-- Logo authentique, RÉEL, lisible, intégré naturellement dans un contexte photographique réaliste
-- Contexte : façade, siège, environnement professionnel réel
+SI ENTREPRISE :
 
-SI LE SUJET EST UNE PERSONNALITÉ PUBLIQUE :
-- Uniquement personnalité publique connue ET SEULEMENT si elle est le CŒUR de l'actualité
-- Contexte OBLIGATOIRE :
-  conférence officielle, intervention publique ou déplacement institutionnel
-- Posture calme, neutre, maîtrisée
-- Style PHOTO DE PRESSE RÉELLE
+- Logo officiel réel OBLIGATOIRE
+- Logo clair, net, identifiable en miniature
+- Logo intégré physiquement (enseigne, façade, signalétique réelle)
+- Building adapté à l'activité :
+  • Luxe → architecture parisienne élégante
+  • Tech → siège moderne verre/aciers
+  • Automobile → siège + véhicule récent identifiable
+  • Finance → tour institutionnelle type quartier d'affaires
 
-SI LE SUJET EST UN LIEU / ÉVÉNEMENT :
-- Éléments de reconnaissance OBLIGATOIRES (très important) :
-  drapeaux, signalétique officielle, monument, architecture identifiable
-- Contexte institutionnel clair et crédible
+SI PERSONNALITÉ PUBLIQUE :
 
-────────────────────────
-INTERDICTIONS CRITIQUES ⛔
-────────────────────────
+- Uniquement si cœur de l'actu
+- Photo de presse en conférence ou intervention officielle
+- Posture neutre, crédible
+- Drapeau ou symbole institutionnel si pertinent
 
-🚫 AUCUN écran affichant des graphiques, données, charts
-🚫 AUCUN graphique de trading, courbe boursière, infographie
-🚫 AUCUN dashboard, tableau de bord, visualisation de données
-🚫 AUCUN élément CGI, illustration, dessin, style artistique
-🚫 AUCUN texte visible (titres, labels, légendes)
-🚫 AUCUN watermark, logo média, overlay
+SI ACTUALITÉ GÉOPOLITIQUE :
 
-→ L'image doit montrer UNIQUEMENT des éléments physiques et réels du monde réel
+- Drapeaux ou éléments architecturaux reconnaissables obligatoires
+- Contexte institutionnel réel et crédible
 
 ────────────────────────
-DIRECTION ARTISTIQUE (OBLIGATOIRE)
+3️⃣ DIRECTION ARTISTIQUE LIGHT MODE (OBLIGATOIRE)
 ────────────────────────
 
 STYLE :
-- Ultra-realistic editorial PRESS PHOTOGRAPH (PHOTO DE PRESSE RÉELLE)
-- Photojournalisme économique
-- Photo de presse réaliste, authentique, crédible
-- IMITATION PHOTO DE PRESSE
-- Aucun style illustratif, artistique ou CGI
+Ultra-realistic editorial press photograph.
+No illustration. No CGI. No digital art.
+Doit ressembler à une photo Reuters / AFP.
 
-PALETTE COULEURS OBLIGATOIRE (très important car DA sur projet) :
-- Stunning bright sky with sunset stylized sky colors: fluo green, cyan blue, orange light and coral
-- Dominante : fluo green, cyan blue, orange light, coral
-- Accents lumineux subtils et élégants
+PALETTE (DA OFFICIELLE PROJET) :
+Lumière sunset stylisée réaliste avec reflets naturels :
+
+- intense cyan blue
+- vivid magenta
+- rich coral
+- deep fluo green
+- warm glowing orange
+
+Les couleurs doivent apparaître comme des reflets naturels sur les surfaces (verre, métal, façade, drapeaux).
+Aucune forme abstraite. Aucun effet graphique.
+
+TRANSITION HAUTE OBLIGATOIRE (VERSION CORRIGÉE) :
+
+L'image doit se terminer progressivement vers le haut en une teinte très claire,
+proche du hex #F8F9F4.
+
+IMPORTANT :
+
+- La transition doit ressembler à un ciel naturellement plus lumineux
+- Pas de voile blanc
+- Pas de haze
+- Pas de mist
+- Pas de fog
+- Pas d'effet washed-out
+- Pas de couche opaque artificielle
+- Aucun bloc vide ajouté
+
+Le sujet principal (bâtiment, drapeau, personnalité) doit rester net et détaillé jusqu'en haut de l'image.
 
 ────────────────────────
-COMPOSITION & TECHNIQUE
+4️⃣ COMPOSITION TECHNIQUE
 ────────────────────────
 
-PERSPECTIVE ET CADRAGE (ULTRA-CRITIQUE) :
-- LOW-ANGLE SHOT (contre-plongée) OBLIGATOIRE
-- Camera positioned LOW, pointing UPWARD
-- Single continuous photograph from one vantage point
-- Key elements (logo, person, landmark) naturally positioned in UPPER THIRD due to low angle
-- Lower portion = natural ground level, base of building, immediate surroundings
-- NO split composition, NO two separate images merged together
-- Seamless visual flow from bottom to top
+- Low-angle shot (contre-plongée)
+- Une seule photographie continue
+- Perspective unique cohérente
+- Logo / personne / élément clé naturellement placé dans le tiers supérieur
+- Pas d'image divisée
+- Pas de collage
 
-COHÉRENCE VISUELLE :
-- ONE unified photograph, not a collage
-- Consistent lighting across entire image
-- Natural perspective from single camera position
-- Fluid transition throughout the frame
-- Cadrage centré ou quasi centré
-- Fond propre, non distrayant
+Inclure dans le prompt :
 
-Inclure explicitement dans le prompt que tu génères :
-- "low-angle shot" ou "contre-plongée"
-- "camera positioned at ground level pointing upward"
-- "single continuous photograph"
-- "natural perspective with key elements in upper third"
 - 8K render
 - professional photojournalism style
-- natural or high-end studio lighting
 - realistic depth of field
 - subtle natural sensor grain
 - no text in image
-
-ET ces NEGATIVE PROMPTS obligatoires :
-- ABSOLUTELY NO TEXT in image (no titles, no labels, no captions)
-- NO SCREENS showing data/graphics (no digital displays with charts or visualizations)
-- NO CHARTS, NO INFOGRAPHICS, NO DASHBOARDS (no bar graphs, line graphs, or statistical displays)
-- No fictional elements or overlays (no trading charts, no UI screens, no data graphics)
-- No surreal or impossible elements (must be realistic in the real world)
-- The image must show ONLY physical, real-world elements
 - no watermark
 - no media logo
-- no captions
-- no overlays
 
 ────────────────────────
-EXEMPLE D'OUTPUT ATTENDU (RÉFÉRENCE)
+5️⃣ INTERDICTIONS ABSOLUES
 ────────────────────────
 
-Ultra-realistic editorial PRESS PHOTOGRAPH, 8K render, professional photojournalism style.
+L'image doit être photographiable dans le monde réel.
 
-SUBJECT (MANDATORY)
-TotalEnergies as the single central subject, illustrated through their corporate headquarters or energy facilities.
-The image must represent a specific business milestone: renewable energy investment announcement, quarterly earnings report, strategic energy transition initiative, or major infrastructure project.
-Example: "TotalEnergies commits €5 billion to renewable energy expansion" or "TotalEnergies reports strong Q2 results driven by gas division".
+INTERDIT :
 
-ACTION & COMPOSITION (MANDATORY)
-LOW-ANGLE SHOT (contre-plongée) – camera positioned at ground level, pointing upward toward the corporate building.
-This natural perspective places the main visual action and all major elements in the UPPER THIRD of the image.
-The lower portion shows the natural ground-level environment (pavement, entrance area, immediate surroundings).
-CRITICAL: This must be ONE single continuous photograph, NOT two separate images.
-Seamless visual unity from bottom to top, consistent lighting and perspective throughout.
-The lower third remains clean, uncluttered, and flows naturally from the upper composition.
-Centered or near-centered framing with natural, balanced perspective.
+- Textes
+- Graphiques
+- Trading screens
+- Données affichées
+- Infographies
+- UI
+- Éléments flottants
+- CGI
+- Split image
+- Horizontal division
 
-CONTEXT (MANDATORY – CORPORATE ENERGY SETTING)
-TotalEnergies headquarters, corporate tower, or energy facility.
-OBLIGATORY visual identifiers:
-- Authentic TOTALENERGIES logo prominently displayed on building facade (official corporate signage with the distinctive multi-colored logo)
-- Modern corporate tower or energy sector facility architecture
-- Professional business environment photographed from exterior
-- Clean, premium corporate aesthetic suggesting energy leadership and transition strategy
-The logo must appear as in real financial/energy press photography covering TotalEnergies' business developments (Les Échos, Bloomberg, Reuters).
+Mentionner explicitement :
+"Single continuous photograph from one camera position"
+"No digital screens showing charts or data"
+"No text or numbers"
 
-PEOPLE (STRICT)
-No visible individuals in the foreground.
-If present, only very distant, discreet silhouettes allowed.
+_____________________________________________
+EXEMPLES DE SORTIE ATTENDU POUR T'INSPIRER
+_____________________________________________
 
-ART DIRECTION (MANDATORY)
-Sunset stylized sky with dominant fluo green, cyan blue, orange light, and coral tones.
-Stunning sunset backdrop behind the building.
-Atmosphere premium, stunning, energy sector and forward-looking.
-PRESS PHOTO realistic style (energy/financial journalism quality).
+POUR ENTREPRISE:
 
-CRITICAL RESTRICTIONS (MANDATORY – MUST BE EXPLICITLY INCLUDED IN EVERY PROMPT)
-Low-angle shot (contre-plongée) with camera at ground level.
-Single continuous photograph, NOT two separate images or split composition.
-NO digital screens displaying charts, graphs, or data visualizations.
-NO bar charts, line graphs, pie charts, or statistical displays.
-NO energy production charts, commodity price graphs, or data dashboards.
-NO infographics, dashboards, or data presentations.
-NO horizontal division or top/bottom split – must be one unified scene.
-NO text, numbers, labels, or captions of any kind.
-The image must show ONLY physical, real-world elements photographable by an energy/financial press photographer.
-NO CGI, no 3D renders, no artificial overlays.
-Seamless visual flow with consistent perspective and lighting throughout.
+Ultra-realistic editorial background image illustrating a major European technology and consulting business news story about Capgemini preparing to present its annual results amid investor concerns. The scene must look like a real professional press photograph, not an illustration.
 
-TECHNICAL REQUIREMENTS (MANDATORY)
-Natural or high-end studio lighting.
-Realistic depth of field.
-Subtle natural sensor grain.
-No text in image (important)
-No watermark.
-No media logo.
-No captions or overlays.
+The scene shows the Capgemini corporate headquarters building in a realistic and naturally balanced composition. The official Capgemini logo is fully visible on the building facade as a white illuminated sign (important), using the correct official logo design, integrated naturally into the architecture. The building must look completely real and credible, suitable for serious international financial and technology press coverage.
 
-NEGATIVE PROMPTS (CRITICAL):
-NO digital screens displaying charts or data visualizations.
-NO bar graphs, line graphs, or statistical displays.
-The image must show ONLY physical, real-world elements photographed in a press context.
+The lighting in the scene features a strong, clearly defined stylized sunset atmosphere using the official project fluo palette: intense cyan blue, vivid magenta, rich coral, deep fluo green, and warm glowing orange. These colors must be clearly visible in the sky and naturally reflected on the building surfaces. The reflections must feel physically plausible and integrated into real materials, not artificial.
+
+The image should transition gradually and smoothly upward into a very soft, bright warm off-white tone close to hex F8F9F4. The transition must resemble a natural brightening of the sky, without haze, without fog, without white overlay, and without any horizontal cut. The upper area must remain detailed and photographically realistic.
+
+Premium, minimal, airy, elegant mood with modern financial media energy. Realistic camera perspective, natural depth of field, subtle film grain. No text, no numbers, no UI, no watermark, no media logo. 8K quality.
 
 ────────────────────────
-FORMAT DE SORTIE (OBLIGATOIRE)
+
+POUR PERSONNALITÉ:
+
+Ultra-realistic editorial background image illustrating a major European political news story about policy disagreements between France and Germany. The scene must look like a real professional press photograph.
+
+The scene shows Emmanuel Macron clearly recognizable, speaking during an official European diplomatic event. A French flag and a German flag are visible as real physical flags.
+
+The lighting features a strong stylized sunset using the official fluo palette: intense cyan blue, vivid magenta, rich coral, deep fluo green, and warm glowing orange, naturally reflected on surfaces and surroundings.
+
+The image must transition gradually and smoothly upward into a very soft bright off-white tone close to hex F8F9F4. The transition must feel like natural sky luminosity increasing — no haze, no fog, no white overlay, no horizontal division. The subject must remain sharp and detailed up to the upper frame.
+
+Professional press photography look. No text, no numbers, no UI, no watermark. 8K quality.
+
 ────────────────────────
 
-Retourne ta réponse UNIQUEMENT sous forme de JSON valide :
+POUR INFO GÉOPOLITIQUE / LIEU:
+
+Ultra-realistic editorial background image illustrating a major geopolitical economic news story in Beijing.
+
+The scene shows a recognizable institutional setting in Beijing placed in the lower part of the image. A Chinese national flag is clearly visible and physically present. The architecture must be credible and institutional.
+
+The lighting in the lower part of the image features a strong, clearly defined stylized sunset atmosphere using the official project fluo palette: intense cyan blue, vivid magenta, rich coral, deep fluo green, and warm glowing orange. These colors must be visible in the sky and naturally reflected on the building, windows, flag and surrounding surfaces. Reflections must feel physically plausible, not graphic.
+
+The upper part must transition gradually and smoothly into a very soft bright off-white tone close to hex F8F9F4. The transition must be organic and seamless, resembling natural sky brightness increasing — not haze, not mist, not fog, not a white overlay, and not a hard horizontal cut. The building and flag must remain sharp and detailed up to the upper area.
+
+Premium, minimal, airy editorial mood. Realistic depth of field, subtle film grain. No text, no numbers, no UI, no watermark. 8K quality.
+
+────────────────────────
+FORMAT DE SORTIE
+────────────────────────
+
+Retourne UNIQUEMENT :
 
 {
-  "image_prompt": "ton prompt complet ici"
+"image_prompt": "prompt complet ici"
 }
 
-Aucun texte en dehors du JSON.
+Aucun texte hors JSON.
 """
