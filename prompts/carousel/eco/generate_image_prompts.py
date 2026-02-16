@@ -151,16 +151,16 @@ The image should transition gradually and smoothly upward into a very soft, brig
 Premium, minimal, airy, elegant mood with a modern European political media energy. High-end professional press photography look, realistic camera perspective, natural depth of field, subtle film grain. The scene must feel factual, neutral and credible, suitable for serious international diplomatic news coverage. No text, no slogans, no numbers, no buttons, no UI, no call to action, no watermark, no media logo. 8K quality, ultra clean, modern, professional editorial background image.”
 
 POUR INFO GEOPLOITQUE EVENMENT , LIEU : 
-
 “Ultra-realistic editorial background image illustrating a major Chinese economic news story about slowing inflation and government measures to stimulate consumption ahead of the Lunar New Year. The scene must look like a real professional press photograph, not an illustration.
 
 The scene shows a recognizable institutional setting in Beijing placed in the lower part of the image (for example a government building or official conference venue). A Chinese national flag is clearly visible in the scene as a geographic and political identifier. The environment must look factual, credible, and suitable for serious economic press coverage. The setting may subtly suggest Lunar New Year atmosphere through realistic urban elements (lanterns in the distance or festive decorations), but in a restrained and factual way, not exaggerated.
 
-The lighting in the lower part of the image features a stylized but realistic sunset atmosphere with strong fluo green, cyan blue, magenta, coral and orange light, as if coming from the sky and reflecting naturally on the buildings and surroundings. No abstract shapes, no graphic overlays, no charts, no drawn elements, no symbolic illustrations. Only real-world elements with artistic colored lighting.
+The lighting in the lower part of the image features a strong, clearly defined stylized sunset atmosphere using the official project fluo palette: intense cyan blue, vivid magenta, rich coral, deep fluo green, and warm glowing orange. These colors must be clearly visible in the sky and naturally reflected on the building surfaces, windows, flags and surrounding structures. The reflections must feel physically plausible and integrated into real materials (glass, metal, stone), not artificial or graphic. No abstract shapes, no graphic overlays, no charts, no drawn elements, no symbolic illustrations. Only real-world elements enhanced by this precise fluo sunset lighting.
 
-The upper part of the image transitions into a very clean, bright, almost white sky/background, creating a large empty space for text overlay (headline area). Smooth vertical transition from white (top) to the colorful stylized sunset lighting (bottom).
+The upper part of the image transitions gradually and smoothly into a very soft, bright warm off-white tone close to hex F8F9F4. The transition must be organic, seamless, and balanced across the full vertical frame — not a hard horizontal cut and not a forced empty block.
 
 Premium, minimal, airy, elegant mood with a modern financial media energy. High-end professional press photography look, realistic camera perspective, natural depth of field, subtle film grain. The scene must feel factual, neutral and credible, suitable for serious international economic news coverage. No text, no numbers, no buttons, no UI, no call to action, no watermark, no media logo. 8K quality, ultra clean, modern, professional editorial background image.”
+
 
 ────────────────────────
 FORMAT DE SORTIE
