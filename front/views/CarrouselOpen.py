@@ -476,8 +476,12 @@ if slide_files:
             try:
                 slide_bytes = _render_slide_bytes(filename, path)
                 st.image(slide_bytes, use_container_width=True)
-            except Exception:
-                st.image(path, use_container_width=True)
+            except Exception as e:
+                st.error(f"Erreur rendu {filename}: {str(e)}")
+                try:
+                    st.image(path, use_container_width=True)
+                except Exception as e2:
+                    st.error(f"Erreur chargement {filename}: {str(e2)}")
 
 st.divider()
 if st.button("📦 Préparer export Open", use_container_width=True):
