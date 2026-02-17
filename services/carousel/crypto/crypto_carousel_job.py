@@ -1,6 +1,7 @@
 import threading
 import time
 from typing import Dict, List, Optional
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import streamlit as st
 
 from db.supabase_client import get_supabase
@@ -12,6 +13,7 @@ from services.carousel.crypto.carousel_crypto_service import (
 from services.carousel.crypto.carousel_image_service import (
     clear_image_files,
     generate_and_save_carousel_image,
+    read_carousel_image,
 )
 from services.carousel.crypto.carousel_slide_service import (
     clear_slide_files,
@@ -34,7 +36,7 @@ class CryptoCarouselJob:
     Gère la génération complète d'un carrousel Crypto en arrière-plan (threading).
     """
 
-    def __init__(self) -> None:
+    def __init__(self, use_optimized: bool = True) -> None:
         self.state = "idle"  # idle, running, completed, failed, stopped
         self.total = 0
         self.current = 0
@@ -44,6 +46,7 @@ class CryptoCarouselJob:
         self.last_log: str = ""
         self.current_item_title: str = ""
         self.just_completed: bool = False  # Flag pour notifier le frontend
+        self.use_optimized = use_optimized  # Parallélisation activée par défaut
 
         self._stop_event = threading.Event()
         self._thread: Optional[threading.Thread] = None
@@ -99,7 +102,14 @@ class CryptoCarouselJob:
         # print(f"[CryptoCarouselJob] {message}") # Pour debug en console
 
     def _run(self) -> None:
-        """Boucle principale de génération (dans le thread)."""
+        """Dispatcher : Choix entre mode optimisé (parallèle) ou séquentiel."""
+        if self.use_optimized:
+            self._run_optimized()
+        else:
+            self._run_sequential()
+
+    def _run_sequential(self) -> None:
+        """Boucle principale de génération (dans le thread) - MODE SÉQUENTIEL."""
         try:
             self._log("🚀 Démarrage de la génération Crypto...")
 
@@ -195,6 +205,176 @@ class CryptoCarouselJob:
                 self.state = "completed"
                 self.just_completed = True  # Notifier le frontend
                 self._log(f"✅ Génération terminée ! {self.processed} items traités")
+
+    def _run_optimized(self) -> None:
+        """Boucle optimisée avec parallélisation des prompts, images et slides."""
+        try:
+            self._log("🚀⚡ Démarrage génération Crypto (MODE OPTIMISÉ)")
+            
+            # Étape 1 : Insertion items
+            self._log("📤 Insertion items en DB...")
+            result = insert_items_to_carousel_crypto(self._items_to_process)
+            if result.get("status") != "success":
+                raise Exception(f"Erreur insertion: {result.get('message', 'Erreur inconnue')}")
+            self._log(f"✅ {result.get('inserted', 0)} items insérés")
+            
+            # Étape 2 : Récupérer items
+            carousel_data = get_carousel_crypto_items()
+            if carousel_data.get("status") != "success":
+                raise Exception(f"Erreur get_items: {carousel_data.get('message', 'Erreur inconnue')}")
+            
+            all_items = carousel_data.get("items", [])
+            if not all_items:
+                raise Exception("Aucun item récupéré")
+            
+            self._log(f"✅ {len(all_items)} items récupérés")
+            
+            # Étape 3 : Génération textes carrousel (séquentiel)
+            self._log("✍️ Génération textes carrousel...")
+            
+            try:
+                content_items = [item for item in all_items if item.get("position", -1) > 0]
+                
+                for item in content_items:
+                    if self._stop_event.is_set():
+                        break
+                    
+                    if not isinstance(item, dict):
+                        continue
+                    
+                    title = item.get("title", "")
+                    content = item.get("content", "")
+                    text_result = generate_carousel_text_for_item(title, content)
+                    
+                    if text_result.get("status") == "success":
+                        supabase = get_supabase()
+                        supabase.table("carousel_crypto").update({
+                            "title_carou": text_result.get("title_carou"),
+                            "content_carou": text_result.get("content_carou")
+                        }).eq("id", item["id"]).execute()
+                
+                self._log("✅ Textes générés")
+                
+            except Exception as e:
+                raise Exception(f"Erreur génération textes: {str(e)}")
+            
+            # Étape 4 : Génération cover
+            first_item = all_items[0] if all_items else None
+            if not first_item:
+                raise Exception("Aucun premier item")
+            
+            cover_result = upsert_carousel_crypto_cover({
+                "item_id": first_item.get("item_id", ""),
+                "title": first_item.get("title", ""),
+                "content": first_item.get("content", ""),
+                "score_global": first_item.get("score_global", 0),
+                "tags": first_item.get("tags", ""),
+                "labels": first_item.get("labels", ""),
+            })
+            if cover_result.get("status") != "success":
+                raise Exception(f"Erreur cover : {cover_result.get('message', '')}")
+            self._log("✅ Cover créée")
+            
+            # Étape 5 : Nettoyer caches
+            self._log("🧹 Nettoyage caches...")
+            clear_slide_files()
+            
+            # Re-récupérer tous les items (maintenant avec la cover ajoutée)
+            carousel_data = get_carousel_crypto_items()
+            all_items = carousel_data.get("items", [])
+            
+            # Calculer le total maintenant (avec cover incluse)
+            # Total = nombre d'items × 3 phases (prompts + images + slides)
+            self.total = len(all_items) * 3
+            self._log(f"📊 Total à générer : {len(all_items)} items × 3 phases = {self.total}")
+            
+            # Étape 6 : GÉNÉRATION PROMPTS IMAGES EN PARALLÈLE ⚡
+            self._log("🎨 Génération prompts images (parallèle)...")
+            self._log(f"📊 {len(all_items)} items à traiter")
+            
+            if not all_items:
+                raise Exception("Aucun item à traiter")
+            
+            # Callback pour mise à jour progression (incrémental global)
+            def on_prompt_complete(item_id, position, success):
+                self.current += 1
+                status_icon = "✅" if success else "❌"
+                self._log(f"  {status_icon} Prompt #{position} ({self.current}/{self.total})")
+            
+            # Import de la fonction parallèle
+            from services.carousel.crypto.generate_carousel_texts_service import generate_all_image_prompts_parallel
+            
+            prompts_result = generate_all_image_prompts_parallel(all_items, prompt_type="sunset", progress_callback=on_prompt_complete)
+            if prompts_result.get("status") == "error":
+                error_details = prompts_result.get("details", [])
+                first_error = error_details[0].get("message", "Inconnue") if error_details else "Aucun détail"
+                raise Exception(f"Échec génération prompts images: {first_error}")
+            self._log(f"✅ {prompts_result.get('success')}/{prompts_result.get('total')} prompts générés")
+            
+            # Re-récupérer les items pour avoir les prompts fraîchement générés
+            carousel_data = get_carousel_crypto_items()
+            all_items = carousel_data.get("items", [])
+            
+            # Étape 7 : GÉNÉRATION IMAGES EN PARALLÈLE ⚡
+            self._log("🖼️ Génération images (parallèle)...")
+            
+            # Callback pour mise à jour progression (incrémental global)
+            def on_image_complete(item_id, position, success):
+                self.current += 1
+                status_icon = "✅" if success else "❌"
+                self._log(f"  {status_icon} Image #{position} ({self.current}/{self.total})")
+            
+            images_result = generate_images_parallel(all_items, aspect_ratio="5:4", progress_callback=on_image_complete)
+            if images_result.get("status") == "error":
+                raise Exception("Échec génération images")
+            self._log(f"✅ {images_result.get('success')}/{images_result.get('total')} images générées")
+            
+            # Pas besoin de re-fetch : les slides lisent directement depuis Supabase Storage
+            
+            # Étape 8 : GÉNÉRATION SLIDES EN PARALLÈLE ⚡
+            self._log("🎞️ Génération slides (parallèle)...")
+            
+            # Callback pour mise à jour progression (incrémental global)
+            def on_slide_complete(item_id, position, success):
+                self.current += 1
+                status_icon = "✅" if success else "❌"
+                self._log(f"  {status_icon} Slide #{position} ({self.current}/{self.total})")
+            
+            slides_result = generate_slides_parallel(all_items, progress_callback=on_slide_complete)
+            if slides_result.get("status") == "error":
+                raise Exception("Échec génération slides")
+            self._log(f"✅ {slides_result.get('success')}/{slides_result.get('total')} slides générées")
+            
+            # Étape 9 : Upload outro
+            self._log("📤 Upload outro...")
+            import os
+            outro_path = os.path.join(
+                os.path.dirname(__file__),
+                "..", "..", "..", "front", "layout", "assets", "carousel", "crypto", "outro_crypto.png"
+            )
+            if os.path.exists(outro_path):
+                from services.carousel.crypto.carousel_slide_service import upload_slide_bytes
+                with open(outro_path, "rb") as f:
+                    upload_slide_bytes("slide_outro.png", f.read())
+            
+            # Étape 10 : Génération caption
+            self._log("📝 Génération caption...")
+            content_items = [item for item in all_items if item.get("position", -1) > 0]
+            self._generate_caption(content_items)
+            
+            self.state = "completed"
+            self.just_completed = True
+            self.processed = len(all_items)
+            self._log(f"🎉 TERMINÉ ! {self.processed} items générés (optimisé)")
+            
+        except Exception as e:
+            self.state = "failed"
+            error_msg = f"Erreur critique : {str(e)[:200]}"
+            self.errors.append(error_msg)
+            self._log(f"❌ {error_msg}")
+        finally:
+            if self._stop_event.is_set():
+                self.state = "stopped"
 
     def _generate_item(self, item: Dict, is_cover: bool) -> None:
         """Génère un item (textes + image)."""
@@ -320,7 +500,7 @@ class CryptoCarouselJob:
                 self.errors.append(f"Slide {position} : {str(e)[:100]}")
         
         # Upload outro slide
-        outro_path = "layout/assets/carousel/crypto/outro.png"
+        outro_path = "front/layout/assets/carousel/crypto/outro_crypto.png"
         try:
             with open(f"/Users/gaelpons/Desktop/The Forge/{outro_path}", "rb") as f:
                 outro_bytes = f.read()
@@ -375,13 +555,160 @@ class CryptoCarouselJob:
             self.errors.append(error_msg)
 
 
+# ═════════════════════════════════════════════════════════════════════════
+# FONCTIONS PARALLÈLES (UTILISÉES PAR _run_optimized)
+# ═════════════════════════════════════════════════════════════════════════
+
+def generate_images_parallel(all_items: List[Dict], aspect_ratio: str = "5:4", progress_callback=None) -> Dict:
+    """
+    Génère toutes les images en parallèle (6 threads max).
+    Lit les prompts depuis la DB, génère et upload dans Supabase Storage.
+    """
+    MAX_WORKERS_IMAGES = 6
+    success_count = 0
+    error_count = 0
+    results = []
+    
+    def generate_one_image(item):
+        """Génère une seule image pour un item."""
+        item_id = item.get("id")
+        position = item.get("position")
+        image_prompt = item.get("prompt_image_1")
+        
+        if not image_prompt:
+            return {"success": False, "item_id": item_id, "position": position, "message": "Pas de prompt"}
+        
+        try:
+            result = generate_and_save_carousel_image(
+                image_prompt,
+                position,
+                item_id=item_id,
+                aspect_ratio=aspect_ratio
+            )
+            success = result.get("status") == "success"
+            if progress_callback:
+                progress_callback(item_id, position, success)
+            return {
+                "success": success,
+                "item_id": item_id,
+                "position": position,
+                "message": result.get("message", "OK") if success else result.get("message", "Erreur inconnue")
+            }
+        except Exception as e:
+            if progress_callback:
+                progress_callback(item_id, position, False)
+            return {"success": False, "item_id": item_id, "position": position, "message": str(e)}
+    
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS_IMAGES) as executor:
+        futures = {executor.submit(generate_one_image, item): item for item in all_items}
+        
+        for future in as_completed(futures):
+            result = future.result()
+            results.append(result)
+            if result["success"]:
+                success_count += 1
+            else:
+                error_count += 1
+    
+    return {
+        "status": "success" if error_count == 0 else "partial" if success_count > 0 else "error",
+        "total": len(all_items),
+        "success": success_count,
+        "errors": error_count,
+        "details": results
+    }
+
+
+def generate_slides_parallel(all_items: List[Dict], progress_callback=None) -> Dict:
+    """
+    Génère toutes les slides en parallèle (8 threads max).
+    Lit les images depuis Supabase Storage, génère et upload les slides.
+    """
+    MAX_WORKERS_SLIDES = 8
+    success_count = 0
+    error_count = 0
+    results = []
+    supabase = get_supabase()
+    
+    def generate_one_slide(item):
+        """Génère une seule slide pour un item."""
+        item_id = item.get("id")
+        position = item.get("position")
+        title_carou = item.get("title_carou", "")
+        content_carou = item.get("content_carou", "")
+        
+        try:
+            # Récupérer l'image depuis Supabase Storage
+            bucket_name = "carousel-crypto"
+            filename = f"image_{item_id}.png"
+            
+            try:
+                image_bytes = supabase.storage.from_(bucket_name).download(filename)
+            except Exception:
+                # Fallback : essayer de lire depuis le cache local
+                image_bytes = read_carousel_image(position)
+            
+            if not image_bytes:
+                raise Exception("Image introuvable")
+            
+            # Générer la slide
+            if position == 0:
+                slide_bytes = generate_cover_slide(image_bytes=image_bytes)
+            else:
+                if not title_carou or not content_carou:
+                    raise Exception("Titre/contenu manquant")
+                slide_bytes = generate_carousel_slide(
+                    title=title_carou,
+                    content=content_carou,
+                    image_bytes=image_bytes
+                )
+            
+            # Upload
+            upload_slide_bytes(f"slide_{position}.png", slide_bytes)
+            
+            if progress_callback:
+                progress_callback(item_id, position, True)
+            
+            return {"success": True, "item_id": item_id, "position": position}
+            
+        except Exception as e:
+            if progress_callback:
+                progress_callback(item_id, position, False)
+            return {"success": False, "item_id": item_id, "position": position, "message": str(e)}
+    
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS_SLIDES) as executor:
+        futures = {executor.submit(generate_one_slide, item): item for item in all_items}
+        
+        for future in as_completed(futures):
+            result = future.result()
+            results.append(result)
+            if result["success"]:
+                success_count += 1
+            else:
+                error_count += 1
+    
+    return {
+        "status": "success" if error_count == 0 else "partial" if success_count > 0 else "error",
+        "total": len(all_items),
+        "success": success_count,
+        "errors": error_count,
+        "details": results
+    }
+
+
 # Instance globale
 _crypto_carousel_job: Optional[CryptoCarouselJob] = None
 
 
 def get_crypto_carousel_job() -> CryptoCarouselJob:
-    """Retourne l'instance globale du job."""
+    """Retourne l'instance globale du job (avec optimisation activée par défaut)."""
     global _crypto_carousel_job
     if _crypto_carousel_job is None:
-        _crypto_carousel_job = CryptoCarouselJob()
+        _crypto_carousel_job = CryptoCarouselJob(use_optimized=True)
     return _crypto_carousel_job
+
+
+def reset_crypto_carousel_job() -> None:
+    """Réinitialise l'instance globale (pour debug)."""
+    global _crypto_carousel_job
+    _crypto_carousel_job = None
