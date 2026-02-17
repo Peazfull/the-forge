@@ -149,15 +149,21 @@ def refresh_market_daily_open():
 
         # 1) Open M15 (09:00–09:15) si dispo
         open_value = _fetch_intraday_open(symbol, target_date)
+        use_date = target_date
+
         # 2) Fallback sur open daily du jour si dispo
         if open_value is None:
-            if daily_data[-1]["date"] != target_date:
-                continue
-            open_value = daily_data[-1]["open"]
+            if daily_data[-1]["date"] == target_date:
+                open_value = daily_data[-1]["open"]
+            else:
+                # 3) Fallback : utiliser le dernier open daily disponible
+                open_value = daily_data[-1]["open"]
+                use_date = daily_data[-1]["date"]
+                close_prev = daily_data[-2]["close"] if len(daily_data) >= 2 else close_prev
 
         pct_change = ((open_value - close_prev) / close_prev) * 100
         point = {
-            "date": target_date,
+            "date": use_date,
             "open_value": open_value,
             "close_prev_value": close_prev,
             "pct_change": pct_change,

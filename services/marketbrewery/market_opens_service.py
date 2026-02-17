@@ -8,7 +8,7 @@ Service central exposant :
 """
 
 from typing import Dict, List, Optional
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from db.supabase_client import get_supabase
 from services.marketbrewery.refresh_market_daily_open import refresh_market_daily_open
@@ -78,8 +78,9 @@ def _fetch_open_performances(
     target_date: Optional[str] = None,
 ) -> List[Dict[str, object]]:
     """
-    Retourne toutes les performances open du jour
-    (open du jour vs close de la veille), depuis market_daily_open.
+    Retourne toutes les performances open les plus récentes,
+    en gardant la dernière valeur disponible par asset sur 10 jours.
+    (même logique que le service Close pour la résilience)
     """
     supabase = get_supabase()
     asset_mapping = _get_asset_id_mapping()
@@ -88,23 +89,23 @@ def _fetch_open_performances(
     if not asset_ids:
         return []
 
-    target_date = target_date or _get_latest_open_date(supabase)
-    if not target_date:
-        return []
-
+    cutoff = (datetime.utcnow() - timedelta(days=10)).date().isoformat()
     response = (
         supabase.table("market_daily_open")
         .select("asset_id, date, open_value, close_prev_value, pct_change")
         .in_("asset_id", asset_ids)
-        .eq("date", target_date)
+        .gte("date", cutoff)
+        .order("date", desc=True)
         .execute()
     )
 
     performances: List[Dict[str, object]] = []
+    seen_asset_ids = set()
     for row in (response.data or []):
         asset_id = row.get("asset_id")
-        if not asset_id:
+        if not asset_id or asset_id in seen_asset_ids:
             continue
+        seen_asset_ids.add(asset_id)
         meta = asset_meta.get(asset_id, {})
         symbol = meta.get("symbol", "")
         name = meta.get("name") or symbol
@@ -128,7 +129,7 @@ def get_open_top_flop(
     (open du jour vs close de la veille).
     Top = les N meilleures performances, Flop = les N pires (sans doublons).
     """
-    performances = _fetch_open_performances(symbols, target_date=_get_today_open_date())
+    performances = _fetch_open_performances(symbols)
 
     # Top : les N meilleures performances (décroissant)
     performances.sort(key=lambda x: x.get("pct_change", 0), reverse=True)
@@ -158,7 +159,7 @@ def get_open_performances(
     """
     Retourne toutes les performances open du dernier jour, triées.
     """
-    performances = _fetch_open_performances(symbols, target_date=_get_today_open_date())
+    performances = _fetch_open_performances(symbols)
     performances.sort(key=lambda x: x["pct_change"], reverse=True)
     return {
         "status": "success",
