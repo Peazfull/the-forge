@@ -1,131 +1,186 @@
 PROMPT_GENERATE_IMAGE_PROMPT_VARIANT = """
-Tu vas recevoir un TITRE et un CONTENU d'actualité économique.
+Tu vas recevoir un TITRE et un CONTENU d'actualité économique, politique ou institutionnelle.
 
-Ta mission est de GÉNÉRER UN PROMPT ALTERNATIF
-destiné à une IA de génération d'images,
-en respectant STRICTEMENT les règles éditoriales suivantes.
+Ta mission est de générer UNIQUEMENT le PROMPT FINAL destiné à une IA de génération d'images.
+Tu ne génères PAS l'image.
 
-Ce prompt est une VARIANTE VISUELLE
-du prompt principal,
-utilisée lorsque la première génération n'est pas satisfaisante.
-
-Tu ne dois PAS générer l'image.
-Tu dois uniquement générer le PROMPT FINAL.
+Le prompt doit illustrer l'ACTU MAJEURE, en respectant strictement les règles suivantes.
 
 ────────────────────────
-ÉTAPE 1 — EXTRACTION DE L'ACTU MAÎTRE
+1️⃣ IDENTIFICATION DU SUJET CENTRAL
 ────────────────────────
 
-Analyse le titre et le contenu pour identifier UN SEUL élément central :
+Détermine le sujet visuel principal :
 
-- une PERSONNALITÉ PUBLIQUE
-- ou une ENTREPRISE
-- ou un ÉVÉNEMENT MAJEUR
+- ENTREPRISE
+- PERSONNALITÉ PUBLIQUE
+- LIEU / ÉVÉNEMENT GÉOPOLITIQUE OU INSTITUTIONNEL
 
-Sélectionne uniquement l'acteur ou le sujet
-qui porte l'action principale de l'actualité.
-
-Ignore tout élément secondaire.
+L'image doit illustrer UNIQUEMENT le sujet central qui porte l'action principale.
 
 ────────────────────────
-ÉTAPE 2 — RÈGLES ÉDITORIALES INCHANGÉES
+2️⃣ RÈGLES STRICTES PAR TYPE DE SUJET
 ────────────────────────
 
-L'image générée via ce prompt doit :
+SI ENTREPRISE :
 
-- rester une illustration éditoriale économique
-- ne jamais être sensationnaliste
-- ne jamais exprimer colère, agressivité ou mépris
-- ne jamais rabaisser ou dénigrer
-- ne contenir AUCUN texte intégré
+- Logo officiel réel OBLIGATOIRE
+- Logo clair, net, identifiable en miniature
+- Logo physiquement intégré (enseigne, façade, signalétique réelle)
+- Architecture adaptée à l'activité :
+  • Luxe → haussmannien élégant
+  • Tech → siège moderne verre / acier
+  • Automobile → siège + véhicule récent identifiable
+  • Finance → tour institutionnelle type quartier d'affaires
 
-L'image doit transmettre :
-→ stabilité
-→ crédibilité
-→ sérieux
-→ maîtrise
+SI PERSONNALITÉ PUBLIQUE :
 
-────────────────────────
-ÉTAPE 3 — RÈGLES DE CONTENU VISUEL (IDENTIQUES)
-────────────────────────
+- Uniquement si cœur de l'actu
+- Contexte presse officiel (conférence, sommet, intervention)
+- Posture neutre, crédible
+- Drapeau ou symbole institutionnel réel si pertinent
 
-SI le sujet est une ENTREPRISE :
-- LOGO OBLIGATOIRE
-- logo officiel, lisible, intégré naturellement
-- aucune mise en scène négative
+SI ACTUALITÉ GÉOPOLITIQUE :
 
-SI le sujet est une PERSONNALITÉ PUBLIQUE :
-- présence réaliste
-- posture calme et institutionnelle
-- contexte cohérent avec l'actualité
-
-SI le sujet est un ÉVÉNEMENT :
-- lieu identifiable
-- éléments institutionnels autorisés
-- aucun symbole dramatique ou conflictuel
+- Drapeaux officiels réels obligatoires
+- Architecture institutionnelle identifiable
+- Contexte crédible et photographiable
 
 ────────────────────────
-ÉTAPE 4 — DIRECTION ARTISTIQUE FORGE (VARIANTE)
+3️⃣ DIRECTION ARTISTIQUE LIGHT MODE (OBLIGATOIRE)
 ────────────────────────
-
-Cette variante DOIT modifier la DA
-sans modifier le sens éditorial.
-La palette golden hour reste obligatoire, mais l'angle et la scène changent.
 
 STYLE :
-- Ultra-realistic editorial press photograph
-- Rendu photo premium, presse haut de gamme
-- Pas d'illustration, pas de CGI, pas de peinture
+Ultra-realistic editorial press photograph.
+No illustration. No CGI. No digital art.
+Authentic Reuters / AFP style.
 
-AMBIANCE & COULEURS (VARIANTE) :
-- Sunset golden hour uniquement
-- Couleurs dominantes :
-  golden amber, warm orange, soft sand tones
-- Accents secondaires :
-  subtle magenta, violet
-- Dégradés lisses, pas de contrastes durs
-- Atmosphère premium, chaleureuse, élégante
+PALETTE OFFICIELLE PROJET (OBLIGATOIRE) :
 
-FOND :
-- Aucun graphisme envahissant
-- Dégradé subtil autorisé
-- Le fond participe à la DA, sans voler l'attention au sujet
+Lumière sunset stylisée réaliste avec reflets naturels visibles :
 
-COMPOSITION :
-- Tous les éléments essentiels (logo + contexte principal)
-  doivent être dans la MOITIÉ HAUTE de l'image
-- Cadrage centré ou quasi centré (jamais excentré)
-- Perspective naturelle et équilibrée
-- La moitié basse de l'image doit rester calme, minimaliste, dégagée
-  pour accueillir un titre ajouté manuellement
+- intense cyan blue
+- vivid magenta
+- rich coral
+- deep fluo green
+- warm glowing orange
+
+Ces couleurs doivent être présentes dans le ciel ET se refléter naturellement sur :
+verre, métal, façades, drapeaux, sols mouillés éventuels.
+
+Aucun effet graphique.
+Aucune forme abstraite.
+Aucune lumière artificielle irréaliste.
+
+TRANSITION HAUTE (VERSION CORRIGÉE) :
+
+L'image doit se terminer progressivement vers le haut en une teinte claire proche du hex #F5F6F1.
+
+IMPORTANT :
+- Transition organique comme un ciel naturellement plus lumineux
+- Pas de voile blanc
+- Pas de haze
+- Pas de fog
+- Pas d'effet washed-out
+- Pas de couche opaque artificielle
+- Aucun bloc vide ajouté
+- Le sujet reste net jusqu'en haut
 
 ────────────────────────
-ÉTAPE 5 — SPÉCIFICATIONS TECHNIQUES
+4️⃣ COMPOSITION TECHNIQUE
 ────────────────────────
 
-Le prompt final doit inclure explicitement :
+- Low-angle shot (contre-plongée) obligatoire
+- Une seule photographie continue
+- Perspective unique cohérente
+- Élément clé naturellement placé dans le tiers supérieur
+- Pas d'image divisée
+- Pas de collage
+
+Inclure dans le prompt :
+
 - 8K render
 - professional photojournalism style
-- high-end studio lighting or perfectly controlled natural light
 - realistic depth of field
-- subtle sensor grain
-- no text
-- no watermark
-- no media branding
+- subtle natural sensor grain
+- Single continuous photograph from one camera position
+- No digital screens showing charts or data
+- No text or numbers
+- No watermark
+- No media logo
 
 ────────────────────────
-SORTIE ATTENDUE
+5️⃣ INTERDICTIONS ABSOLUES
 ────────────────────────
 
-Génère UNIQUEMENT le PROMPT FINAL
-destiné à l'IA de génération d'images.
+L'image doit être photographiable dans le monde réel.
 
-Aucune explication.
-Aucun commentaire.
-Aucune justification.
+INTERDIT :
 
-Retourne ta réponse sous forme de JSON :
+- Textes
+- Graphiques
+- Trading screens
+- Données affichées
+- Infographies
+- UI
+- Éléments flottants
+- CGI
+- Split image
+- Horizontal division
+
+_____________________________________________
+EXEMPLES DE SORTIE ATTENDU
+_____________________________________________
+
+POUR ENTREPRISE :
+
+"Ultra-realistic editorial background image illustrating a major pharmaceutical business news story about a leadership transition at Sanofi. The scene must look like a real professional press photograph, not an illustration.
+
+The scene shows the Sanofi corporate headquarters building in a realistic and naturally balanced composition. The official Sanofi logo is clearly visible and legible on the building facade, integrated naturally into the architecture and large enough to remain identifiable in thumbnail format. The building must look real, credible and suitable for serious international financial and healthcare press coverage.
+
+The lighting features a strong stylized sunset atmosphere using the official fluo palette: intense cyan blue, vivid magenta, rich coral, deep fluo green and warm glowing orange. These colors must be clearly visible in the sky and naturally reflected on glass and structural surfaces. Reflections must feel physically plausible.
+
+The image transitions gradually upward into a soft warm off-white tone close to hex F5F6F1. The transition must resemble a natural brightening sky — no haze, no fog, no white overlay, no horizontal cut. The building remains sharp and detailed up to the upper frame.
+
+Premium, minimal, elegant editorial mood. Realistic depth of field, subtle film grain. No text, no numbers, no UI, no watermark. 8K quality."
+
+────────────────────────
+
+POUR PERSONNALITÉ :
+
+"Ultra-realistic editorial background image illustrating a French political news story about a potential parliamentary inquiry commission.
+
+The scene shows Gabriel Attal clearly recognizable, speaking at an official governmental event inside a credible institutional setting. A French national flag is physically present in the background.
+
+The lighting features the official stylized sunset palette: intense cyan blue, vivid magenta, rich coral, deep fluo green and warm glowing orange, reflected naturally on surfaces and subtly interacting with the environment. No artificial effects.
+
+The image transitions upward into a soft bright off-white tone close to hex F5F6F1, like a naturally bright sky. No haze, no mist, no white overlay. The subject remains detailed and realistic across the full height.
+
+Professional press photography look. No text, no numbers, no UI. 8K quality."
+
+────────────────────────
+
+POUR INFO GÉOPOLITIQUE / LIEU :
+
+"Ultra-realistic editorial background image illustrating a major European economic news story about improving investor confidence in the euro zone.
+
+The scene shows a recognizable European institutional building in Brussels or Frankfurt. A real European Union flag is clearly visible and physically mounted on a flagpole, large enough to remain identifiable in thumbnail format.
+
+The lighting features a strong stylized sunset atmosphere using the official fluo palette: intense cyan blue, vivid magenta, rich coral, deep fluo green and warm glowing orange. These colors must be clearly visible in the sky and naturally reflected on building surfaces and flag fabric. Reflections must feel physically accurate.
+
+The upper area transitions gradually into a soft warm off-white tone close to hex F5F6F1, resembling natural sky luminosity. No haze, no artificial gradient block, no horizontal division. The architecture remains detailed up to the upper frame.
+
+Premium, minimal editorial mood. Realistic camera perspective, subtle film grain. No text, no numbers, no UI. 8K quality."
+
+────────────────────────
+FORMAT DE SORTIE
+────────────────────────
+
+Retourne UNIQUEMENT :
+
 {
-  "image_prompt": "ton prompt complet ici"
+"image_prompt": "prompt complet ici"
 }
+
+Aucun texte hors JSON.
 """

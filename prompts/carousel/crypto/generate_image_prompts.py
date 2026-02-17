@@ -1,148 +1,188 @@
 PROMPT_GENERATE_IMAGE_PROMPT = """
-Tu vas recevoir un TITRE et un CONTENU d'actualité économique.
+Tu vas recevoir un TITRE et un CONTENU d'actualité économique, politique ou institutionnelle.
 
-Ta mission est de GÉNÉRER LE PROMPT FINAL
-qui servira à générer l'image illustrant cette actualité.
+Ta mission est de générer UNIQUEMENT le PROMPT FINAL destiné à une IA de génération d'images.
+Tu ne génères PAS l'image.
 
-Tu ne dois PAS générer l'image.
-Tu dois uniquement générer le PROMPT destiné à une IA de génération d'images.
-
-Le prompt final doit être directement exploitable
-et respecter strictement les règles éditoriales et artistiques suivantes.
+Le prompt doit illustrer l'ACTU MAJEURE, en respectant strictement les règles suivantes.
 
 ────────────────────────
-ÉTAPE 1 — EXTRACTION DE L'ACTU MAÎTRE
+1️⃣ IDENTIFICATION DU SUJET CENTRAL
 ────────────────────────
 
-Analyse le titre et le contenu pour identifier UN SEUL élément central,
-obligatoirement unique :
+Détermine le sujet visuel principal :
 
-- ou une ENTREPRISE
-- ou un ÉVÉNEMENT MAJEUR (sommet, négociation, conflit, forum, etc.)
+- ENTREPRISE
+- PERSONNALITÉ PUBLIQUE
+- LIEU / ÉVÉNEMENT GÉOPOLITIQUE OU INSTITUTIONNEL
 
-S'il y a plusieurs éléments mentionnés,
-sélectionne UNIQUEMENT celui qui porte l'action principale de l'actualité.
-
+L'image doit illustrer UNIQUEMENT le sujet central qui porte l'action principale.
 
 ────────────────────────
-ÉTAPE 2 — RÈGLES ÉDITORIALES STRICTES
+2️⃣ RÈGLES STRICTES PAR TYPE DE SUJET
 ────────────────────────
 
-Le prompt image généré doit garantir que l'image :
+SI ENTREPRISE :
 
-- est une illustration éditoriale économique
-- n'exprime aucune colère, agressivité ou mépris
-- ne rabaisse ni ne dénigre aucun acteur
-- ne contient AUCUN texte intégré à l'image
+- Logo officiel réel OBLIGATOIRE
+- Logo clair, net, identifiable en miniature
+- Logo intégré physiquement (enseigne, façade, signalétique réelle)
+- Building adapté à l'activité :
+  • Luxe → architecture parisienne élégante
+  • Tech → siège moderne verre/aciers
+  • Automobile → siège + véhicule récent identifiable
+  • Finance → tour institutionnelle type quartier d'affaires
+  • etc... soit intelligent là dessus 
 
-L'image doit toujours transmettre :
-→ crédibilité
-→ lisibilité
-→ sérieux éditorial
+SI PERSONNALITÉ PUBLIQUE :
 
-La tension, la critique ou la dureté de l'actualité
-doivent être portées uniquement par le TEXTE,
-jamais par l'image.
+- Uniquement si cœur de l'actu
+- Photo de presse en conférence ou intervention officielle
+- Posture neutre, crédible
+- Drapeau ou symbole institutionnel si pertinent
 
-────────────────────────
-ÉTAPE 3 — RÈGLES DE CONTENU VISUEL (OBLIGATOIRES)
-────────────────────────
+SI ACTUALITÉ GÉOPOLITIQUE :
 
-SI le sujet principal est une ENTREPRISE :
-- Le LOGO officiel de l'entreprise est OBLIGATOIRE
-- Le logo doit être :
-  - officiel
-  - factuel
-  - lisible
-  - intégré naturellement
-    (façade, signalétique, bâtiment, open space, environnement d'activité)
-- La composition de l'action principale doit être centrée sur la moitié haute de l'image
-- Le logo doit être intégré de façon réaliste et discrète (taille d'enseigne crédible)
-- Aucune mise en scène négative ou dégradante
-
-SI le sujet principal est une PERSONNALITÉ PUBLIQUE très connues :
-- Présence réaliste en extérieur
-  OU en conférence / intervention officielle,
-  selon le contexte de l'actualité
-- Avec logo officiel de la société ou de l'évènement
-
-SI le sujet principal est un ÉVÉNEMENT :
-- Contexte visuel clair et identifiable
-- Éléments institutionnels autorisés :
-  - drapeaux
-  - architecture officielle
-  - lieux symboliques
-- Aucun symbole dramatique, violent ou conflictuel
+- Drapeaux ou éléments architecturaux reconnaissables obligatoires
+- Contexte institutionnel réel et crédible
 
 ────────────────────────
-ÉTAPE 4 — DIRECTION ARTISTIQUE (OBLIGATOIRE)
+3️⃣ DIRECTION ARTISTIQUE LIGHT MODE (OBLIGATOIRE)
 ────────────────────────
-
-Le prompt image généré doit impérativement inclure :
 
 STYLE :
-- Ultra-realistic editorial press photograph
-- Rendu photo professionnel
-- Pas d'illustration, pas de peinture, pas de CGI
+Ultra-realistic editorial press photograph.
+No illustration. No CGI. No digital art.
+Doit ressembler à une photo Reuters / AFP.
 
-AMBIANCE & COULEURS :
-- Sunset golden hour uniquement
-- Couleurs dominantes :
-  golden amber, warm orange, soft sand tones
-- Accents secondaires :
-  subtle magenta, violet
-- Dégradés lisses, pas de contrastes durs
-- Atmosphère premium, chaleureuse, élégante
+PALETTE (DA OFFICIELLE PROJET) :
+Lumière sunset stylisée réaliste avec reflets naturels :
 
-FOND :
-- Aucun graphisme envahissant
-- Dégradé subtil autorisé
-- Le fond participe à la DA, sans voler l'attention au sujet
+- intense cyan blue
+- vivid magenta
+- rich coral
+- deep fluo green
+- warm glowing orange
 
-COMPOSITION :
-- Tous les éléments essentiels (logo + contexte principal)
-  doivent être dans la MOITIÉ HAUTE de l'image
-- Cadrage centré ou quasi centré (jamais excentré)
-- Perspective naturelle et équilibrée
-- La moitié basse de l'image doit rester calme, minimaliste, dégagée
-  pour accueillir un titre ajouté manuellement
-- Aucun texte généré dans l'image
+Les couleurs doivent apparaître comme des reflets naturels sur les surfaces (verre, métal, façade, drapeaux).
+Aucune forme abstraite. Aucun effet graphique.
+
+TRANSITION HAUTE OBLIGATOIRE (VERSION CORRIGÉE) :
+
+L'image doit se terminer progressivement vers le haut en une teinte très claire,
+proche du hex #F8F9F4.
+
+IMPORTANT :
+
+- La transition doit ressembler à un ciel naturellement plus lumineux
+- Pas de voile blanc
+- Pas de haze
+- Pas de mist
+- Pas de fog
+- Pas d'effet washed-out
+- Pas de couche opaque artificielle
+- Aucun bloc vide ajouté
+
+Le sujet principal (bâtiment, drapeau, personnalité) doit rester net et détaillé jusqu'en haut de l'image.
 
 ────────────────────────
-ÉTAPE 5 — SPÉCIFICATIONS TECHNIQUES
+4️⃣ COMPOSITION TECHNIQUE
 ────────────────────────
 
-Le prompt final doit contenir explicitement :
+- Low-angle shot (contre-plongée)
+- Une seule photographie continue
+- Perspective unique cohérente
+- Logo / personne / élément clé naturellement placé dans le tiers supérieur
+- Pas d'image divisée
+- Pas de collage
+
+Inclure dans le prompt :
+
 - 8K render
-- style photojournalisme professionnel
-- éclairage studio haut de gamme
-  ou lumière naturelle parfaitement maîtrisée
-- profondeur de champ réaliste
-- grain capteur léger et naturel
-- aucun texte dans l'image
-- aucun watermark
-- aucun logo média
-
-IMPORTANT (CRYPTO / ENTREPRISE) :
-- La sortie doit suivre explicitement cette structure (adaptée à l'actu) :
-"Ultra-realistic editorial press photograph, 8K render. A symbolic representation of a global decentralized blockchain network, treated as a serious and strategic digital infrastructure. The official [ACTEUR PRINCIPAL] logo visible, accurate and readable, integrated in a factual and institutional way. COLOR CODES (MANDATORY): Dominant colors: golden amber, warm orange, soft sand tones. Secondary accents: subtle magenta and violet. Sunset golden hour atmosphere only. Smooth gradients, no harsh contrasts. Premium, warm, elegant lighting. COMPOSITION (MANDATORY): All essential visual elements (logo + main context) MUST be positioned in the UPPER HALF of the image. Framing centered or near-centered (never excentré). Natural and balanced perspective. LOWER HALF of the image must remain calm, minimal and uncluttered to allow manual headline overlay. No text generated inside the image. STYLE & TONE: Professional photojournalism realism. No illustration style, no CGI look, no painting. No charts, no numbers, no hype visuals. No dramatic, aggressive or emotional cues. Mood: stability, credibility, long-term strength. TECHNICAL: Natural light simulation, realistic depth of field, subtle sensor grain, no watermark, no media branding, no text."
+- professional photojournalism style
+- realistic depth of field
+- subtle natural sensor grain
+- no text in image
+- no watermark
+- no media logo
 
 ────────────────────────
-SORTIE ATTENDUE
+5️⃣ INTERDICTIONS ABSOLUES
 ────────────────────────
 
-Génère UNIQUEMENT le PROMPT FINAL
-destiné à une IA de génération d'images.
+L'image doit être photographiable dans le monde réel.
 
-Le prompt doit être :
-- clair
-- structuré
-- précis
-- directement exploitable
-- sans explication, sans justification, sans commentaire autour
+INTERDIT :
 
-Retourne ta réponse sous forme de JSON :
+- Textes
+- Graphiques
+- Trading screens
+- Données affichées
+- Infographies
+- UI
+- Éléments flottants
+- CGI
+- Split image
+- Horizontal division
+
+Mentionner explicitement :
+"Single continuous photograph from one camera position"
+"No digital screens showing charts or data"
+"No text or numbers"
+
+_____________________________________________
+EXEMPLES DE SORTIE ATTENDU POUR T'INSPIRER
+_____________________________________________
+
+POUR ENTREPRISE:
+
+Ultra-realistic editorial background image illustrating a major European technology and consulting business news story about Capgemini preparing to present its annual results amid investor concerns. The scene must look like a real professional press photograph, not an illustration.
+
+The scene shows the Capgemini corporate headquarters building in a realistic and naturally balanced composition. The official Capgemini logo is fully visible on the building facade as a white illuminated sign (important), using the correct official logo design, integrated naturally into the architecture. The building must look completely real and credible, suitable for serious international financial and technology press coverage.
+
+The lighting in the scene features a strong, clearly defined stylized sunset atmosphere using the official project fluo palette: intense cyan blue, vivid magenta, rich coral, deep fluo green, and warm glowing orange. These colors must be clearly visible in the sky and naturally reflected on the building surfaces. The reflections must feel physically plausible and integrated into real materials, not artificial.
+
+The image should transition gradually and smoothly upward into a very soft, bright warm off-white tone close to hex F8F9F4. The transition must resemble a natural brightening of the sky, without haze, without fog, without white overlay, and without any horizontal cut. The upper area must remain detailed and photographically realistic.
+
+Premium, minimal, airy, elegant mood with modern financial media energy. Realistic camera perspective, natural depth of field, subtle film grain. No text, no numbers, no UI, no watermark, no media logo. 8K quality.
+
+────────────────────────
+
+POUR PERSONNALITÉ:
+
+Ultra-realistic editorial background image illustrating a major European political news story about policy disagreements between France and Germany. The scene must look like a real professional press photograph.
+
+The scene shows Emmanuel Macron clearly recognizable, speaking during an official European diplomatic event. A French flag and a German flag are visible as real physical flags.
+
+The lighting features a strong stylized sunset using the official fluo palette: intense cyan blue, vivid magenta, rich coral, deep fluo green, and warm glowing orange, naturally reflected on surfaces and surroundings.
+
+The image must transition gradually and smoothly upward into a very soft bright off-white tone close to hex F8F9F4. The transition must feel like natural sky luminosity increasing — no haze, no fog, no white overlay, no horizontal division. The subject must remain sharp and detailed up to the upper frame.
+
+Professional press photography look. No text, no numbers, no UI, no watermark. 8K quality.
+
+────────────────────────
+
+POUR INFO GÉOPOLITIQUE / LIEU:
+
+Ultra-realistic editorial background image illustrating a major geopolitical economic news story in Beijing.
+
+The scene shows a recognizable institutional setting in Beijing placed in the lower part of the image. A Chinese national flag is clearly visible and physically present. The architecture must be credible and institutional.
+
+The lighting in the lower part of the image features a strong, clearly defined stylized sunset atmosphere using the official project fluo palette: intense cyan blue, vivid magenta, rich coral, deep fluo green, and warm glowing orange. These colors must be visible in the sky and naturally reflected on the building, windows, flag and surrounding surfaces. Reflections must feel physically plausible, not graphic.
+
+The upper part must transition gradually and smoothly into a very soft bright off-white tone close to hex F8F9F4. The transition must be organic and seamless, resembling natural sky brightness increasing — not haze, not mist, not fog, not a white overlay, and not a hard horizontal cut. The building and flag must remain sharp and detailed up to the upper area.
+
+Premium, minimal, airy editorial mood. Realistic depth of field, subtle film grain. No text, no numbers, no UI, no watermark. 8K quality.
+
+────────────────────────
+FORMAT DE SORTIE
+────────────────────────
+
+Retourne UNIQUEMENT :
+
 {
-  "image_prompt": "ton prompt complet ici"
+"image_prompt": "prompt complet ici"
 }
+
+Aucun texte hors JSON.
 """

@@ -1,163 +1,203 @@
 PROMPT_GENERATE_IMAGE_PROMPT_MANUAL = """
-Tu vas recevoir un TITRE et un CONTENU d'actualité économique,
-ainsi que des INSTRUCTIONS MANUELLES supplémentaires.
+Tu vas recevoir un TITRE et un CONTENU d'actualité économique, politique ou institutionnelle,
+ainsi que mes recommandations manuelles concernant l'image attendue.
 
-Ta mission est de GÉNÉRER LE PROMPT FINAL
-qui servira à générer l'image illustrant cette actualité,
-en intégrant les instructions manuelles de l'utilisateur.
+Ta mission est de générer UNIQUEMENT le PROMPT FINAL destiné à une IA de génération d'images.
+Tu ne génères PAS l'image.
 
-Tu ne dois PAS générer l'image.
-Tu dois uniquement générer le PROMPT destiné à une IA de génération d'images.
-
-Le prompt final doit être directement exploitable
-et respecter strictement les règles éditoriales et artistiques suivantes.
+Le prompt doit illustrer l'ACTU MAJEURE en respectant strictement les règles suivantes,
+tout en intégrant intelligemment les indications manuelles si elles sont cohérentes
+avec les règles visuelles.
 
 ────────────────────────
-ÉTAPE 1 — EXTRACTION DE L'ACTU MAÎTRE
+1️⃣ IDENTIFICATION DU SUJET CENTRAL
 ────────────────────────
 
-Analyse le titre et le contenu pour identifier UN SEUL élément central,
-obligatoirement unique :
+Détermine le sujet visuel principal :
 
-- une PERSONNALITÉ PUBLIQUE
-- ou une ENTREPRISE
-- ou un ÉVÉNEMENT MAJEUR (sommet, négociation, conflit, forum, etc.)
+- ENTREPRISE
+- PERSONNALITÉ PUBLIQUE
+- LIEU / ÉVÉNEMENT GÉOPOLITIQUE OU INSTITUTIONNEL
 
-S'il y a plusieurs acteurs mentionnés,
-sélectionne UNIQUEMENT celui qui porte l'action principale de l'actualité.
-
-Ignore systématiquement :
-- réactions secondaires
-- commentaires d'analystes
-- effets de marché
-- éléments émotionnels ou polémiques
+L'image doit illustrer UNIQUEMENT le sujet central qui porte l'action principale.
 
 ────────────────────────
-ÉTAPE 2 — INTÉGRATION DES INSTRUCTIONS MANUELLES
+2️⃣ RÈGLES STRICTES PAR TYPE DE SUJET
 ────────────────────────
 
-Les INSTRUCTIONS MANUELLES fournies par l'utilisateur
-doivent être intégrées au prompt final,
-SAUF si elles violent les règles éditoriales strictes.
+SI ENTREPRISE :
 
-Si les instructions violent les règles éditoriales,
-ignore-les et génère le prompt selon les règles standard.
+- Logo officiel réel OBLIGATOIRE
+- Logo clair, net, identifiable en miniature
+- Logo physiquement intégré (enseigne, façade, signalétique réelle)
+- Taille suffisante pour rester lisible en thumbnail
+- Architecture adaptée à l'activité :
+  • Luxe → haussmannien élégant
+  • Tech → siège moderne verre / acier
+  • Automobile → siège + véhicule récent identifiable
+  • Finance → tour institutionnelle type quartier d'affaires
 
-────────────────────────
-ÉTAPE 3 — RÈGLES ÉDITORIALES STRICTES
-────────────────────────
+SI PERSONNALITÉ PUBLIQUE :
 
-Le prompt image généré doit garantir que l'image :
+- Uniquement si cœur de l'actu
+- Contexte presse officiel (conférence, sommet, intervention)
+- Posture neutre, crédible
+- Drapeau ou symbole institutionnel réel si pertinent
 
-- est une illustration éditoriale économique
-- n'exprime aucune colère, agressivité ou mépris
-- ne rabaisse ni ne dénigre aucun acteur
-- ne contient AUCUN texte intégré à l'image
+SI ACTUALITÉ GÉOPOLITIQUE :
 
-L'image doit toujours transmettre :
-→ stabilité
-→ crédibilité
-→ lisibilité
-→ sérieux éditorial
-
-La tension, la critique ou la dureté de l'actualité
-doivent être portées uniquement par le TEXTE,
-jamais par l'image.
+- Drapeaux officiels réels obligatoires
+- Architecture institutionnelle identifiable
+- Contexte crédible et photographiable
 
 ────────────────────────
-ÉTAPE 4 — RÈGLES DE CONTENU VISUEL (OBLIGATOIRES)
+3️⃣ DIRECTION ARTISTIQUE LIGHT MODE (OBLIGATOIRE)
 ────────────────────────
-
-SI le sujet principal est une ENTREPRISE :
-- Le LOGO de l'entreprise est OBLIGATOIRE
-- Le logo doit être :
-  - officiel
-  - factuel
-  - lisible
-  - intégré naturellement
-    (façade, signalétique, bâtiment, open space, environnement d'activité)
-- Aucune mise en scène négative ou dégradante
-
-SI le sujet principal est une PERSONNALITÉ PUBLIQUE :
-- Présence réaliste en extérieur
-  OU en conférence / intervention officielle,
-  selon le contexte de l'actualité
-- Posture calme, institutionnelle et maîtrisée
-- Expression neutre ou réfléchie
-
-SI le sujet principal est un ÉVÉNEMENT :
-- Contexte visuel clair et identifiable
-- Éléments institutionnels autorisés :
-  - drapeaux
-  - architecture officielle
-  - lieux symboliques
-- Aucun symbole dramatique, violent ou conflictuel
-
-────────────────────────
-ÉTAPE 5 — DIRECTION ARTISTIQUE FORGE (OBLIGATOIRE)
-────────────────────────
-
-Le prompt image généré doit impérativement inclure :
 
 STYLE :
-- Ultra-realistic editorial press photograph
-- Rendu photo professionnel
-- Pas d'illustration, pas de peinture, pas de CGI
+Ultra-realistic editorial press photograph.
+No illustration. No CGI. No digital art.
+Authentic Reuters / AFP quality.
 
-AMBIANCE & COULEURS :
-- Sunset golden hour uniquement
-- Couleurs dominantes :
-  golden amber, warm orange, soft sand tones
-- Accents secondaires :
-  subtle magenta, violet
-- Dégradés lisses, pas de contrastes durs
-- Atmosphère premium, chaleureuse, élégante
+PALETTE OFFICIELLE PROJET (OBLIGATOIRE) :
 
-FOND :
-- Aucun graphisme envahissant
-- Dégradé subtil autorisé
-- Le fond participe à la DA, sans voler l'attention au sujet
+Lumière sunset stylisée réaliste avec reflets naturels visibles :
 
-COMPOSITION :
-- Tous les éléments essentiels (logo + contexte principal)
-  doivent être dans la MOITIÉ HAUTE de l'image
-- Cadrage centré ou quasi centré (jamais excentré)
-- Perspective naturelle et équilibrée
-- La moitié basse de l'image doit rester calme, minimaliste, dégagée
-  pour accueillir un titre ajouté manuellement
-- Aucun texte généré dans l'image
+- intense cyan blue
+- vivid magenta
+- rich coral
+- deep fluo green
+- warm glowing orange
+
+Ces couleurs doivent :
+
+- être clairement visibles dans le ciel
+- se refléter naturellement sur verre, métal, façades, drapeaux
+- respecter la physique des matériaux
+- ne jamais ressembler à un filtre artificiel ou un effet graphique
+
+INTERDIT :
+- formes abstraites
+- halos artificiels
+- overlays
+- rendu "CGI sunset"
 
 ────────────────────────
-ÉTAPE 6 — SPÉCIFICATIONS TECHNIQUES
+TRANSITION HAUTE (VERSION CORRIGÉE)
 ────────────────────────
 
-Le prompt final doit contenir explicitement :
+L'image doit se terminer progressivement vers le haut en une teinte claire
+proche du hex #F5F6F1.
+
+CRUCIAL :
+
+- Transition organique comme un ciel naturellement plus lumineux
+- Pas de voile blanc
+- Pas de fog
+- Pas de haze
+- Pas d'effet washed-out
+- Pas de couche opaque artificielle
+- Pas de bloc vide ajouté
+- Aucun cut horizontal visible
+- Le sujet reste net jusqu'au haut de l'image
+
+La luminosité augmente progressivement comme dans un ciel réel.
+
+────────────────────────
+4️⃣ COMPOSITION TECHNIQUE
+────────────────────────
+
+- Low-angle shot (contre-plongée) obligatoire
+- Une seule photographie continue
+- Perspective unique cohérente
+- Élément clé naturellement placé dans le tiers supérieur
+- Pas d'image divisée
+- Pas de collage
+
+Inclure dans le prompt :
+
 - 8K render
-- style photojournalisme professionnel
-- éclairage studio haut de gamme
-  ou lumière naturelle parfaitement maîtrisée
-- profondeur de champ réaliste
-- grain capteur léger et naturel
-- aucun texte dans l'image
-- aucun watermark
-- aucun logo média
+- professional photojournalism style
+- realistic depth of field
+- subtle natural sensor grain
+- Single continuous photograph from one camera position
+- No digital screens showing charts or data
+- No text or numbers
+- No watermark
+- No media logo
 
 ────────────────────────
-SORTIE ATTENDUE
+5️⃣ INTERDICTIONS ABSOLUES
 ────────────────────────
 
-Génère UNIQUEMENT le PROMPT FINAL
-destiné à une IA de génération d'images.
+L'image doit être photographiable dans le monde réel.
 
-Le prompt doit être :
-- clair
-- structuré
-- précis
-- directement exploitable
-- sans explication, sans justification, sans commentaire autour
+INTERDIT :
 
-Retourne ta réponse sous forme de JSON :
+- Textes
+- Graphiques
+- Trading screens
+- Données affichées
+- Infographies
+- UI
+- Éléments flottants
+- CGI
+- Split image
+- Horizontal division
+
+────────────────────────
+EXEMPLES DE SORTIE ATTENDU
+────────────────────────
+
+POUR ENTREPRISE :
+
+"Ultra-realistic editorial background image illustrating a major pharmaceutical business news story about a leadership transition at Sanofi. The scene must look like a real professional press photograph, not an illustration.
+
+The scene shows the Sanofi corporate headquarters building in a realistic and naturally balanced composition. The official Sanofi logo is clearly visible, physically mounted on the facade, properly scaled and readable in thumbnail format. The architecture must look completely real and credible, suitable for serious international financial and healthcare press coverage.
+
+The lighting features a strong stylized sunset atmosphere using the official fluo palette: intense cyan blue, vivid magenta, rich coral, deep fluo green and warm glowing orange. These colors must be clearly visible in the sky and naturally reflected on glass and structural surfaces. Reflections must feel physically plausible and integrated into real materials.
+
+The image transitions gradually upward into a soft warm off-white tone close to hex F5F6F1. The transition must resemble natural sky luminosity — no haze, no fog, no artificial white overlay, no horizontal cut. The building remains sharp and detailed up to the upper frame.
+
+Premium, minimal editorial mood. Realistic depth of field, subtle film grain. No text, no numbers, no UI, no watermark. 8K quality."
+
+────────────────────────
+
+POUR PERSONNALITÉ :
+
+"Ultra-realistic editorial background image illustrating a French political news story about a potential parliamentary inquiry commission.
+
+The scene shows Gabriel Attal clearly recognizable, speaking during an official governmental event inside a credible institutional setting. A French national flag is physically present in the background.
+
+The lighting features the official stylized sunset palette: intense cyan blue, vivid magenta, rich coral, deep fluo green and warm glowing orange. These colors must appear in the sky and reflect naturally on surfaces and flags, without artificial glow or overlay.
+
+The image transitions upward into a soft bright off-white tone close to hex F5F6F1, like a naturally bright sky. No haze, no mist, no white veil. The subject remains detailed and realistic across the full height.
+
+Professional press photography look. No text, no numbers, no UI. 8K quality."
+
+────────────────────────
+
+POUR INFO GÉOPOLITIQUE / LIEU :
+
+"Ultra-realistic editorial background image illustrating a major European economic news story about improving investor confidence in the euro zone.
+
+The scene shows a recognizable European institutional building in Brussels or Frankfurt. A real European Union flag is clearly visible and physically mounted on a flagpole, large enough to remain identifiable in thumbnail format.
+
+The lighting features a strong stylized sunset atmosphere using the official fluo palette: intense cyan blue, vivid magenta, rich coral, deep fluo green and warm glowing orange. These colors must be clearly visible in the sky and naturally reflected on building surfaces and flag fabric. The reflections must feel physically accurate and realistic.
+
+The upper area transitions gradually into a soft warm off-white tone close to hex F5F6F1, resembling natural sky luminosity. No haze, no artificial gradient block, no horizontal division. The architecture remains detailed up to the upper frame.
+
+Premium, minimal editorial mood . Realistic camera perspective, subtle film grain. No text, no numbers, no UI. 8K quality."
+
+────────────────────────
+FORMAT DE SORTIE
+────────────────────────
+
+Retourne UNIQUEMENT :
+
 {
-  "image_prompt": "ton prompt complet ici"
+  "image_prompt": "prompt complet ici"
 }
+
+Aucun texte hors JSON.
 """
