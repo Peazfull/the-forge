@@ -26,8 +26,8 @@ ASSETS_DIR = os.path.join(
 )
 FONT_BOLD_PATH = os.path.join(ASSETS_DIR, "Manrope-Bold.ttf")
 FONT_SEMI_BOLD_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")
-DATE_FONT_SIZE = 42
-DATE_TOP = 775  # Ajusté pour format 1080x1350 (était 640 pour 1080x1080)
+DATE_FONT_SIZE = 68  # Ajusté pour format 1080x1350 (était 42)
+DATE_TOP = 550  # Position de la date depuis le haut
 DATE_FILL = "#F6F6F6"
 DATE_HIGHLIGHT_BG = "#5B2EFF"
 DATE_HIGHLIGHT_PAD_X = 10
