@@ -126,17 +126,24 @@ def get_open_top_flop(
     """
     Retourne top/flop sur l'open du dernier jour
     (open du jour vs close de la veille).
+    Top = les N meilleures performances, Flop = les N pires (sans doublons).
     """
     performances = _fetch_open_performances(symbols, target_date=_get_today_open_date())
 
-    positives = [p for p in performances if p.get("pct_change", 0) > 0]
-    negatives = [p for p in performances if p.get("pct_change", 0) < 0]
+    # Top : les N meilleures performances (décroissant)
+    performances.sort(key=lambda x: x.get("pct_change", 0), reverse=True)
+    top = performances[:limit]
+    top_symbols = {item.get("symbol") for item in top}
 
-    positives.sort(key=lambda x: x.get("pct_change", 0), reverse=True)
-    negatives.sort(key=lambda x: x.get("pct_change", 0))
-
-    top = positives[:limit]
-    flop = negatives[:limit]
+    # Flop : les N pires performances (croissant), en excluant ceux déjà dans le top
+    flop_candidates = sorted(performances, key=lambda x: x.get("pct_change", 0))
+    flop = []
+    for item in flop_candidates:
+        if item.get("symbol") in top_symbols:
+            continue
+        flop.append(item)
+        if len(flop) >= limit:
+            break
 
     return {
         "status": "success",
