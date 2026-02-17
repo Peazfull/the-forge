@@ -159,8 +159,19 @@ def get_top_flop_weekly(zone="US", limit=10):
         performances = _fetch_weekly_performances(symbols)
         performances.sort(key=lambda x: x.get("pct_change", 0), reverse=True)
 
+        # Top : les N meilleures performances
         top_sorted = performances[:limit]
-        flop_sorted = list(reversed(performances[-limit:]))
+        top_symbols = {item.get("symbol") for item in top_sorted}
+
+        # Flop : les N pires performances, sans doublons avec le top
+        flop_candidates = sorted(performances, key=lambda x: x.get("pct_change", 0))
+        flop_sorted = []
+        for item in flop_candidates:
+            if item.get("symbol") in top_symbols:
+                continue
+            flop_sorted.append(item)
+            if len(flop_sorted) >= limit:
+                break
 
         return {
             "status": "success",

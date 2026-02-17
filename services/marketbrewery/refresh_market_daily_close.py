@@ -230,8 +230,9 @@ def calculate_and_store_top_flop(supabase, asset_mapping):
         # Trier par performance
         performances.sort(key=lambda x: x["pct_change"], reverse=True)
         
-        # Top 10
+        # Top 10 : les N meilleures performances
         top_10 = performances[:10]
+        top_symbols = {perf["symbol"] for perf in top_10}
         for rank, perf in enumerate(top_10, start=1):
             try:
                 supabase.table("market_top_flop").insert({
@@ -248,8 +249,15 @@ def calculate_and_store_top_flop(supabase, asset_mapping):
             except Exception as e:
                 print(f"❌ Erreur insert top {zone_name} : {e}")
         
-        # Flop 10
-        flop_10 = performances[-10:][::-1]
+        # Flop 10 : les N pires performances, sans doublons avec le top
+        flop_candidates = sorted(performances, key=lambda x: x["pct_change"])
+        flop_10 = []
+        for perf in flop_candidates:
+            if perf["symbol"] in top_symbols:
+                continue
+            flop_10.append(perf)
+            if len(flop_10) >= 10:
+                break
         for rank, perf in enumerate(flop_10, start=1):
             try:
                 supabase.table("market_top_flop").insert({
