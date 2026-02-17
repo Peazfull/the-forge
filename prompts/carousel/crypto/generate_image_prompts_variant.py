@@ -1,5 +1,5 @@
-PROMPT_GENERATE_IMAGE_PROMPT = """
-Tu vas recevoir un TITRE et un CONTENU d’actualité liée aux cryptomonnaies, à la DeFi, aux ETF crypto, aux stablecoins ou à la régulation blockchain.
+PROMPT_GENERATE_IMAGE_PROMPT_VARIANT = """
+Tu vas recevoir un TITRE et un CONTENU d'actualité liée aux cryptomonnaies, à la DeFi, aux ETF crypto, aux stablecoins ou à la régulation blockchain.
 
 Ta mission est de générer UNIQUEMENT le PROMPT FINAL destiné à une IA de génération d’images.
 Tu ne génères PAS l’image.
