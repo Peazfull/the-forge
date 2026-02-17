@@ -1,10 +1,10 @@
 PROMPT_GENERATE_IMAGE_PROMPT = """
-Tu vas recevoir un TITRE et un CONTENU d'actualité économique, politique ou institutionnelle.
+Tu vas recevoir un TITRE et un CONTENU d’actualité liée aux cryptomonnaies, à la DeFi, aux ETF crypto, aux stablecoins ou à la régulation blockchain.
 
-Ta mission est de générer UNIQUEMENT le PROMPT FINAL destiné à une IA de génération d'images.
-Tu ne génères PAS l'image.
+Ta mission est de générer UNIQUEMENT le PROMPT FINAL destiné à une IA de génération d’images.
+Tu ne génères PAS l’image.
 
-Le prompt doit illustrer l'ACTU MAJEURE, en respectant strictement les règles suivantes.
+Le prompt doit illustrer l’ACTU MAJEURE en respectant strictement les règles suivantes.
 
 ────────────────────────
 1️⃣ IDENTIFICATION DU SUJET CENTRAL
@@ -12,39 +12,63 @@ Le prompt doit illustrer l'ACTU MAJEURE, en respectant strictement les règles s
 
 Détermine le sujet visuel principal :
 
-- ENTREPRISE
-- PERSONNALITÉ PUBLIQUE
-- LIEU / ÉVÉNEMENT GÉOPOLITIQUE OU INSTITUTIONNEL
+- PROJET / PROTOCOLE CRYPTO
+- ENTREPRISE FINANCIÈRE LIÉE À LA CRYPTO
+- ACTUALITÉ RÉGLEMENTAIRE / GÉOPOLITIQUE CRYPTO
 
-L'image doit illustrer UNIQUEMENT le sujet central qui porte l'action principale.
+L’image doit illustrer UNIQUEMENT le sujet central qui porte l’action principale.
 
 ────────────────────────
-2️⃣ RÈGLES STRICTES PAR TYPE DE SUJET
+2️⃣ RÈGLES VISUELLES CRYPTO (OBLIGATOIRES)
 ────────────────────────
 
-SI ENTREPRISE :
+🚫 INTERDIT :
+- Coin flottant dans le ciel
+- Token 3D géant
+- Blockchain holographique
+- Particules numériques
+- Graphiques ou courbes
+- Écrans affichant des données
+- UI, dashboards, trading screens
 
-- Logo officiel réel OBLIGATOIRE
-- Logo clair, net, identifiable en miniature
-- Logo intégré physiquement (enseigne, façade, signalétique réelle)
-- Building adapté à l'activité :
-  • Luxe → architecture parisienne élégante
-  • Tech → siège moderne verre/aciers
-  • Automobile → siège + véhicule récent identifiable
-  • Finance → tour institutionnelle type quartier d'affaires
-  • etc... soit intelligent là dessus 
+Toujours :
+- Un lieu réel et photographiable
+- Un support physique crédible pour le logo
 
-SI PERSONNALITÉ PUBLIQUE :
+────────────────────────
+OPTION A — LOGO SUR SUPPORT PHYSIQUE RÉEL
+────────────────────────
 
-- Uniquement si cœur de l'actu
-- Photo de presse en conférence ou intervention officielle
-- Posture neutre, crédible
-- Drapeau ou symbole institutionnel si pertinent
+Le logo officiel de la crypto ou du projet doit être :
 
-SI ACTUALITÉ GÉOPOLITIQUE :
+- Affiché sur un écran LED institutionnel réel
+- Ou sur un panneau digital extérieur crédible
+- Ou sur un support physique corporate
 
-- Drapeaux ou éléments architecturaux reconnaissables obligatoires
-- Contexte institutionnel réel et crédible
+Le logo doit être :
+- Net
+- Clair
+- Lisible en miniature
+- Parfaitement identifiable
+
+Pas flou.
+Pas distant.
+Pas stylisé.
+Pas flottant.
+
+────────────────────────
+OPTION C — CONTEXTE FINANCIER RÉEL
+────────────────────────
+
+Utiliser un environnement crédible :
+
+- Quartier financier (New York, Londres, Singapour, La Défense)
+- Institution européenne si régulation
+- Façade d’entreprise
+- Place boursière
+- Tour bancaire moderne
+
+L’architecture doit être réaliste et adaptée au sujet.
 
 ────────────────────────
 3️⃣ DIRECTION ARTISTIQUE LIGHT MODE (OBLIGATOIRE)
@@ -52,11 +76,12 @@ SI ACTUALITÉ GÉOPOLITIQUE :
 
 STYLE :
 Ultra-realistic editorial press photograph.
-No illustration. No CGI. No digital art.
 Doit ressembler à une photo Reuters / AFP.
+No illustration. No CGI. No digital art rendering.
 
-PALETTE (DA OFFICIELLE PROJET) :
-Lumière sunset stylisée réaliste avec reflets naturels :
+PALETTE OFFICIELLE (SUNSET FLUO) :
+
+La lumière doit intégrer des reflets naturels issus d’un sunset stylisé réaliste avec :
 
 - intense cyan blue
 - vivid magenta
@@ -64,26 +89,37 @@ Lumière sunset stylisée réaliste avec reflets naturels :
 - deep fluo green
 - warm glowing orange
 
-Les couleurs doivent apparaître comme des reflets naturels sur les surfaces (verre, métal, façade, drapeaux).
-Aucune forme abstraite. Aucun effet graphique.
+Les couleurs doivent apparaître comme des reflets physiques plausibles sur :
+- verre
+- métal
+- façades
+- drapeaux
+- surfaces urbaines
 
-TRANSITION HAUTE OBLIGATOIRE (VERSION CORRIGÉE) :
+Aucune forme abstraite.
+Aucun effet graphique.
+Aucun élément numérique.
 
-L'image doit se terminer progressivement vers le haut en une teinte très claire,
-proche du hex #F8F9F4.
+────────────────────────
+TRANSITION HAUTE OBLIGATOIRE
+────────────────────────
 
-IMPORTANT :
+L’image doit se terminer progressivement vers le haut
+en une teinte très claire proche du hex #F5F6F1.
 
-- La transition doit ressembler à un ciel naturellement plus lumineux
-- Pas de voile blanc
-- Pas de haze
-- Pas de mist
-- Pas de fog
-- Pas d'effet washed-out
-- Pas de couche opaque artificielle
-- Aucun bloc vide ajouté
+⚠️ La transition doit être :
 
-Le sujet principal (bâtiment, drapeau, personnalité) doit rester net et détaillé jusqu'en haut de l'image.
+- Organique
+- Progressive
+- Sans coupure horizontale visible
+- Sans bande blanche marquée
+- Sans voile lumineux artificiel
+- Sans effet de brume
+
+Le haut doit ressembler à un ciel naturel lumineux,
+pas à un bloc vide graphique.
+
+Composition équilibrée sur toute la hauteur.
 
 ────────────────────────
 4️⃣ COMPOSITION TECHNIQUE
@@ -91,9 +127,10 @@ Le sujet principal (bâtiment, drapeau, personnalité) doit rester net et détai
 
 - Low-angle shot (contre-plongée)
 - Une seule photographie continue
-- Perspective unique cohérente
-- Logo / personne / élément clé naturellement placé dans le tiers supérieur
-- Pas d'image divisée
+- Single continuous photograph from one camera position
+- Perspective cohérente
+- Sujet principal naturellement positionné dans le tiers supérieur
+- Pas de split image
 - Pas de collage
 
 Inclure dans le prompt :
@@ -105,74 +142,53 @@ Inclure dans le prompt :
 - no text in image
 - no watermark
 - no media logo
+- No digital screens showing charts or data
+- No text or numbers
 
-────────────────────────
-5️⃣ INTERDICTIONS ABSOLUES
-────────────────────────
 
-L'image doit être photographiable dans le monde réel.
+EXEMPLE DE SORTIE ATTENDU: 
 
-INTERDIT :
+#exemple 1 : "Ultra-realistic editorial background image illustrating a major financial news story about BlackRock entering decentralized finance by listing its BUIDL fund on Uniswap.
 
-- Textes
-- Graphiques
-- Trading screens
-- Données affichées
-- Infographies
-- UI
-- Éléments flottants
-- CGI
-- Split image
-- Horizontal division
+The scene must look like a real professional press photograph, not an illustration.
 
-Mentionner explicitement :
-"Single continuous photograph from one camera position"
-"No digital screens showing charts or data"
-"No text or numbers"
+The scene shows a modern financial district environment in New York resembling Wall Street. A recognizable BlackRock office building is visible in the frame.
 
-_____________________________________________
-EXEMPLES DE SORTIE ATTENDU POUR T'INSPIRER
-_____________________________________________
+In the foreground, the official Uniswap logo appears prominently displayed on a large physical LED screen mounted on a real building facade. The logo must be sharp, clearly identifiable and large enough to remain visible in thumbnail format. It must appear physically integrated into the environment, not floating.
 
-POUR ENTREPRISE:
+Low-angle shot, camera positioned at street level pointing upward, creating a natural perspective placing the key elements in the upper third of the image.
 
-Ultra-realistic editorial background image illustrating a major European technology and consulting business news story about Capgemini preparing to present its annual results amid investor concerns. The scene must look like a real professional press photograph, not an illustration.
+The lighting features a strong stylized sunset atmosphere using intense cyan blue, vivid magenta, rich coral, deep fluo green, and warm glowing orange tones. These colors must appear as realistic reflections on glass and metal surfaces.
 
-The scene shows the Capgemini corporate headquarters building in a realistic and naturally balanced composition. The official Capgemini logo is fully visible on the building facade as a white illuminated sign (important), using the correct official logo design, integrated naturally into the architecture. The building must look completely real and credible, suitable for serious international financial and technology press coverage.
+The upper portion of the image transitions gradually and organically into a soft warm off-white tone close to hex #F5F6F1. The transition must be seamless and natural, with no hard horizontal cut and no artificial bright band.
 
-The lighting in the scene features a strong, clearly defined stylized sunset atmosphere using the official project fluo palette: intense cyan blue, vivid magenta, rich coral, deep fluo green, and warm glowing orange. These colors must be clearly visible in the sky and naturally reflected on the building surfaces. The reflections must feel physically plausible and integrated into real materials, not artificial.
+Single continuous photograph from one camera position.
 
-The image should transition gradually and smoothly upward into a very soft, bright warm off-white tone close to hex F8F9F4. The transition must resemble a natural brightening of the sky, without haze, without fog, without white overlay, and without any horizontal cut. The upper area must remain detailed and photographically realistic.
+No charts, no trading screens, no data visualizations, no floating coins, no digital overlays.
 
-Premium, minimal, airy, elegant mood with modern financial media energy. Realistic camera perspective, natural depth of field, subtle film grain. No text, no numbers, no UI, no watermark, no media logo. 8K quality.
+8K render, professional photojournalism style, realistic depth of field, subtle natural sensor grain, no text in image, no watermark, no media logo.
+"
 
-────────────────────────
+#exemple 2 : "Ultra-realistic editorial background image illustrating a major European regulatory news story about the European Union preparing new crypto sanctions.
 
-POUR PERSONNALITÉ:
+The scene must look like a real professional press photograph.
 
-Ultra-realistic editorial background image illustrating a major European political news story about policy disagreements between France and Germany. The scene must look like a real professional press photograph.
+The image shows a modern European institutional building in Brussels with the European Union flag clearly visible and recognizable. The architecture must feel authoritative and credible.
 
-The scene shows Emmanuel Macron clearly recognizable, speaking during an official European diplomatic event. A French flag and a German flag are visible as real physical flags.
+In the foreground, the official logo of the crypto project concerned appears displayed on a real institutional outdoor digital screen. The logo must be sharp, clearly visible and legible in thumbnail format, physically integrated into the environment.
 
-The lighting features a strong stylized sunset using the official fluo palette: intense cyan blue, vivid magenta, rich coral, deep fluo green, and warm glowing orange, naturally reflected on surfaces and surroundings.
+Low-angle shot, camera positioned low and pointing upward, ensuring a natural balanced composition.
 
-The image must transition gradually and smoothly upward into a very soft bright off-white tone close to hex F8F9F4. The transition must feel like natural sky luminosity increasing — no haze, no fog, no white overlay, no horizontal division. The subject must remain sharp and detailed up to the upper frame.
+The lighting features a dramatic yet realistic sunset with intense cyan blue, vivid magenta, rich coral, deep fluo green and warm glowing orange reflections on glass and steel surfaces.
 
-Professional press photography look. No text, no numbers, no UI, no watermark. 8K quality.
+The upper part of the image gradually transitions into a soft warm off-white tone close to hex #F5F6F1 with a seamless organic gradient and no visible horizontal separation.
 
-────────────────────────
+Single continuous photograph from one camera position.
 
-POUR INFO GÉOPOLITIQUE / LIEU:
+No text, no numbers, no charts, no trading screens, no data visualization, no graphic overlays.
 
-Ultra-realistic editorial background image illustrating a major geopolitical economic news story in Beijing.
-
-The scene shows a recognizable institutional setting in Beijing placed in the lower part of the image. A Chinese national flag is clearly visible and physically present. The architecture must be credible and institutional.
-
-The lighting in the lower part of the image features a strong, clearly defined stylized sunset atmosphere using the official project fluo palette: intense cyan blue, vivid magenta, rich coral, deep fluo green, and warm glowing orange. These colors must be visible in the sky and naturally reflected on the building, windows, flag and surrounding surfaces. Reflections must feel physically plausible, not graphic.
-
-The upper part must transition gradually and smoothly into a very soft bright off-white tone close to hex F8F9F4. The transition must be organic and seamless, resembling natural sky brightness increasing — not haze, not mist, not fog, not a white overlay, and not a hard horizontal cut. The building and flag must remain sharp and detailed up to the upper area.
-
-Premium, minimal, airy editorial mood. Realistic depth of field, subtle film grain. No text, no numbers, no UI, no watermark. 8K quality.
+8K render, professional photojournalism style, realistic depth of field, subtle natural sensor grain, no watermark, no media logo.
+"
 
 ────────────────────────
 FORMAT DE SORTIE
