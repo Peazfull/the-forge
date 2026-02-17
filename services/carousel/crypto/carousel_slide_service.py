@@ -222,7 +222,7 @@ def generate_carousel_slide(
     title_y = title_bg_top + max(0, (title_bg_height - title_block_height) // 2)
     title_letter_spacing = int(title_font.size * -0.01)  # -1%
     for line in title_lines[:2]:
-        draw.text((LEFT_MARGIN, title_y), line, font=title_font, fill="white", spacing=title_letter_spacing)
+        draw.text((LEFT_MARGIN, title_y), line, font=title_font, fill="black", spacing=title_letter_spacing)
         title_y += int(title_font.size * 1.2)
 
     # Content text - Inter Medium 40, noir, letter spacing +1%
