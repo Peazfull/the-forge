@@ -91,7 +91,14 @@ def _sorted_slide_files() -> list[tuple[str, str]]:
         return (num, name)
 
     files.sort(key=_key)
-    return [(name, os.path.join(ASSETS_DIR, name)) for name in files]
+    result = [(name, os.path.join(ASSETS_DIR, name)) for name in files]
+    
+    # Ajouter Outro.png en dernière slide
+    outro_path = os.path.join(ASSETS_DIR, "Outro.png")
+    if os.path.exists(outro_path):
+        result.append(("Outro.png", outro_path))
+    
+    return result
 
 
 def _format_french_date(dt: datetime | None = None) -> str:
