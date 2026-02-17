@@ -14,6 +14,7 @@ import yfinance as yf
 from db.supabase_client import get_supabase
 from services.marketbrewery.listes_market import (
     EU_TOP_200,
+    FR_SBF_120,
     EU_INDICES,
     EU_FX_PAIRS,
     COMMODITIES_MAJOR,
@@ -109,7 +110,7 @@ def refresh_market_daily_close_daily():
         ))
     else:
         symbols = list(dict.fromkeys(
-            EU_TOP_200 + EU_INDICES + EU_FX_PAIRS + COMMODITIES_MAJOR + CRYPTO_MAJOR + EU_BONDS_10Y
+            EU_TOP_200 + FR_SBF_120 + EU_INDICES + EU_FX_PAIRS + COMMODITIES_MAJOR + CRYPTO_MAJOR + EU_BONDS_10Y
         ))
 
     for symbol in symbols:
