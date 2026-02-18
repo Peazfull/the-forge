@@ -141,6 +141,27 @@ def _format_points(value: float) -> str:
         return f"{value}"
 
 
+def _calculate_centered_positions(img_h: int, title_asset_height: int, num_rows: int) -> tuple[int, int]:
+    """
+    Calcule les positions verticales centrées pour l'asset de titre et le tableau.
+    
+    Returns:
+        tuple: (asset_y, table_start_y)
+    """
+    header_height = int(SLIDE2_HEADER_SIZE * SLIDE2_LINE_HEIGHT_MULT)
+    row_height = int(SLIDE2_ROW_SIZE * SLIDE2_LINE_HEIGHT_MULT)
+    
+    gap_after_asset = 30  # Gap entre l'asset et le tableau
+    table_height = header_height + SLIDE2_HEADER_GAP + (row_height * num_rows)
+    total_block_height = title_asset_height + gap_after_asset + table_height
+    
+    # Centrer verticalement le bloc dans le canvas
+    asset_y = (img_h - total_block_height) // 2
+    table_start_y = asset_y + title_asset_height + gap_after_asset
+    
+    return (asset_y, table_start_y)
+
+
 def _get_top10_close_eu() -> list[dict]:
     try:
         data = get_close_top_flop(EU_TOP_200, limit=10)
@@ -248,7 +269,8 @@ def _render_close_table(
     rows: list[dict],
     name_label: str = "Entreprise",
     close_label: str = "Close",
-    format_close=None
+    format_close=None,
+    custom_start_y: int = None  # Nouveau paramètre pour centrage personnalisé
 ) -> None:
     header_font = _load_font(FONT_BOLD_PATH, SLIDE2_HEADER_SIZE)
     row_font = _load_font(FONT_SEMI_BOLD_PATH, SLIDE2_ROW_SIZE)
@@ -258,7 +280,8 @@ def _render_close_table(
     total_rows = len(rows) if rows else 1
 
     block_height = header_height + SLIDE2_HEADER_GAP + (row_height * total_rows)
-    start_y = SLIDE2_START_Y
+    # Utiliser custom_start_y si fourni, sinon utiliser la valeur par défaut
+    start_y = custom_start_y if custom_start_y is not None else SLIDE2_START_Y
 
     # Header row
     header_y = start_y
@@ -333,83 +356,119 @@ def _render_slide_bytes(filename: str, path: str) -> bytes:
         draw.text((x, DATE_TOP), date_text, font=font, fill=DATE_FILL)
     elif slide_number == 2:
         draw = ImageDraw.Draw(img)
+        rows = _get_top10_close_eu()
         if os.path.exists(SLIDE2_TITLE_ASSET):
             title_asset = Image.open(SLIDE2_TITLE_ASSET).convert("RGBA")
-            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE2_TITLE_ASSET_TOP))
-        _render_close_table(draw, img.size[0], img.size[1], _get_top10_close_eu())
+            asset_y, table_start_y = _calculate_centered_positions(img.height, title_asset.height, len(rows))
+            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, asset_y))
+        else:
+            table_start_y = SLIDE2_START_Y
+        _render_close_table(draw, img.size[0], img.size[1], rows, custom_start_y=table_start_y)
     elif slide_number == 3:
         draw = ImageDraw.Draw(img)
+        rows = _get_flop10_close_eu()
         if os.path.exists(SLIDE3_TITLE_ASSET):
             title_asset = Image.open(SLIDE3_TITLE_ASSET).convert("RGBA")
-            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE3_TITLE_ASSET_TOP))
-        _render_close_table(draw, img.size[0], img.size[1], _get_flop10_close_eu())
+            asset_y, table_start_y = _calculate_centered_positions(img.height, title_asset.height, len(rows))
+            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, asset_y))
+        else:
+            table_start_y = SLIDE2_START_Y
+        _render_close_table(draw, img.size[0], img.size[1], rows, custom_start_y=table_start_y)
     elif slide_number == 4:
         draw = ImageDraw.Draw(img)
+        rows = _get_top10_close_fr()
         if os.path.exists(SLIDE4_TITLE_ASSET):
             title_asset = Image.open(SLIDE4_TITLE_ASSET).convert("RGBA")
-            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE4_TITLE_ASSET_TOP))
-        _render_close_table(draw, img.size[0], img.size[1], _get_top10_close_fr())
+            asset_y, table_start_y = _calculate_centered_positions(img.height, title_asset.height, len(rows))
+            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, asset_y))
+        else:
+            table_start_y = SLIDE2_START_Y
+        _render_close_table(draw, img.size[0], img.size[1], rows, custom_start_y=table_start_y)
     elif slide_number == 5:
         draw = ImageDraw.Draw(img)
+        rows = _get_flop10_close_fr()
         if os.path.exists(SLIDE5_TITLE_ASSET):
             title_asset = Image.open(SLIDE5_TITLE_ASSET).convert("RGBA")
-            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE5_TITLE_ASSET_TOP))
-        _render_close_table(draw, img.size[0], img.size[1], _get_flop10_close_fr())
+            asset_y, table_start_y = _calculate_centered_positions(img.height, title_asset.height, len(rows))
+            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, asset_y))
+        else:
+            table_start_y = SLIDE2_START_Y
+        _render_close_table(draw, img.size[0], img.size[1], rows, custom_start_y=table_start_y)
     elif slide_number == 6:
         draw = ImageDraw.Draw(img)
+        rows = _get_indices_close_eu()
         if os.path.exists(SLIDE6_TITLE_ASSET):
             title_asset = Image.open(SLIDE6_TITLE_ASSET).convert("RGBA")
-            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE6_TITLE_ASSET_TOP))
+            asset_y, table_start_y = _calculate_centered_positions(img.height, title_asset.height, len(rows))
+            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, asset_y))
+        else:
+            table_start_y = SLIDE2_START_Y
         _render_close_table(
             draw,
             img.size[0],
             img.size[1],
-            _get_indices_close_eu(),
+            rows,
             name_label="Indice",
             close_label="Close",
-            format_close=_format_points
+            format_close=_format_points,
+            custom_start_y=table_start_y
         )
     elif slide_number == 7:
         draw = ImageDraw.Draw(img)
+        rows = _get_commodities_close()
         if os.path.exists(SLIDE7_TITLE_ASSET):
             title_asset = Image.open(SLIDE7_TITLE_ASSET).convert("RGBA")
-            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE7_TITLE_ASSET_TOP))
+            asset_y, table_start_y = _calculate_centered_positions(img.height, title_asset.height, len(rows))
+            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, asset_y))
+        else:
+            table_start_y = SLIDE2_START_Y
         _render_close_table(
             draw,
             img.size[0],
             img.size[1],
-            _get_commodities_close(),
+            rows,
             name_label="Asset",
             close_label="Close",
-            format_close=_format_usd
+            format_close=_format_usd,
+            custom_start_y=table_start_y
         )
     elif slide_number == 8:
         draw = ImageDraw.Draw(img)
+        rows = _get_fx_close_eu()
         if os.path.exists(SLIDE8_TITLE_ASSET):
             title_asset = Image.open(SLIDE8_TITLE_ASSET).convert("RGBA")
-            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE8_TITLE_ASSET_TOP))
+            asset_y, table_start_y = _calculate_centered_positions(img.height, title_asset.height, len(rows))
+            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, asset_y))
+        else:
+            table_start_y = SLIDE2_START_Y
         _render_close_table(
             draw,
             img.size[0],
             img.size[1],
-            _get_fx_close_eu(),
+            rows,
             name_label="Currency",
             close_label="Close",
-            format_close=_format_usd
+            format_close=_format_usd,
+            custom_start_y=table_start_y
         )
     elif slide_number == 9:
         draw = ImageDraw.Draw(img)
+        rows = _get_crypto_close()
         if os.path.exists(SLIDE9_TITLE_ASSET):
             title_asset = Image.open(SLIDE9_TITLE_ASSET).convert("RGBA")
-            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE9_TITLE_ASSET_TOP))
+            asset_y, table_start_y = _calculate_centered_positions(img.height, title_asset.height, len(rows))
+            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, asset_y))
+        else:
+            table_start_y = SLIDE2_START_Y
         _render_close_table(
             draw,
             img.size[0],
             img.size[1],
-            _get_crypto_close(),
+            rows,
             name_label="Crypto",
             close_label="Close",
-            format_close=_format_usd
+            format_close=_format_usd,
+            custom_start_y=table_start_y
         )
     
     # Ajouter Swipe.png en bas à droite pour les slides 1-9
