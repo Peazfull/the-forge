@@ -579,29 +579,38 @@ with col_gen:
 
 st.markdown("### Preview slides")
 slides_cache_buster = st.session_state.get("doss_slides_cache_buster", "")
-col_a, col_b = st.columns(2)
-with col_a:
+
+# Ligne 1 : Slide 0, 1, 2
+col1, col2, col3 = st.columns(3)
+with col1:
     st.caption("Slide 0 (Cover)")
     url = get_supabase().storage.from_(DOSS_SLIDES_BUCKET).get_public_url("slide_0.png")
     if url:
         st.image(_with_cache_buster(url, slides_cache_buster), use_container_width=True)
-    st.caption("Slide 2")
-    url = get_supabase().storage.from_(DOSS_SLIDES_BUCKET).get_public_url("slide_2.png")
-    if url:
-        st.image(_with_cache_buster(url, slides_cache_buster), use_container_width=True)
-    st.caption("Slide 4")
-    url = get_supabase().storage.from_(DOSS_SLIDES_BUCKET).get_public_url("slide_4.png")
-    if url:
-        st.image(_with_cache_buster(url, slides_cache_buster), use_container_width=True)
-with col_b:
+with col2:
     st.caption("Slide 1")
     url = get_supabase().storage.from_(DOSS_SLIDES_BUCKET).get_public_url("slide_1.png")
     if url:
         st.image(_with_cache_buster(url, slides_cache_buster), use_container_width=True)
+with col3:
+    st.caption("Slide 2")
+    url = get_supabase().storage.from_(DOSS_SLIDES_BUCKET).get_public_url("slide_2.png")
+    if url:
+        st.image(_with_cache_buster(url, slides_cache_buster), use_container_width=True)
+
+# Ligne 2 : Slide 3, 4, Outro
+col4, col5, col6 = st.columns(3)
+with col4:
     st.caption("Slide 3")
     url = get_supabase().storage.from_(DOSS_SLIDES_BUCKET).get_public_url("slide_3.png")
     if url:
         st.image(_with_cache_buster(url, slides_cache_buster), use_container_width=True)
+with col5:
+    st.caption("Slide 4")
+    url = get_supabase().storage.from_(DOSS_SLIDES_BUCKET).get_public_url("slide_4.png")
+    if url:
+        st.image(_with_cache_buster(url, slides_cache_buster), use_container_width=True)
+with col6:
     st.caption("Outro")
     url = get_supabase().storage.from_(DOSS_SLIDES_BUCKET).get_public_url("slide_outro.png")
     if url:
