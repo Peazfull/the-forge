@@ -138,8 +138,8 @@ def _format_french_date(dt: datetime | None = None) -> tuple[str, str]:
     # Calculer le numéro de semaine ISO
     week_number = dt.isocalendar()[1]
     
-    line1 = f"La revue Weekly Market de la semaine {week_number}"
-    line2 = f"du {dt.day:02d} {months[dt.month - 1]} {dt.year}"
+    line1 = f"La revue Weekly Market n°{week_number}"
+    line2 = f"Semaine du {dt.day:02d} {months[dt.month - 1]} {dt.year}"
     
     return (line1, line2)
 
