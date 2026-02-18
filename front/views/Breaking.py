@@ -45,8 +45,9 @@ def _load_breaking_state() -> Dict[str, object]:
         pass
     return {
         "raw_text": "",
-        "title_carou": "",
-        "content_carou": "",
+        "slide_0_hook": "",  # Nouveau : hook pour slide 0
+        "slide_1_title": "",  # Nouveau : titre pour slide 1
+        "slide_1_content": "",  # Nouveau : contenu pour slide 1
         "prompt_image_0": "",
         "prompt_image_1": "",
         "image_url_0": "",
@@ -188,18 +189,29 @@ def build_breaking_exports() -> Dict[str, object]:
     }
 
 
-def _generate_breaking_slides(state: Dict[str, object], title: str, content: str) -> None:
+def _generate_breaking_slides(
+    state: Dict[str, object], 
+    slide_0_hook: str, 
+    slide_1_title: str, 
+    slide_1_content: str
+) -> None:
     if not state.get("image_url_0") or not state.get("image_url_1"):
         st.warning("Il faut générer les 2 images.")
         return
-    if not title or not content:
-        st.warning("Il faut un titre et un contenu.")
+    if not slide_0_hook or not slide_1_title or not slide_1_content:
+        st.warning("Il faut un hook, un titre et un contenu.")
         return
+    
+    # Log pour debug
+    print(f"🎨 Génération slides - Hook: {slide_0_hook[:50]}... | Title: {slide_1_title[:50]}... | Content: {slide_1_content[:50]}...")
+    
     with st.spinner("Génération des slides..."):
-        cover_bytes = generate_cover_slide(title=title, image_url=state["image_url_0"])
+        # Slide 0 utilise le HOOK
+        cover_bytes = generate_cover_slide(title=slide_0_hook, image_url=state["image_url_0"])
+        # Slide 1 utilise le TITRE et CONTENU
         slide1_bytes = generate_carousel_slide(
-            title=title,
-            content=content,
+            title=slide_1_title,
+            content=slide_1_content,
             image_url=state["image_url_1"],
         )
         _upload_breaking_slide("slide_0.png", cover_bytes)
@@ -215,9 +227,14 @@ def _generate_breaking_slides(state: Dict[str, object], title: str, content: str
     st.success("✅ Slides générées")
 
 
-def _auto_generate_slides_if_ready(state: Dict[str, object], title: str, content: str) -> None:
-    if state.get("image_url_0") and state.get("image_url_1") and title and content:
-        _generate_breaking_slides(state, title, content)
+def _auto_generate_slides_if_ready(
+    state: Dict[str, object], 
+    slide_0_hook: str, 
+    slide_1_title: str, 
+    slide_1_content: str
+) -> None:
+    if state.get("image_url_0") and state.get("image_url_1") and slide_0_hook and slide_1_title and slide_1_content:
+        _generate_breaking_slides(state, slide_0_hook, slide_1_title, slide_1_content)
 
 
 st.title("⚡ Breaking")
@@ -236,15 +253,21 @@ if st.button("✨ Générer titre + contenu", use_container_width=True):
     else:
         with st.spinner("Génération en cours..."):
             result = _generate_breaking_text(raw_text)
-        state["title_carou"] = result.get("title_carou", "")
-        state["content_carou"] = result.get("content_carou", "")
+        
+        # Log pour debug (à garder temporairement)
+        print(f"🔍 Breaking JSON reçu: {result}")
+        
+        # Nouveaux champs
+        state["slide_0_hook"] = result.get("slide_0_hook", "")
+        state["slide_1_title"] = result.get("slide_1_title", "")
+        state["slide_1_content"] = result.get("slide_1_content", "")
         _save_breaking_state(state)
         st.success("✅ Titre + contenu générés")
 
         # Générer prompts + images automatiquement
-        if state["title_carou"] and state["content_carou"]:
+        if state["slide_1_title"] and state["slide_1_content"]:
             with st.spinner("Génération des prompts + images..."):
-                p = _generate_breaking_image_prompt(state["title_carou"], state["content_carou"])
+                p = _generate_breaking_image_prompt(state["slide_1_title"], state["slide_1_content"])
                 prompt = p.get("image_prompt", "")
                 state["prompt_image_0"] = prompt
                 state["prompt_image_1"] = prompt
@@ -266,24 +289,31 @@ if st.button("✨ Générer titre + contenu", use_container_width=True):
 
             # Générer les slides automatiquement si images OK
             if state.get("image_url_0") and state.get("image_url_1"):
-                _generate_breaking_slides(state, state["title_carou"], state["content_carou"])
+                _generate_breaking_slides(
+                    state, 
+                    slide_0_hook=state["slide_0_hook"],
+                    slide_1_title=state["slide_1_title"], 
+                    slide_1_content=state["slide_1_content"]
+                )
                 st.session_state["breaking_slides_cache_buster"] = str(time.time())
                 st.rerun()
 
 st.markdown("### Résumé Breaking (éditable)")
-title = st.text_input("Titre (clickbait)", value=state.get("title_carou", ""))
-content = st.text_area("Content (2-3 phrases)", value=state.get("content_carou", ""), height=120)
+slide_0_hook = st.text_input("Hook Slide 0 (impactant)", value=state.get("slide_0_hook", ""))
+slide_1_title = st.text_input("Titre Slide 1 (court)", value=state.get("slide_1_title", ""))
+slide_1_content = st.text_area("Contenu Slide 1 (2-3 phrases)", value=state.get("slide_1_content", ""), height=120)
 if st.button("💾 Sauvegarder texte", use_container_width=True):
-    state["title_carou"] = title
-    state["content_carou"] = content
+    state["slide_0_hook"] = slide_0_hook
+    state["slide_1_title"] = slide_1_title
+    state["slide_1_content"] = slide_1_content
     _save_breaking_state(state)
     st.success("✅ Texte sauvegardé")
 if st.button("🔄 Régénérer prompts + images", use_container_width=True):
-    if not title or not content:
+    if not slide_1_title or not slide_1_content:
         st.warning("Il faut un titre et un contenu.")
     else:
         with st.spinner("Génération des prompts + images..."):
-            p = _generate_breaking_image_prompt(title, content)
+            p = _generate_breaking_image_prompt(slide_1_title, slide_1_content)
             prompt = p.get("image_prompt", "")
             state["prompt_image_0"] = prompt
             state["prompt_image_1"] = prompt
@@ -301,7 +331,7 @@ if st.button("🔄 Régénérer prompts + images", use_container_width=True):
                     if url1:
                         state["image_url_1"] = url1
             _save_breaking_state(state)
-        _auto_generate_slides_if_ready(state, title, content)
+        _auto_generate_slides_if_ready(state, slide_0_hook, slide_1_title, slide_1_content)
 
 st.divider()
 
@@ -326,11 +356,11 @@ with col_img0:
     if st.button("🎨 Générer image 0", use_container_width=True):
         prompt0 = state.get("prompt_image_0", "")
         if not prompt0.strip():
-            if not title or not content:
+            if not slide_1_title or not slide_1_content:
                 st.warning("Il faut un titre et un contenu.")
                 st.stop()
             with st.spinner("Génération du prompt 0..."):
-                p0 = _generate_breaking_image_prompt(title, content)
+                p0 = _generate_breaking_image_prompt(slide_1_title, slide_1_content)
             prompt0 = p0.get("image_prompt", "")
             state["prompt_image_0"] = prompt0
             _save_breaking_state(state)
@@ -346,7 +376,7 @@ with col_img0:
                     state["image_url_0"] = _with_cache_buster(url, str(time.time()))
                     _save_breaking_state(state)
                     st.success("✅ Image 0 générée")
-                    _auto_generate_slides_if_ready(state, title, content)
+                    _auto_generate_slides_if_ready(state, slide_0_hook, slide_1_title, slide_1_content)
                     st.rerun()
             else:
                 st.error(result.get("message", "Erreur image 0"))
@@ -360,8 +390,8 @@ with col_img0:
                 # Générer le prompt structuré à partir des recommandations manuelles
                 with st.spinner("Génération du prompt structuré..."):
                     prompt_result = generate_breaking_image_prompt_manual(
-                        title=title,
-                        content=content,
+                        title=slide_1_title,
+                        content=slide_1_content,
                         manual_recommendations=manual_prompt_0
                     )
                 
@@ -380,7 +410,7 @@ with col_img0:
                             state["image_url_0"] = _with_cache_buster(url, str(time.time()))
                             _save_breaking_state(state)
                             st.success("✅ Image 0 générée")
-                            _auto_generate_slides_if_ready(state, title, content)
+                            _auto_generate_slides_if_ready(state, slide_0_hook, slide_1_title, slide_1_content)
                             st.rerun()
                     else:
                         st.error(result.get("message", "Erreur image 0"))
@@ -407,7 +437,7 @@ with col_img1:
                 st.warning("Il faut un titre et un contenu.")
                 st.stop()
             with st.spinner("Génération du prompt 1..."):
-                p1 = _generate_breaking_image_prompt(title, content)
+                p1 = _generate_breaking_image_prompt(slide_1_title, slide_1_content)
             prompt1 = p1.get("image_prompt", "")
             state["prompt_image_1"] = prompt1
             _save_breaking_state(state)
@@ -457,7 +487,7 @@ with col_img1:
                             state["image_url_1"] = _with_cache_buster(url, str(time.time()))
                             _save_breaking_state(state)
                             st.success("✅ Image 1 générée")
-                            _auto_generate_slides_if_ready(state, title, content)
+                            _auto_generate_slides_if_ready(state, slide_0_hook, slide_1_title, slide_1_content)
                             st.rerun()
                     else:
                         st.error(result.get("message", "Erreur image 1"))
@@ -480,7 +510,7 @@ st.markdown("### Slides")
 col_gen, col_clear = st.columns(2)
 with col_gen:
     if st.button("🖼️ Générer slides", use_container_width=True):
-        _generate_breaking_slides(state, title, content)
+        _generate_breaking_slides(state, slide_0_hook, slide_1_title, slide_1_content)
         st.session_state["breaking_slides_cache_buster"] = str(time.time())
         st.rerun()
 with col_clear:
@@ -584,7 +614,7 @@ with st.expander("📝 Caption Instagram", expanded=False):
                 st.warning("Il faut un titre et un contenu.")
             else:
                 with st.spinner("Génération de la caption..."):
-                    result = generate_caption_from_breaking(title, content)
+                    result = generate_caption_from_breaking(slide_1_title, slide_1_content)
                 if result.get("status") == "success":
                     st.session_state.breaking_caption_text_area = result["caption"]
                     upload_caption_text(st.session_state.breaking_caption_text_area)
@@ -641,7 +671,7 @@ with st.expander("💼 Post LinkedIn", expanded=False):
                 st.warning("Il faut un titre et un contenu.")
             else:
                 with st.spinner("Génération du post LinkedIn..."):
-                    result = generate_linkedin_from_breaking(title, content)
+                    result = generate_linkedin_from_breaking(slide_1_title, slide_1_content)
                 if result.get("status") == "success":
                     st.session_state.breaking_linkedin_text_area = result["text"]
                     upload_linkedin_text(st.session_state.breaking_linkedin_text_area)
