@@ -1,6 +1,6 @@
 """
-Génération des slides breaking (1080x1080) via Pillow.
-Stack: image de fond + filtre + logo + title_bg + texte + swipe.
+Génération des slides breaking (1080x1350) via Pillow.
+Stack: image de fond + overlay + logo + title_bg + texte + swipe.
 """
 
 from __future__ import annotations
@@ -19,32 +19,26 @@ ASSETS_DIR = os.path.join(
     "front", "layout", "assets", "carousel", "breaking"
 )
 
-CANVAS_SIZE = (1080, 1080)
+CANVAS_SIZE = (1080, 1350)  # Changé de 1080x1080 à 1080x1350
+COVER_IMAGE_SIZE = (1080, 864)  # Format 5:4 pour l'image de fond
 LOGO_SIZE = (200, 65)
-LOGO_TOP = 15
-TITLE_BG_TOP_FROM_BOTTOM = 490  # px depuis le bas (590px du haut)
-TITLE_BG_SIDE_MARGIN = 50
-SWIPE_MARGIN = 20
-SWIPE_SIZE = (56, 29)
-COVER_SWIPE_SCALE = 0.5
+LOGO_TOP = -15  # Clippé en haut comme Eco
+TITLE_BG_TOP = 87  # Position fixe depuis le haut (comme Eco)
 LEFT_MARGIN = 60
 RIGHT_MARGIN = 60
 TITLE_COVER_SIDE_MARGIN = 120
 CONTENT_TOP_GAP = 20
-CONTENT_BOTTOM_MARGIN = 20
-DATE_FONT_SIZE = 38
-COVER_LOGO_WIDTH = 584  # Réduit de 760 (divisé par 1.3)
+DATE_FONT_SIZE = 68  # Augmenté comme Eco
+COVER_LOGO_WIDTH = 584
 DATE_TOP_GAP = 12
 
-# Polices (fallback sur PIL par défaut si fichier absent)
-FONT_TITLE_PATH = os.path.join(ASSETS_DIR, "Manrope-Bold.ttf")
-FONT_CONTENT_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")
-TITLE_FONT_WEIGHT = 600
-CONTENT_FONT_WEIGHT = 600
-TITLE_FONT_SIZE = 40
-TITLE_COVER_FONT_SIZE = 53
-CONTENT_FONT_SIZE = 38
-TITLE_SLIDE_MAX_HEIGHT = 80
+# Polices Inter comme Eco
+FONT_TITLE_PATH = os.path.join(ASSETS_DIR, "Inter_18pt-Bold.ttf")
+FONT_CONTENT_PATH = os.path.join(ASSETS_DIR, "Inter_18pt-Medium.ttf")
+TITLE_FONT_SIZE = 46  # Comme Eco
+CONTENT_FONT_SIZE = 39  # Comme Eco
+TITLE_LETTER_SPACING = -0.01  # -1%
+CONTENT_LETTER_SPACING = 0.01  # +1%
 
 
 def _load_font(path: str, size: int, weight: int | None = None) -> ImageFont.ImageFont:
