@@ -477,10 +477,27 @@ with col_img1:
 st.divider()
 
 st.markdown("### Slides")
-if st.button("🖼️ Générer slides", use_container_width=True):
-    _generate_breaking_slides(state, title, content)
-    st.session_state["breaking_slides_cache_buster"] = str(time.time())
-    st.rerun()
+col_gen, col_clear = st.columns(2)
+with col_gen:
+    if st.button("🖼️ Générer slides", use_container_width=True):
+        _generate_breaking_slides(state, title, content)
+        st.session_state["breaking_slides_cache_buster"] = str(time.time())
+        st.rerun()
+with col_clear:
+    if st.button("🗑️ Clear slides", use_container_width=True):
+        try:
+            supabase = get_supabase()
+            files_to_remove = ["slide_0.png", "slide_1.png", "slide_outro.png"]
+            for filename in files_to_remove:
+                try:
+                    supabase.storage.from_(BREAKING_SLIDES_BUCKET).remove([filename])
+                except:
+                    pass
+            st.session_state["breaking_slides_cache_buster"] = str(time.time())
+            st.success("✅ Slides supprimées")
+            st.rerun()
+        except Exception as e:
+            st.error(f"Erreur: {str(e)}")
 
 st.markdown("### Preview slides")
 col_p0, col_p1, col_p2 = st.columns(3)
