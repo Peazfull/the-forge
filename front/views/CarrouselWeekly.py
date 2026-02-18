@@ -114,7 +114,12 @@ def _slide_number_from_name(name: str) -> int:
     return int(match.group(1)) if match else 999
 
 
-def _format_french_date(dt: datetime | None = None) -> str:
+def _format_french_date(dt: datetime | None = None) -> tuple[str, str]:
+    """
+    Retourne le titre de la revue hebdo sur deux lignes.
+    Returns:
+        tuple: (ligne1, ligne2)
+    """
     if dt is None:
         weekly_date = get_last_weekly_date()
         if weekly_date:
@@ -124,11 +129,19 @@ def _format_french_date(dt: datetime | None = None) -> str:
                 dt = datetime.now()
         else:
             dt = datetime.now()
+    
     months = [
         "janvier", "février", "mars", "avril", "mai", "juin",
         "juillet", "août", "septembre", "octobre", "novembre", "décembre",
     ]
-    return f"La Revue Hebdo du {dt.day:02d} {months[dt.month - 1]} {dt.year}"
+    
+    # Calculer le numéro de semaine ISO
+    week_number = dt.isocalendar()[1]
+    
+    line1 = f"La revue Weekly Market de la semaine {week_number}"
+    line2 = f"du {dt.day:02d} {months[dt.month - 1]} {dt.year}"
+    
+    return (line1, line2)
 
 
 def _load_font(path: str, size: int) -> ImageFont.ImageFont:
@@ -418,12 +431,21 @@ def _render_slide_bytes(filename: str, path: str) -> bytes:
     
     if slide_number == 1:
         draw = ImageDraw.Draw(img)
-        date_text = _format_french_date()
+        line1, line2 = _format_french_date()
         font = _load_font(FONT_BOLD_PATH, DATE_FONT_SIZE)
-        text_width = draw.textlength(date_text, font=font)
-        text_height = int(DATE_FONT_SIZE * 1.2)
-        x = (img.size[0] - text_width) // 2
-        draw.text((x, DATE_TOP), date_text, font=font, fill=DATE_FILL)
+        
+        # Calculer les largeurs et hauteurs
+        text_width_1 = draw.textlength(line1, font=font)
+        text_width_2 = draw.textlength(line2, font=font)
+        line_height = int(DATE_FONT_SIZE * 1.3)  # Espacement entre les lignes
+        
+        # Centrer chaque ligne horizontalement
+        x1 = (img.size[0] - text_width_1) // 2
+        x2 = (img.size[0] - text_width_2) // 2
+        
+        # Afficher les deux lignes
+        draw.text((x1, DATE_TOP), line1, font=font, fill=DATE_FILL)
+        draw.text((x2, DATE_TOP + line_height), line2, font=font, fill=DATE_FILL)
     elif slide_number == 2:
         draw = ImageDraw.Draw(img)
         rows = _get_top10_weekly_us()
