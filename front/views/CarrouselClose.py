@@ -26,40 +26,40 @@ ASSETS_DIR = os.path.join(
 )
 FONT_BOLD_PATH = os.path.join(ASSETS_DIR, "Manrope-Bold.ttf")
 FONT_SEMI_BOLD_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")
-DATE_FONT_SIZE = 42
-DATE_TOP = 640
+DATE_FONT_SIZE = 58  # Augmenté ×1.2 (était 42)
+DATE_TOP = 550  # Ajusté pour 1080x1350 (était 640)
 DATE_FILL = "#F6F6F6"
 DATE_HIGHLIGHT_BG = "#5B2EFF"
 DATE_HIGHLIGHT_PAD_X = 10
 DATE_HIGHLIGHT_PAD_Y = 6
-SLIDE2_MARGIN_X = 165
-SLIDE2_HEADER_SIZE = 24
-SLIDE2_ROW_SIZE = 26
+SLIDE2_MARGIN_X = 140  # Réduit de 165 à 140 pour plus d'espace
+SLIDE2_HEADER_SIZE = 29  # Augmenté ×1.2 (était 24)
+SLIDE2_ROW_SIZE = 31  # Augmenté ×1.2 (était 26)
 SLIDE2_HEADER_GAP = 14
 SLIDE2_LINE_HEIGHT_MULT = 2
 SLIDE2_HEADER_COLOR = "#E6FF4B"
 SLIDE2_TEXT_COLOR = "#F6F6F6"
 SLIDE2_POS_COLOR = "#00BF63"
 SLIDE2_NEG_COLOR = "#FF5757"
-SLIDE2_START_Y = 400
+SLIDE2_START_Y = 500  # Ajusté pour 1080x1350 (était 400)
 SLIDE2_ROW_SEPARATOR_COLOR = (255, 255, 255, 200)
 SLIDE2_ROW_SEPARATOR_INSET = 0
 SLIDE2_TITLE_ASSET = os.path.join(ASSETS_DIR, "Top_10_eur.png")
-SLIDE2_TITLE_ASSET_TOP = 310
+SLIDE2_TITLE_ASSET_TOP = 388  # Ajusté pour 1080x1350 (était 310)
 SLIDE3_TITLE_ASSET = os.path.join(ASSETS_DIR, "Flop_10_eur.png")
-SLIDE3_TITLE_ASSET_TOP = 310
+SLIDE3_TITLE_ASSET_TOP = 388  # Ajusté pour 1080x1350 (était 310)
 SLIDE4_TITLE_ASSET = os.path.join(ASSETS_DIR, "Top_10_fr.png")
-SLIDE4_TITLE_ASSET_TOP = 310
+SLIDE4_TITLE_ASSET_TOP = 388  # Ajusté pour 1080x1350 (était 310)
 SLIDE5_TITLE_ASSET = os.path.join(ASSETS_DIR, "Flop_10_fr.png")
-SLIDE5_TITLE_ASSET_TOP = 310
+SLIDE5_TITLE_ASSET_TOP = 388  # Ajusté pour 1080x1350 (était 310)
 SLIDE6_TITLE_ASSET = os.path.join(ASSETS_DIR, "Indices_eur.png")
-SLIDE6_TITLE_ASSET_TOP = 310
+SLIDE6_TITLE_ASSET_TOP = 388  # Ajusté pour 1080x1350 (était 310)
 SLIDE7_TITLE_ASSET = os.path.join(ASSETS_DIR, "Como_eur.png")
-SLIDE7_TITLE_ASSET_TOP = 310
+SLIDE7_TITLE_ASSET_TOP = 388  # Ajusté pour 1080x1350 (était 310)
 SLIDE8_TITLE_ASSET = os.path.join(ASSETS_DIR, "Devises_eur.png")
-SLIDE8_TITLE_ASSET_TOP = 310
+SLIDE8_TITLE_ASSET_TOP = 388  # Ajusté pour 1080x1350 (était 310)
 SLIDE9_TITLE_ASSET = os.path.join(ASSETS_DIR, "Cryptos_eur.png")
-SLIDE9_TITLE_ASSET_TOP = 310
+SLIDE9_TITLE_ASSET_TOP = 388  # Ajusté pour 1080x1350 (était 310)
 CAPTION_FILE = os.path.join(
     os.path.dirname(__file__),
     "..", "..", "prompts", "close", "fixed_caption.txt"
@@ -91,7 +91,14 @@ def _sorted_slide_files() -> list[tuple[str, str]]:
         return (num, name)
 
     files.sort(key=_key)
-    return [(name, os.path.join(ASSETS_DIR, name)) for name in files]
+    result = [(name, os.path.join(ASSETS_DIR, name)) for name in files]
+    
+    # Ajouter Outro.png en dernière slide
+    outro_path = os.path.join(ASSETS_DIR, "Outro.png")
+    if os.path.exists(outro_path):
+        result.append(("Outro.png", outro_path))
+    
+    return result
 
 
 def _format_french_date(dt: datetime | None = None) -> str:
@@ -101,7 +108,7 @@ def _format_french_date(dt: datetime | None = None) -> str:
         "janvier", "février", "mars", "avril", "mai", "juin",
         "juillet", "août", "septembre", "octobre", "novembre", "décembre",
     ]
-    return f"la clôture européenne du {dt.day:02d} {months[dt.month - 1]} {dt.year}"
+    return f"Le Close Europe du {dt.day:02d} {months[dt.month - 1]} {dt.year}"
 
 
 def _load_font(path: str, size: int) -> ImageFont.ImageFont:
@@ -476,8 +483,12 @@ if slide_files:
             try:
                 slide_bytes = _render_slide_bytes(filename, path)
                 st.image(slide_bytes, use_container_width=True)
-            except Exception:
-                st.image(path, use_container_width=True)
+            except Exception as e:
+                st.error(f"Erreur rendu {filename}: {str(e)}")
+                try:
+                    st.image(path, use_container_width=True)
+                except Exception as e2:
+                    st.error(f"Erreur chargement {filename}: {str(e2)}")
 
 st.divider()
 if st.button("📦 Préparer export Close", use_container_width=True):
