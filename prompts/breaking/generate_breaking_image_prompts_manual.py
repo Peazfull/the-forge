@@ -1,178 +1,203 @@
 PROMPT_GENERATE_BREAKING_IMAGE_PROMPT_MANUAL = """
-Tu vas recevoir un TITRE, un CONTENU d'actualité breaking news, ET les RECOMMANDATIONS MANUELLES de l'utilisateur pour l'image.
+Tu vas recevoir un TITRE et un CONTENU d'actualité économique, politique ou institutionnelle,
+ainsi que mes recommandations manuelles concernant l'image attendue.
 
-Ta mission est de générer UNIQUEMENT le PROMPT FINAL
-destiné à une IA de génération d'images.
+Ta mission est de générer UNIQUEMENT le PROMPT FINAL destiné à une IA de génération d'images.
 Tu ne génères PAS l'image.
 
-Le prompt doit illustrer l'ACTU BREAKING,
-en respectant strictement les contraintes visuelles ci-dessous ET en intégrant les recommandations manuelles.
+Le prompt doit illustrer l'ACTU MAJEURE en respectant strictement les règles suivantes,
+tout en intégrant intelligemment les indications manuelles si elles sont cohérentes
+avec les règles visuelles.
 
 ────────────────────────
-ACTU BREAKING (OBLIGATOIRE)
+1️⃣ IDENTIFICATION DU SUJET CENTRAL
 ────────────────────────
 
-À partir du titre et du contenu :
-- identifie l'ACTU BREAKING qui porte l'information centrale
-- conserve le contexte, mais hiérarchise clairement
+Détermine le sujet visuel principal :
 
-Sélectionne LE SUJET VISUEL CENTRAL :
 - ENTREPRISE
 - PERSONNALITÉ PUBLIQUE
-- LIEU / ÉVÉNEMENT MAJEUR
+- LIEU / ÉVÉNEMENT GÉOPOLITIQUE OU INSTITUTIONNEL
 
-L'image doit illustrer :
-→ l'entreprise, l'acteur ou le lieu qui porte l'action principale
-
-────────────────────────
-RÈGLE VISUELLE MAJEURE (NON NÉGOCIABLE)
-────────────────────────
-
-⚠️ COMPOSITION VERTICALE OBLIGATOIRE (ULTRA-CRITIQUE) :
-
-L'image doit être UNE SEULE ET UNIQUE PHOTOGRAPHIE COHÉRENTE.
-INTERDIT ABSOLU : diviser l'image en deux parties distinctes (haut/bas).
-
-PERSPECTIVE OBLIGATOIRE :
-- Photo prise en CONTRE-PLONGÉE (low-angle shot, vue d'en bas vers le haut)
-- Le photographe est positionné au sol ou en position basse
-- L'appareil photo est orienté vers le HAUT
-- Cette perspective naturelle place automatiquement les éléments importants dans le tiers supérieur
-
-PLACEMENT DES ÉLÉMENTS CLÉS :
-- Logo sur bâtiment, personnalité, ou lieu → positionnés dans le TIERS SUPÉRIEUR de l'image
-- Résultat naturel de la prise de vue en contre-plongée
-- Le reste de l'image (partie basse) = continuité naturelle de la même scène (sol, base du bâtiment, environnement proche)
-
-UNITÉ VISUELLE OBLIGATOIRE :
-- UNE SEULE photo continue, pas deux images collées
-- Perspective et lumière cohérentes sur toute la hauteur
-- Transition fluide du bas vers le haut de l'image
-
-La PARTIE BASSE doit rester calme, propre, sans élément fort,
-
-Personnages secondaires autorisés uniquement :
-- silhouettes très lointaines et discrètes.
+L'image doit illustrer UNIQUEMENT le sujet central qui porte l'action principale.
 
 ────────────────────────
-RÈGLES STRICTES PAR TYPE DE SUJET
+2️⃣ RÈGLES STRICTES PAR TYPE DE SUJET
 ────────────────────────
 
-SI LE SUJET EST UNE ENTREPRISE :
-- LE LOGO OFFICIEL EST OBLIGATOIRE (très important)
-- Image INVALIDE sans logo officiel visible
-- Logo authentique, RÉEL, lisible, intégré naturellement dans un contexte photographique réaliste
-- Contexte : façade, siège, environnement professionnel réel
+SI ENTREPRISE :
 
-SI LE SUJET EST UNE PERSONNALITÉ PUBLIQUE :
-- Uniquement personnalité publique connue ET SEULEMENT si elle est le CŒUR de l'actualité
-- Contexte OBLIGATOIRE :
-  conférence officielle, intervention publique ou déplacement institutionnel
-- Posture calme, neutre, maîtrisée
-- Style PHOTO DE PRESSE RÉELLE
+- Logo officiel réel OBLIGATOIRE
+- Logo clair, net, identifiable en miniature
+- Logo physiquement intégré (enseigne, façade, signalétique réelle)
+- Taille suffisante pour rester lisible en thumbnail
+- Architecture adaptée à l'activité :
+  • Luxe → haussmannien élégant
+  • Tech → siège moderne verre / acier
+  • Automobile → siège + véhicule récent identifiable
+  • Finance → tour institutionnelle type quartier d'affaires
 
-SI LE SUJET EST UN LIEU / ÉVÉNEMENT :
-- Éléments de reconnaissance OBLIGATOIRES (très important) :
-  drapeaux, signalétique officielle, monument, architecture identifiable
-- Contexte institutionnel clair et crédible
+SI PERSONNALITÉ PUBLIQUE :
 
-────────────────────────
-INTERDICTIONS CRITIQUES ⛔
-────────────────────────
+- Uniquement si cœur de l'actu
+- Contexte presse officiel (conférence, sommet, intervention)
+- Posture neutre, crédible
+- Drapeau ou symbole institutionnel réel si pertinent
 
-🚫 AUCUN écran affichant des graphiques, données, charts
-🚫 AUCUN graphique de trading, courbe boursière, infographie
-🚫 AUCUN dashboard, tableau de bord, visualisation de données
-🚫 AUCUN élément CGI, illustration, dessin, style artistique
-🚫 AUCUN texte visible (titres, labels, légendes)
-🚫 AUCUN watermark, logo média, overlay
-🚫 AUCUNE division horizontale (pas deux images empilées)
+SI ACTUALITÉ GÉOPOLITIQUE :
 
-→ L'image doit montrer UNIQUEMENT des éléments physiques et réels du monde réel
+- Drapeaux officiels réels obligatoires
+- Architecture institutionnelle identifiable
+- Contexte crédible et photographiable
 
 ────────────────────────
-DIRECTION ARTISTIQUE (OBLIGATOIRE)
+3️⃣ DIRECTION ARTISTIQUE LIGHT MODE (OBLIGATOIRE)
 ────────────────────────
 
 STYLE :
-- Ultra-realistic editorial PRESS PHOTOGRAPH (PHOTO DE PRESSE RÉELLE)
-- Photojournalisme breaking news
-- Photo de presse réaliste, authentique, crédible
-- IMITATION PHOTO DE PRESSE
-- Aucun style illustratif, artistique ou CGI
+Ultra-realistic editorial press photograph.
+No illustration. No CGI. No digital art.
+Authentic Reuters / AFP quality.
 
-PALETTE COULEURS OBLIGATOIRE (très important car DA sur projet) :
-- Stunning bright sky with sunset stylized sky colors: magenta, carmen, orange and yellow tones
-- Dominante : magenta, carmen, orange, yellow tones
-- Accents lumineux subtils et élégants
+PALETTE OFFICIELLE PROJET (OBLIGATOIRE) :
+
+Lumière sunset stylisée réaliste avec reflets naturels visibles :
+
+- intense cyan blue
+- vivid magenta
+- rich coral
+- deep fluo green
+- warm glowing orange
+
+Ces couleurs doivent :
+
+- être clairement visibles dans le ciel
+- se refléter naturellement sur verre, métal, façades, drapeaux
+- respecter la physique des matériaux
+- ne jamais ressembler à un filtre artificiel ou un effet graphique
+
+INTERDIT :
+- formes abstraites
+- halos artificiels
+- overlays
+- rendu "CGI sunset"
 
 ────────────────────────
-COMPOSITION & TECHNIQUE
+TRANSITION HAUTE (VERSION CORRIGÉE)
 ────────────────────────
 
-PERSPECTIVE ET CADRAGE (ULTRA-CRITIQUE) :
-- LOW-ANGLE SHOT (contre-plongée) OBLIGATOIRE
-- Camera positioned LOW, pointing UPWARD
-- Single continuous photograph from one vantage point
-- Key elements (logo, person, landmark) naturally positioned in UPPER THIRD due to low angle
-- Lower portion = natural ground level, base of building, immediate surroundings
-- NO split composition, NO two separate images merged together
-- Seamless visual flow from bottom to top
+L'image doit se terminer progressivement vers le haut en une teinte claire
+proche du hex #F5F6F1.
 
-COHÉRENCE VISUELLE :
-- ONE unified photograph, not a collage
-- Consistent lighting across entire image
-- Natural perspective from single camera position
-- Fluid transition throughout the frame
-- Cadrage centré ou quasi centré
-- Fond propre, non distrayant
+CRUCIAL :
 
-Inclure explicitement dans le prompt que tu génères :
-- "low-angle shot" ou "contre-plongée"
-- "camera positioned at ground level pointing upward"
-- "single continuous photograph"
-- "natural perspective with key elements in upper third"
+- Transition organique comme un ciel naturellement plus lumineux
+- Pas de voile blanc
+- Pas de fog
+- Pas de haze
+- Pas d'effet washed-out
+- Pas de couche opaque artificielle
+- Pas de bloc vide ajouté
+- Aucun cut horizontal visible
+- Le sujet reste net jusqu'au haut de l'image
+
+La luminosité augmente progressivement comme dans un ciel réel.
+
+────────────────────────
+4️⃣ COMPOSITION TECHNIQUE
+────────────────────────
+
+- Low-angle shot (contre-plongée) obligatoire
+- Une seule photographie continue
+- Perspective unique cohérente
+- Élément clé naturellement placé dans le tiers supérieur
+- Pas d'image divisée
+- Pas de collage
+
+Inclure dans le prompt :
+
 - 8K render
 - professional photojournalism style
-- natural or high-end studio lighting
 - realistic depth of field
 - subtle natural sensor grain
-- no text in image
-
-ET ces NEGATIVE PROMPTS obligatoires :
-- ABSOLUTELY NO TEXT in image (no titles, no labels, no captions)
-- NO SCREENS showing data/graphics (no digital displays with charts or visualizations)
-- NO CHARTS, NO INFOGRAPHICS, NO DASHBOARDS (no bar graphs, line graphs, or statistical displays)
-- No fictional elements or overlays (no trading charts, no UI screens, no data graphics)
-- No surreal or impossible elements (must be realistic in the real world)
-- NO split composition or two separate images merged together
-- The image must show ONLY physical, real-world elements
-- no watermark
-- no media logo
-- no captions
-- no overlays
+- Single continuous photograph from one camera position
+- No digital screens showing charts or data
+- No text or numbers
+- No watermark
+- No media logo
 
 ────────────────────────
-INTÉGRATION DES RECOMMANDATIONS MANUELLES
+5️⃣ INTERDICTIONS ABSOLUES
 ────────────────────────
 
-Les recommandations manuelles de l'utilisateur doivent être INTÉGRÉES dans le prompt final,
-TOUT EN RESPECTANT TOUTES LES CONTRAINTES CI-DESSUS.
+L'image doit être photographiable dans le monde réel.
 
-Si les recommandations manuelles contredisent les contraintes obligatoires :
-- PRIORISER les contraintes obligatoires (contre-plongée, couleurs, interdictions)
-- ADAPTER les recommandations pour qu'elles respectent le cadre
-- ENRICHIR le prompt avec les détails pertinents des recommandations
+INTERDIT :
+
+- Textes
+- Graphiques
+- Trading screens
+- Données affichées
+- Infographies
+- UI
+- Éléments flottants
+- CGI
+- Split image
+- Horizontal division
 
 ────────────────────────
-FORMAT DE SORTIE (OBLIGATOIRE)
+EXEMPLES DE SORTIE ATTENDU
 ────────────────────────
 
-Retourne ta réponse UNIQUEMENT sous forme de JSON valide :
+POUR ENTREPRISE :
+
+"Ultra-realistic editorial background image illustrating a major pharmaceutical business news story about a leadership transition at Sanofi. The scene must look like a real professional press photograph, not an illustration.
+
+The scene shows the Sanofi corporate headquarters building in a realistic and naturally balanced composition. The official Sanofi logo is clearly visible, physically mounted on the facade, properly scaled and readable in thumbnail format. The architecture must look completely real and credible, suitable for serious international financial and healthcare press coverage.
+
+The lighting features a strong stylized sunset atmosphere using the official fluo palette: intense cyan blue, vivid magenta, rich coral, deep fluo green and warm glowing orange. These colors must be clearly visible in the sky and naturally reflected on glass and structural surfaces. Reflections must feel physically plausible and integrated into real materials.
+
+The image transitions gradually upward into a soft warm off-white tone close to hex F5F6F1. The transition must resemble natural sky luminosity — no haze, no fog, no artificial white overlay, no horizontal cut. The building remains sharp and detailed up to the upper frame.
+
+Premium, minimal editorial mood. Realistic depth of field, subtle film grain. No text, no numbers, no UI, no watermark. 8K quality."
+
+────────────────────────
+
+POUR PERSONNALITÉ :
+
+"Ultra-realistic editorial background image illustrating a French political news story about a potential parliamentary inquiry commission.
+
+The scene shows Gabriel Attal clearly recognizable, speaking during an official governmental event inside a credible institutional setting. A French national flag is physically present in the background.
+
+The lighting features the official stylized sunset palette: intense cyan blue, vivid magenta, rich coral, deep fluo green and warm glowing orange. These colors must appear in the sky and reflect naturally on surfaces and flags, without artificial glow or overlay.
+
+The image transitions upward into a soft bright off-white tone close to hex F5F6F1, like a naturally bright sky. No haze, no mist, no white veil. The subject remains detailed and realistic across the full height.
+
+Professional press photography look. No text, no numbers, no UI. 8K quality."
+
+────────────────────────
+
+POUR INFO GÉOPOLITIQUE / LIEU :
+
+"Ultra-realistic editorial background image illustrating a major European economic news story about improving investor confidence in the euro zone.
+
+The scene shows a recognizable European institutional building in Brussels or Frankfurt. A real European Union flag is clearly visible and physically mounted on a flagpole, large enough to remain identifiable in thumbnail format.
+
+The lighting features a strong stylized sunset atmosphere using the official fluo palette: intense cyan blue, vivid magenta, rich coral, deep fluo green and warm glowing orange. These colors must be clearly visible in the sky and naturally reflected on building surfaces and flag fabric. The reflections must feel physically accurate and realistic.
+
+The upper area transitions gradually into a soft warm off-white tone close to hex F5F6F1, resembling natural sky luminosity. No haze, no artificial gradient block, no horizontal division. The architecture remains detailed up to the upper frame.
+
+Premium, minimal editorial mood . Realistic camera perspective, subtle film grain. No text, no numbers, no UI. 8K quality."
+
+────────────────────────
+FORMAT DE SORTIE
+────────────────────────
+
+Retourne UNIQUEMENT :
 
 {
-  "image_prompt": "ton prompt complet ici"
+  "image_prompt": "prompt complet ici"
 }
 
-Aucun texte en dehors du JSON.
+Aucun texte hors JSON.
 """
