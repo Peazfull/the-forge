@@ -12,7 +12,7 @@ from PIL import Image, ImageDraw, ImageFont
 import requests
 import os
 
-from services.supabase import get_supabase
+from db.supabase_client import get_supabase
 
 
 ASSETS_DIR = os.path.join(
