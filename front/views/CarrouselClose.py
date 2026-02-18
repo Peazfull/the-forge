@@ -318,6 +318,11 @@ def _render_slide_bytes(filename: str, path: str) -> bytes:
     img = Image.open(path).convert("RGBA")
     match = re.search(r"slide[_\s-]?(\d+)", filename, re.IGNORECASE)
     slide_number = int(match.group(1)) if match else None
+    
+    # Ajouter Swipe.png pour les slides 1-9
+    swipe_path = os.path.join(ASSETS_DIR, "Swipe.png")
+    should_add_swipe = slide_number is not None and 1 <= slide_number <= 9
+    
     if slide_number == 1:
         draw = ImageDraw.Draw(img)
         date_text = _format_french_date()
@@ -406,6 +411,17 @@ def _render_slide_bytes(filename: str, path: str) -> bytes:
             close_label="Close",
             format_close=_format_usd
         )
+    
+    # Ajouter Swipe.png en bas à droite pour les slides 1-9
+    if should_add_swipe and os.path.exists(swipe_path):
+        try:
+            swipe = Image.open(swipe_path).convert("RGBA")
+            swipe_x = img.width - swipe.width - 50  # 50px de marge droite
+            swipe_y = img.height - swipe.height - 50  # 50px de marge bas
+            img.alpha_composite(swipe, (swipe_x, swipe_y))
+        except Exception:
+            pass  # Si erreur, on continue sans le swipe
+    
     output = io.BytesIO()
     img.convert("RGB").save(output, format="PNG")
     return output.getvalue()
