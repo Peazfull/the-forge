@@ -151,7 +151,7 @@ def _calculate_centered_positions(img_h: int, title_asset_height: int, num_rows:
     header_height = int(SLIDE2_HEADER_SIZE * SLIDE2_LINE_HEIGHT_MULT)
     row_height = int(SLIDE2_ROW_SIZE * SLIDE2_LINE_HEIGHT_MULT)
     
-    gap_after_asset = 30  # Gap entre l'asset et le tableau
+    gap_after_asset = 50  # Gap entre l'asset et le tableau (augmenté de 30 à 50)
     table_height = header_height + SLIDE2_HEADER_GAP + (row_height * num_rows)
     total_block_height = title_asset_height + gap_after_asset + table_height
     
