@@ -366,7 +366,7 @@ def generate_cover_slide(
     for line in title_lines:
         line_w = draw.textlength(line, font=title_font)
         line_x = (CANVAS_SIZE[0] - int(line_w)) // 2
-        draw.text((line_x, title_y), line, font=title_font, fill="white")
+        draw.text((line_x, title_y), line, font=title_font, fill="black")
         title_y += title_line_height
     
     # Calcul hauteur du titre pour positionnement du Swipe
