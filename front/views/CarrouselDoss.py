@@ -18,7 +18,7 @@ from services.carousel.doss.generate_doss_texts_service import (
     generate_doss_texts,
     generate_doss_image_prompt,
 )
-from services.carousel.doss.doss_slide_service import generate_doss_slide
+from services.carousel.doss.doss_slide_service import generate_doss_slide, generate_cover_slide
 from services.carousel.doss.generate_doss_caption_service import (
     generate_caption_from_doss,
     upload_caption_text,
@@ -45,15 +45,18 @@ def _load_doss_state() -> Dict[str, object]:
         pass
     return {
         "raw_text": "",
+        "slide0_hook": "",
         "slide1_title": "",
         "slide1_content": "",
         "slide2_content": "",
         "slide3_content": "",
         "slide4_content": "",
+        "prompt_image_0": "",
         "prompt_image_1": "",
         "prompt_image_2": "",
         "prompt_image_3": "",
         "prompt_image_4": "",
+        "image_url_0": "",
         "image_url_1": "",
         "image_url_2": "",
         "image_url_3": "",
@@ -80,6 +83,7 @@ def _with_cache_buster(url: str, token: str) -> str:
 
 def _compute_doss_texts_hash(
     raw_text: str,
+    slide0_hook: str,
     slide1_title: str,
     slide1_content: str,
     slide2_content: str,
@@ -88,6 +92,7 @@ def _compute_doss_texts_hash(
 ) -> str:
     payload = "|".join([
         raw_text or "",
+        slide0_hook or "",
         slide1_title or "",
         slide1_content or "",
         slide2_content or "",
@@ -117,12 +122,14 @@ def _ensure_highlight(text: str, max_words: int = 3) -> str:
 
 def _sync_doss_texts(
     state: Dict[str, object],
+    slide0_hook: str,
     slide1_title: str,
     slide1_content: str,
     slide2_content: str,
     slide3_content: str,
     slide4_content: str,
 ) -> None:
+    state["slide0_hook"] = slide0_hook
     state["slide1_title"] = slide1_title
     state["slide1_content"] = slide1_content
     state["slide2_content"] = _strip_fixed_title_prefix(slide2_content, "DANS LES FAITS")
@@ -188,7 +195,7 @@ def _download_doss_slide(filename: str) -> Optional[bytes]:
 
 def build_doss_exports() -> Dict[str, object]:
     slides = []
-    for name in ["slide_1.png", "slide_2.png", "slide_3.png", "slide_4.png"]:
+    for name in ["slide_0.png", "slide_1.png", "slide_2.png", "slide_3.png", "slide_4.png", "slide_outro.png"]:
         data = _download_doss_slide(name)
         if data:
             slides.append((name, data))
@@ -228,30 +235,50 @@ def build_doss_exports() -> Dict[str, object]:
 
 def _generate_doss_slides(state: Dict[str, object]) -> None:
     # Fallback: recharger les URLs images depuis le storage si elles manquent
-    for idx in range(1, 5):
+    for idx in range(0, 5):
         key = f"image_url_{idx}"
         if not state.get(key):
             state[key] = _get_doss_image_url(idx)
-    required = ["image_url_1", "image_url_2", "image_url_3", "image_url_4"]
+    required = ["image_url_0", "image_url_1", "image_url_2", "image_url_3", "image_url_4"]
     if any(not state.get(k) for k in required):
-        st.warning("Il faut générer les 4 images.")
+        st.warning("Il faut générer les 5 images (cover + 4 slides).")
         return
-
-    slide_data = [
-        (1, "slide_1.png", state.get("slide1_title", ""), state.get("slide1_content", ""), state.get("image_url_1")),
-        (2, "slide_2.png", "DANS LES FAITS", state.get("slide2_content", ""), state.get("image_url_2")),
-        (3, "slide_3.png", "CE QU'IL FAUT SAVOIR", state.get("slide3_content", ""), state.get("image_url_3")),
-        (4, "slide_4.png", "CE QUE ÇA CHANGE", state.get("slide4_content", ""), state.get("image_url_4")),
-    ]
 
     with st.spinner("Génération des slides..."):
         _clear_doss_slide_files()
+        
+        # Slide 0 (cover) avec hook
+        hook = state.get("slide0_hook", "")
+        image_url_0 = state.get("image_url_0")
+        if hook and image_url_0:
+            cover_bytes = generate_cover_slide(hook=hook, image_url=image_url_0)
+            _upload_doss_slide("slide_0.png", cover_bytes)
+        
+        # Slides 1-4
+        slide_data = [
+            (1, "slide_1.png", state.get("slide1_title", ""), state.get("slide1_content", ""), state.get("image_url_1")),
+            (2, "slide_2.png", "DANS LES FAITS", state.get("slide2_content", ""), state.get("image_url_2")),
+            (3, "slide_3.png", "CE QU'IL FAUT SAVOIR", state.get("slide3_content", ""), state.get("image_url_3")),
+            (4, "slide_4.png", "CE QUE ÇA CHANGE", state.get("slide4_content", ""), state.get("image_url_4")),
+        ]
+
         for position, filename, title, content, image_url in slide_data:
             if not title or not content or not image_url:
                 continue
             slide_bytes = generate_doss_slide(title=title, content=content, image_url=image_url, position=position)
             _upload_doss_slide(filename, slide_bytes)
-    st.success("✅ Slides générées")
+        
+        # Outro
+        assets_dir = os.path.join(
+            os.path.dirname(__file__), "..", "layout", "assets", "carousel", "doss"
+        )
+        outro_path = os.path.join(assets_dir, "outro_doss.png")
+        if os.path.exists(outro_path):
+            with open(outro_path, "rb") as f:
+                outro_bytes = f.read()
+            _upload_doss_slide("slide_outro.png", outro_bytes)
+            
+    st.success("✅ Slides générées (cover + 4 slides + outro)")
 
 
 st.title("TheArtist - Doss")
@@ -271,6 +298,7 @@ if st.button("✨ Générer titres + contenus", use_container_width=True):
             result = generate_doss_texts(raw_text)
         if result.get("status") == "success":
             data = result["data"]
+            state["slide0_hook"] = data.get("slide0_hook", "")
             state["slide1_title"] = data.get("slide1_title", "")
             state["slide1_content"] = _ensure_highlight(data.get("slide1_content", ""))
             state["slide2_content"] = _strip_fixed_title_prefix(
@@ -285,10 +313,10 @@ if st.button("✨ Générer titres + contenus", use_container_width=True):
             _save_doss_state(state)
             st.success("✅ Textes générés")
 
-            with st.spinner("Génération du prompt image global..."):
+            with st.spinner("Génération des prompts images..."):
                 p = generate_doss_image_prompt(state["slide1_title"], state["slide1_content"])
                 prompt = p.get("image_prompt", "")
-                for idx in range(1, 5):
+                for idx in range(0, 5):
                     state[f"prompt_image_{idx}"] = prompt
                 _save_doss_state(state)
             st.success("✅ Prompts images générés")
@@ -296,6 +324,7 @@ if st.button("✨ Générer titres + contenus", use_container_width=True):
             st.error(result.get("message", "Erreur de génération"))
 
 st.markdown("### Textes Doss (éditables)")
+slide0_hook = st.text_input("Slide 0 · Hook (6-8 mots)", value=state.get("slide0_hook", ""))
 slide1_title = st.text_input("Slide 1 · Titre clickbait", value=state.get("slide1_title", ""))
 slide1_content = st.text_area("Slide 1 · Content", value=state.get("slide1_content", ""), height=120)
 slide2_content = st.text_area(
@@ -317,6 +346,7 @@ slide4_content = st.text_area(
 # Autosave textes pour éviter la perte après refresh
 autosave_hash = _compute_doss_texts_hash(
     raw_text,
+    slide0_hook,
     slide1_title,
     slide1_content,
     slide2_content,
@@ -326,6 +356,7 @@ autosave_hash = _compute_doss_texts_hash(
 if st.session_state.get("doss_autosave_hash") != autosave_hash:
     _sync_doss_texts(
         state,
+        slide0_hook,
         slide1_title,
         slide1_content,
         slide2_content,
@@ -339,6 +370,7 @@ if st.session_state.get("doss_autosave_hash") != autosave_hash:
 if st.button("💾 Sauvegarder textes", use_container_width=True):
     _sync_doss_texts(
         state,
+        slide0_hook,
         slide1_title,
         slide1_content,
         slide2_content,
@@ -355,13 +387,14 @@ if st.button("🔄 Regénérer les prompts images", use_container_width=True):
         with st.spinner("Régénération des prompts images..."):
             p = generate_doss_image_prompt(state["slide1_title"], state["slide1_content"])
             prompt = p.get("image_prompt", "")
-            for idx in range(1, 5):
+            for idx in range(0, 5):
                 state[f"prompt_image_{idx}"] = prompt
             _save_doss_state(state)
         st.success("✅ Prompts images régénérés avec le nouveau système !")
         st.rerun()
 
 with st.expander("✍️ Prompts images (éditables)", expanded=False):
+    p0 = st.text_area("Prompt image 0 (cover)", value=state.get("prompt_image_0", ""), height=100)
     p1 = st.text_area("Prompt image 1", value=state.get("prompt_image_1", ""), height=100)
     p2 = st.text_area("Prompt image 2", value=state.get("prompt_image_2", ""), height=100)
     p3 = st.text_area("Prompt image 3", value=state.get("prompt_image_3", ""), height=100)
@@ -370,6 +403,7 @@ with st.expander("✍️ Prompts images (éditables)", expanded=False):
     col_save_prompts, col_regen_prompts = st.columns(2)
     with col_save_prompts:
         if st.button("💾 Sauvegarder prompts", use_container_width=True):
+            state["prompt_image_0"] = p0
             state["prompt_image_1"] = p1
             state["prompt_image_2"] = p2
             state["prompt_image_3"] = p3
@@ -381,7 +415,7 @@ with st.expander("✍️ Prompts images (éditables)", expanded=False):
             with st.spinner("Génération du prompt global..."):
                 p = generate_doss_image_prompt(slide1_title, slide1_content)
                 prompt = p.get("image_prompt", "")
-                for idx in range(1, 5):
+                for idx in range(0, 5):
                     state[f"prompt_image_{idx}"] = prompt
                 _save_doss_state(state)
             st.success("✅ Prompts régénérés")
@@ -392,6 +426,7 @@ st.markdown("### Images")
 if st.button("🚀 Générer images + slides", use_container_width=True):
     _sync_doss_texts(
         state,
+        slide0_hook,
         slide1_title,
         slide1_content,
         slide2_content,
@@ -400,6 +435,7 @@ if st.button("🚀 Générer images + slides", use_container_width=True):
     )
     _save_doss_state(state)
     slides = [
+        (0, "HOOK", slide0_hook),
         (1, slide1_title, slide1_content),
         (2, "DANS LES FAITS", slide2_content),
         (3, "CE QU'IL FAUT SAVOIR", slide3_content),
@@ -409,11 +445,16 @@ if st.button("🚀 Générer images + slides", use_container_width=True):
         for idx, title, content in slides:
             prompt = state.get(f"prompt_image_{idx}", "")
             if not prompt:
-                p = generate_doss_image_prompt(title, content)
+                if idx == 0:
+                    # Pour la cover, on utilise le hook + premier contenu
+                    p = generate_doss_image_prompt(slide1_title, slide1_content)
+                else:
+                    p = generate_doss_image_prompt(title, content)
                 prompt = p.get("image_prompt", "")
                 state[f"prompt_image_{idx}"] = prompt
             if not prompt:
                 continue
+            # Toujours 5:4 pour Doss'
             result = generate_doss_image(prompt)
             if result.get("status") == "success":
                 image_bytes = base64.b64decode(result["image_data"])
@@ -430,6 +471,7 @@ if st.button("🚀 Générer images + slides", use_container_width=True):
     st.rerun()
 
 image_cards = [
+    (0, "Slide 0 (Cover)", slide0_hook, ""),
     (1, "Slide 1", slide1_title, slide1_content),
     (2, "Slide 2", "DANS LES FAITS", slide2_content),
     (3, "Slide 3", "CE QU'IL FAUT SAVOIR", slide3_content),
@@ -489,6 +531,7 @@ for row_idx in range(0, len(image_cards), 2):
             if uploaded is not None:
                 _sync_doss_texts(
                     state,
+                    slide0_hook,
                     slide1_title,
                     slide1_content,
                     slide2_content,
@@ -519,6 +562,19 @@ st.markdown("### Preview slides")
 slides_cache_buster = st.session_state.get("doss_slides_cache_buster", "")
 col_a, col_b = st.columns(2)
 with col_a:
+    st.caption("Slide 0 (Cover)")
+    url = get_supabase().storage.from_(DOSS_SLIDES_BUCKET).get_public_url("slide_0.png")
+    if url:
+        st.image(_with_cache_buster(url, slides_cache_buster), use_container_width=True)
+    st.caption("Slide 2")
+    url = get_supabase().storage.from_(DOSS_SLIDES_BUCKET).get_public_url("slide_2.png")
+    if url:
+        st.image(_with_cache_buster(url, slides_cache_buster), use_container_width=True)
+    st.caption("Slide 4")
+    url = get_supabase().storage.from_(DOSS_SLIDES_BUCKET).get_public_url("slide_4.png")
+    if url:
+        st.image(_with_cache_buster(url, slides_cache_buster), use_container_width=True)
+with col_b:
     st.caption("Slide 1")
     url = get_supabase().storage.from_(DOSS_SLIDES_BUCKET).get_public_url("slide_1.png")
     if url:
@@ -527,13 +583,8 @@ with col_a:
     url = get_supabase().storage.from_(DOSS_SLIDES_BUCKET).get_public_url("slide_3.png")
     if url:
         st.image(_with_cache_buster(url, slides_cache_buster), use_container_width=True)
-with col_b:
-    st.caption("Slide 2")
-    url = get_supabase().storage.from_(DOSS_SLIDES_BUCKET).get_public_url("slide_2.png")
-    if url:
-        st.image(_with_cache_buster(url, slides_cache_buster), use_container_width=True)
-    st.caption("Slide 4")
-    url = get_supabase().storage.from_(DOSS_SLIDES_BUCKET).get_public_url("slide_4.png")
+    st.caption("Outro")
+    url = get_supabase().storage.from_(DOSS_SLIDES_BUCKET).get_public_url("slide_outro.png")
     if url:
         st.image(_with_cache_buster(url, slides_cache_buster), use_container_width=True)
 
