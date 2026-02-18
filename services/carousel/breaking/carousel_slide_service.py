@@ -333,21 +333,24 @@ def generate_cover_slide(
         logo_x = (CANVAS_SIZE[0] - logo_size[0]) // 2
         canvas.alpha_composite(logo, (logo_x, 0))  # 0px du haut
     
-    # Logo Breaking - "Breaking_logo.png" (168px top, 45px left)
+    # Logo Breaking - "Breaking_logo.png" (176px top, centré)
     cover_logo_path = os.path.join(ASSETS_DIR, "Breaking_logo.png")
     cover_logo_height = 0
+    cover_logo_width = 0
     if os.path.exists(cover_logo_path):
         cover_logo = Image.open(cover_logo_path).convert("RGBA")
         cover_logo_height = cover_logo.size[1]
-        # Pas de scale, utiliser la taille originale de l'asset
-        canvas.alpha_composite(cover_logo, (45, 168))
+        cover_logo_width = cover_logo.size[0]
+        # Centrer horizontalement
+        cover_logo_x = (CANVAS_SIZE[0] - cover_logo_width) // 2
+        canvas.alpha_composite(cover_logo, (cover_logo_x, 176))
     
-    # Titre - 51px sous le logo Breaking, centré, taille 53, white, uppercase, Manrope Bold
+    # Titre - 51px sous le logo Breaking, centré, taille 50, noir, uppercase, Manrope SemiBold
     title_text = title.strip().upper()
     title_max_width = CANVAS_SIZE[0] - (TITLE_COVER_SIDE_MARGIN * 2)
-    TITLE_COVER_FONT_SIZE = 53
-    TITLE_FONT_WEIGHT = 700  # Bold
-    FONT_TITLE_COVER_PATH = os.path.join(ASSETS_DIR, "Manrope-Bold.ttf")
+    TITLE_COVER_FONT_SIZE = 50  # Changé de 53 à 50
+    TITLE_FONT_WEIGHT = 600  # SemiBold (changé de 700 Bold)
+    FONT_TITLE_COVER_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")  # Changé de Bold à SemiBold
     title_font, title_lines = _fit_text(
         draw,
         title_text,
@@ -358,8 +361,8 @@ def generate_cover_slide(
         weight=TITLE_FONT_WEIGHT
     )
     
-    # Position : 168px (logo top) + hauteur du logo + 51px
-    title_y = 168 + cover_logo_height + 51
+    # Position : 176px (logo top) + hauteur du logo + 51px
+    title_y = 176 + cover_logo_height + 51
     
     # Affichage du titre centré
     title_line_height = int(title_font.size * 1.2)
@@ -385,7 +388,7 @@ def generate_cover_slide(
         # Position X : à droite avec 50px de margin
         swipe_x = CANVAS_SIZE[0] - swipe.size[0] - 50
         # Position Y : centré avec le titre + 5px vers le bas
-        title_start_y = 168 + cover_logo_height + 51
+        title_start_y = 176 + cover_logo_height + 51  # Mis à jour avec nouvelle position
         swipe_y = title_start_y + (title_height - swipe.size[1]) // 2 + 5
         canvas.alpha_composite(swipe, (swipe_x, swipe_y))
     
