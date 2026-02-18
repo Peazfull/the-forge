@@ -1,5 +1,5 @@
 """
-Génération des slides Doss (1080x1920) via Pillow.
+Génération des slides Doss (1080x1350) via Pillow.
 Stack: image + filter + doss_bg_bas + texte.
 """
 
@@ -18,8 +18,9 @@ ASSETS_DIR = os.path.join(
     "front", "layout", "assets", "carousel", "doss",
 )
 
-CANVAS_SIZE = (1080, 1080)
-IMAGE_TOP_HEIGHT = 540  # 16:9 sur moitié haute
+CANVAS_SIZE = (1080, 1350)  # Changé de 1080 à 1350
+COVER_IMAGE_SIZE = (1080, 864)  # Format 5:4 pour cover et slides
+IMAGE_TOP_HEIGHT = 540  # 16:9 sur moitié haute (pour legacy)
 IMAGE_TOP_SIZE = (CANVAS_SIZE[0], IMAGE_TOP_HEIGHT)
 
 LOGO_SIZE = (200, 65)
@@ -58,6 +59,11 @@ PARAGRAPH_EXTRA_LINE_GAP = 1
 
 FONT_TITLE_PATH = os.path.join(ASSETS_DIR, "Manrope-Bold.ttf")
 FONT_CONTENT_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")
+
+# Polices pour la cover (slide 0) - comme Eco
+FONT_HOOK_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")  # Hook slide 0
+HOOK_FONT_SIZE = 68
+HOOK_FONT_WEIGHT = 600  # SemiBold
 
 
 def _load_font(path: str, size: int, weight: int | None = None) -> ImageFont.ImageFont:
@@ -340,3 +346,128 @@ def generate_doss_slide(
     output = BytesIO()
     canvas.convert("RGB").save(output, format="PNG")
     return output.getvalue()
+
+
+def generate_cover_slide(
+    hook: str,
+    image_url: Optional[str] = None,
+    image_bytes: Optional[bytes] = None
+) -> bytes:
+    """
+    Génère la slide de couverture (slide 0) pour Doss.
+    Comme Eco : top_bar + Logo + Logo_slide0 + HOOK + image 5:4 en bas.
+    """
+    if not image_url and not image_bytes:
+        raise ValueError("Aucune image disponible pour la cover.")
+    if not hook:
+        raise ValueError("Aucun hook disponible pour la cover.")
+    
+    if image_bytes:
+        base_img = _load_image_from_bytes(image_bytes)
+    else:
+        base_img = _load_image_from_url(image_url)  # type: ignore[arg-type]
+    
+    # Redimensionner l'image de fond en 1080×864 (5:4)
+    base_img = _cover_resize(base_img, COVER_IMAGE_SIZE)
+    
+    # Créer le canvas complet 1080×1350 avec fond #F4F4EB (beige/crème)
+    canvas = Image.new("RGBA", CANVAS_SIZE, (244, 244, 235, 255))  # #F4F4EB
+    
+    # 1. Coller l'image de fond en BAS du canvas
+    # Canvas height: 1350, Image height: 864 → Y position: 1350 - 864 = 486
+    image_y_position = CANVAS_SIZE[1] - COVER_IMAGE_SIZE[1]
+    if base_img.mode != 'RGBA':
+        base_img = base_img.convert('RGBA')
+    canvas.alpha_composite(base_img, (0, image_y_position))
+    
+    # 2. Overlay Slide0 - Force 1100px de large
+    overlay_slide0_path = os.path.join(ASSETS_DIR, "Overlay_Slide0.png")
+    if os.path.exists(overlay_slide0_path):
+        overlay_slide0 = Image.open(overlay_slide0_path).convert("RGBA")
+        original_width, original_height = overlay_slide0.size
+        target_width = 1100
+        scale = target_width / original_width
+        target_height = int(original_height * scale)
+        overlay_slide0 = overlay_slide0.resize((target_width, target_height), Image.LANCZOS)
+        x_offset = (CANVAS_SIZE[0] - target_width) // 2
+        canvas.alpha_composite(overlay_slide0, (x_offset, 0))
+    
+    # 3. Top bar collée en haut
+    top_bar_path = os.path.join(ASSETS_DIR, "top_bar.png")
+    if os.path.exists(top_bar_path):
+        top_bar = Image.open(top_bar_path).convert("RGBA")
+        if top_bar.size[0] != CANVAS_SIZE[0]:
+            scale = CANVAS_SIZE[0] / top_bar.size[0]
+            top_bar = top_bar.resize(
+                (int(top_bar.size[0] * scale), int(top_bar.size[1] * scale)),
+                Image.LANCZOS
+            )
+        canvas.alpha_composite(top_bar, (0, 0))
+    
+    draw = ImageDraw.Draw(canvas)
+    
+    # Logo principal (haut) - cover (scale x2 = 400×130) - collé en haut au centre
+    logo_path = os.path.join(ASSETS_DIR, "Logo.png")
+    if os.path.exists(logo_path):
+        logo = Image.open(logo_path).convert("RGBA")
+        logo_size = (LOGO_SIZE[0] * 2, LOGO_SIZE[1] * 2)  # 400×130
+        logo = logo.resize(logo_size, Image.LANCZOS)
+        logo_x = (CANVAS_SIZE[0] - logo_size[0]) // 2
+        canvas.alpha_composite(logo, (logo_x, 0))
+    
+    # Logo slide 0 - "Le Doss'" (168px top, 45px left)
+    cover_logo_path = os.path.join(ASSETS_DIR, "Logo_slide0.png")
+    cover_logo_height = 0
+    if os.path.exists(cover_logo_path):
+        cover_logo = Image.open(cover_logo_path).convert("RGBA")
+        cover_logo_height = cover_logo.size[1]
+        canvas.alpha_composite(cover_logo, (45, 168))
+    
+    # Hook - 51px sous le logo, 50px left, taille 68, noir, letter spacing -1%
+    hook_text = hook.strip()
+    hook_font = _load_font(FONT_HOOK_PATH, HOOK_FONT_SIZE, weight=HOOK_FONT_WEIGHT)
+    
+    # Position : 168px (logo top) + hauteur du logo + 51px
+    hook_y = 168 + cover_logo_height + 51
+    hook_x = 50
+    
+    # Letter spacing -1%
+    letter_spacing = int(HOOK_FONT_SIZE * -0.01)
+    
+    # Wrap le hook si trop long (max 2 lignes)
+    hook_max_width = CANVAS_SIZE[0] - 100  # Marges 50px de chaque côté
+    hook_lines = _wrap_text(hook_text, draw, hook_font, hook_max_width)
+    hook_line_height = int(HOOK_FONT_SIZE * 1.2)
+    
+    # Première lettre en majuscule
+    if hook_lines:
+        first_line = hook_lines[0]
+        if first_line:
+            hook_lines[0] = first_line[0].upper() + first_line[1:]
+    
+    # Afficher le hook (max 2 lignes)
+    for line in hook_lines[:2]:
+        draw.text((hook_x, hook_y), line, font=hook_font, fill="#363636", spacing=letter_spacing)
+        hook_y += hook_line_height
+    
+    # Calcul hauteur du hook pour positionnement du Swipe
+    hook_height = hook_line_height * len(hook_lines[:2])
+    hook_start_y = 168 + cover_logo_height + 51
+    
+    # Swipe (cover) - 84px de large, centré avec le hook + 5px vers le bas, à droite avec 50px margin
+    swipe_path = os.path.join(ASSETS_DIR, "Swipe.png")
+    if os.path.exists(swipe_path):
+        swipe = Image.open(swipe_path).convert("RGBA")
+        original_width, original_height = swipe.size
+        target_width = 84
+        scale = target_width / original_width
+        target_height = int(original_height * scale)
+        swipe = swipe.resize((target_width, target_height), Image.LANCZOS)
+        swipe_x = CANVAS_SIZE[0] - swipe.size[0] - 50
+        swipe_y = hook_start_y + (hook_height - swipe.size[1]) // 2 + 5
+        canvas.alpha_composite(swipe, (swipe_x, swipe_y))
+    
+    output = BytesIO()
+    canvas.convert("RGB").save(output, format="PNG")
+    return output.getvalue()
+
