@@ -65,8 +65,8 @@ FONT_HOOK_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")  # Hook lignes
 FONT_HOOK_LINE1_PATH = os.path.join(ASSETS_DIR, "Inter_18pt-Bold.ttf")  # Hook ligne 1
 HOOK_FONT_SIZE = 68
 HOOK_FONT_WEIGHT = 600  # SemiBold
-HOOK_LINE1_FONT_SIZE = 100  # Ligne 1 (sujet principal)
-HOOK_LINE23_FONT_SIZE = 58  # Lignes 2-3
+HOOK_LINE1_FONT_SIZE = 88  # Ligne 1 (sujet principal)
+HOOK_LINE23_FONT_SIZE = 52  # Lignes 2-3 - Changé de 58 à 52
 HOOK_LINE1_LETTER_SPACING = -0.09  # -9%
 HOOK_LINE23_LETTER_SPACING = -0.01  # -1%
 
