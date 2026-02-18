@@ -382,6 +382,8 @@ def generate_cover_slide(
     
     # 2. Overlay Slide0 - Force 1100px de large
     overlay_slide0_path = os.path.join(ASSETS_DIR, "Overlay_Slide0.png")
+    overlay_height = 0  # Pour positionner le Swipe plus tard
+    overlay_x_offset = 0
     if os.path.exists(overlay_slide0_path):
         overlay_slide0 = Image.open(overlay_slide0_path).convert("RGBA")
         original_width, original_height = overlay_slide0.size
@@ -390,6 +392,8 @@ def generate_cover_slide(
         target_height = int(original_height * scale)
         overlay_slide0 = overlay_slide0.resize((target_width, target_height), Image.LANCZOS)
         x_offset = (CANVAS_SIZE[0] - target_width) // 2
+        overlay_x_offset = x_offset
+        overlay_height = target_height
         canvas.alpha_composite(overlay_slide0, (x_offset, 0))
     
     # 3. Top bar collée en haut
@@ -450,21 +454,24 @@ def generate_cover_slide(
         draw.text((hook_x, hook_y), line, font=hook_font, fill="#363636", spacing=letter_spacing)
         hook_y += hook_line_height
     
-    # Calcul hauteur du hook pour positionnement du Swipe
-    hook_height = hook_line_height * len(hook_lines[:2])
-    hook_start_y = 168 + cover_logo_height + 51
-    
-    # Swipe (cover) - 84px de large, centré avec le hook + 5px vers le bas, à droite avec 50px margin
+    # Swipe (cover) - 84px de large, en bas à droite de l'Overlay_Slide0
+    # Position : 50px du bas de l'overlay, 50px de margin right (par rapport à l'overlay)
     swipe_path = os.path.join(ASSETS_DIR, "Swipe.png")
-    if os.path.exists(swipe_path):
+    if os.path.exists(swipe_path) and overlay_height > 0:
         swipe = Image.open(swipe_path).convert("RGBA")
         original_width, original_height = swipe.size
         target_width = 84
         scale = target_width / original_width
         target_height = int(original_height * scale)
         swipe = swipe.resize((target_width, target_height), Image.LANCZOS)
-        swipe_x = CANVAS_SIZE[0] - swipe.size[0] - 50
-        swipe_y = hook_start_y + (hook_height - swipe.size[1]) // 2 + 5
+        
+        # Position par rapport à l'overlay (1100px de large, centré avec offset)
+        # Overlay right edge = overlay_x_offset + 1100
+        # Swipe X = (overlay right edge) - 50 (margin) - swipe width
+        swipe_x = overlay_x_offset + 1100 - 50 - swipe.size[0]
+        # Swipe Y = overlay_height - 50 (du bas) - swipe height
+        swipe_y = overlay_height - 50 - swipe.size[1]
+        
         canvas.alpha_composite(swipe, (swipe_x, swipe_y))
     
     output = BytesIO()
