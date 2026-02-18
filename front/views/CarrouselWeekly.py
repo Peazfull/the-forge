@@ -29,46 +29,46 @@ ASSETS_DIR = os.path.join(
 )
 FONT_BOLD_PATH = os.path.join(ASSETS_DIR, "Manrope-Bold.ttf")
 FONT_SEMI_BOLD_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")
-DATE_FONT_SIZE = 42
-DATE_TOP = 668
+DATE_FONT_SIZE = 58  # Augmenté ×1.2 (était 42)
+DATE_TOP = 550  # Ajusté pour 1080x1350 (était 668)
 DATE_FILL = "#F6F6F6"
 DATE_HIGHLIGHT_BG = "#5B2EFF"
 DATE_HIGHLIGHT_PAD_X = 10
 DATE_HIGHLIGHT_PAD_Y = 6
-SLIDE2_MARGIN_X = 165
-SLIDE2_HEADER_SIZE = 24
-SLIDE2_ROW_SIZE = 26
+SLIDE2_MARGIN_X = 140  # Réduit de 165 à 140 pour plus d'espace
+SLIDE2_HEADER_SIZE = 29  # Augmenté ×1.2 (était 24)
+SLIDE2_ROW_SIZE = 31  # Augmenté ×1.2 (était 26)
 SLIDE2_HEADER_GAP = 14
 SLIDE2_LINE_HEIGHT_MULT = 2
 SLIDE2_HEADER_COLOR = "#E6FF4B"
 SLIDE2_TEXT_COLOR = "#F6F6F6"
 SLIDE2_POS_COLOR = "#00BF63"
 SLIDE2_NEG_COLOR = "#FF5757"
-SLIDE2_START_Y = 400
+SLIDE2_START_Y = 500  # Ajusté pour 1080x1350 (était 400)
 SLIDE2_ROW_SEPARATOR_COLOR = (255, 255, 255, 200)
 SLIDE2_ROW_SEPARATOR_INSET = 0
 SLIDE2_TITLE_ASSET = os.path.join(ASSETS_DIR, "Top_10_usa.png")
-SLIDE2_TITLE_ASSET_TOP = 310
+SLIDE2_TITLE_ASSET_TOP = 388  # Ajusté pour 1080x1350 (était 310)
 SLIDE3_TITLE_ASSET = os.path.join(ASSETS_DIR, "Flop_10_eur.png")
-SLIDE3_TITLE_ASSET_TOP = 310
+SLIDE3_TITLE_ASSET_TOP = 388  # Ajusté pour 1080x1350 (était 310)
 SLIDE3_USA_TITLE_ASSET = os.path.join(ASSETS_DIR, "Flop_10_usa.png")
 SLIDE4_TITLE_ASSET = os.path.join(ASSETS_DIR, "Top_10_fr.png")
-SLIDE4_TITLE_ASSET_TOP = 310
+SLIDE4_TITLE_ASSET_TOP = 388  # Ajusté pour 1080x1350 (était 310)
 SLIDE5_TITLE_ASSET = os.path.join(ASSETS_DIR, "Flop_10_fr.png")
-SLIDE5_TITLE_ASSET_TOP = 310
+SLIDE5_TITLE_ASSET_TOP = 388  # Ajusté pour 1080x1350 (était 310)
 SLIDE6_TITLE_ASSET = os.path.join(ASSETS_DIR, "Top_10_eur.png")
-SLIDE6_TITLE_ASSET_TOP = 310
+SLIDE6_TITLE_ASSET_TOP = 388  # Ajusté pour 1080x1350 (était 310)
 SLIDE7_TITLE_ASSET = os.path.join(ASSETS_DIR, "Flop_10_eur.png")
-SLIDE7_TITLE_ASSET_TOP = 310
+SLIDE7_TITLE_ASSET_TOP = 388  # Ajusté pour 1080x1350 (était 310)
 SLIDE8_TITLE_ASSET = os.path.join(ASSETS_DIR, "Top_indices.png")
-SLIDE8_TITLE_ASSET_TOP = 310
+SLIDE8_TITLE_ASSET_TOP = 388  # Ajusté pour 1080x1350 (était 310)
 SLIDE9_TITLE_ASSET = os.path.join(ASSETS_DIR, "Cryptos_eur.png")
-SLIDE9_TITLE_ASSET_TOP = 310
+SLIDE9_TITLE_ASSET_TOP = 388  # Ajusté pour 1080x1350 (était 310)
 SLIDE9_INDICES_TITLE_ASSET = os.path.join(ASSETS_DIR, "Flop_indices.png")
 SLIDE10_TITLE_ASSET = os.path.join(ASSETS_DIR, "Top10_cryptos.png")
-SLIDE10_TITLE_ASSET_TOP = 310
+SLIDE10_TITLE_ASSET_TOP = 388  # Ajusté pour 1080x1350 (était 310)
 SLIDE11_TITLE_ASSET = os.path.join(ASSETS_DIR, "Flop10_cryptos.png")
-SLIDE11_TITLE_ASSET_TOP = 310
+SLIDE11_TITLE_ASSET_TOP = 388  # Ajusté pour 1080x1350 (était 310)
 CAPTION_FILE = os.path.join(
     os.path.dirname(__file__),
     "..", "..", "prompts", "weekly", "fixed_caption.txt"
@@ -99,7 +99,14 @@ def _sorted_slide_files() -> list[tuple[str, str]]:
         return (num, name)
 
     files.sort(key=_key)
-    return [(name, os.path.join(ASSETS_DIR, name)) for name in files]
+    result = [(name, os.path.join(ASSETS_DIR, name)) for name in files]
+    
+    # Ajouter Outro.png en dernière slide
+    outro_path = os.path.join(ASSETS_DIR, "Outro.png")
+    if os.path.exists(outro_path):
+        result.append(("Outro.png", outro_path))
+    
+    return result
 
 
 def _slide_number_from_name(name: str) -> int:
@@ -121,7 +128,7 @@ def _format_french_date(dt: datetime | None = None) -> str:
         "janvier", "février", "mars", "avril", "mai", "juin",
         "juillet", "août", "septembre", "octobre", "novembre", "décembre",
     ]
-    return f"Semaine du {dt.day:02d} {months[dt.month - 1]} {dt.year}"
+    return f"La Revue Hebdo du {dt.day:02d} {months[dt.month - 1]} {dt.year}"
 
 
 def _load_font(path: str, size: int) -> ImageFont.ImageFont:
@@ -145,6 +152,27 @@ def _format_usd(value: float) -> str:
         return f"{value:,.2f} $".replace(",", " ")
     except Exception:
         return f"{value} $"
+
+
+def _calculate_centered_positions(img_h: int, title_asset_height: int, num_rows: int) -> tuple[int, int]:
+    """
+    Calcule les positions verticales centrées pour l'asset de titre et le tableau.
+    
+    Returns:
+        tuple: (asset_y, table_start_y)
+    """
+    header_height = int(SLIDE2_HEADER_SIZE * SLIDE2_LINE_HEIGHT_MULT)
+    row_height = int(SLIDE2_ROW_SIZE * SLIDE2_LINE_HEIGHT_MULT)
+    
+    gap_after_asset = 50  # Gap entre l'asset et le tableau
+    table_height = header_height + SLIDE2_HEADER_GAP + (row_height * num_rows)
+    total_block_height = title_asset_height + gap_after_asset + table_height
+    
+    # Centrer verticalement le bloc dans le canvas
+    asset_y = (img_h - total_block_height) // 2
+    table_start_y = asset_y + title_asset_height + gap_after_asset
+    
+    return (asset_y, table_start_y)
 
 
 def _format_points(value: float) -> str:
@@ -311,7 +339,8 @@ def _render_close_table(
     rows: list[dict],
     name_label: str = "Entreprise",
     close_label: str = "Close",
-    format_close=None
+    format_close=None,
+    custom_start_y: int = None  # Nouveau paramètre pour centrage personnalisé
 ) -> None:
     header_font = _load_font(FONT_BOLD_PATH, SLIDE2_HEADER_SIZE)
     row_font = _load_font(FONT_SEMI_BOLD_PATH, SLIDE2_ROW_SIZE)
@@ -321,7 +350,8 @@ def _render_close_table(
     total_rows = len(rows) if rows else 1
 
     block_height = header_height + SLIDE2_HEADER_GAP + (row_height * total_rows)
-    start_y = SLIDE2_START_Y
+    # Utiliser custom_start_y si fourni, sinon utiliser la valeur par défaut
+    start_y = custom_start_y if custom_start_y is not None else SLIDE2_START_Y
 
     # Header row
     header_y = start_y
@@ -381,6 +411,11 @@ def _render_slide_bytes(filename: str, path: str) -> bytes:
     img = Image.open(path).convert("RGBA")
     match = re.search(r"slide[_\s-]?(\d+)", filename, re.IGNORECASE)
     slide_number = int(match.group(1)) if match else None
+    
+    # Ajouter Swipe.png pour les slides 1-11
+    swipe_path = os.path.join(ASSETS_DIR, "Swipe.png")
+    should_add_swipe = slide_number is not None and 1 <= slide_number <= 11
+    
     if slide_number == 1:
         draw = ImageDraw.Draw(img)
         date_text = _format_french_date()
@@ -391,115 +426,167 @@ def _render_slide_bytes(filename: str, path: str) -> bytes:
         draw.text((x, DATE_TOP), date_text, font=font, fill=DATE_FILL)
     elif slide_number == 2:
         draw = ImageDraw.Draw(img)
+        rows = _get_top10_weekly_us()
         if os.path.exists(SLIDE2_TITLE_ASSET):
             title_asset = Image.open(SLIDE2_TITLE_ASSET).convert("RGBA")
-            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE2_TITLE_ASSET_TOP))
+            asset_y, table_start_y = _calculate_centered_positions(img.height, title_asset.height, len(rows))
+            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, asset_y))
+        else:
+            table_start_y = SLIDE2_START_Y
         _render_close_table(
             draw,
             img.size[0],
             img.size[1],
-            _get_top10_weekly_us(),
+            rows,
             close_label="Close",
-            format_close=_format_usd
+            format_close=_format_usd,
+            custom_start_y=table_start_y
         )
     elif slide_number == 3:
         draw = ImageDraw.Draw(img)
+        rows = _get_flop10_weekly_us()
         if os.path.exists(SLIDE3_USA_TITLE_ASSET):
             title_asset = Image.open(SLIDE3_USA_TITLE_ASSET).convert("RGBA")
-            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE3_TITLE_ASSET_TOP))
+            asset_y, table_start_y = _calculate_centered_positions(img.height, title_asset.height, len(rows))
+            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, asset_y))
+        else:
+            table_start_y = SLIDE2_START_Y
         _render_close_table(
             draw,
             img.size[0],
             img.size[1],
-            _get_flop10_weekly_us(),
+            rows,
             close_label="Close",
-            format_close=_format_usd
+            format_close=_format_usd,
+            custom_start_y=table_start_y
         )
     elif slide_number == 4:
         draw = ImageDraw.Draw(img)
+        rows = _get_top10_weekly_fr()
         if os.path.exists(SLIDE4_TITLE_ASSET):
             title_asset = Image.open(SLIDE4_TITLE_ASSET).convert("RGBA")
-            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE4_TITLE_ASSET_TOP))
-        _render_close_table(draw, img.size[0], img.size[1], _get_top10_weekly_fr())
+            asset_y, table_start_y = _calculate_centered_positions(img.height, title_asset.height, len(rows))
+            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, asset_y))
+        else:
+            table_start_y = SLIDE2_START_Y
+        _render_close_table(draw, img.size[0], img.size[1], rows, custom_start_y=table_start_y)
     elif slide_number == 5:
         draw = ImageDraw.Draw(img)
+        rows = _get_flop10_weekly_fr()
         if os.path.exists(SLIDE5_TITLE_ASSET):
             title_asset = Image.open(SLIDE5_TITLE_ASSET).convert("RGBA")
-            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE5_TITLE_ASSET_TOP))
-        _render_close_table(draw, img.size[0], img.size[1], _get_flop10_weekly_fr())
+            asset_y, table_start_y = _calculate_centered_positions(img.height, title_asset.height, len(rows))
+            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, asset_y))
+        else:
+            table_start_y = SLIDE2_START_Y
+        _render_close_table(draw, img.size[0], img.size[1], rows, custom_start_y=table_start_y)
     elif slide_number == 6:
         draw = ImageDraw.Draw(img)
+        rows = _get_top10_weekly_eu()
         if os.path.exists(SLIDE6_TITLE_ASSET):
             title_asset = Image.open(SLIDE6_TITLE_ASSET).convert("RGBA")
-            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE6_TITLE_ASSET_TOP))
-        _render_close_table(
-            draw,
-            img.size[0],
-            img.size[1],
-            _get_top10_weekly_eu()
-        )
+            asset_y, table_start_y = _calculate_centered_positions(img.height, title_asset.height, len(rows))
+            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, asset_y))
+        else:
+            table_start_y = SLIDE2_START_Y
+        _render_close_table(draw, img.size[0], img.size[1], rows, custom_start_y=table_start_y)
     elif slide_number == 7:
         draw = ImageDraw.Draw(img)
+        rows = _get_flop10_weekly_eu()
         if os.path.exists(SLIDE7_TITLE_ASSET):
             title_asset = Image.open(SLIDE7_TITLE_ASSET).convert("RGBA")
-            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE7_TITLE_ASSET_TOP))
-        _render_close_table(draw, img.size[0], img.size[1], _get_flop10_weekly_eu())
+            asset_y, table_start_y = _calculate_centered_positions(img.height, title_asset.height, len(rows))
+            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, asset_y))
+        else:
+            table_start_y = SLIDE2_START_Y
+        _render_close_table(draw, img.size[0], img.size[1], rows, custom_start_y=table_start_y)
     elif slide_number == 8:
         draw = ImageDraw.Draw(img)
+        rows = _get_indices_weekly_eu()
         if os.path.exists(SLIDE8_TITLE_ASSET):
             title_asset = Image.open(SLIDE8_TITLE_ASSET).convert("RGBA")
-            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE8_TITLE_ASSET_TOP))
+            asset_y, table_start_y = _calculate_centered_positions(img.height, title_asset.height, len(rows))
+            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, asset_y))
+        else:
+            table_start_y = SLIDE2_START_Y
         _render_close_table(
             draw,
             img.size[0],
             img.size[1],
-            _get_indices_weekly_eu(),
+            rows,
             name_label="Indice",
             close_label="Close",
-            format_close=_format_points
+            format_close=_format_points,
+            custom_start_y=table_start_y
         )
     elif slide_number == 9:
         draw = ImageDraw.Draw(img)
+        rows = _get_indices_weekly_eu_flop()
         if os.path.exists(SLIDE9_INDICES_TITLE_ASSET):
             title_asset = Image.open(SLIDE9_INDICES_TITLE_ASSET).convert("RGBA")
-            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE9_TITLE_ASSET_TOP))
+            asset_y, table_start_y = _calculate_centered_positions(img.height, title_asset.height, len(rows))
+            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, asset_y))
+        else:
+            table_start_y = SLIDE2_START_Y
         _render_close_table(
             draw,
             img.size[0],
             img.size[1],
-            _get_indices_weekly_eu_flop(),
+            rows,
             name_label="Indice",
             close_label="Close",
-            format_close=_format_points
+            format_close=_format_points,
+            custom_start_y=table_start_y
         )
     elif slide_number == 10:
         draw = ImageDraw.Draw(img)
+        rows = _get_top10_weekly_crypto()
         if os.path.exists(SLIDE10_TITLE_ASSET):
             title_asset = Image.open(SLIDE10_TITLE_ASSET).convert("RGBA")
-            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE10_TITLE_ASSET_TOP))
+            asset_y, table_start_y = _calculate_centered_positions(img.height, title_asset.height, len(rows))
+            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, asset_y))
+        else:
+            table_start_y = SLIDE2_START_Y
         _render_close_table(
             draw,
             img.size[0],
             img.size[1],
-            _get_top10_weekly_crypto(),
+            rows,
             name_label="Crypto",
             close_label="Close",
-            format_close=_format_usd
+            format_close=_format_usd,
+            custom_start_y=table_start_y
         )
     elif slide_number == 11:
         draw = ImageDraw.Draw(img)
+        rows = _get_flop10_weekly_crypto()
         if os.path.exists(SLIDE11_TITLE_ASSET):
             title_asset = Image.open(SLIDE11_TITLE_ASSET).convert("RGBA")
-            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, SLIDE11_TITLE_ASSET_TOP))
+            asset_y, table_start_y = _calculate_centered_positions(img.height, title_asset.height, len(rows))
+            img.alpha_composite(title_asset, (SLIDE2_MARGIN_X, asset_y))
+        else:
+            table_start_y = SLIDE2_START_Y
         _render_close_table(
             draw,
             img.size[0],
             img.size[1],
-            _get_flop10_weekly_crypto(),
+            rows,
             name_label="Crypto",
             close_label="Close",
-            format_close=_format_usd
+            format_close=_format_usd,
+            custom_start_y=table_start_y
         )
+    
+    # Ajouter Swipe.png en bas à droite pour les slides 1-11
+    if should_add_swipe and os.path.exists(swipe_path):
+        try:
+            swipe = Image.open(swipe_path).convert("RGBA")
+            swipe_x = img.width - swipe.width - 50  # 50px de marge droite
+            swipe_y = img.height - swipe.height - 50  # 50px de marge bas
+            img.alpha_composite(swipe, (swipe_x, swipe_y))
+        except Exception:
+            pass  # Si erreur, on continue sans le swipe
+    
     output = io.BytesIO()
     img.convert("RGB").save(output, format="PNG")
     return output.getvalue()
@@ -590,8 +677,12 @@ if slide_files:
             try:
                 slide_bytes = _render_slide_bytes(filename, path)
                 st.image(slide_bytes, use_container_width=True)
-            except Exception:
-                st.image(path, use_container_width=True)
+            except Exception as e:
+                st.error(f"Erreur rendu {filename}: {str(e)}")
+                try:
+                    st.image(path, use_container_width=True)
+                except Exception as e2:
+                    st.error(f"Erreur chargement {filename}: {str(e2)}")
 
 st.divider()
 if st.button("📦 Préparer export Weekly", use_container_width=True):
