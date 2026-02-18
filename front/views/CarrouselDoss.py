@@ -17,6 +17,7 @@ from services.carousel.doss.generate_doss_texts_service import generate_doss_ima
 from services.carousel.doss.generate_doss_texts_service import (
     generate_doss_texts,
     generate_doss_image_prompt,
+    generate_doss_images_parallel,
 )
 from services.carousel.doss.doss_slide_service import generate_doss_slide, generate_cover_slide
 from services.carousel.doss.generate_doss_caption_service import (
@@ -434,6 +435,7 @@ if st.button("🚀 Générer images + slides", use_container_width=True):
         slide4_content,
     )
     _save_doss_state(state)
+    
     slides = [
         (0, "HOOK", slide0_hook),
         (1, slide1_title, slide1_content),
@@ -441,33 +443,40 @@ if st.button("🚀 Générer images + slides", use_container_width=True):
         (3, "CE QU'IL FAUT SAVOIR", slide3_content),
         (4, "CE QUE ÇA CHANGE", slide4_content),
     ]
-    with st.spinner("Génération des images..."):
-        for idx, title, content in slides:
-            prompt = state.get(f"prompt_image_{idx}", "")
-            if not prompt:
-                if idx == 0:
-                    # Pour la cover, on utilise le hook + premier contenu
-                    p = generate_doss_image_prompt(slide1_title, slide1_content)
-                else:
-                    p = generate_doss_image_prompt(title, content)
-                prompt = p.get("image_prompt", "")
-                state[f"prompt_image_{idx}"] = prompt
-            if not prompt:
-                continue
-            # Toujours 5:4 pour Doss'
-            result = generate_doss_image(prompt)
-            if result.get("status") == "success":
-                image_bytes = base64.b64decode(result["image_data"])
-                url = _upload_doss_image(idx, image_bytes)
-                if url:
-                    state[f"image_url_{idx}"] = _with_cache_buster(url, str(time.time()))
-                    st.session_state.doss_images_cache_buster = str(time.time())
-                else:
-                    st.error("❌ Upload storage échoué")
-                    st.warning("Upload non persisté : l'image sera perdue au refresh.")
+    
+    # Conteneur pour afficher la progression
+    progress_placeholder = st.empty()
+    progress_bar = st.progress(0.0)
+    
+    def progress_callback(current: int, total: int):
+        """Callback pour afficher la progression en temps réel"""
+        progress = current / total
+        progress_bar.progress(progress)
+        progress_placeholder.info(f"⚡ Génération en parallèle : {current}/{total} images générées")
+    
+    with st.spinner("⚡ Génération des 5 images en parallèle..."):
+        image_results = generate_doss_images_parallel(
+            state=state,
+            slide_data=slides,
+            upload_callback=_upload_doss_image,
+            progress_callback=progress_callback
+        )
+    
+    # Mettre à jour les URLs dans le state
+    cache_buster_value = str(time.time())
+    for idx, url in image_results.items():
+        if url:
+            state[f"image_url_{idx}"] = _with_cache_buster(url, cache_buster_value)
+    
+    st.session_state.doss_images_cache_buster = cache_buster_value
     _save_doss_state(state)
+    
+    # Générer les slides
+    progress_placeholder.empty()
+    progress_bar.empty()
     _generate_doss_slides(state)
     st.session_state["doss_slides_cache_buster"] = str(time.time())
+    st.success(f"✅ {len(image_results)} images + slides générées en parallèle !")
     st.rerun()
 
 image_cards = [
