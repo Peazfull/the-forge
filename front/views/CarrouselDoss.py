@@ -562,10 +562,20 @@ for row_idx in range(0, len(image_cards), 2):
 
 st.divider()
 st.markdown("### Slides")
-if st.button("🖼️ Générer slides", use_container_width=True):
-    _generate_doss_slides(state)
-    st.session_state["doss_slides_cache_buster"] = str(time.time())
-    st.rerun()
+
+col_clear, col_gen = st.columns(2)
+with col_clear:
+    if st.button("🗑️ Clear slides", use_container_width=True):
+        _clear_doss_slide_files()
+        st.session_state["doss_slides_cache_buster"] = str(time.time())
+        st.success("✅ Slides supprimées")
+        st.rerun()
+
+with col_gen:
+    if st.button("🖼️ Générer slides", use_container_width=True):
+        _generate_doss_slides(state)
+        st.session_state["doss_slides_cache_buster"] = str(time.time())
+        st.rerun()
 
 st.markdown("### Preview slides")
 slides_cache_buster = st.session_state.get("doss_slides_cache_buster", "")
