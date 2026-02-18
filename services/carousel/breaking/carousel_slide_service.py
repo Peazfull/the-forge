@@ -297,6 +297,7 @@ def generate_cover_slide(
     # 2. Overlay Slide0 - Force 1100px de large pour couvrir les strokes/patterns
     # Les 10px de chaque côté seront clippés automatiquement par le canvas
     overlay_slide0_path = os.path.join(ASSETS_DIR, "Overlay_Slide0.png")
+    overlay_height = 0  # Initialisé pour calcul du Swipe
     if os.path.exists(overlay_slide0_path):
         overlay_slide0 = Image.open(overlay_slide0_path).convert("RGBA")
         # Forcer le redimensionnement à 1100px de large (20px de plus que le canvas)
@@ -304,6 +305,7 @@ def generate_cover_slide(
         target_width = 1100  # 20px de plus pour gérer les strokes/patterns
         scale = target_width / original_width
         target_height = int(original_height * scale)
+        overlay_height = target_height  # Sauvegarder pour le Swipe
         overlay_slide0 = overlay_slide0.resize((target_width, target_height), Image.LANCZOS)
         # Centrer : (1080 - 1100) / 2 = -10px (déborde de 10px de chaque côté)
         x_offset = (CANVAS_SIZE[0] - target_width) // 2
@@ -375,7 +377,7 @@ def generate_cover_slide(
     # Calcul hauteur du titre pour positionnement du Swipe
     title_height = title_line_height * len(title_lines)
     
-    # Swipe (cover) - 84px de large, centré avec le titre + 5px vers le bas, à droite avec 50px margin
+    # Swipe (cover) - 84px de large, 60px du bas de l'overlay, 60px margin right
     swipe_path = os.path.join(ASSETS_DIR, "Swipe.png")
     if os.path.exists(swipe_path):
         swipe = Image.open(swipe_path).convert("RGBA")
@@ -385,11 +387,14 @@ def generate_cover_slide(
         scale = target_width / original_width
         target_height = int(original_height * scale)
         swipe = swipe.resize((target_width, target_height), Image.LANCZOS)
-        # Position X : à droite avec 50px de margin
-        swipe_x = CANVAS_SIZE[0] - swipe.size[0] - 50
-        # Position Y : centré avec le titre + 5px vers le bas
-        title_start_y = 176 + cover_logo_height + 51  # Mis à jour avec nouvelle position
-        swipe_y = title_start_y + (title_height - swipe.size[1]) // 2 + 5
+        # Position X : 60px de margin right
+        swipe_x = CANVAS_SIZE[0] - swipe.size[0] - 60
+        # Position Y : 60px du bas de l'overlay (overlay_height - 60 - swipe_height)
+        if overlay_height > 0:
+            swipe_y = overlay_height - 60 - swipe.size[1]
+        else:
+            # Fallback si pas d'overlay : 60px du bas du canvas
+            swipe_y = CANVAS_SIZE[1] - 60 - swipe.size[1]
         canvas.alpha_composite(swipe, (swipe_x, swipe_y))
     
     output = BytesIO()
