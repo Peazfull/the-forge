@@ -422,19 +422,10 @@ def generate_cover_slide(
     # Logo slide 0 - "Le Doss'" (168px top, 45px left)
     cover_logo_path = os.path.join(ASSETS_DIR, "logo_slide_0.png")
     cover_logo_height = 0
-    print(f"[DEBUG DOSS] Cherche logo_slide_0 à : {cover_logo_path}")
-    print(f"[DEBUG DOSS] Fichier existe ? {os.path.exists(cover_logo_path)}")
     if os.path.exists(cover_logo_path):
         cover_logo = Image.open(cover_logo_path).convert("RGBA")
         cover_logo_height = cover_logo.size[1]
-        print(f"[DEBUG DOSS] Logo chargé, taille : {cover_logo.size}")
         canvas.alpha_composite(cover_logo, (45, 168))
-        print(f"[DEBUG DOSS] Logo composité à (45, 168)")
-    else:
-        print(f"[DEBUG DOSS] ERREUR : logo_slide_0.png introuvable !")
-        # Lister le contenu du dossier
-        if os.path.exists(ASSETS_DIR):
-            print(f"[DEBUG DOSS] Contenu du dossier assets : {os.listdir(ASSETS_DIR)}")
     
     # Hook - 51px sous le logo, 50px left, taille 68, noir, letter spacing -1%
     hook_text = hook.strip()
