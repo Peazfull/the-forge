@@ -30,9 +30,14 @@ CONTRAINTES GÉNÉRALES :
 STRUCTURE DES SLIDES :
 
 - Slide 0 (COVER) :
-  - Hook : une phrase d'accroche impactante (6-8 mots MAX).
-  - Objectif : capter l'attention immédiatement, style titre de une.
-  - Exemples : "Tesla coupe le prix de ses véhicules en Chine", "Nvidia annonce une puce révolutionnaire", "L'euro atteint son plus bas niveau".
+  - Hook sur 3 lignes avec structure spécifique :
+    * Ligne 1 : Nom de l'entreprise, personnalité ou événement concerné (EN MAJUSCULES, 1-3 mots MAX)
+    * Lignes 2-3 : Phrase d'accroche impactante (12-15 mots MAX au total)
+  - Format : "LIGNE1|Ligne 2 et 3"
+  - Exemples : 
+    * "TESLA|Cette entreprise qui monte et reste sous le feu des projecteurs"
+    * "NVIDIA|Une puce révolutionnaire qui bouleverse le marché de l'IA"
+    * "MACRON|Des décisions qui divisent et soulèvent des questions"
 
 - Slide 1 :
   - Titre : libre, accroche factuelle (style presse).
@@ -62,7 +67,7 @@ FORMAT JSON ATTENDU :
 
 EXEMPLE DE SORTIE (TON À RESPECTER) :
 {
-  "slide0_hook": "Renault suspendu en Allemagne",
+  "slide0_hook": "RENAULT|Une suspension ordonnée qui inquiète les investisseurs",
   "slide1_title": "Renault en difficulté en Allemagne",
   "slide1_content": "Un tribunal allemand a ordonné la suspension de certains modèles Renault...\nLa décision repose sur une **violation de brevets** liés aux technologies embarquées.",
   "slide2_content": "La justice de Munich estime que Renault a enfreint des brevets détenus par l'américain Broadcom...\nLe litige concerne des **systèmes de connectivité** intégrés aux véhicules.",

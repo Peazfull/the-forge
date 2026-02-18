@@ -61,9 +61,14 @@ FONT_TITLE_PATH = os.path.join(ASSETS_DIR, "Manrope-Bold.ttf")
 FONT_CONTENT_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")
 
 # Polices pour la cover (slide 0) - comme Eco
-FONT_HOOK_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")  # Hook slide 0
+FONT_HOOK_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")  # Hook lignes 2-3
+FONT_HOOK_LINE1_PATH = os.path.join(ASSETS_DIR, "Inter_18pt-Bold.ttf")  # Hook ligne 1
 HOOK_FONT_SIZE = 68
 HOOK_FONT_WEIGHT = 600  # SemiBold
+HOOK_LINE1_FONT_SIZE = 100  # Ligne 1 (sujet principal)
+HOOK_LINE23_FONT_SIZE = 58  # Lignes 2-3
+HOOK_LINE1_LETTER_SPACING = -0.09  # -9%
+HOOK_LINE23_LETTER_SPACING = -0.01  # -1%
 
 
 def _load_font(path: str, size: int, weight: int | None = None) -> ImageFont.ImageFont:
@@ -419,40 +424,55 @@ def generate_cover_slide(
         logo_x = (CANVAS_SIZE[0] - logo_size[0]) // 2
         canvas.alpha_composite(logo, (logo_x, 0))
     
-    # Logo slide 0 - "Le Doss'" (168px top, 45px left)
+    # Logo slide 0 - "Le Doss'" (213px top, 45px left)
     cover_logo_path = os.path.join(ASSETS_DIR, "Logo_slide_0.png")
     cover_logo_height = 0
     if os.path.exists(cover_logo_path):
         cover_logo = Image.open(cover_logo_path).convert("RGBA")
         cover_logo_height = cover_logo.size[1]
-        canvas.alpha_composite(cover_logo, (45, 168))
+        canvas.alpha_composite(cover_logo, (45, 213))
     
-    # Hook - 51px sous le logo, 50px left, taille 68, noir, letter spacing -1%
+    # Hook en 3 lignes : 51px sous le logo, 50px left
+    # Format : "LIGNE1|Ligne 2 et 3" (séparateur |)
+    # Ligne 1 : Inter Bold 100px, letter spacing -9%, MAJUSCULES
+    # Lignes 2-3 : Manrope SemiBold 58px, letter spacing -1%
+    
     hook_text = hook.strip()
-    hook_font = _load_font(FONT_HOOK_PATH, HOOK_FONT_SIZE, weight=HOOK_FONT_WEIGHT)
     
-    # Position : 168px (logo top) + hauteur du logo + 51px
-    hook_y = 168 + cover_logo_height + 51
+    # Parser le hook : séparation par "|"
+    if "|" in hook_text:
+        hook_line1_text = hook_text.split("|")[0].strip().upper()
+        hook_line23_text = hook_text.split("|")[1].strip()
+    else:
+        # Fallback si pas de séparateur
+        words = hook_text.split()
+        hook_line1_text = words[0].upper() if words else ""
+        hook_line23_text = " ".join(words[1:]) if len(words) > 1 else ""
+    
+    # Position de départ : 213px (logo top) + hauteur du logo + 51px
+    hook_y = 213 + cover_logo_height + 51
     hook_x = 50
     
-    # Letter spacing -1%
-    letter_spacing = int(HOOK_FONT_SIZE * -0.01)
+    # LIGNE 1 : Sujet principal (Inter Bold 100px, -9%)
+    if hook_line1_text:
+        hook_line1_font = _load_font(FONT_HOOK_LINE1_PATH, HOOK_LINE1_FONT_SIZE, weight=700)
+        line1_letter_spacing = int(HOOK_LINE1_FONT_SIZE * HOOK_LINE1_LETTER_SPACING)
+        draw.text((hook_x, hook_y), hook_line1_text, font=hook_line1_font, fill="#000000", spacing=line1_letter_spacing)
+        hook_y += int(HOOK_LINE1_FONT_SIZE * 1.2)
     
-    # Wrap le hook si trop long (max 2 lignes)
-    hook_max_width = CANVAS_SIZE[0] - 100  # Marges 50px de chaque côté
-    hook_lines = _wrap_text(hook_text, draw, hook_font, hook_max_width)
-    hook_line_height = int(HOOK_FONT_SIZE * 1.2)
-    
-    # Première lettre en majuscule
-    if hook_lines:
-        first_line = hook_lines[0]
-        if first_line:
-            hook_lines[0] = first_line[0].upper() + first_line[1:]
-    
-    # Afficher le hook (max 2 lignes)
-    for line in hook_lines[:2]:
-        draw.text((hook_x, hook_y), line, font=hook_font, fill="#363636", spacing=letter_spacing)
-        hook_y += hook_line_height
+    # LIGNES 2-3 : Reste du hook (Manrope SemiBold 58px, -1%)
+    if hook_line23_text:
+        hook_line23_font = _load_font(FONT_HOOK_PATH, HOOK_LINE23_FONT_SIZE, weight=HOOK_FONT_WEIGHT)
+        line23_letter_spacing = int(HOOK_LINE23_FONT_SIZE * HOOK_LINE23_LETTER_SPACING)
+        
+        # Wrap sur 2 lignes max
+        hook_max_width = CANVAS_SIZE[0] - 100  # Marges 50px de chaque côté
+        hook_lines_23 = _wrap_text(hook_line23_text, draw, hook_line23_font, hook_max_width)
+        hook_line23_height = int(HOOK_LINE23_FONT_SIZE * 1.2)
+        
+        for line in hook_lines_23[:2]:  # Max 2 lignes
+            draw.text((hook_x, hook_y), line, font=hook_line23_font, fill="#000000", spacing=line23_letter_spacing)
+            hook_y += hook_line23_height
     
     # Swipe (cover) - 84px de large, en bas à droite de l'Overlay_Slide0
     # Position : 50px du bas de l'overlay, 50px de margin right (par rapport à l'overlay)
