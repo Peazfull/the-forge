@@ -420,7 +420,7 @@ def generate_cover_slide(
         canvas.alpha_composite(logo, (logo_x, 0))
     
     # Logo slide 0 - "Le Doss'" (168px top, 45px left)
-    cover_logo_path = os.path.join(ASSETS_DIR, "Logo_slide0.png")
+    cover_logo_path = os.path.join(ASSETS_DIR, "logo_slide_0.png")
     cover_logo_height = 0
     if os.path.exists(cover_logo_path):
         cover_logo = Image.open(cover_logo_path).convert("RGBA")
