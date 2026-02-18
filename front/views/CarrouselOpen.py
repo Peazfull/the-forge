@@ -108,7 +108,7 @@ def _format_french_date(dt: datetime | None = None) -> str:
         "janvier", "février", "mars", "avril", "mai", "juin",
         "juillet", "août", "septembre", "octobre", "novembre", "décembre",
     ]
-    return f"l'open Europe du {dt.day:02d} {months[dt.month - 1]} {dt.year}"
+    return f"L'Open Europe du {dt.day:02d} {months[dt.month - 1]} {dt.year}"
 
 
 def _load_font(path: str, size: int) -> ImageFont.ImageFont:
