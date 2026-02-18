@@ -207,7 +207,7 @@ def _generate_breaking_slides(state: Dict[str, object], title: str, content: str
 
         outro_path = os.path.join(
             os.path.dirname(__file__),
-            "..", "layout", "assets", "carousel", "breaking", "outro.png",
+            "..", "layout", "assets", "carousel", "breaking", "outro_breaking.png",
         )
         if os.path.exists(outro_path):
             with open(outro_path, "rb") as f:
