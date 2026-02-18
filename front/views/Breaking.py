@@ -424,7 +424,7 @@ with col_img0:
             state["image_url_0"] = _with_cache_buster(url, str(time.time()))
             _save_breaking_state(state)
             st.success("✅ Image 0 chargée")
-            _auto_generate_slides_if_ready(state, title, content)
+            _auto_generate_slides_if_ready(state, slide_0_hook, slide_1_title, slide_1_content)
             st.rerun()
 
 with col_img1:
@@ -433,7 +433,7 @@ with col_img1:
     if st.button("🎨 Générer image 1", use_container_width=True):
         prompt1 = state.get("prompt_image_1", "")
         if not prompt1.strip():
-            if not title or not content:
+            if not slide_1_title or not slide_1_content:
                 st.warning("Il faut un titre et un contenu.")
                 st.stop()
             with st.spinner("Génération du prompt 1..."):
@@ -467,8 +467,8 @@ with col_img1:
                 # Générer le prompt structuré à partir des recommandations manuelles
                 with st.spinner("Génération du prompt structuré..."):
                     prompt_result = generate_breaking_image_prompt_manual(
-                        title=title,
-                        content=content,
+                        title=slide_1_title,
+                        content=slide_1_content,
                         manual_recommendations=manual_prompt_1
                     )
                 
@@ -501,7 +501,7 @@ with col_img1:
             state["image_url_1"] = _with_cache_buster(url, str(time.time()))
             _save_breaking_state(state)
             st.success("✅ Image 1 chargée")
-            _auto_generate_slides_if_ready(state, title, content)
+            _auto_generate_slides_if_ready(state, slide_0_hook, slide_1_title, slide_1_content)
             st.rerun()
 
 st.divider()
