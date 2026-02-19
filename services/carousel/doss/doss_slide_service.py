@@ -32,8 +32,8 @@ TITLE_ZOOM_TOP = 420
 LEFT_MARGIN = 60
 RIGHT_MARGIN = 60
 TITLE_TOP_GAP = 0
-CONTENT_TOP_GAP = 50
-CONTENT_BOTTOM_MARGIN = 60
+CONTENT_TOP_GAP = 20  # Gap entre titre et content (comme Eco)
+CONTENT_BOTTOM_MARGIN = 20  # Comme Eco
 BOTTOM_BG_HEIGHT = 1043
 BOTTOM_BG_MARGIN_BOTTOM = 20
 BOTTOM_BG_MARGIN_LEFT = 0
@@ -331,14 +331,13 @@ def generate_doss_slide(
     content_font = _load_font(os.path.join(ASSETS_DIR, "Inter_18pt-Medium.ttf"), 39, weight=500)
     content_letter_spacing = int(39 * 0.01)
     
-    # Position contenu : DYNAMIQUE comme Eco (title_top + title_zone_height + 20px gap)
-    CONTENT_TOP_GAP = 20  # Comme Eco
+    # Position contenu : DYNAMIQUE comme Eco (title_top + title_zone_height + CONTENT_TOP_GAP)
     content_y = title_top + title_zone_height + CONTENT_TOP_GAP
     content_max_width = CANVAS_SIZE[0] - (LEFT_MARGIN * 2)
     
     # Wrap le contenu
     content_lines = _wrap_text(content.replace("**", ""), draw, content_font, content_max_width)
-    content_line_height = int(39 * 1.2)
+    content_line_height = int(39 * 1.25)  # 1.25 comme Eco
     
     for line in content_lines[:6]:  # Max 6 lignes
         if content_y + content_line_height > image_y_position - 20:
