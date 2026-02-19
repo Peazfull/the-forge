@@ -278,13 +278,23 @@ def generate_doss_slide(
     draw = ImageDraw.Draw(canvas)
     
     # 6. TITRE
-    # Slide 1 : Titre textuel (variable)
+    # Slide 1 : title_bg_slide_1.png + Titre textuel en BLANC
     # Slide 2 : Asset title_slide_1.png
     # Slide 3 : Asset title_slide_2.png
     # Slide 4 : Asset title_slide_3.png
     
     if position == 1:
-        # SLIDE 1 : Titre textuel (Inter Bold 46px, NOIR, letter spacing -1%)
+        # SLIDE 1 : title_bg_slide_1.png + Titre textuel en BLANC
+        
+        # D'abord, charger title_bg_slide_1.png
+        title_bg_slide1_path = os.path.join(ASSETS_DIR, "title_bg_slide_1.png")
+        if os.path.exists(title_bg_slide1_path):
+            title_bg_slide1 = Image.open(title_bg_slide1_path).convert("RGBA")
+            # Centrer horizontalement, positionner à 87px du top
+            title_bg_slide1_x = (CANVAS_SIZE[0] - title_bg_slide1.size[0]) // 2
+            canvas.alpha_composite(title_bg_slide1, (title_bg_slide1_x, title_bg_top))
+        
+        # Ensuite, afficher le titre en BLANC par-dessus
         title_font = _load_font(os.path.join(ASSETS_DIR, "Inter_18pt-Bold.ttf"), 46, weight=700)
         title_letter_spacing = int(46 * -0.01)
         
@@ -298,7 +308,7 @@ def generate_doss_slide(
         title_y = title_bg_top + max(0, (title_bg_height - title_block_height) // 2)
         
         for line in title_lines[:2]:
-            draw.text((LEFT_MARGIN, title_y), line, font=title_font, fill="black", spacing=title_letter_spacing)
+            draw.text((LEFT_MARGIN, title_y), line, font=title_font, fill="white", spacing=title_letter_spacing)
             title_y += title_line_height
     
     elif position in [2, 3, 4]:
