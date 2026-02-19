@@ -278,19 +278,20 @@ def generate_doss_slide(
     # Slide 3 : Asset title_slide_2.png
     # Slide 4 : Asset title_slide_3.png
     
+    title_zone_height = 0  # Hauteur de la zone titre (bg ou asset)
+    
     if position == 1:
         # SLIDE 1 : title_bg_slide_1.png + Titre textuel en BLANC
         
         # D'abord, charger title_bg_slide_1.png avec 50px de margin (comme Eco)
         title_bg_slide1_path = os.path.join(ASSETS_DIR, "title_bg_slide_1.png")
-        title_bg_slide1_height = 0
         title_bg_side_margin = 50  # Comme Eco
         if os.path.exists(title_bg_slide1_path):
             title_bg_slide1 = Image.open(title_bg_slide1_path).convert("RGBA")
             # Redimensionner pour tenir compte des marges : largeur canvas - 2*50px
             title_bg_width = CANVAS_SIZE[0] - (title_bg_side_margin * 2)
             title_bg_slide1 = title_bg_slide1.resize((title_bg_width, title_bg_slide1.size[1]), Image.LANCZOS)
-            title_bg_slide1_height = title_bg_slide1.size[1]
+            title_zone_height = title_bg_slide1.size[1]
             # Positionner avec 50px de margin left
             canvas.alpha_composite(title_bg_slide1, (title_bg_side_margin, title_top))
         
@@ -305,32 +306,34 @@ def generate_doss_slide(
         
         # Position titre : centré verticalement dans title_bg_slide1
         title_block_height = title_line_height * len(title_lines[:2])
-        title_y = title_top + max(0, (title_bg_slide1_height - title_block_height) // 2)
+        title_y = title_top + max(0, (title_zone_height - title_block_height) // 2)
         
         for line in title_lines[:2]:
             draw.text((LEFT_MARGIN, title_y), line, font=title_font, fill="white", spacing=title_letter_spacing)
             title_y += title_line_height
     
     elif position in [2, 3, 4]:
-        # SLIDES 2, 3, 4 : Asset fixe
+        # SLIDES 2, 3, 4 : Asset fixe avec 50px de margin left (comme Eco)
         title_asset_map = {
             2: "title_slide_1.png",
             3: "title_slide_2.png",
             4: "title_slide_3.png"
         }
         title_asset_path = os.path.join(ASSETS_DIR, title_asset_map[position])
+        title_bg_side_margin = 50  # Comme Eco
         if os.path.exists(title_asset_path):
             title_asset = Image.open(title_asset_path).convert("RGBA")
-            # Centrer l'asset horizontalement, positionner à 87px du top
-            title_asset_x = (CANVAS_SIZE[0] - title_asset.size[0]) // 2
-            canvas.alpha_composite(title_asset, (title_asset_x, title_top))
+            title_zone_height = title_asset.size[1]
+            # 50px de margin left (aligné à gauche comme Eco)
+            canvas.alpha_composite(title_asset, (title_bg_side_margin, title_top))
     
     # 7. CONTENU (Inter Medium 39px, NOIR, letter spacing +1%)
     content_font = _load_font(os.path.join(ASSETS_DIR, "Inter_18pt-Medium.ttf"), 39, weight=500)
     content_letter_spacing = int(39 * 0.01)
     
-    # Position contenu : après la zone du titre (estimation ~220px pour la hauteur du titre)
-    content_y = title_top + 220  # 87 + ~133px (hauteur titre) + 20px gap
+    # Position contenu : DYNAMIQUE comme Eco (title_top + title_zone_height + 20px gap)
+    CONTENT_TOP_GAP = 20  # Comme Eco
+    content_y = title_top + title_zone_height + CONTENT_TOP_GAP
     content_max_width = CANVAS_SIZE[0] - (LEFT_MARGIN * 2)
     
     # Wrap le contenu
