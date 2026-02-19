@@ -254,16 +254,7 @@ def generate_doss_slide(
         logo_x = (CANVAS_SIZE[0] - LOGO_SIZE[0]) // 2
         canvas.alpha_composite(logo, (logo_x, LOGO_TOP))
     
-    # 4. Title_bg_doss.png à 87px du top
-    title_bg_path = os.path.join(ASSETS_DIR, "Title_bg_doss.png")
-    title_bg_top = 87
-    title_bg_height = 0
-    if os.path.exists(title_bg_path):
-        title_bg = Image.open(title_bg_path).convert("RGBA")
-        title_bg_height = title_bg.size[1]
-        canvas.alpha_composite(title_bg, (0, title_bg_top))
-    
-    # 5. Swipe (1.2x, 50px du bas de l'overlay, 50px right)
+    # 4. Swipe (1.2x, 50px du bas de l'overlay, 50px right)
     swipe_path = os.path.join(ASSETS_DIR, "swipe_doss.png")
     if os.path.exists(swipe_path):
         swipe = Image.open(swipe_path).convert("RGBA")
@@ -278,6 +269,9 @@ def generate_doss_slide(
     
     draw = ImageDraw.Draw(canvas)
     
+    # Position du titre : 87px du top (comme avant)
+    title_top = 87
+    
     # 6. TITRE
     # Slide 1 : title_bg_slide_1.png + Titre textuel en BLANC
     # Slide 2 : Asset title_slide_1.png
@@ -289,11 +283,13 @@ def generate_doss_slide(
         
         # D'abord, charger title_bg_slide_1.png
         title_bg_slide1_path = os.path.join(ASSETS_DIR, "title_bg_slide_1.png")
+        title_bg_slide1_height = 0
         if os.path.exists(title_bg_slide1_path):
             title_bg_slide1 = Image.open(title_bg_slide1_path).convert("RGBA")
+            title_bg_slide1_height = title_bg_slide1.size[1]
             # Centrer horizontalement, positionner à 87px du top
             title_bg_slide1_x = (CANVAS_SIZE[0] - title_bg_slide1.size[0]) // 2
-            canvas.alpha_composite(title_bg_slide1, (title_bg_slide1_x, title_bg_top))
+            canvas.alpha_composite(title_bg_slide1, (title_bg_slide1_x, title_top))
         
         # Ensuite, afficher le titre en BLANC par-dessus
         title_font = _load_font(os.path.join(ASSETS_DIR, "Inter_18pt-Bold.ttf"), 46, weight=700)
@@ -304,9 +300,9 @@ def generate_doss_slide(
         title_lines = _wrap_text(title, draw, title_font, title_max_width)
         title_line_height = int(46 * 1.2)
         
-        # Position titre : centré verticalement dans title_bg
+        # Position titre : centré verticalement dans title_bg_slide1
         title_block_height = title_line_height * len(title_lines[:2])
-        title_y = title_bg_top + max(0, (title_bg_height - title_block_height) // 2)
+        title_y = title_top + max(0, (title_bg_slide1_height - title_block_height) // 2)
         
         for line in title_lines[:2]:
             draw.text((LEFT_MARGIN, title_y), line, font=title_font, fill="white", spacing=title_letter_spacing)
@@ -324,14 +320,14 @@ def generate_doss_slide(
             title_asset = Image.open(title_asset_path).convert("RGBA")
             # Centrer l'asset horizontalement, positionner à 87px du top
             title_asset_x = (CANVAS_SIZE[0] - title_asset.size[0]) // 2
-            canvas.alpha_composite(title_asset, (title_asset_x, title_bg_top))
+            canvas.alpha_composite(title_asset, (title_asset_x, title_top))
     
     # 7. CONTENU (Inter Medium 39px, NOIR, letter spacing +1%)
     content_font = _load_font(os.path.join(ASSETS_DIR, "Inter_18pt-Medium.ttf"), 39, weight=500)
     content_letter_spacing = int(39 * 0.01)
     
-    # Position contenu : après le titre
-    content_y = title_bg_top + title_bg_height + 20  # 20px gap après title_bg
+    # Position contenu : après la zone du titre (estimation ~220px pour la hauteur du titre)
+    content_y = title_top + 220  # 87 + ~133px (hauteur titre) + 20px gap
     content_max_width = CANVAS_SIZE[0] - (LEFT_MARGIN * 2)
     
     # Wrap le contenu
