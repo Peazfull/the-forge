@@ -38,13 +38,15 @@ Format STRICT :
 - AUCUN ":" après ce mot
 - Puis une phrase hook sous forme de QUESTION impactante
 
+**CONTRAINTE OBLIGATOIRE : 14 MOTS MAXIMUM (incluant le titre)**
+
 Exemple de format attendu :
-"PARADOXE Pourquoi les droits de douane n’ont-ils pas empêché un déficit record ?"
+"PARADOXE Pourquoi les droits de douane n'ont-ils pas empêché un déficit record ?"
 
 Règles :
 - Hook incisif
 - Orienté compréhension du mécanisme
-- 18 à 22 mots maximum
+- 14 mots MAXIMUM (titre inclus)
 - Aucun ton dramatique
 
 ────────────────────────
@@ -133,7 +135,7 @@ EXEMPLE RÉEL ATTENDU (FORMAT & TON À RESPECTER)
 ────────────────────────
 
 {
-  "slide0_hook": "PARADOXE Pourquoi les droits de douane n'ont-ils pas empêché un déficit commercial record aux États-Unis en 2025 ?",
+  "slide0_hook": "PARADOXE Pourquoi les droits de douane n'ont-ils pas empêché un déficit record ?",
   "slide1_title": "Record historique",
   "slide1_content": "Le déficit commercial américain des biens atteint 1.241 milliards de dollars en 2025, en hausse de 2,1 % sur un an. Cette progression intervient malgré un renforcement massif des droits de douane sur plusieurs partenaires stratégiques.",
   "slide2_content": "Les importations de biens progressent à 3.438 milliards de dollars, contre 2.197 milliards pour les exportations. En décembre, le déficit mensuel s'établit à 70,3 milliards, bien au-dessus des attentes du consensus.",
