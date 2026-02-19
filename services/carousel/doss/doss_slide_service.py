@@ -295,14 +295,14 @@ def generate_doss_slide(
             # Positionner avec 50px de margin left
             canvas.alpha_composite(title_bg_slide1, (title_bg_side_margin, title_top))
         
-        # Ensuite, afficher le titre en BLANC par-dessus
-        title_font = _load_font(os.path.join(ASSETS_DIR, "Inter_18pt-Bold.ttf"), 46, weight=700)
-        title_letter_spacing = int(46 * -0.01)
+        # Ensuite, afficher le titre en BLANC par-dessus (MAJUSCULES, taille 48)
+        title_font = _load_font(os.path.join(ASSETS_DIR, "Inter_18pt-Bold.ttf"), 48, weight=700)
+        title_letter_spacing = int(48 * -0.01)
         
-        # Wrap le titre
+        # Wrap le titre (en MAJUSCULES)
         title_max_width = CANVAS_SIZE[0] - (LEFT_MARGIN * 2)
-        title_lines = _wrap_text(title, draw, title_font, title_max_width)
-        title_line_height = int(46 * 1.2)
+        title_lines = _wrap_text(title.upper(), draw, title_font, title_max_width)
+        title_line_height = int(48 * 1.2)
         
         # Position titre : centré verticalement dans title_bg_slide1
         title_block_height = title_line_height * len(title_lines[:2])
