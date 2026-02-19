@@ -281,15 +281,18 @@ def generate_doss_slide(
     if position == 1:
         # SLIDE 1 : title_bg_slide_1.png + Titre textuel en BLANC
         
-        # D'abord, charger title_bg_slide_1.png
+        # D'abord, charger title_bg_slide_1.png avec 50px de margin (comme Eco)
         title_bg_slide1_path = os.path.join(ASSETS_DIR, "title_bg_slide_1.png")
         title_bg_slide1_height = 0
+        title_bg_side_margin = 50  # Comme Eco
         if os.path.exists(title_bg_slide1_path):
             title_bg_slide1 = Image.open(title_bg_slide1_path).convert("RGBA")
+            # Redimensionner pour tenir compte des marges : largeur canvas - 2*50px
+            title_bg_width = CANVAS_SIZE[0] - (title_bg_side_margin * 2)
+            title_bg_slide1 = title_bg_slide1.resize((title_bg_width, title_bg_slide1.size[1]), Image.LANCZOS)
             title_bg_slide1_height = title_bg_slide1.size[1]
-            # Centrer horizontalement, positionner à 87px du top
-            title_bg_slide1_x = (CANVAS_SIZE[0] - title_bg_slide1.size[0]) // 2
-            canvas.alpha_composite(title_bg_slide1, (title_bg_slide1_x, title_top))
+            # Positionner avec 50px de margin left
+            canvas.alpha_composite(title_bg_slide1, (title_bg_side_margin, title_top))
         
         # Ensuite, afficher le titre en BLANC par-dessus
         title_font = _load_font(os.path.join(ASSETS_DIR, "Inter_18pt-Bold.ttf"), 46, weight=700)
