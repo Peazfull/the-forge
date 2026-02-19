@@ -429,10 +429,10 @@ def generate_cover_slide(
         cover_logo_height = cover_logo.size[1]
         canvas.alpha_composite(cover_logo, (45, 213))
     
-    # Hook en 3 lignes : 51px sous le logo, 50px left
-    # Format : "LIGNE1|Ligne 2 et 3" (séparateur |)
-    # Ligne 1 : Inter Bold 100px, letter spacing -9%, MAJUSCULES
-    # Lignes 2-3 : Manrope SemiBold 58px, letter spacing -1%
+    # Hook en 4 lignes : 51px sous le logo, 50px left
+    # Format : "LIGNE1|Lignes 2 à 4" (séparateur |)
+    # Ligne 1 : Inter Bold 88px, letter spacing -9%, MAJUSCULES
+    # Lignes 2-4 : Manrope SemiBold 52px, letter spacing -1%
     
     hook_text = hook.strip()
     
@@ -457,17 +457,17 @@ def generate_cover_slide(
         draw.text((hook_x, hook_y), hook_line1_text, font=hook_line1_font, fill="#000000", spacing=line1_letter_spacing)
         hook_y += int(HOOK_LINE1_FONT_SIZE * 1.2)
     
-    # LIGNES 2-3 : Reste du hook (Manrope SemiBold 58px, -1%)
+    # LIGNES 2-4 : Reste du hook (Manrope SemiBold 52px, -1%)
     if hook_line23_text:
         hook_line23_font = _load_font(FONT_HOOK_PATH, HOOK_LINE23_FONT_SIZE, weight=HOOK_FONT_WEIGHT)
         line23_letter_spacing = int(HOOK_LINE23_FONT_SIZE * HOOK_LINE23_LETTER_SPACING)
         
-        # Wrap sur 2 lignes max
+        # Wrap sur 3 lignes max
         hook_max_width = CANVAS_SIZE[0] - 100  # Marges 50px de chaque côté
         hook_lines_23 = _wrap_text(hook_line23_text, draw, hook_line23_font, hook_max_width)
         hook_line23_height = int(HOOK_LINE23_FONT_SIZE * 1.2)
         
-        for line in hook_lines_23[:2]:  # Max 2 lignes
+        for line in hook_lines_23[:3]:  # Max 3 lignes
             draw.text((hook_x, hook_y), line, font=hook_line23_font, fill="#000000", spacing=line23_letter_spacing)
             hook_y += hook_line23_height
     
