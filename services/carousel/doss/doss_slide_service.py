@@ -277,22 +277,43 @@ def generate_doss_slide(
     
     draw = ImageDraw.Draw(canvas)
     
-    # 6. TITRE (Inter Bold 46px, NOIR, letter spacing -1%)
-    title_font = _load_font(os.path.join(ASSETS_DIR, "Inter_18pt-Bold.ttf"), 46, weight=700)
-    title_letter_spacing = int(46 * -0.01)
+    # 6. TITRE
+    # Slide 1 : Titre textuel (variable)
+    # Slide 2 : Asset title_slide_1.png
+    # Slide 3 : Asset title_slide_2.png
+    # Slide 4 : Asset title_slide_3.png
     
-    # Wrap le titre
-    title_max_width = CANVAS_SIZE[0] - (LEFT_MARGIN * 2)
-    title_lines = _wrap_text(title, draw, title_font, title_max_width)
-    title_line_height = int(46 * 1.2)
+    if position == 1:
+        # SLIDE 1 : Titre textuel (Inter Bold 46px, NOIR, letter spacing -1%)
+        title_font = _load_font(os.path.join(ASSETS_DIR, "Inter_18pt-Bold.ttf"), 46, weight=700)
+        title_letter_spacing = int(46 * -0.01)
+        
+        # Wrap le titre
+        title_max_width = CANVAS_SIZE[0] - (LEFT_MARGIN * 2)
+        title_lines = _wrap_text(title, draw, title_font, title_max_width)
+        title_line_height = int(46 * 1.2)
+        
+        # Position titre : centré verticalement dans title_bg
+        title_block_height = title_line_height * len(title_lines[:2])
+        title_y = title_bg_top + max(0, (title_bg_height - title_block_height) // 2)
+        
+        for line in title_lines[:2]:
+            draw.text((LEFT_MARGIN, title_y), line, font=title_font, fill="black", spacing=title_letter_spacing)
+            title_y += title_line_height
     
-    # Position titre : centré verticalement dans title_bg
-    title_block_height = title_line_height * len(title_lines[:2])
-    title_y = title_bg_top + max(0, (title_bg_height - title_block_height) // 2)
-    
-    for line in title_lines[:2]:
-        draw.text((LEFT_MARGIN, title_y), line, font=title_font, fill="black", spacing=title_letter_spacing)
-        title_y += title_line_height
+    elif position in [2, 3, 4]:
+        # SLIDES 2, 3, 4 : Asset fixe
+        title_asset_map = {
+            2: "title_slide_1.png",
+            3: "title_slide_2.png",
+            4: "title_slide_3.png"
+        }
+        title_asset_path = os.path.join(ASSETS_DIR, title_asset_map[position])
+        if os.path.exists(title_asset_path):
+            title_asset = Image.open(title_asset_path).convert("RGBA")
+            # Centrer l'asset horizontalement, positionner à 87px du top
+            title_asset_x = (CANVAS_SIZE[0] - title_asset.size[0]) // 2
+            canvas.alpha_composite(title_asset, (title_asset_x, title_bg_top))
     
     # 7. CONTENU (Inter Medium 39px, NOIR, letter spacing +1%)
     content_font = _load_font(os.path.join(ASSETS_DIR, "Inter_18pt-Medium.ttf"), 39, weight=500)
