@@ -237,13 +237,13 @@ def generate_doss_slide(
     
     # 2. Overlay au-dessus de l'image (1100x600, clippé sur les côtés comme Eco)
     overlay_path = os.path.join(ASSETS_DIR, "Overlay_Slide0.png")
-    overlay_y = image_y_position  # Au même niveau que l'image
     if os.path.exists(overlay_path):
         overlay = Image.open(overlay_path).convert("RGBA")
         # Redimensionner à 1100x600 (comme Eco)
         overlay = overlay.resize((1100, 600), Image.LANCZOS)
-        # Position : X=-10 pour clipper 10px de chaque côté (comme Eco)
+        # Position : X=-10 pour clipper 10px de chaque côté, Y=0 (collé en haut comme Eco)
         overlay_x = -10
+        overlay_y = 0
         canvas.alpha_composite(overlay, (overlay_x, overlay_y))
     
     # 3. Logo en haut (200x65, centré, -15px du top pour clip)
