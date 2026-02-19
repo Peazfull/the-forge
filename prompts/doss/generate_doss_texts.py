@@ -118,7 +118,7 @@ FORMAT JSON STRICT
 Retourne UNIQUEMENT :
 
 {
-  "slide0_cover": "...",
+  "slide0_hook": "...",
   "slide1_title": "...",
   "slide1_content": "...",
   "slide2_content": "...",
@@ -133,12 +133,12 @@ EXEMPLE RÉEL ATTENDU (FORMAT & TON À RESPECTER)
 ────────────────────────
 
 {
-  "slide0_cover": "PARADOXE Pourquoi les droits de douane n’ont-ils pas empêché un déficit commercial record aux États-Unis en 2025 ?",
+  "slide0_hook": "PARADOXE Pourquoi les droits de douane n'ont-ils pas empêché un déficit commercial record aux États-Unis en 2025 ?",
   "slide1_title": "Record historique",
   "slide1_content": "Le déficit commercial américain des biens atteint 1.241 milliards de dollars en 2025, en hausse de 2,1 % sur un an. Cette progression intervient malgré un renforcement massif des droits de douane sur plusieurs partenaires stratégiques.",
-  "slide2_content": "Les importations de biens progressent à 3.438 milliards de dollars, contre 2.197 milliards pour les exportations. En décembre, le déficit mensuel s’établit à 70,3 milliards, bien au-dessus des attentes du consensus.",
-  "slide3_content": "L’Union européenne, la Chine et le Mexique concentrent l’essentiel du déséquilibre. La hausse des biens d’investissement, notamment liés aux infrastructures technologiques, contribue à maintenir un niveau élevé d’importations.",
-  "slide4_content": "Malgré l’arsenal tarifaire, la dynamique des flux reste structurellement déséquilibrée. Le commerce extérieur demeure un facteur macroéconomique central dans l’équation américaine."
+  "slide2_content": "Les importations de biens progressent à 3.438 milliards de dollars, contre 2.197 milliards pour les exportations. En décembre, le déficit mensuel s'établit à 70,3 milliards, bien au-dessus des attentes du consensus.",
+  "slide3_content": "L'Union européenne, la Chine et le Mexique concentrent l'essentiel du déséquilibre. La hausse des biens d'investissement, notamment liés aux infrastructures technologiques, contribue à maintenir un niveau élevé d'importations.",
+  "slide4_content": "Malgré l'arsenal tarifaire, la dynamique des flux reste structurellement déséquilibrée. Le commerce extérieur demeure un facteur macroéconomique central dans l'équation américaine."
 }
 
 """
