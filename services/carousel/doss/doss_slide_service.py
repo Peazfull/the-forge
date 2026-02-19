@@ -208,6 +208,13 @@ def generate_doss_slide(
     image_bytes: Optional[bytes] = None,
     position: int | None = None
 ) -> bytes:
+    """
+    Génère une slide Doss (1-4) avec le style Eco :
+    - Canvas 1080x1350, fond #F4F4EB
+    - Image 5:4 en bas
+    - Overlay au-dessus de l'image
+    - Titre et contenu en haut (NOIR)
+    """
     if not image_url and not image_bytes:
         raise ValueError("Aucune image disponible pour le doss.")
 
@@ -216,138 +223,95 @@ def generate_doss_slide(
     else:
         base_img = _load_image_from_url(image_url)  # type: ignore[arg-type]
 
-    top_img = _cover_resize(base_img, IMAGE_TOP_SIZE)
-    canvas = Image.new("RGBA", CANVAS_SIZE, "white")
-    canvas.alpha_composite(top_img, (0, 0))
-
-    filter_path = os.path.join(ASSETS_DIR, "filter_main.png")
-    if os.path.exists(filter_path):
-        overlay = Image.open(filter_path).convert("RGBA")
-        if overlay.size != CANVAS_SIZE:
-            overlay = overlay.resize(CANVAS_SIZE, Image.LANCZOS)
-        canvas.alpha_composite(overlay, (0, 0))
-
+    # Redimensionner l'image en 5:4 (1080x864)
+    base_img = _cover_resize(base_img, COVER_IMAGE_SIZE)
+    
+    # Canvas 1080x1350 avec fond #F4F4EB
+    canvas = Image.new("RGBA", CANVAS_SIZE, (244, 244, 235, 255))
+    
+    # 1. Coller l'image en bas (Y = 1350 - 864 = 486)
+    image_y_position = CANVAS_SIZE[1] - COVER_IMAGE_SIZE[1]
+    if base_img.mode != 'RGBA':
+        base_img = base_img.convert('RGBA')
+    canvas.alpha_composite(base_img, (0, image_y_position))
+    
+    # 2. Overlay au-dessus de l'image (1100x600, centré, au-dessus de l'image)
+    overlay_path = os.path.join(ASSETS_DIR, "Overlay_Slide0.png")
+    if os.path.exists(overlay_path):
+        overlay = Image.open(overlay_path).convert("RGBA")
+        # Redimensionner à 1100x600
+        overlay = overlay.resize((1100, 600), Image.LANCZOS)
+        overlay_x = (CANVAS_SIZE[0] - 1100) // 2  # Centré horizontalement
+        overlay_y = image_y_position  # Au même niveau que l'image
+        canvas.alpha_composite(overlay, (overlay_x, overlay_y))
+    
+    # 3. Logo en haut (200x65, centré, -15px du top pour clip)
     logo_path = os.path.join(ASSETS_DIR, "Logo.png")
     if os.path.exists(logo_path):
         logo = Image.open(logo_path).convert("RGBA")
         logo = logo.resize(LOGO_SIZE, Image.LANCZOS)
         logo_x = (CANVAS_SIZE[0] - LOGO_SIZE[0]) // 2
         canvas.alpha_composite(logo, (logo_x, LOGO_TOP))
-
-    if position == 1:
-        title_zoom_path = os.path.join(ASSETS_DIR, "Title_zoom.png")
-        if os.path.exists(title_zoom_path):
-            title_zoom = Image.open(title_zoom_path).convert("RGBA")
-            if title_zoom.size != TITLE_ZOOM_SIZE:
-                title_zoom = title_zoom.resize(TITLE_ZOOM_SIZE, Image.LANCZOS)
-            canvas.alpha_composite(title_zoom, (TITLE_ZOOM_LEFT, TITLE_ZOOM_TOP))
-
-    bottom_bg_path = os.path.join(ASSETS_DIR, "doss_bg_bas.png")
-    if os.path.exists(bottom_bg_path):
-        bottom_bg = Image.open(bottom_bg_path).convert("RGBA")
-        if bottom_bg.size != (CANVAS_SIZE[0], IMAGE_TOP_HEIGHT):
-            bottom_bg = bottom_bg.resize((CANVAS_SIZE[0], IMAGE_TOP_HEIGHT), Image.LANCZOS)
-        canvas.alpha_composite(bottom_bg, (0, IMAGE_TOP_HEIGHT))
-
-    swipe_path = os.path.join(ASSETS_DIR, "Swipe.png")
+    
+    # 4. Title_bg_doss.png à 87px du top
+    title_bg_path = os.path.join(ASSETS_DIR, "Title_bg_doss.png")
+    title_bg_top = 87
+    title_bg_height = 0
+    if os.path.exists(title_bg_path):
+        title_bg = Image.open(title_bg_path).convert("RGBA")
+        title_bg_height = title_bg.size[1]
+        canvas.alpha_composite(title_bg, (0, title_bg_top))
+    
+    # 5. Swipe (1.2x, 50px du bas de l'overlay, 50px right)
+    swipe_path = os.path.join(ASSETS_DIR, "swipe_doss.png")
     if os.path.exists(swipe_path):
         swipe = Image.open(swipe_path).convert("RGBA")
-        if swipe.size != SWIPE_SIZE:
-            swipe = swipe.resize(SWIPE_SIZE, Image.LANCZOS)
-        swipe_x = CANVAS_SIZE[0] - SWIPE_SIZE[0] - SWIPE_MARGIN_RIGHT
-        swipe_y = CANVAS_SIZE[1] - SWIPE_SIZE[1] - SWIPE_MARGIN_BOTTOM
+        # Scale x1.2
+        new_width = int(swipe.size[0] * 1.2)
+        new_height = int(swipe.size[1] * 1.2)
+        swipe = swipe.resize((new_width, new_height), Image.LANCZOS)
+        # Position : 50px du bas de l'overlay (overlay_y + 600 - 50 - swipe height)
+        swipe_x = CANVAS_SIZE[0] - new_width - 50
+        swipe_y = overlay_y + 600 - 50 - new_height
         canvas.alpha_composite(swipe, (swipe_x, swipe_y))
-
-    # Suppression overlay/title_bg pour le nouveau design
-
+    
     draw = ImageDraw.Draw(canvas)
-
-    text_area_top = 570
-    text_area_height = CANVAS_SIZE[1] - text_area_top - CONTENT_BOTTOM_MARGIN
-    content_max_width = CANVAS_SIZE[0] - LEFT_MARGIN - RIGHT_MARGIN
-
-    title_max_width = content_max_width
-    if title.strip() == title.strip().upper():
-        title_text = title
-    else:
-        title_text = title.upper()
-
-    title_font, title_lines = _fit_text(
-        draw,
-        title_text,
-        title_max_width,
-        120,
-        start_size=TITLE_FONT_SIZE,
-        font_path=FONT_TITLE_PATH,
-        weight=TITLE_FONT_WEIGHT,
-    )
-    title_line_height = int(title_font.size * 1.2)
-
-    y = text_area_top
+    
+    # 6. TITRE (Inter Bold 46px, NOIR, letter spacing -1%)
+    title_font = _load_font(os.path.join(ASSETS_DIR, "Inter_18pt-Bold.ttf"), 46, weight=700)
+    title_letter_spacing = int(46 * -0.01)
+    
+    # Wrap le titre
+    title_max_width = CANVAS_SIZE[0] - (LEFT_MARGIN * 2)
+    title_lines = _wrap_text(title, draw, title_font, title_max_width)
+    title_line_height = int(46 * 1.2)
+    
+    # Position titre : centré verticalement dans title_bg
+    title_block_height = title_line_height * len(title_lines[:2])
+    title_y = title_bg_top + max(0, (title_bg_height - title_block_height) // 2)
+    
     for line in title_lines[:2]:
-        x = LEFT_MARGIN
-        words = line.split()
-        for word in words:
-            token_width = draw.textlength(word, font=title_font)
-            rect = (
-                x - HIGHLIGHT_PAD_X,
-                y - TITLE_HIGHLIGHT_PAD_Y,
-                x + token_width + HIGHLIGHT_PAD_X,
-                y + title_line_height + TITLE_HIGHLIGHT_PAD_Y
-            )
-            draw.rectangle(rect, fill=HIGHLIGHT_BG_COLOR)
-            draw.text((x, y), word, font=title_font, fill=HIGHLIGHT_TEXT_COLOR)
-            space_width = draw.textlength(" ", font=title_font)
-            x += token_width + space_width
-        y += title_line_height
-
-    content_y = y + CONTENT_TOP_GAP
-    content_max_height = (text_area_top + text_area_height) - content_y
-    content_plain = _strip_highlight_markers(content)
-    content_font, content_lines_plain = _fit_text(
-        draw,
-        content_plain,
-        content_max_width,
-        content_max_height,
-        start_size=CONTENT_FONT_SIZE,
-        font_path=FONT_CONTENT_PATH,
-        weight=CONTENT_FONT_WEIGHT,
-    )
-    content_line_height = int(content_font.size * 1.2)
-    y = content_y
-    blocks = content.splitlines()
-    for idx, block in enumerate(blocks):
-        if y + content_line_height > CANVAS_SIZE[1] - CONTENT_BOTTOM_MARGIN:
+        draw.text((LEFT_MARGIN, title_y), line, font=title_font, fill="black", spacing=title_letter_spacing)
+        title_y += title_line_height
+    
+    # 7. CONTENU (Inter Medium 39px, NOIR, letter spacing +1%)
+    content_font = _load_font(os.path.join(ASSETS_DIR, "Inter_18pt-Medium.ttf"), 39, weight=500)
+    content_letter_spacing = int(39 * 0.01)
+    
+    # Position contenu : après le titre
+    content_y = title_bg_top + title_bg_height + 20  # 20px gap après title_bg
+    content_max_width = CANVAS_SIZE[0] - (LEFT_MARGIN * 2)
+    
+    # Wrap le contenu
+    content_lines = _wrap_text(content.replace("**", ""), draw, content_font, content_max_width)
+    content_line_height = int(39 * 1.2)
+    
+    for line in content_lines[:6]:  # Max 6 lignes
+        if content_y + content_line_height > image_y_position - 20:
             break
-        if not block.strip():
-            y += content_line_height * (1 + PARAGRAPH_EXTRA_LINE_GAP)
-            continue
-        content_tokens = _tokenize_highlights(block)
-        content_lines = _wrap_highlight_tokens(content_tokens, draw, content_font, content_max_width)
-        for line_tokens in content_lines:
-            if y + content_line_height > CANVAS_SIZE[1] - CONTENT_BOTTOM_MARGIN:
-                break
-            x = LEFT_MARGIN
-            for word, is_highlight in line_tokens:
-                token_text = word
-                token_width = draw.textlength(token_text, font=content_font)
-                if is_highlight:
-                    rect = (
-                        x - HIGHLIGHT_PAD_X,
-                        y - CONTENT_HIGHLIGHT_PAD_Y,
-                        x + token_width + HIGHLIGHT_PAD_X,
-                        y + content_line_height + CONTENT_HIGHLIGHT_PAD_Y
-                    )
-                    draw.rectangle(rect, fill=HIGHLIGHT_BG_COLOR)
-                    draw.text((x, y), token_text, font=content_font, fill=HIGHLIGHT_TEXT_COLOR)
-                else:
-                    draw.text((x, y), token_text, font=content_font, fill=CONTENT_COLOR)
-                space_width = draw.textlength(" ", font=content_font)
-                x += token_width + space_width
-            y += content_line_height
-        if idx < len(blocks) - 1:
-            y += content_line_height * PARAGRAPH_EXTRA_LINE_GAP
-
+        draw.text((LEFT_MARGIN, content_y), line, font=content_font, fill="black", spacing=content_letter_spacing)
+        content_y += content_line_height
+    
     output = BytesIO()
     canvas.convert("RGB").save(output, format="PNG")
     return output.getvalue()
