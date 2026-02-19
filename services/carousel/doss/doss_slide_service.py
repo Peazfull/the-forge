@@ -32,7 +32,7 @@ TITLE_ZOOM_TOP = 420
 LEFT_MARGIN = 60
 RIGHT_MARGIN = 60
 TITLE_TOP_GAP = 0
-CONTENT_TOP_GAP = 35  # Gap entre titre et content (ajusté pour Doss')
+CONTENT_TOP_GAP = 45  # Gap entre titre et content (ajusté pour Doss')
 CONTENT_BOTTOM_MARGIN = 20  # Comme Eco
 BOTTOM_BG_HEIGHT = 1043
 BOTTOM_BG_MARGIN_BOTTOM = 20
@@ -269,8 +269,8 @@ def generate_doss_slide(
     
     draw = ImageDraw.Draw(canvas)
     
-    # Position du titre : 140px du top (ajusté pour Doss')
-    title_top = 140
+    # Position du titre : 250px du top (ajusté pour Doss')
+    title_top = 250
     
     # 6. TITRE
     # Slide 1 : title_bg_slide_1.png + Titre textuel en BLANC
