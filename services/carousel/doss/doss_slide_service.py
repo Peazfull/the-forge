@@ -271,6 +271,7 @@ def generate_doss_slide(
     
     # Position du titre : 250px du top (ajusté pour Doss')
     title_top = 250
+    print(f"[DEBUG DOSS SLIDE] title_top = {title_top}, CONTENT_TOP_GAP = {CONTENT_TOP_GAP}, position = {position}")
     
     # 6. TITRE
     # Slide 1 : title_bg_slide_1.png + Titre textuel en BLANC
