@@ -24,7 +24,7 @@ IMAGE_TOP_HEIGHT = 540  # 16:9 sur moitié haute (pour legacy)
 IMAGE_TOP_SIZE = (CANVAS_SIZE[0], IMAGE_TOP_HEIGHT)
 
 LOGO_SIZE = (200, 65)
-LOGO_TOP = 15
+LOGO_TOP = -15  # Négatif pour clipper le haut du logo (comme Eco)
 TITLE_ZOOM_SIZE = (346, 114)
 TITLE_ZOOM_LEFT = 53
 TITLE_ZOOM_TOP = 420
@@ -269,8 +269,8 @@ def generate_doss_slide(
     
     draw = ImageDraw.Draw(canvas)
     
-    # Position du titre : 87px du top (comme avant)
-    title_top = 87
+    # Position du titre : 92px du top (comme Eco)
+    title_top = 92
     
     # 6. TITRE
     # Slide 1 : title_bg_slide_1.png + Titre textuel en BLANC
