@@ -273,6 +273,9 @@ def generate_doss_slide(
     title_top = 250
     print(f"[DEBUG DOSS SLIDE] title_top = {title_top}, CONTENT_TOP_GAP = {CONTENT_TOP_GAP}, position = {position}")
     
+    # DEBUG VISUEL : Rectangle rouge pour voir la position du titre
+    draw.rectangle([(50, title_top), (1030, title_top + 5)], fill="red")
+    
     # 6. TITRE
     # Slide 1 : title_bg_slide_1.png + Titre textuel en BLANC
     # Slide 2 : Asset title_slide_1.png
