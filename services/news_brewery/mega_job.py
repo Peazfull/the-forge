@@ -63,6 +63,8 @@ class MegaJob:
         self.status_log: List[str] = []
         self.last_log: str = ""
         self.started_at: Optional[float] = None
+        self.llm_retries = 0
+        self._metrics_lock = threading.Lock()
         
         # Threading
         self._stop_event = threading.Event()
@@ -91,6 +93,7 @@ class MegaJob:
         self.buffer_text = ""
         self.json_items = []
         self.json_preview_text = ""
+        self.llm_retries = 0
         self.state = "running"
         self.started_at = time.time()
         self._stop_event.clear()
@@ -161,6 +164,8 @@ class MegaJob:
                 msg = str(e)
                 if attempt >= LLM_MAX_RETRIES or not self._is_retryable_llm_error(msg):
                     raise
+                with self._metrics_lock:
+                    self.llm_retries += 1
                 # backoff exponentiel + jitter (réduit la probabilité de re-429)
                 base = min(2 ** attempt, 16)
                 jitter = random.uniform(0.2, 1.0)
@@ -189,6 +194,9 @@ class MegaJob:
             if self._stop_event.is_set():
                 break
             
+            t_batch_start = time.time()
+            llm_retries_start = self.llm_retries
+
             start_idx = batch_num * batch_size
             end_idx = min(start_idx + batch_size, self.total)
             batch_urls = self._urls_to_scrape[start_idx:end_idx]
@@ -263,6 +271,9 @@ class MegaJob:
             self._log(f"  🔥 Firecrawl x{firecrawl_workers} + 📋 Structure x{llm_workers} (pipeline)…")
             structured_results: List[Dict[str, object]] = []
             completed_in_batch = 0
+            t_pipeline_start = time.time()
+            last_fetch_done = t_pipeline_start
+            last_struct_done = t_pipeline_start
             with ThreadPoolExecutor(max_workers=firecrawl_workers) as fetch_executor, ThreadPoolExecutor(
                 max_workers=llm_workers
             ) as llm_executor:
@@ -277,6 +288,7 @@ class MegaJob:
                     if self._stop_event.is_set():
                         break
                     r = ff.result()
+                    last_fetch_done = time.time()
                     sf = llm_executor.submit(_structure_one, r)
                     structure_futures[sf] = r
 
@@ -287,6 +299,7 @@ class MegaJob:
                     structured_results.append(sf.result())
                     completed_in_batch += 1
                     self.current_index = min(start_idx + completed_in_batch, self.total)
+                    last_struct_done = time.time()
 
             if self._stop_event.is_set():
                 self.state = "stopped"
@@ -327,8 +340,10 @@ class MegaJob:
             
             # JSON du batch
             self._log(f"🔄 Batch {batch_num + 1}/{total_batches} - Génération JSON ({batch_processed} articles)...")
+            t_json_start = time.time()
             self.buffer_text = batch_buffer  # Utiliser le buffer du batch
             json_result = self.finalize_buffer()
+            t_json_end = time.time()
             if json_result.get("status") != "success":
                 self.errors.append(f"Batch {batch_num + 1} - Erreur JSON: {json_result.get('message')}")
                 self._log(f"❌ Batch {batch_num + 1} - Erreur JSON")
@@ -337,7 +352,9 @@ class MegaJob:
             # DB du batch
             if not self._config or not self._config.dry_run:
                 self._log(f"💾 Batch {batch_num + 1}/{total_batches} - Envoi en DB...")
+                t_db_start = time.time()
                 db_result = self.send_to_db()
+                t_db_end = time.time()
                 if db_result.get("status") == "success":
                     inserted = db_result.get("inserted", 0)
                     total_inserted += inserted
@@ -346,7 +363,25 @@ class MegaJob:
                     self.errors.append(f"Batch {batch_num + 1} - Erreur DB: {db_result.get('message')}")
                     self._log(f"❌ Batch {batch_num + 1} - Erreur DB")
             else:
+                t_db_start = time.time()
+                t_db_end = t_db_start
                 self._log(f"✅ Batch {batch_num + 1}/{total_batches} - OK (DRY RUN)")
+
+            # Metrics batch
+            t_batch_end = time.time()
+            pipeline_s = max(0.0, last_struct_done - t_pipeline_start)
+            fetch_s = max(0.0, last_fetch_done - t_pipeline_start)
+            json_s = max(0.0, t_json_end - t_json_start)
+            db_s = max(0.0, t_db_end - t_db_start)
+            batch_s = max(0.001, t_batch_end - t_batch_start)
+            llm_retries_delta = max(0, self.llm_retries - llm_retries_start)
+            self._log(
+                f"⏱️ Batch {batch_num + 1}/{total_batches} "
+                f"pipeline={pipeline_s:.1f}s (fetch~{fetch_s:.1f}s, struct~{pipeline_s:.1f}s) "
+                f"json={json_s:.1f}s db={db_s:.1f}s "
+                f"throughput={batch_processed / batch_s:.2f} item/s "
+                f"llm_retries=+{llm_retries_delta}"
+            )
             
             # Reset buffer pour le prochain batch
             self.buffer_text = ""

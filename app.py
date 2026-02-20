@@ -498,6 +498,11 @@ else:
             progress = mega_status.get("current_index", 0) / max(mega_status.get("total", 1), 1)
             st.progress(progress)
             st.caption(f"📊 {mega_status.get('current_index', 0)}/{mega_status.get('total', 0)} · ✅ {mega_status.get('processed', 0)}")
+            if mega_status.get("last_log"):
+                st.caption(str(mega_status.get("last_log")))
+            with st.expander("Logs", expanded=False):
+                logs = mega_status.get("status_log", []) or []
+                st.text("\n".join([str(x) for x in logs[-25:]]))
             time.sleep(1)
             st.rerun()
         
