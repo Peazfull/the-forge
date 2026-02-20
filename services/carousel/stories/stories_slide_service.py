@@ -226,10 +226,10 @@ def generate_stories_slide(
     # Redimensionner l'image en 5:4 (1080x864)
     base_img = _cover_resize(base_img, COVER_IMAGE_SIZE)
     
-    # Canvas 1080x1350 avec fond #F4F4EB
+    # Canvas 1080x1920 avec fond #F4F4EB
     canvas = Image.new("RGBA", CANVAS_SIZE, (244, 244, 235, 255))
     
-    # 1. Coller l'image en bas (Y = 1350 - 864 = 486)
+    # 1. Coller l'image en bas (Y = 1920 - 864 = 1056)
     image_y_position = CANVAS_SIZE[1] - COVER_IMAGE_SIZE[1]
     if base_img.mode != 'RGBA':
         base_img = base_img.convert('RGBA')
@@ -269,8 +269,9 @@ def generate_stories_slide(
     
     draw = ImageDraw.Draw(canvas)
     
-    # Position du titre : 92px du top (comme Eco)
-    title_top = 92
+    # Position du titre : Centré dans l'espace au-dessus de l'image
+    # Espace disponible = 1056px, je positionne le titre à ~20% = 210px
+    title_top = 210
     
     # 6. TITRE
     # Slide 1 : title_bg_slide_1.png + Titre textuel en BLANC
@@ -377,11 +378,11 @@ def generate_cover_slide(
     # Redimensionner l'image de fond en 1080×864 (5:4)
     base_img = _cover_resize(base_img, COVER_IMAGE_SIZE)
     
-    # Créer le canvas complet 1080×1350 avec fond #F4F4EB (beige/crème)
+    # Créer le canvas complet 1080×1920 avec fond #F4F4EB (beige/crème)
     canvas = Image.new("RGBA", CANVAS_SIZE, (244, 244, 235, 255))  # #F4F4EB
     
     # 1. Coller l'image de fond en BAS du canvas
-    # Canvas height: 1350, Image height: 864 → Y position: 1350 - 864 = 486
+    # Canvas height: 1920, Image height: 864 → Y position: 1920 - 864 = 1056
     image_y_position = CANVAS_SIZE[1] - COVER_IMAGE_SIZE[1]
     if base_img.mode != 'RGBA':
         base_img = base_img.convert('RGBA')
@@ -426,9 +427,12 @@ def generate_cover_slide(
         logo_x = (CANVAS_SIZE[0] - logo_size[0]) // 2
         canvas.alpha_composite(logo, (logo_x, 0))
     
-    # Logo slide 0 - "Le Stories'" (213px top, 45px left, réduit ÷ 1,1)
+    # Logo slide 0 - "Le Stories'" (centré verticalement, 45px left, réduit ÷ 1,1)
+    # Espace disponible au-dessus de l'image = 1056px
+    # Je positionne le logo à ~30% de cet espace = 320px
     cover_logo_path = os.path.join(ASSETS_DIR, "Logo_slide_0.png")
     cover_logo_height = 0
+    cover_logo_top = 320  # Ajusté pour Stories (vs 213 pour Doss')
     if os.path.exists(cover_logo_path):
         cover_logo = Image.open(cover_logo_path).convert("RGBA")
         # Réduire la taille ÷ 1,1
@@ -436,7 +440,7 @@ def generate_cover_slide(
         new_height = int(cover_logo.size[1] / 1.1)
         cover_logo = cover_logo.resize((new_width, new_height), Image.LANCZOS)
         cover_logo_height = cover_logo.size[1]
-        canvas.alpha_composite(cover_logo, (45, 213))
+        canvas.alpha_composite(cover_logo, (45, cover_logo_top))
     
     # Hook en 4 lignes : 51px sous le logo, 50px left
     # Format : "LIGNE1|Lignes 2 à 4" (séparateur |)
@@ -455,8 +459,8 @@ def generate_cover_slide(
         hook_line1_text = words[0].upper() if words else ""
         hook_line23_text = " ".join(words[1:]) if len(words) > 1 else ""
     
-    # Position de départ : 213px (logo top) + hauteur du logo + 51px
-    hook_y = 213 + cover_logo_height + 51
+    # Position de départ : cover_logo_top + hauteur du logo + 51px
+    hook_y = cover_logo_top + cover_logo_height + 51
     hook_x = 50
     
     # LIGNE 1 : Sujet principal (Inter Bold 100px, -9%)
