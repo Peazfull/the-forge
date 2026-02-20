@@ -238,17 +238,14 @@ def generate_stories_slide(
         base_img = base_img.convert('RGBA')
     canvas.alpha_composite(base_img, (0, image_y_position))
     
-    # 2. Overlay au-dessus de l'image (largeur 1100, hauteur selon l'asset)
+    # 2. Overlay au-dessus de l'image (largeur 1100, hauteur = moitié de la Story)
     overlay_path = os.path.join(ASSETS_DIR, "Overlay_Slide0.png")
     overlay_x = -10
     overlay_y = 0
     overlay_w = 1100
-    overlay_h = 0
+    overlay_h = CANVAS_SIZE[1] // 2  # 960px sur un canvas 1920px
     if os.path.exists(overlay_path):
         overlay = Image.open(overlay_path).convert("RGBA")
-        original_width, original_height = overlay.size
-        scale = overlay_w / original_width
-        overlay_h = int(original_height * scale)
         overlay = overlay.resize((overlay_w, overlay_h), Image.LANCZOS)
         # Position : X=-10 pour clipper 10px de chaque côté, Y=0 (collé en haut comme Eco)
         overlay_x = (CANVAS_SIZE[0] - overlay_w) // 2
@@ -402,16 +399,14 @@ def generate_cover_slide(
         base_img = base_img.convert('RGBA')
     canvas.alpha_composite(base_img, (0, image_y_position))
     
-    # 2. Overlay Slide0 - Force 1100px de large
+    # 2. Overlay Slide0 - Force 1100px de large et 50% de la hauteur
     overlay_slide0_path = os.path.join(ASSETS_DIR, "Overlay_Slide0.png")
     overlay_height = 0  # Pour positionner le Swipe plus tard
     overlay_x_offset = 0
     if os.path.exists(overlay_slide0_path):
         overlay_slide0 = Image.open(overlay_slide0_path).convert("RGBA")
-        original_width, original_height = overlay_slide0.size
         target_width = 1100
-        scale = target_width / original_width
-        target_height = int(original_height * scale)
+        target_height = CANVAS_SIZE[1] // 2  # 960px sur un canvas 1920px
         overlay_slide0 = overlay_slide0.resize((target_width, target_height), Image.LANCZOS)
         x_offset = (CANVAS_SIZE[0] - target_width) // 2
         overlay_x_offset = x_offset
