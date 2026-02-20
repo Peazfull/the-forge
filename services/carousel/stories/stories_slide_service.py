@@ -238,17 +238,20 @@ def generate_stories_slide(
         base_img = base_img.convert('RGBA')
     canvas.alpha_composite(base_img, (0, image_y_position))
     
-    # 2. Overlay au-dessus de l'image (1100x600, clippé sur les côtés comme Eco)
+    # 2. Overlay au-dessus de l'image (largeur 1100, hauteur selon l'asset)
     overlay_path = os.path.join(ASSETS_DIR, "Overlay_Slide0.png")
     overlay_x = -10
     overlay_y = 0
     overlay_w = 1100
-    overlay_h = 600
+    overlay_h = 0
     if os.path.exists(overlay_path):
         overlay = Image.open(overlay_path).convert("RGBA")
-        # Redimensionner à 1100x600 (comme Eco)
+        original_width, original_height = overlay.size
+        scale = overlay_w / original_width
+        overlay_h = int(original_height * scale)
         overlay = overlay.resize((overlay_w, overlay_h), Image.LANCZOS)
         # Position : X=-10 pour clipper 10px de chaque côté, Y=0 (collé en haut comme Eco)
+        overlay_x = (CANVAS_SIZE[0] - overlay_w) // 2
         canvas.alpha_composite(overlay, (overlay_x, overlay_y))
     
     # 3. Logo en haut (200x65, centré, -15px du top pour clip)
@@ -259,7 +262,7 @@ def generate_stories_slide(
         logo_x = (CANVAS_SIZE[0] - LOGO_SIZE[0]) // 2
         canvas.alpha_composite(logo, (logo_x, LOGO_TOP))
     
-    # 4. Swipe (1.2x, ancré à l'overlay, 50px bottom/right)
+    # 4. Swipe (1.2x, ancré à l'overlay; fallback: 50px au-dessus de l'image)
     swipe_path = os.path.join(ASSETS_DIR, "swipe_stories.png")
     if os.path.exists(swipe_path):
         swipe = Image.open(swipe_path).convert("RGBA")
@@ -267,8 +270,12 @@ def generate_stories_slide(
         new_width = int(swipe.size[0] * 1.2)
         new_height = int(swipe.size[1] * 1.2)
         swipe = swipe.resize((new_width, new_height), Image.LANCZOS)
-        swipe_x = overlay_x + overlay_w - 50 - new_width
-        swipe_y = overlay_y + overlay_h - 50 - new_height
+        if overlay_h > 0:
+            swipe_x = overlay_x + overlay_w - 50 - new_width
+            swipe_y = overlay_y + overlay_h - 50 - new_height
+        else:
+            swipe_x = CANVAS_SIZE[0] - new_width - 50
+            swipe_y = image_y_position - 50 - new_height
         canvas.alpha_composite(swipe, (swipe_x, swipe_y))
     
     draw = ImageDraw.Draw(canvas)
@@ -339,12 +346,13 @@ def generate_stories_slide(
             canvas.alpha_composite(title_asset, (title_bg_side_margin, title_top))
     
     # 7. CONTENU (Inter Medium, NOIR, letter spacing +1%)
-    content_font_size = 43
+    content_font_size = 47
     content_font = _load_font(os.path.join(ASSETS_DIR, "Inter_18pt-Medium.ttf"), content_font_size, weight=500)
     content_letter_spacing = int(content_font_size * 0.01)
     
     # Position contenu : DYNAMIQUE comme Eco (title_top + title_zone_height + CONTENT_TOP_GAP)
-    content_y = title_top + title_zone_height + CONTENT_TOP_GAP
+    title_to_content_gap = 100
+    content_y = title_top + title_zone_height + title_to_content_gap
     content_max_width = CANVAS_SIZE[0] - (SLIDE_TEXT_SIDE_MARGIN * 2)
     
     # Wrap le contenu
@@ -467,7 +475,8 @@ def generate_cover_slide(
     
     cover_logo_to_hook_gap = 101  # +50px vs avant
     hook_y = cover_logo_top + cover_logo_height + cover_logo_to_hook_gap
-    hook_x = 50
+    cover_hook_side_margin = 100
+    hook_x = cover_hook_side_margin
     
     # LIGNE 1 : Sujet principal (Inter Bold 100px, -9%)
     if hook_line1_text:
@@ -476,15 +485,16 @@ def generate_cover_slide(
         draw.text((hook_x, hook_y), hook_line1_text, font=hook_line1_font, fill="#000000", spacing=line1_letter_spacing)
         hook_y += int(HOOK_LINE1_FONT_SIZE * 1.2)
     
-    # LIGNES 2-4 : Reste du hook (Manrope SemiBold 52px, -1%)
+    # LIGNES 2-4 : Reste du hook (Manrope SemiBold, -1%)
     if hook_line23_text:
-        hook_line23_font = _load_font(FONT_HOOK_PATH, HOOK_LINE23_FONT_SIZE, weight=HOOK_FONT_WEIGHT)
-        line23_letter_spacing = int(HOOK_LINE23_FONT_SIZE * HOOK_LINE23_LETTER_SPACING)
+        hook_line23_font_size = max(12, HOOK_LINE23_FONT_SIZE - 10)
+        hook_line23_font = _load_font(FONT_HOOK_PATH, hook_line23_font_size, weight=HOOK_FONT_WEIGHT)
+        line23_letter_spacing = int(hook_line23_font_size * HOOK_LINE23_LETTER_SPACING)
         
         # Wrap sur 3 lignes max
-        hook_max_width = CANVAS_SIZE[0] - 100  # Marges 50px de chaque côté
+        hook_max_width = CANVAS_SIZE[0] - (cover_hook_side_margin * 2)
         hook_lines_23 = _wrap_text(hook_line23_text, draw, hook_line23_font, hook_max_width)
-        hook_line23_height = int(HOOK_LINE23_FONT_SIZE * 1.2)
+        hook_line23_height = int(hook_line23_font_size * 1.2)
         
         for line in hook_lines_23[:3]:  # Max 3 lignes
             draw.text((hook_x, hook_y), line, font=hook_line23_font, fill="#000000", spacing=line23_letter_spacing)
