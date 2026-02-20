@@ -1,1 +1,0 @@
-"""Services spécifiques au story."""

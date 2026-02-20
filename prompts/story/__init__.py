@@ -1,1 +1,0 @@
-"""Prompts pour les stories."""
