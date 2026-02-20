@@ -19,8 +19,20 @@ from prompts.news_brewery.structure import PROMPT_STRUCTURE
 
 
 REQUEST_TIMEOUT = 60
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 LLM_MAX_RETRIES = 3
+_THREAD_LOCAL = threading.local()
+
+
+def _get_openai_client() -> OpenAI:
+    """
+    Client OpenAI thread-local pour éviter tout souci de thread-safety / contention
+    lorsqu'on parallélise les appels LLM.
+    """
+    c = getattr(_THREAD_LOCAL, "client", None)
+    if c is None:
+        c = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+        _THREAD_LOCAL.client = c
+    return c
 
 
 @dataclass
@@ -133,6 +145,7 @@ class MegaJob:
         last_exc: Optional[Exception] = None
         for attempt in range(LLM_MAX_RETRIES + 1):
             try:
+                client = _get_openai_client()
                 response = client.chat.completions.create(
                     model="gpt-4o-mini",
                     messages=[
@@ -179,15 +192,15 @@ class MegaJob:
             start_idx = batch_num * batch_size
             end_idx = min(start_idx + batch_size, self.total)
             batch_urls = self._urls_to_scrape[start_idx:end_idx]
-            batch_size = len(batch_urls)
+            batch_n = len(batch_urls)
             
-            self._log(f"📦 Batch {batch_num + 1}/{total_batches} - {batch_size} URLs")
+            self._log(f"📦 Batch {batch_num + 1}/{total_batches} - {batch_n} URLs")
             
             # Buffer pour ce batch
             batch_buffer = ""
             batch_processed = 0
 
-            # Étape 1: Firecrawl (parallèle intra-batch)
+            # Étape 1+2: pipeline Firecrawl -> Structure (overlap intra-batch)
             def _fetch_one(idx_in_batch: int, item: Dict[str, str]) -> Dict[str, object]:
                 url = item.get("url", "") or ""
                 source_label = item.get("source_label", "Unknown") or "Unknown"
@@ -212,27 +225,6 @@ class MegaJob:
                         "error": str(e),
                     }
 
-            self._log(f"  🔥 Firecrawl batch (x{firecrawl_workers})…")
-            fetch_results: List[Dict[str, object]] = []
-            with ThreadPoolExecutor(max_workers=firecrawl_workers) as executor:
-                futures = {
-                    executor.submit(_fetch_one, i, item): i
-                    for i, item in enumerate(batch_urls, start=1)
-                }
-                for future in as_completed(futures):
-                    if self._stop_event.is_set():
-                        break
-                    fetch_results.append(future.result())
-
-            if self._stop_event.is_set():
-                self.state = "stopped"
-                self._log("⏹️ Arrêté par l'utilisateur")
-                return
-
-            # Conserver l'ordre initial pour la structuration LLM (plus lisible/traceable)
-            fetch_results.sort(key=lambda r: int(r.get("idx_in_batch", 0)))
-
-            # Étape 2: Structure (parallèle, concurrence limitée pour éviter les 429)
             def _structure_one(r: Dict[str, object]) -> Dict[str, object]:
                 global_idx = int(r.get("global_idx", 0))
                 idx_in_batch = int(r.get("idx_in_batch", 0))
@@ -268,18 +260,33 @@ class MegaJob:
                     "error": "" if structured.strip() else "Structure vide",
                 }
 
-            self._log(f"  📋 Structure batch (x{llm_workers})…")
+            self._log(f"  🔥 Firecrawl x{firecrawl_workers} + 📋 Structure x{llm_workers} (pipeline)…")
             structured_results: List[Dict[str, object]] = []
-            with ThreadPoolExecutor(max_workers=llm_workers) as executor:
-                futures = {executor.submit(_structure_one, r): r for r in fetch_results}
-                for future in as_completed(futures):
+            completed_in_batch = 0
+            with ThreadPoolExecutor(max_workers=firecrawl_workers) as fetch_executor, ThreadPoolExecutor(
+                max_workers=llm_workers
+            ) as llm_executor:
+                fetch_futures = {
+                    fetch_executor.submit(_fetch_one, i, item): i
+                    for i, item in enumerate(batch_urls, start=1)
+                }
+                structure_futures = {}
+
+                # Dès qu'un scrape revient, on lance sa structuration (overlap).
+                for ff in as_completed(fetch_futures):
                     if self._stop_event.is_set():
                         break
-                    structured_results.append(future.result())
+                    r = ff.result()
+                    sf = llm_executor.submit(_structure_one, r)
+                    structure_futures[sf] = r
 
-                    # Mise à jour progression “au fil de l’eau”
-                    done = self.processed + self.skipped + 1
-                    self.current_index = min(done, self.total)
+                # Collecter les résultats STRUCTURE au fil de l'eau.
+                for sf in as_completed(structure_futures):
+                    if self._stop_event.is_set():
+                        break
+                    structured_results.append(sf.result())
+                    completed_in_batch += 1
+                    self.current_index = min(start_idx + completed_in_batch, self.total)
 
             if self._stop_event.is_set():
                 self.state = "stopped"
@@ -294,7 +301,7 @@ class MegaJob:
                 url = str(r.get("url", ""))
 
                 self._log(
-                    f"  📄 [{global_idx}/{self.total}] (Batch {batch_num + 1} - {idx_in_batch}/{batch_size}) {source_label}"
+                    f"  📄 [{global_idx}/{self.total}] (Batch {batch_num + 1} - {idx_in_batch}/{batch_n}) {source_label}"
                 )
 
                 if not r.get("ok"):
@@ -365,6 +372,7 @@ class MegaJob:
         if not text.strip():
             return {"status": "error", "message": "Texte vide", "items": []}
         try:
+            client = _get_openai_client()
             response_jsonfy = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
@@ -376,6 +384,7 @@ class MegaJob:
                 timeout=REQUEST_TIMEOUT,
             )
             raw_json = response_jsonfy.choices[0].message.content or ""
+            client = _get_openai_client()
             response_secure = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
