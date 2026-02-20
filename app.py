@@ -437,6 +437,36 @@ else:
         with col_mega_6h:
             launch_6h = st.button("6h", use_container_width=True, key="mega_6h")
 
+        with st.expander("⚙️ Réglages (performance)", expanded=False):
+            st.caption("Augmente progressivement. Trop haut peut provoquer des 429 (rate limit).")
+            col_a, col_b = st.columns(2)
+            with col_a:
+                mega_batch_size = st.number_input(
+                    "Batch size",
+                    min_value=1,
+                    max_value=50,
+                    value=5,
+                    step=1,
+                    key="mega_batch_size",
+                )
+                mega_firecrawl_workers = st.number_input(
+                    "Firecrawl concurrency",
+                    min_value=1,
+                    max_value=10,
+                    value=3,
+                    step=1,
+                    key="mega_firecrawl_concurrency",
+                )
+            with col_b:
+                mega_llm_workers = st.number_input(
+                    "Structure concurrency",
+                    min_value=1,
+                    max_value=6,
+                    value=3,
+                    step=1,
+                    key="mega_llm_concurrency",
+                )
+
         if launch_20h or launch_6h:
             if mega_status.get("state") == "running":
                 st.warning("⚠️ Déjà en cours")
@@ -452,6 +482,9 @@ else:
                         source_link="",
                         remove_buffer_after_success=False,
                         dry_run=False,
+                        batch_size=int(st.session_state.get("mega_batch_size", 5)),
+                        firecrawl_concurrency=int(st.session_state.get("mega_firecrawl_concurrency", 3)),
+                        llm_concurrency=int(st.session_state.get("mega_llm_concurrency", 3)),
                     )
                     mega_job.set_config(config)
                     mega_job.start_auto_scraping(urls)
