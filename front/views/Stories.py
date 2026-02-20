@@ -196,7 +196,7 @@ def _download_stories_slide(filename: str) -> Optional[bytes]:
 
 def build_stories_exports() -> Dict[str, object]:
     slides = []
-    for name in ["slide_0.png", "slide_1.png", "slide_2.png", "slide_3.png", "slide_4.png", "slide_outro.png"]:
+    for name in ["slide_0.png", "slide_1.png", "slide_2.png", "slide_3.png", "slide_4.png"]:
         data = _download_stories_slide(name)
         if data:
             slides.append((name, data))
@@ -268,18 +268,8 @@ def _generate_stories_slides(state: Dict[str, object]) -> None:
                 continue
             slide_bytes = generate_stories_slide(title=title, content=content, image_url=image_url, position=position)
             _upload_stories_slide(filename, slide_bytes)
-        
-        # Outro
-        assets_dir = os.path.join(
-            os.path.dirname(__file__), "..", "layout", "assets", "carousel", "stories"
-        )
-        outro_path = os.path.join(assets_dir, "outro_stories.png")
-        if os.path.exists(outro_path):
-            with open(outro_path, "rb") as f:
-                outro_bytes = f.read()
-            _upload_stories_slide("slide_outro.png", outro_bytes)
-            
-    st.success("✅ Slides générées (cover + 4 slides + outro)")
+
+    st.success("✅ Slides générées (cover + 4 slides)")
 
 
 st.title("TheArtist - Stories")
@@ -598,8 +588,8 @@ with col3:
     if url:
         st.image(_with_cache_buster(url, slides_cache_buster), use_container_width=True)
 
-# Ligne 2 : Slide 3, 4, Outro
-col4, col5, col6 = st.columns(3)
+# Ligne 2 : Slide 3, 4
+col4, col5 = st.columns(2)
 with col4:
     st.caption("Slide 3")
     url = get_supabase().storage.from_(STORIES_SLIDES_BUCKET).get_public_url("slide_3.png")
@@ -608,11 +598,6 @@ with col4:
 with col5:
     st.caption("Slide 4")
     url = get_supabase().storage.from_(STORIES_SLIDES_BUCKET).get_public_url("slide_4.png")
-    if url:
-        st.image(_with_cache_buster(url, slides_cache_buster), use_container_width=True)
-with col6:
-    st.caption("Outro")
-    url = get_supabase().storage.from_(STORIES_SLIDES_BUCKET).get_public_url("slide_outro.png")
     if url:
         st.image(_with_cache_buster(url, slides_cache_buster), use_container_width=True)
 
