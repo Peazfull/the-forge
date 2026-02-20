@@ -66,7 +66,7 @@ FONT_HOOK_LINE1_PATH = os.path.join(ASSETS_DIR, "Inter_18pt-Bold.ttf")  # Hook l
 HOOK_FONT_SIZE = 68
 HOOK_FONT_WEIGHT = 600  # SemiBold
 HOOK_LINE1_FONT_SIZE = 86  # Ligne 1 (sujet principal) - réduit de 88 à 86
-HOOK_LINE23_FONT_SIZE = 58  # Lignes 2-4 (question)
+HOOK_LINE23_FONT_SIZE = 64  # Lignes 2-4 (question)
 HOOK_LINE1_LETTER_SPACING = -0.09  # -9%
 HOOK_LINE23_LETTER_SPACING = -0.01  # -1%
 
@@ -478,7 +478,8 @@ def generate_cover_slide(
         hook_line1_font = _load_font(FONT_HOOK_LINE1_PATH, HOOK_LINE1_FONT_SIZE, weight=700)
         line1_letter_spacing = int(HOOK_LINE1_FONT_SIZE * HOOK_LINE1_LETTER_SPACING)
         draw.text((hook_x, hook_y), hook_line1_text, font=hook_line1_font, fill="#000000", spacing=line1_letter_spacing)
-        hook_y += int(HOOK_LINE1_FONT_SIZE * 1.2)
+        # Augmente l'écart entre la ligne 1 et les lignes 2-4 (x1.5 vs avant)
+        hook_y += int(HOOK_LINE1_FONT_SIZE * 1.2 * 1.5)
     
     # LIGNES 2-4 : Reste du hook (Manrope SemiBold, -1%)
     if hook_line23_text:
