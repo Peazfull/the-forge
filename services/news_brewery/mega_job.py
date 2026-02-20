@@ -4,6 +4,7 @@ import threading
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import streamlit as st
 from openai import OpenAI
@@ -26,6 +27,8 @@ class MegaJobConfig:
     source_link: str
     remove_buffer_after_success: bool
     dry_run: bool
+    batch_size: int = 5
+    firecrawl_concurrency: int = 3
 
 
 class MegaJob:
@@ -118,20 +121,27 @@ class MegaJob:
         return response.choices[0].message.content or ""
     
     def _run_auto_scraping(self) -> None:
-        """Boucle principale de scraping automatisé avec batches de 5 URLs"""
-        BATCH_SIZE = 5
-        total_batches = (self.total + BATCH_SIZE - 1) // BATCH_SIZE
+        """Boucle principale de scraping automatisé avec batches."""
+        batch_size = int(getattr(self._config, "batch_size", 5) or 5) if self._config else 5
+        batch_size = max(1, min(batch_size, 50))
+        firecrawl_workers = int(getattr(self._config, "firecrawl_concurrency", 3) or 3) if self._config else 3
+        firecrawl_workers = max(1, min(firecrawl_workers, 10))
+
+        total_batches = (self.total + batch_size - 1) // batch_size
         total_inserted = 0
         
-        self._log(f"🚀 Démarrage Mega Job - {self.total} URLs en {total_batches} batch(s) de {BATCH_SIZE}")
+        self._log(
+            f"🚀 Démarrage Mega Job - {self.total} URLs en {total_batches} batch(s) "
+            f"de {batch_size} (Firecrawl x{firecrawl_workers})"
+        )
         
         # Diviser en batches
         for batch_num in range(total_batches):
             if self._stop_event.is_set():
                 break
             
-            start_idx = batch_num * BATCH_SIZE
-            end_idx = min(start_idx + BATCH_SIZE, self.total)
+            start_idx = batch_num * batch_size
+            end_idx = min(start_idx + batch_size, self.total)
             batch_urls = self._urls_to_scrape[start_idx:end_idx]
             batch_size = len(batch_urls)
             
@@ -140,47 +150,93 @@ class MegaJob:
             # Buffer pour ce batch
             batch_buffer = ""
             batch_processed = 0
-            
-            # Traiter chaque URL du batch
-            for batch_idx, url_item in enumerate(batch_urls, start=1):
+
+            # Étape 1: Firecrawl (parallèle intra-batch)
+            def _fetch_one(idx_in_batch: int, item: Dict[str, str]) -> Dict[str, object]:
+                url = item.get("url", "") or ""
+                source_label = item.get("source_label", "Unknown") or "Unknown"
+                global_idx = start_idx + idx_in_batch
+                try:
+                    raw_text = fetch_url_text(url)
+                    return {
+                        "ok": True,
+                        "global_idx": global_idx,
+                        "idx_in_batch": idx_in_batch,
+                        "source_label": source_label,
+                        "url": url,
+                        "raw_text": raw_text,
+                    }
+                except Exception as e:
+                    return {
+                        "ok": False,
+                        "global_idx": global_idx,
+                        "idx_in_batch": idx_in_batch,
+                        "source_label": source_label,
+                        "url": url,
+                        "error": str(e),
+                    }
+
+            self._log(f"  🔥 Firecrawl batch (x{firecrawl_workers})…")
+            fetch_results: List[Dict[str, object]] = []
+            with ThreadPoolExecutor(max_workers=firecrawl_workers) as executor:
+                futures = {
+                    executor.submit(_fetch_one, i, item): i
+                    for i, item in enumerate(batch_urls, start=1)
+                }
+                for future in as_completed(futures):
+                    if self._stop_event.is_set():
+                        break
+                    fetch_results.append(future.result())
+
+            if self._stop_event.is_set():
+                self.state = "stopped"
+                self._log("⏹️ Arrêté par l'utilisateur")
+                return
+
+            # Conserver l'ordre initial pour la structuration LLM (plus lisible/traceable)
+            fetch_results.sort(key=lambda r: int(r.get("idx_in_batch", 0)))
+
+            # Étape 2: Structure (séquentiel pour limiter les 429 OpenAI)
+            for r in fetch_results:
                 if self._stop_event.is_set():
                     break
-                
-                global_idx = start_idx + batch_idx
+                global_idx = int(r.get("global_idx", 0))
+                idx_in_batch = int(r.get("idx_in_batch", 0))
                 self.current_index = global_idx
-                url = url_item.get("url", "")
-                source_label = url_item.get("source_label", "Unknown")
-                
-                self._log(f"  📄 [{global_idx}/{self.total}] (Batch {batch_num + 1} - {batch_idx}/{batch_size}) {source_label}")
-                
+                source_label = str(r.get("source_label", "Unknown"))
+                url = str(r.get("url", ""))
+
+                self._log(
+                    f"  📄 [{global_idx}/{self.total}] (Batch {batch_num + 1} - {idx_in_batch}/{batch_size}) {source_label}"
+                )
+
+                if not r.get("ok"):
+                    self.errors.append(f"[{global_idx}] Firecrawl error: {str(r.get('error', ''))[:120]}")
+                    self.skipped += 1
+                    continue
+
+                raw_text = str(r.get("raw_text", "") or "")
+                if not raw_text.strip():
+                    self.errors.append(f"[{global_idx}] Firecrawl vide: {url[:60]}")
+                    self.skipped += 1
+                    continue
+
                 try:
-                    # Étape 1: Firecrawl (retourne déjà du markdown propre)
-                    self._log(f"    🔥 [{global_idx}/{self.total}] Firecrawl...")
-                    raw_text = fetch_url_text(url)
-                    
-                    if not raw_text.strip():
-                        self.errors.append(f"[{global_idx}] Firecrawl vide: {url[:60]}")
-                        self.skipped += 1
-                        continue
-                    
-                    # Étape 2: Structure (fait reformulation anti-plagiat + structuration)
-                    self._log(f"    📋 [{global_idx}/{self.total}] Structure...")
+                    self._log(f"    📋 [{global_idx}/{self.total}] Structure…")
                     structured = self._run_text_prompt(PROMPT_STRUCTURE, raw_text, temperature=0.2)
                     if not structured.strip():
                         self.errors.append(f"[{global_idx}] Structure vide: {url[:60]}")
                         self.skipped += 1
                         continue
-                    
-                    # Étape 3: Ajout au buffer du batch
+
                     batch_buffer += structured + "\n\n"
                     batch_processed += 1
                     self.processed += 1
                     self._log(f"    ✅ [{global_idx}/{self.total}] OK - Ajouté au buffer batch")
-                    
                 except Exception as exc:
-                    self.errors.append(f"[{global_idx}] Erreur: {str(exc)[:100]}")
+                    self.errors.append(f"[{global_idx}] Erreur structure: {str(exc)[:120]}")
                     self.skipped += 1
-                    self._log(f"    ❌ [{global_idx}/{self.total}] Erreur: {str(exc)[:60]}")
+                    self._log(f"    ❌ [{global_idx}/{self.total}] Erreur structure: {str(exc)[:60]}")
             
             # Finalisation du batch
             if self._stop_event.is_set():
