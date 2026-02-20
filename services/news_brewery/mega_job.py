@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import random
 
 import streamlit as st
 from openai import OpenAI
@@ -19,6 +20,7 @@ from prompts.news_brewery.structure import PROMPT_STRUCTURE
 
 REQUEST_TIMEOUT = 60
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+LLM_MAX_RETRIES = 3
 
 
 @dataclass
@@ -29,6 +31,7 @@ class MegaJobConfig:
     dry_run: bool
     batch_size: int = 5
     firecrawl_concurrency: int = 3
+    llm_concurrency: int = 2
 
 
 class MegaJob:
@@ -108,17 +111,48 @@ class MegaJob:
         self.last_log = message
         self.status_log.append(message)
     
+    def _is_retryable_llm_error(self, msg: str) -> bool:
+        m = (msg or "").lower()
+        # 429 rate limit / surcharges / timeouts
+        retry_markers = [
+            "429",
+            "rate limit",
+            "too many requests",
+            "timeout",
+            "timed out",
+            "temporarily",
+            "server error",
+            "502",
+            "503",
+            "504",
+            "connection",
+        ]
+        return any(x in m for x in retry_markers)
+
     def _run_text_prompt(self, prompt: str, content: str, temperature: float = 0.2) -> str:
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": prompt},
-                {"role": "user", "content": content},
-            ],
-            temperature=temperature,
-            timeout=REQUEST_TIMEOUT,
-        )
-        return response.choices[0].message.content or ""
+        last_exc: Optional[Exception] = None
+        for attempt in range(LLM_MAX_RETRIES + 1):
+            try:
+                response = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {"role": "system", "content": prompt},
+                        {"role": "user", "content": content},
+                    ],
+                    temperature=temperature,
+                    timeout=REQUEST_TIMEOUT,
+                )
+                return response.choices[0].message.content or ""
+            except Exception as e:
+                last_exc = e
+                msg = str(e)
+                if attempt >= LLM_MAX_RETRIES or not self._is_retryable_llm_error(msg):
+                    raise
+                # backoff exponentiel + jitter (réduit la probabilité de re-429)
+                base = min(2 ** attempt, 16)
+                jitter = random.uniform(0.2, 1.0)
+                time.sleep(base + jitter)
+        raise last_exc if last_exc else RuntimeError("LLM error")
     
     def _run_auto_scraping(self) -> None:
         """Boucle principale de scraping automatisé avec batches."""
@@ -126,13 +160,15 @@ class MegaJob:
         batch_size = max(1, min(batch_size, 50))
         firecrawl_workers = int(getattr(self._config, "firecrawl_concurrency", 3) or 3) if self._config else 3
         firecrawl_workers = max(1, min(firecrawl_workers, 10))
+        llm_workers = int(getattr(self._config, "llm_concurrency", 2) or 2) if self._config else 2
+        llm_workers = max(1, min(llm_workers, 6))
 
         total_batches = (self.total + batch_size - 1) // batch_size
         total_inserted = 0
         
         self._log(
             f"🚀 Démarrage Mega Job - {self.total} URLs en {total_batches} batch(s) "
-            f"de {batch_size} (Firecrawl x{firecrawl_workers})"
+            f"de {batch_size} (Firecrawl x{firecrawl_workers}, Structure x{llm_workers})"
         )
         
         # Diviser en batches
@@ -196,13 +232,64 @@ class MegaJob:
             # Conserver l'ordre initial pour la structuration LLM (plus lisible/traceable)
             fetch_results.sort(key=lambda r: int(r.get("idx_in_batch", 0)))
 
-            # Étape 2: Structure (séquentiel pour limiter les 429 OpenAI)
-            for r in fetch_results:
-                if self._stop_event.is_set():
-                    break
+            # Étape 2: Structure (parallèle, concurrence limitée pour éviter les 429)
+            def _structure_one(r: Dict[str, object]) -> Dict[str, object]:
                 global_idx = int(r.get("global_idx", 0))
                 idx_in_batch = int(r.get("idx_in_batch", 0))
-                self.current_index = global_idx
+                url = str(r.get("url", ""))
+                source_label = str(r.get("source_label", "Unknown"))
+                if not r.get("ok"):
+                    return {
+                        "ok": False,
+                        "global_idx": global_idx,
+                        "idx_in_batch": idx_in_batch,
+                        "url": url,
+                        "source_label": source_label,
+                        "error": f"Firecrawl error: {str(r.get('error', ''))}",
+                    }
+                raw_text = str(r.get("raw_text", "") or "")
+                if not raw_text.strip():
+                    return {
+                        "ok": False,
+                        "global_idx": global_idx,
+                        "idx_in_batch": idx_in_batch,
+                        "url": url,
+                        "source_label": source_label,
+                        "error": "Firecrawl vide",
+                    }
+                structured = self._run_text_prompt(PROMPT_STRUCTURE, raw_text, temperature=0.2)
+                return {
+                    "ok": bool(structured.strip()),
+                    "global_idx": global_idx,
+                    "idx_in_batch": idx_in_batch,
+                    "url": url,
+                    "source_label": source_label,
+                    "structured": structured,
+                    "error": "" if structured.strip() else "Structure vide",
+                }
+
+            self._log(f"  📋 Structure batch (x{llm_workers})…")
+            structured_results: List[Dict[str, object]] = []
+            with ThreadPoolExecutor(max_workers=llm_workers) as executor:
+                futures = {executor.submit(_structure_one, r): r for r in fetch_results}
+                for future in as_completed(futures):
+                    if self._stop_event.is_set():
+                        break
+                    structured_results.append(future.result())
+
+                    # Mise à jour progression “au fil de l’eau”
+                    done = self.processed + self.skipped + 1
+                    self.current_index = min(done, self.total)
+
+            if self._stop_event.is_set():
+                self.state = "stopped"
+                self._log("⏹️ Arrêté par l'utilisateur")
+                return
+
+            structured_results.sort(key=lambda r: int(r.get("idx_in_batch", 0)))
+            for r in structured_results:
+                global_idx = int(r.get("global_idx", 0))
+                idx_in_batch = int(r.get("idx_in_batch", 0))
                 source_label = str(r.get("source_label", "Unknown"))
                 url = str(r.get("url", ""))
 
@@ -211,32 +298,15 @@ class MegaJob:
                 )
 
                 if not r.get("ok"):
-                    self.errors.append(f"[{global_idx}] Firecrawl error: {str(r.get('error', ''))[:120]}")
+                    self.errors.append(f"[{global_idx}] {str(r.get('error', ''))[:120]}: {url[:60]}")
                     self.skipped += 1
                     continue
 
-                raw_text = str(r.get("raw_text", "") or "")
-                if not raw_text.strip():
-                    self.errors.append(f"[{global_idx}] Firecrawl vide: {url[:60]}")
-                    self.skipped += 1
-                    continue
-
-                try:
-                    self._log(f"    📋 [{global_idx}/{self.total}] Structure…")
-                    structured = self._run_text_prompt(PROMPT_STRUCTURE, raw_text, temperature=0.2)
-                    if not structured.strip():
-                        self.errors.append(f"[{global_idx}] Structure vide: {url[:60]}")
-                        self.skipped += 1
-                        continue
-
-                    batch_buffer += structured + "\n\n"
-                    batch_processed += 1
-                    self.processed += 1
-                    self._log(f"    ✅ [{global_idx}/{self.total}] OK - Ajouté au buffer batch")
-                except Exception as exc:
-                    self.errors.append(f"[{global_idx}] Erreur structure: {str(exc)[:120]}")
-                    self.skipped += 1
-                    self._log(f"    ❌ [{global_idx}/{self.total}] Erreur structure: {str(exc)[:60]}")
+                structured = str(r.get("structured", "") or "")
+                batch_buffer += structured + "\n\n"
+                batch_processed += 1
+                self.processed += 1
+                self._log(f"    ✅ [{global_idx}/{self.total}] OK - Ajouté au buffer batch")
             
             # Finalisation du batch
             if self._stop_event.is_set():
