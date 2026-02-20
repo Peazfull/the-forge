@@ -56,6 +56,8 @@ def render_sidebar():
                 st.session_state.current_page = "front/views/Story"
             if st.button("📁 Carrousel Doss'", key="carrousel_doss", use_container_width=True):
                 st.session_state.current_page = "front/views/CarrouselDoss"
+            if st.button("📱 Stories", key="stories", use_container_width=True):
+                st.session_state.current_page = "front/views/Stories"
             if st.button("🗂️ Carrousel Open", key="carrousel_open", use_container_width=True):
                 st.session_state.current_page = "front/views/CarrouselOpen"
             if st.button("🗃️ Carrousel Close", key="carrousel_close", use_container_width=True):
