@@ -9,7 +9,7 @@ Deux chemins principaux existent :
 
 Aujourd’hui :
 - Les jobs “source” font Firecrawl **séquentiellement** (1 URL à la fois).
-- Le Mega Job Home fait déjà une logique “batch” (taille 5) mais traite les URLs **séquentiellement à l’intérieur** du batch.
+- Le Mega Job Home traite les URLs **en batches** et exécute désormais **Firecrawl + STRUCTURE en parallèle** (concurrency configurable).
 
 ### Objectif
 Réduire drastiquement le temps de scraping (ex: 200 URLs) en :
@@ -34,11 +34,13 @@ Fichier : `services/hand_brewery/firecrawl_client.py`
 Fichiers :
 - `app.py` : déclenche `collect_mega_urls(mega_hours=6|20)` puis `mega_job.start_auto_scraping(urls)`.
 - `services/news_brewery/mega_job.py` :
-  - `BATCH_SIZE = 5`
-  - boucle URL -> `fetch_url_text` (Firecrawl) -> `_run_text_prompt(PROMPT_STRUCTURE, raw_text)`
+  - `batch_size` + `firecrawl_concurrency` + `llm_concurrency` via `MegaJobConfig`
+  - pipeline batch :
+    - Firecrawl **en parallèle** dans le batch
+    - `PROMPT_STRUCTURE` **en parallèle** dans le batch (avec retry/backoff)
   - puis `finalize_buffer()` (JSONfy) + `send_to_db()` (insert dans `brew_items`) **à la fin de chaque batch**
 
-Conclusion : **l’écriture DB batch par batch existe déjà** côté Mega Job, mais le scraping batch reste séquentiel.
+Conclusion : **l’écriture DB batch par batch existe** côté Mega Job et le scraping/structure sont désormais **parallélisés** à l’intérieur de chaque batch (concurrency configurable).
 
 ### News Brewery (jobs sources)
 Exemples (pattern identique) :
@@ -76,7 +78,7 @@ On ne connaît pas les quotas Firecrawl exacts, donc l’implémentation doit ê
 
 Recommandation de démarrage :
 - `firecrawl_concurrency = 3` (prod safe), puis monter à 5 si stable.
-- `llm_concurrency = 2-3` (OpenAI) si on parallélise aussi `STRUCTURE`.
+- `llm_concurrency = 2-3` (OpenAI) si on parallélise aussi `STRUCTURE` (par défaut on peut viser 3, à monter prudemment).
 
 Avec :
 - retry/backoff sur 429/5xx/timeouts,
@@ -118,6 +120,9 @@ Points à respecter :
 Expose `BATCH_SIZE` via :
 - un param dans `MegaJobConfig` (ex: `batch_size`, `firecrawl_concurrency`, `llm_concurrency`),
 - ou via `st.secrets`/env (fallback constants).
+
+Implémenté :
+- `app.py` expose ces paramètres sur la Home via un expander “Réglages (performance)”, appliqués au lancement du job (6h/20h).
 
 ### 4) News Brewery : option “auto pipeline batch + DB”
 Actuellement, les jobs sources sont “buffer -> JSON -> DB” pilotés par l’UI.
@@ -176,16 +181,16 @@ Solutions (par ordre de coût) :
 ---
 
 ## Paramètres recommandés (v1)
-- `batch_size`: 10 (puis 20 si stable)
+- `batch_size`: 5–10 (puis 20 si stable)
 - `firecrawl_concurrency`: 3 (puis 5)
-- `llm_concurrency`: 2 (si on parallélise structure), sinon séquentiel
+- `llm_concurrency`: 3 (puis 4–5 si stable et sans 429)
 - `firecrawl_max_retries`: 3
 - `openai_max_retries`: déjà présent dans certains services ; homogénéiser si besoin
 
 ---
 
 ## Plan de livraison (phases)
-1) **Mega Job Home** : paralléliser Firecrawl intra-batch + config batch/concurrency + logs/locks.
+1) **Mega Job Home** (✅ fait) : paralléliser Firecrawl intra-batch + paralléliser STRUCTURE intra-batch + config batch/concurrency.
 2) Mesurer stabilité/temps sur 6h/20h (ex: 200 URLs).
 3) Appliquer la même mécanique aux jobs sources News Brewery (option A), ou factoriser (option B).
 4) (Optionnel) Idempotence DB via unique constraint + upsert.
