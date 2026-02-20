@@ -478,8 +478,8 @@ def generate_cover_slide(
         hook_line1_font = _load_font(FONT_HOOK_LINE1_PATH, HOOK_LINE1_FONT_SIZE, weight=700)
         line1_letter_spacing = int(HOOK_LINE1_FONT_SIZE * HOOK_LINE1_LETTER_SPACING)
         draw.text((hook_x, hook_y), hook_line1_text, font=hook_line1_font, fill="#000000", spacing=line1_letter_spacing)
-        # Augmente l'écart entre la ligne 1 et les lignes 2-4 (x1.5 vs avant)
-        hook_y += int(HOOK_LINE1_FONT_SIZE * 1.2 * 1.5)
+        # Augmente l'écart entre la ligne 1 et les lignes 2-4 (x1.3 vs avant)
+        hook_y += int(HOOK_LINE1_FONT_SIZE * 1.2 * 1.3)
     
     # LIGNES 2-4 : Reste du hook (Manrope SemiBold, -1%)
     if hook_line23_text:
