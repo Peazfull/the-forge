@@ -31,8 +31,8 @@ from services.carousel.stories.generate_stories_caption_service import (
 from services.utils.email_service import send_email_with_attachments
 
 
-STORIES_BUCKET = "carousel-stories"
-STORIES_SLIDES_BUCKET = "carousel-stories-slides"
+STORIES_BUCKET = "carousel-story"  # Réutilise les buckets de Story
+STORIES_SLIDES_BUCKET = "carousel-story-slides"  # Réutilise les buckets de Story
 STORIES_STATE_FILE = "stories_state.json"
 
 
