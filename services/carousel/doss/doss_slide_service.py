@@ -65,8 +65,8 @@ FONT_HOOK_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")  # Hook lignes
 FONT_HOOK_LINE1_PATH = os.path.join(ASSETS_DIR, "Inter_18pt-Bold.ttf")  # Hook ligne 1
 HOOK_FONT_SIZE = 68
 HOOK_FONT_WEIGHT = 600  # SemiBold
-HOOK_LINE1_FONT_SIZE = 88  # Ligne 1 (sujet principal)
-HOOK_LINE23_FONT_SIZE = 52  # Lignes 2-3 - Changé de 58 à 52
+HOOK_LINE1_FONT_SIZE = 86  # Ligne 1 (sujet principal) - réduit de 88 à 86
+HOOK_LINE23_FONT_SIZE = 53  # Lignes 2-4 (question) - augmenté de 52 à 53
 HOOK_LINE1_LETTER_SPACING = -0.09  # -9%
 HOOK_LINE23_LETTER_SPACING = -0.01  # -1%
 
@@ -283,26 +283,28 @@ def generate_doss_slide(
     if position == 1:
         # SLIDE 1 : title_bg_slide_1.png + Titre textuel en BLANC
         
-        # D'abord, charger title_bg_slide_1.png avec 50px de margin (comme Eco)
+        # D'abord, charger title_bg_slide_1.png avec 50px de margin (réduit ÷ 1,1)
         title_bg_slide1_path = os.path.join(ASSETS_DIR, "title_bg_slide_1.png")
         title_bg_side_margin = 50  # Comme Eco
         if os.path.exists(title_bg_slide1_path):
             title_bg_slide1 = Image.open(title_bg_slide1_path).convert("RGBA")
+            # Réduire la hauteur ÷ 1,1
+            new_height = int(title_bg_slide1.size[1] / 1.1)
             # Redimensionner pour tenir compte des marges : largeur canvas - 2*50px
             title_bg_width = CANVAS_SIZE[0] - (title_bg_side_margin * 2)
-            title_bg_slide1 = title_bg_slide1.resize((title_bg_width, title_bg_slide1.size[1]), Image.LANCZOS)
+            title_bg_slide1 = title_bg_slide1.resize((title_bg_width, new_height), Image.LANCZOS)
             title_zone_height = title_bg_slide1.size[1]
             # Positionner avec 50px de margin left
             canvas.alpha_composite(title_bg_slide1, (title_bg_side_margin, title_top))
         
-        # Ensuite, afficher le titre en BLANC par-dessus (MAJUSCULES, taille 48)
-        title_font = _load_font(os.path.join(ASSETS_DIR, "Inter_18pt-Bold.ttf"), 48, weight=700)
-        title_letter_spacing = int(48 * -0.01)
+        # Ensuite, afficher le titre en BLANC par-dessus (MAJUSCULES, taille 44 - réduit de 48)
+        title_font = _load_font(os.path.join(ASSETS_DIR, "Inter_18pt-Bold.ttf"), 44, weight=700)
+        title_letter_spacing = int(44 * -0.01)
         
         # Wrap le titre (en MAJUSCULES)
         title_max_width = CANVAS_SIZE[0] - (LEFT_MARGIN * 2)
         title_lines = _wrap_text(title.upper(), draw, title_font, title_max_width)
-        title_line_height = int(48 * 1.2)
+        title_line_height = int(44 * 1.2)
         
         # Position titre : centré verticalement dans title_bg_slide1
         title_block_height = title_line_height * len(title_lines[:2])
@@ -313,7 +315,7 @@ def generate_doss_slide(
             title_y += title_line_height
     
     elif position in [2, 3, 4]:
-        # SLIDES 2, 3, 4 : Asset fixe avec 50px de margin left (comme Eco)
+        # SLIDES 2, 3, 4 : Asset fixe avec 50px de margin left (réduit ÷ 1,1)
         title_asset_map = {
             2: "title_slide_1.png",
             3: "title_slide_2.png",
@@ -323,6 +325,9 @@ def generate_doss_slide(
         title_bg_side_margin = 50  # Comme Eco
         if os.path.exists(title_asset_path):
             title_asset = Image.open(title_asset_path).convert("RGBA")
+            # Réduire la hauteur ÷ 1,1
+            new_height = int(title_asset.size[1] / 1.1)
+            title_asset = title_asset.resize((title_asset.size[0], new_height), Image.LANCZOS)
             title_zone_height = title_asset.size[1]
             # 50px de margin left (aligné à gauche comme Eco)
             canvas.alpha_composite(title_asset, (title_bg_side_margin, title_top))
@@ -421,11 +426,15 @@ def generate_cover_slide(
         logo_x = (CANVAS_SIZE[0] - logo_size[0]) // 2
         canvas.alpha_composite(logo, (logo_x, 0))
     
-    # Logo slide 0 - "Le Doss'" (213px top, 45px left)
+    # Logo slide 0 - "Le Doss'" (213px top, 45px left, réduit ÷ 1,1)
     cover_logo_path = os.path.join(ASSETS_DIR, "Logo_slide_0.png")
     cover_logo_height = 0
     if os.path.exists(cover_logo_path):
         cover_logo = Image.open(cover_logo_path).convert("RGBA")
+        # Réduire la taille ÷ 1,1
+        new_width = int(cover_logo.size[0] / 1.1)
+        new_height = int(cover_logo.size[1] / 1.1)
+        cover_logo = cover_logo.resize((new_width, new_height), Image.LANCZOS)
         cover_logo_height = cover_logo.size[1]
         canvas.alpha_composite(cover_logo, (45, 213))
     
