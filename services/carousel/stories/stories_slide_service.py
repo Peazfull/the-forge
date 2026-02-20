@@ -66,7 +66,7 @@ FONT_HOOK_LINE1_PATH = os.path.join(ASSETS_DIR, "Inter_18pt-Bold.ttf")  # Hook l
 HOOK_FONT_SIZE = 68
 HOOK_FONT_WEIGHT = 600  # SemiBold
 HOOK_LINE1_FONT_SIZE = 86  # Ligne 1 (sujet principal) - réduit de 88 à 86
-HOOK_LINE23_FONT_SIZE = 53  # Lignes 2-4 (question) - augmenté de 52 à 53
+HOOK_LINE23_FONT_SIZE = 58  # Lignes 2-4 (question)
 HOOK_LINE1_LETTER_SPACING = -0.09  # -9%
 HOOK_LINE23_LETTER_SPACING = -0.01  # -1%
 
@@ -449,7 +449,7 @@ def generate_cover_slide(
         new_height = int(cover_logo.size[1] / 1.1)
         cover_logo = cover_logo.resize((new_width, new_height), Image.LANCZOS)
         cover_logo_height = cover_logo.size[1]
-        canvas.alpha_composite(cover_logo, (45, cover_logo_top))
+        canvas.alpha_composite(cover_logo, (100, cover_logo_top))
     
     # Hook en 4 lignes : gap augmenté (logo -> hook) pour plus d'air
     # Format : "LIGNE1|Lignes 2 à 4" (séparateur |)
@@ -482,7 +482,7 @@ def generate_cover_slide(
     
     # LIGNES 2-4 : Reste du hook (Manrope SemiBold, -1%)
     if hook_line23_text:
-        hook_line23_font_size = max(12, HOOK_LINE23_FONT_SIZE - 10)
+        hook_line23_font_size = HOOK_LINE23_FONT_SIZE
         hook_line23_font = _load_font(FONT_HOOK_PATH, hook_line23_font_size, weight=HOOK_FONT_WEIGHT)
         line23_letter_spacing = int(hook_line23_font_size * HOOK_LINE23_LETTER_SPACING)
         
