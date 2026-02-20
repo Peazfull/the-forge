@@ -70,6 +70,9 @@ HOOK_LINE23_FONT_SIZE = 53  # Lignes 2-4 (question) - augmenté de 52 à 53
 HOOK_LINE1_LETTER_SPACING = -0.09  # -9%
 HOOK_LINE23_LETTER_SPACING = -0.01  # -1%
 
+# Layout Stories (format 9:16) : texte plus compact en largeur
+SLIDE_TEXT_SIDE_MARGIN = 100
+
 
 def _load_font(path: str, size: int, weight: int | None = None) -> ImageFont.ImageFont:
     if os.path.exists(path):
@@ -237,13 +240,15 @@ def generate_stories_slide(
     
     # 2. Overlay au-dessus de l'image (1100x600, clippé sur les côtés comme Eco)
     overlay_path = os.path.join(ASSETS_DIR, "Overlay_Slide0.png")
+    overlay_x = -10
+    overlay_y = 0
+    overlay_w = 1100
+    overlay_h = 600
     if os.path.exists(overlay_path):
         overlay = Image.open(overlay_path).convert("RGBA")
         # Redimensionner à 1100x600 (comme Eco)
-        overlay = overlay.resize((1100, 600), Image.LANCZOS)
+        overlay = overlay.resize((overlay_w, overlay_h), Image.LANCZOS)
         # Position : X=-10 pour clipper 10px de chaque côté, Y=0 (collé en haut comme Eco)
-        overlay_x = -10
-        overlay_y = 0
         canvas.alpha_composite(overlay, (overlay_x, overlay_y))
     
     # 3. Logo en haut (200x65, centré, -15px du top pour clip)
@@ -254,7 +259,7 @@ def generate_stories_slide(
         logo_x = (CANVAS_SIZE[0] - LOGO_SIZE[0]) // 2
         canvas.alpha_composite(logo, (logo_x, LOGO_TOP))
     
-    # 4. Swipe (1.2x, 50px du bas de l'overlay, 50px right)
+    # 4. Swipe (1.2x, ancré à l'overlay, 50px bottom/right)
     swipe_path = os.path.join(ASSETS_DIR, "swipe_stories.png")
     if os.path.exists(swipe_path):
         swipe = Image.open(swipe_path).convert("RGBA")
@@ -262,16 +267,15 @@ def generate_stories_slide(
         new_width = int(swipe.size[0] * 1.2)
         new_height = int(swipe.size[1] * 1.2)
         swipe = swipe.resize((new_width, new_height), Image.LANCZOS)
-        # Position : 50px du bas de l'overlay (overlay_y + 600 - 50 - swipe height)
-        swipe_x = CANVAS_SIZE[0] - new_width - 50
-        swipe_y = overlay_y + 600 - 50 - new_height
+        swipe_x = overlay_x + overlay_w - 50 - new_width
+        swipe_y = overlay_y + overlay_h - 50 - new_height
         canvas.alpha_composite(swipe, (swipe_x, swipe_y))
     
     draw = ImageDraw.Draw(canvas)
     
     # Position du titre : Centré dans l'espace au-dessus de l'image
-    # Espace disponible = 1056px, je positionne le titre à ~20% = 210px
-    title_top = 210
+    # Espace disponible = 1056px, positionné plus haut pour format Stories
+    title_top = 160
     
     # 6. TITRE
     # Slide 1 : title_bg_slide_1.png + Titre textuel en BLANC
@@ -284,9 +288,9 @@ def generate_stories_slide(
     if position == 1:
         # SLIDE 1 : title_bg_slide_1.png + Titre textuel en BLANC
         
-        # D'abord, charger title_bg_slide_1.png avec 50px de margin (réduit ÷ 1,1)
+        # D'abord, charger title_bg_slide_1.png avec marges latérales
         title_bg_slide1_path = os.path.join(ASSETS_DIR, "title_bg_slide_1.png")
-        title_bg_side_margin = 50  # Comme Eco
+        title_bg_side_margin = SLIDE_TEXT_SIDE_MARGIN
         if os.path.exists(title_bg_slide1_path):
             title_bg_slide1 = Image.open(title_bg_slide1_path).convert("RGBA")
             # Réduire la hauteur ÷ 1,1
@@ -298,21 +302,22 @@ def generate_stories_slide(
             # Positionner avec 50px de margin left
             canvas.alpha_composite(title_bg_slide1, (title_bg_side_margin, title_top))
         
-        # Ensuite, afficher le titre en BLANC par-dessus (MAJUSCULES, taille 44 - réduit de 48)
-        title_font = _load_font(os.path.join(ASSETS_DIR, "Inter_18pt-Bold.ttf"), 44, weight=700)
-        title_letter_spacing = int(44 * -0.01)
+        # Ensuite, afficher le titre en BLANC par-dessus (MAJUSCULES, taille normale)
+        title_font_size = 48
+        title_font = _load_font(os.path.join(ASSETS_DIR, "Inter_18pt-Bold.ttf"), title_font_size, weight=700)
+        title_letter_spacing = int(title_font_size * -0.01)
         
         # Wrap le titre (en MAJUSCULES)
-        title_max_width = CANVAS_SIZE[0] - (LEFT_MARGIN * 2)
+        title_max_width = CANVAS_SIZE[0] - (SLIDE_TEXT_SIDE_MARGIN * 2)
         title_lines = _wrap_text(title.upper(), draw, title_font, title_max_width)
-        title_line_height = int(44 * 1.2)
+        title_line_height = int(title_font_size * 1.2)
         
         # Position titre : centré verticalement dans title_bg_slide1
         title_block_height = title_line_height * len(title_lines[:2])
         title_y = title_top + max(0, (title_zone_height - title_block_height) // 2)
         
         for line in title_lines[:2]:
-            draw.text((LEFT_MARGIN, title_y), line, font=title_font, fill="white", spacing=title_letter_spacing)
+            draw.text((SLIDE_TEXT_SIDE_MARGIN, title_y), line, font=title_font, fill="white", spacing=title_letter_spacing)
             title_y += title_line_height
     
     elif position in [2, 3, 4]:
@@ -323,7 +328,7 @@ def generate_stories_slide(
             4: "title_slide_3.png"
         }
         title_asset_path = os.path.join(ASSETS_DIR, title_asset_map[position])
-        title_bg_side_margin = 50  # Comme Eco
+        title_bg_side_margin = SLIDE_TEXT_SIDE_MARGIN
         if os.path.exists(title_asset_path):
             title_asset = Image.open(title_asset_path).convert("RGBA")
             # Réduire la hauteur ÷ 1,1
@@ -333,22 +338,23 @@ def generate_stories_slide(
             # 50px de margin left (aligné à gauche comme Eco)
             canvas.alpha_composite(title_asset, (title_bg_side_margin, title_top))
     
-    # 7. CONTENU (Inter Medium 39px, NOIR, letter spacing +1%)
-    content_font = _load_font(os.path.join(ASSETS_DIR, "Inter_18pt-Medium.ttf"), 39, weight=500)
-    content_letter_spacing = int(39 * 0.01)
+    # 7. CONTENU (Inter Medium, NOIR, letter spacing +1%)
+    content_font_size = 43
+    content_font = _load_font(os.path.join(ASSETS_DIR, "Inter_18pt-Medium.ttf"), content_font_size, weight=500)
+    content_letter_spacing = int(content_font_size * 0.01)
     
     # Position contenu : DYNAMIQUE comme Eco (title_top + title_zone_height + CONTENT_TOP_GAP)
     content_y = title_top + title_zone_height + CONTENT_TOP_GAP
-    content_max_width = CANVAS_SIZE[0] - (LEFT_MARGIN * 2)
+    content_max_width = CANVAS_SIZE[0] - (SLIDE_TEXT_SIDE_MARGIN * 2)
     
     # Wrap le contenu
     content_lines = _wrap_text(content.replace("**", ""), draw, content_font, content_max_width)
-    content_line_height = int(39 * 1.25)  # 1.25 comme Eco
+    content_line_height = int(content_font_size * 1.25)  # 1.25 comme Eco
     
-    for line in content_lines[:6]:  # Max 6 lignes
+    for line in content_lines[:10]:  # Plus de hauteur en format Stories
         if content_y + content_line_height > image_y_position - 20:
             break
-        draw.text((LEFT_MARGIN, content_y), line, font=content_font, fill="black", spacing=content_letter_spacing)
+        draw.text((SLIDE_TEXT_SIDE_MARGIN, content_y), line, font=content_font, fill="black", spacing=content_letter_spacing)
         content_y += content_line_height
     
     output = BytesIO()
@@ -432,7 +438,7 @@ def generate_cover_slide(
     # Je positionne le logo à ~30% de cet espace = 320px
     cover_logo_path = os.path.join(ASSETS_DIR, "Logo_slide_0.png")
     cover_logo_height = 0
-    cover_logo_top = 320  # Ajusté pour Stories (vs 213 pour Doss')
+    cover_logo_top = 270  # -50px
     if os.path.exists(cover_logo_path):
         cover_logo = Image.open(cover_logo_path).convert("RGBA")
         # Réduire la taille ÷ 1,1
@@ -442,7 +448,7 @@ def generate_cover_slide(
         cover_logo_height = cover_logo.size[1]
         canvas.alpha_composite(cover_logo, (45, cover_logo_top))
     
-    # Hook en 4 lignes : 51px sous le logo, 50px left
+    # Hook en 4 lignes : gap augmenté (logo -> hook) pour plus d'air
     # Format : "LIGNE1|Lignes 2 à 4" (séparateur |)
     # Ligne 1 : Inter Bold 88px, letter spacing -9%, MAJUSCULES
     # Lignes 2-4 : Manrope SemiBold 52px, letter spacing -1%
@@ -459,8 +465,8 @@ def generate_cover_slide(
         hook_line1_text = words[0].upper() if words else ""
         hook_line23_text = " ".join(words[1:]) if len(words) > 1 else ""
     
-    # Position de départ : cover_logo_top + hauteur du logo + 51px
-    hook_y = cover_logo_top + cover_logo_height + 51
+    cover_logo_to_hook_gap = 101  # +50px vs avant
+    hook_y = cover_logo_top + cover_logo_height + cover_logo_to_hook_gap
     hook_x = 50
     
     # LIGNE 1 : Sujet principal (Inter Bold 100px, -9%)
