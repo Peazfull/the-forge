@@ -7,7 +7,6 @@ def render_sidebar():
         # LOGO
         st.image("front/layout/assets/Theforge_logo.png", width=200)
 
-
         # HOME
         if st.button("🏠 Home", key="home", use_container_width=True):
             st.session_state.current_page = None
