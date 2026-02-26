@@ -224,6 +224,18 @@ def _generate_breaking_slides(
         if os.path.exists(outro_path):
             with open(outro_path, "rb") as f:
                 _upload_breaking_slide("slide_outro.png", f.read())
+
+        # Générer + sauvegarder la caption en même temps que les slides
+        try:
+            caption_result = generate_caption_from_breaking(slide_1_title, slide_1_content)
+            if caption_result.get("status") == "success":
+                caption = caption_result.get("caption", "")
+                if caption:
+                    st.session_state.breaking_caption_text_area = caption
+                    upload_caption_text(caption)
+        except Exception:
+            # Ne pas bloquer la génération des slides si la caption échoue
+            pass
     st.success("✅ Slides générées")
 
 
@@ -453,7 +465,7 @@ with col_img1:
                     state["image_url_1"] = _with_cache_buster(url, str(time.time()))
                     _save_breaking_state(state)
                     st.success("✅ Image 1 générée")
-                    _auto_generate_slides_if_ready(state, title, content)
+                    _auto_generate_slides_if_ready(state, slide_0_hook, slide_1_title, slide_1_content)
                     st.rerun()
             else:
                 st.error(result.get("message", "Erreur image 1"))
@@ -610,8 +622,8 @@ with st.expander("📝 Caption Instagram", expanded=False):
     col_gen, col_save = st.columns(2)
     with col_gen:
         if st.button("✨ Générer caption", use_container_width=True):
-            if not title or not content:
-                st.warning("Il faut un titre et un contenu.")
+            if not slide_1_title or not slide_1_content:
+                st.warning("Il faut un titre et un contenu (Slide 1).")
             else:
                 with st.spinner("Génération de la caption..."):
                     result = generate_caption_from_breaking(slide_1_title, slide_1_content)
@@ -667,8 +679,8 @@ with st.expander("💼 Post LinkedIn", expanded=False):
     col_gen, col_save = st.columns(2)
     with col_gen:
         if st.button("✨ Générer post LinkedIn", use_container_width=True):
-            if not title or not content:
-                st.warning("Il faut un titre et un contenu.")
+            if not slide_1_title or not slide_1_content:
+                st.warning("Il faut un titre et un contenu (Slide 1).")
             else:
                 with st.spinner("Génération du post LinkedIn..."):
                     result = generate_linkedin_from_breaking(slide_1_title, slide_1_content)
