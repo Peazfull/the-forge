@@ -359,7 +359,7 @@ def generate_cover_slide(
     # Titre - 51px sous le logo Breaking, centré, taille 50, noir, uppercase, Manrope SemiBold
     title_text = title.strip().upper()
     title_max_width = CANVAS_SIZE[0] - (TITLE_COVER_SIDE_MARGIN * 2)
-    TITLE_COVER_FONT_SIZE = 70
+    TITLE_COVER_FONT_SIZE = 65
     TITLE_FONT_WEIGHT = 600  # SemiBold (changé de 700 Bold)
     FONT_TITLE_COVER_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")  # Changé de Bold à SemiBold
     # IMPORTANT: _fit_text peut réduire la font si ça ne rentre pas dans la boîte.
