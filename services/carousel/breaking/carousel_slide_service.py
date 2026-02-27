@@ -32,14 +32,14 @@ TITLE_BG_TOP = 87  # Position fixe depuis le haut (comme Eco)
 TITLE_BG_SIDE_MARGIN = 50
 LEFT_MARGIN = 60
 RIGHT_MARGIN = 60
-TITLE_COVER_SIDE_MARGIN = 120
+TITLE_COVER_SIDE_MARGIN = 70
 CONTENT_TOP_GAP = 20
 CONTENT_BOTTOM_MARGIN = 20
 DATE_FONT_SIZE = 68  # Augmenté comme Eco
 DATE_FONT_WEIGHT = 600  # SemiBold
 COVER_LOGO_WIDTH = 584
 DATE_TOP_GAP = 12
-COVER_LOGO_REDUCTION_FACTOR = 1.35
+COVER_BREAKING_LOGO_REDUCTION_FACTOR = 1.35
 COVER_TITLE_LINE_HEIGHT_MULT = 1.2
 
 # Polices Inter comme Eco
@@ -332,10 +332,7 @@ def generate_cover_slide(
     logo_path = os.path.join(ASSETS_DIR, "Logo.png")
     if os.path.exists(logo_path):
         logo = Image.open(logo_path).convert("RGBA")
-        logo_size = (
-            int((LOGO_SIZE[0] * 2) / COVER_LOGO_REDUCTION_FACTOR),
-            int((LOGO_SIZE[1] * 2) / COVER_LOGO_REDUCTION_FACTOR),
-        )
+        logo_size = (LOGO_SIZE[0] * 2, LOGO_SIZE[1] * 2)  # 400×130
         logo = logo.resize(logo_size, Image.LANCZOS)
         logo_x = (CANVAS_SIZE[0] - logo_size[0]) // 2
         canvas.alpha_composite(logo, (logo_x, 0))  # 0px du haut
@@ -346,6 +343,13 @@ def generate_cover_slide(
     cover_logo_width = 0
     if os.path.exists(cover_logo_path):
         cover_logo = Image.open(cover_logo_path).convert("RGBA")
+        cover_logo = cover_logo.resize(
+            (
+                int(cover_logo.size[0] / COVER_BREAKING_LOGO_REDUCTION_FACTOR),
+                int(cover_logo.size[1] / COVER_BREAKING_LOGO_REDUCTION_FACTOR),
+            ),
+            Image.LANCZOS,
+        )
         cover_logo_height = cover_logo.size[1]
         cover_logo_width = cover_logo.size[0]
         # Centrer horizontalement
@@ -355,7 +359,7 @@ def generate_cover_slide(
     # Titre - 51px sous le logo Breaking, centré, taille 50, noir, uppercase, Manrope SemiBold
     title_text = title.strip().upper()
     title_max_width = CANVAS_SIZE[0] - (TITLE_COVER_SIDE_MARGIN * 2)
-    TITLE_COVER_FONT_SIZE = 55
+    TITLE_COVER_FONT_SIZE = 70
     TITLE_FONT_WEIGHT = 600  # SemiBold (changé de 700 Bold)
     FONT_TITLE_COVER_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")  # Changé de Bold à SemiBold
     title_font, title_lines = _fit_text(
