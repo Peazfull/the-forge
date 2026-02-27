@@ -39,6 +39,8 @@ DATE_FONT_SIZE = 68  # Augmenté comme Eco
 DATE_FONT_WEIGHT = 600  # SemiBold
 COVER_LOGO_WIDTH = 584
 DATE_TOP_GAP = 12
+COVER_LOGO_REDUCTION_FACTOR = 1.35
+COVER_TITLE_LINE_HEIGHT_MULT = 1.2
 
 # Polices Inter comme Eco
 FONT_TITLE_PATH = os.path.join(ASSETS_DIR, "Inter_18pt-Bold.ttf")
@@ -302,7 +304,7 @@ def generate_cover_slide(
         overlay_slide0 = Image.open(overlay_slide0_path).convert("RGBA")
         # Forcer le redimensionnement à 1100px de large (20px de plus que le canvas)
         original_width, original_height = overlay_slide0.size
-        target_width = 1100  # 20px de plus pour gérer les strokes/patterns
+        target_width = 1160  # laisse plus de marge visuelle avec hook plus grand
         scale = target_width / original_width
         target_height = int(original_height * scale)
         overlay_height = target_height  # Sauvegarder pour le Swipe
@@ -330,7 +332,10 @@ def generate_cover_slide(
     logo_path = os.path.join(ASSETS_DIR, "Logo.png")
     if os.path.exists(logo_path):
         logo = Image.open(logo_path).convert("RGBA")
-        logo_size = (LOGO_SIZE[0] * 2, LOGO_SIZE[1] * 2)  # 400×130
+        logo_size = (
+            int((LOGO_SIZE[0] * 2) / COVER_LOGO_REDUCTION_FACTOR),
+            int((LOGO_SIZE[1] * 2) / COVER_LOGO_REDUCTION_FACTOR),
+        )
         logo = logo.resize(logo_size, Image.LANCZOS)
         logo_x = (CANVAS_SIZE[0] - logo_size[0]) // 2
         canvas.alpha_composite(logo, (logo_x, 0))  # 0px du haut
@@ -350,7 +355,7 @@ def generate_cover_slide(
     # Titre - 51px sous le logo Breaking, centré, taille 50, noir, uppercase, Manrope SemiBold
     title_text = title.strip().upper()
     title_max_width = CANVAS_SIZE[0] - (TITLE_COVER_SIDE_MARGIN * 2)
-    TITLE_COVER_FONT_SIZE = 50  # Changé de 53 à 50
+    TITLE_COVER_FONT_SIZE = 55
     TITLE_FONT_WEIGHT = 600  # SemiBold (changé de 700 Bold)
     FONT_TITLE_COVER_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")  # Changé de Bold à SemiBold
     title_font, title_lines = _fit_text(
@@ -367,7 +372,7 @@ def generate_cover_slide(
     title_y = 176 + cover_logo_height + 51
     
     # Affichage du titre centré
-    title_line_height = int(title_font.size * 1.2)
+    title_line_height = int(title_font.size * COVER_TITLE_LINE_HEIGHT_MULT)
     for line in title_lines:
         line_w = draw.textlength(line, font=title_font)
         line_x = (CANVAS_SIZE[0] - int(line_w)) // 2
