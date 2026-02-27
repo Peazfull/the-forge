@@ -362,11 +362,14 @@ def generate_cover_slide(
     TITLE_COVER_FONT_SIZE = 100
     TITLE_FONT_WEIGHT = 600  # SemiBold (changé de 700 Bold)
     FONT_TITLE_COVER_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")  # Changé de Bold à SemiBold
+    # IMPORTANT: _fit_text peut réduire la font si ça ne rentre pas dans la boîte.
+    # On augmente la hauteur dispo (en se basant sur l'overlay) pour que la font size cible soit atteignable.
+    title_max_height = max(160, (overlay_height or 0) - 120)
     title_font, title_lines = _fit_text(
         draw,
         title_text,
         title_max_width,
-        160,
+        title_max_height,
         start_size=TITLE_COVER_FONT_SIZE,
         font_path=FONT_TITLE_COVER_PATH,
         weight=TITLE_FONT_WEIGHT
