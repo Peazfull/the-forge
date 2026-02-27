@@ -40,7 +40,7 @@ DATE_FONT_WEIGHT = 600  # SemiBold
 COVER_LOGO_WIDTH = 584
 DATE_TOP_GAP = 12
 COVER_BREAKING_LOGO_REDUCTION_FACTOR = 1.35
-COVER_TITLE_LINE_HEIGHT_MULT = 1.2
+COVER_TITLE_LINE_HEIGHT_MULT = 1.35
 
 # Polices Inter comme Eco
 FONT_TITLE_PATH = os.path.join(ASSETS_DIR, "Inter_18pt-Bold.ttf")
@@ -359,7 +359,7 @@ def generate_cover_slide(
     # Titre - 51px sous le logo Breaking, centré, taille 50, noir, uppercase, Manrope SemiBold
     title_text = title.strip().upper()
     title_max_width = CANVAS_SIZE[0] - (TITLE_COVER_SIDE_MARGIN * 2)
-    TITLE_COVER_FONT_SIZE = 70
+    TITLE_COVER_FONT_SIZE = 100
     TITLE_FONT_WEIGHT = 600  # SemiBold (changé de 700 Bold)
     FONT_TITLE_COVER_PATH = os.path.join(ASSETS_DIR, "Manrope-SemiBold.ttf")  # Changé de Bold à SemiBold
     title_font, title_lines = _fit_text(
